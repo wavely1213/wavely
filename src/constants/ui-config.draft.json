@@ -1,0 +1,42 @@
+{
+  "colors": {
+    "light": {
+      "text": "#181527",
+      "textSecondary": "#86829A",
+      "background": "#F6F5FB",
+      "card": "#FFFFFF",
+      "backgroundElement": "#EDE8FE",
+      "backgroundSelected": "#E0E1E6",
+      "border": "#ECEAF3",
+      "primary": "#7C5CFC",
+      "primarySoft": "#EDE8FE",
+      "primaryDeep": "#5E3FE0",
+      "verify": "#11B981",
+      "onPrimary": "#FFFFFF"
+    },
+    "dark": {
+      "text": "#F2F0FA",
+      "textSecondary": "#9A95B5",
+      "background": "#13111F",
+      "card": "#1C1930",
+      "backgroundElement": "#211B3A",
+      "backgroundSelected": "#2A2640",
+      "border": "#2A2640",
+      "primary": "#8B5CF6",
+      "primarySoft": "#211B3A",
+      "primaryDeep": "#A78BFA",
+      "verify": "#11B981",
+      "onPrimary": "#FFFFFF"
+    }
+  },
+  "ui": {
+    "radius": 14,
+    "fontScale": 1,
+    "bannerHeight": 88,
+    "postPaddingV": 11,
+    "postThumb": 64
+  },
+  "assets": {
+    "logo": null
+  }
+}

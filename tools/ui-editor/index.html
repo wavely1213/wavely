@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>와벨리 UI 에디터</title>
+<style>
+  :root { --bg:#0f0e17; --panel:#1a1825; --line:#2a2640; --txt:#f2f0fa; --sub:#9a95b5; --accent:#8b5cf6; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: -apple-system, "Segoe UI", "Malgun Gothic", sans-serif; background:var(--bg); color:var(--txt); }
+  .wrap { display:flex; gap:18px; padding:18px; max-width:1180px; margin:0 auto; align-items:flex-start; }
+  .col-controls { flex:1; min-width:0; }
+  .col-preview { width:390px; position:sticky; top:18px; }
+  h1 { font-size:18px; margin:0 0 4px; }
+  .muted { color:var(--sub); font-size:12.5px; line-height:1.5; }
+  .bar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:14px 0; }
+  button { font-family:inherit; cursor:pointer; border:none; border-radius:10px; font-weight:800; font-size:13px; padding:9px 14px; }
+  .btn-primary { background:var(--accent); color:#fff; }
+  .btn-ghost { background:transparent; color:var(--txt); border:1px solid var(--line); }
+  .btn-save { background:#11b981; color:#fff; }
+  .tabs { display:flex; gap:6px; margin:8px 0 12px; flex-wrap:wrap; }
+  .tab { background:var(--panel); color:var(--sub); border:1px solid var(--line); border-radius:999px; padding:7px 14px; font-weight:800; font-size:12.5px; }
+  .tab.on { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:12px; }
+  .row { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:7px 0; border-bottom:1px solid var(--line); }
+  .row:last-child { border-bottom:none; }
+  .row label { font-size:13px; font-weight:700; }
+  .row .key { color:var(--sub); font-size:10.5px; font-weight:600; }
+  .swatch { display:flex; align-items:center; gap:8px; }
+  input[type=color] { width:40px; height:28px; border:none; border-radius:6px; background:none; cursor:pointer; padding:0; }
+  input[type=text] { width:92px; background:#0f0e17; color:var(--txt); border:1px solid var(--line); border-radius:7px; padding:6px 8px; font-size:12px; font-family:monospace; }
+  input[type=range] { width:170px; accent-color:var(--accent); }
+  .val { font-variant-numeric:tabular-nums; font-weight:800; min-width:46px; text-align:right; }
+  .hide { display:none; }
+  .status { font-size:12px; color:var(--sub); margin-left:auto; }
+  /* ===== 프리뷰 ===== */
+  .phone { border:1px solid var(--line); border-radius:24px; overflow:hidden; box-shadow:0 10px 40px rgba(0,0,0,.5); }
+  .pv-toolbar { display:flex; gap:6px; padding:8px; background:var(--panel); border-bottom:1px solid var(--line); align-items:center; }
+  .pv-toolbar .seg { display:flex; gap:4px; }
+  .pv-toolbar .seg button { padding:5px 11px; font-size:11.5px; border-radius:999px; background:transparent; color:var(--sub); border:1px solid var(--line); }
+  .pv-toolbar .seg button.on { background:var(--accent); color:#fff; border-color:var(--accent); }
+  #preview { height:620px; overflow-y:auto; }
+  /* preview internal uses inline styles driven by JS */
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="col-controls">
+    <h1>🎨 와벨리 UI 에디터</h1>
+    <p class="muted">먼저 <b>[📂 설정 폴더 열기]</b>로 <code>workmate/src/constants</code> 폴더를 선택하세요. (Chrome/Edge 권장)<br>
+    그 다음 <b>①&nbsp;테스트 저장</b> → 실제 앱을 <b>검수 모드</b>로 확인 → 괜찮으면 <b>②&nbsp;실제 적용</b> 순서예요.</p>
+
+    <div class="bar">
+      <button class="btn-ghost" id="openBtn">📂 설정 폴더 열기</button>
+      <button class="btn-ghost" id="dlBtn">⬇️ JSON 내려받기</button>
+      <button class="btn-ghost" id="resetBtn">↩︎ 기본값</button>
+      <span class="status" id="status">폴더 미연결</span>
+    </div>
+
+    <div class="card" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;border-color:var(--accent)">
+      <b style="font-size:12.5px">1단계 · 검수</b>
+      <button class="btn-primary" id="draftBtn" disabled>🧪 테스트 저장</button>
+      <button class="btn-ghost" id="testAppBtn">🔍 테스트 앱 열기</button>
+      <span style="color:var(--line)">|</span>
+      <b style="font-size:12.5px">2단계 · 적용</b>
+      <button class="btn-save" id="applyBtn" disabled>🚀 실제 적용</button>
+      <button class="btn-ghost" id="exitTestBtn">✕ 검수 종료</button>
+    </div>
+
+    <div class="tabs" id="tabs">
+      <div class="tab on" data-tab="light">🌞 라이트 색상</div>
+      <div class="tab" data-tab="dark">🌙 다크 색상</div>
+      <div class="tab" data-tab="size">📐 크기·간격</div>
+      <div class="tab" data-tab="logo">🖼 로고</div>
+    </div>
+
+    <div id="panel-light" class="card"></div>
+    <div id="panel-dark" class="card hide"></div>
+    <div id="panel-size" class="card hide"></div>
+    <div id="panel-logo" class="card hide">
+      <div class="row"><label>앱 로고 이미지</label><input type="file" id="logoFile" accept="image/*" /></div>
+      <div style="padding:12px 0"><img id="logoPrev" style="max-width:160px;max-height:80px;border-radius:8px;display:none" /></div>
+      <button class="btn-ghost" id="logoClear">로고 제거</button>
+      <p class="muted" style="margin-top:10px">로고는 게시판 상단 ‘강원 춘천시’ 옆에 표시돼요. (작은 PNG 권장)</p>
+    </div>
+  </div>
+
+  <div class="col-preview">
+    <div class="pv-toolbar">
+      <b style="font-size:12.5px">미리보기</b>
+      <div class="seg" style="margin-left:auto">
+        <button data-pv="light" class="on">라이트</button>
+        <button data-pv="dark">다크</button>
+      </div>
+    </div>
+    <div class="phone"><div id="preview"></div></div>
+  </div>
+</div>
+
+<script>
+const COLOR_KEYS = [
+  ["primary","메인 컬러"],["primaryDeep","진한 메인"],["primarySoft","연한 메인(칩 배경)"],["onPrimary","메인 위 글자"],
+  ["background","앱 배경"],["card","카드 배경"],["backgroundElement","요소 배경"],["backgroundSelected","선택 배경"],
+  ["border","테두리"],["text","본문 글자"],["textSecondary","보조 글자"],["verify","인증 뱃지(초록)"],
+];
+const UI_KEYS = [
+  ["radius","모서리 둥글기",0,28,1],["fontScale","글자 크기 배율",0.85,1.25,0.01],
+  ["bannerHeight","배너 높이",64,140,1],["postPaddingV","게시글 세로여백",6,22,1],["postThumb","게시글 썸네일",44,92,1],
+];
+const DEFAULTS = {
+  colors:{
+    light:{text:"#181527",textSecondary:"#86829A",background:"#F6F5FB",card:"#FFFFFF",backgroundElement:"#EDE8FE",backgroundSelected:"#E0E1E6",border:"#ECEAF3",primary:"#7C5CFC",primarySoft:"#EDE8FE",primaryDeep:"#5E3FE0",verify:"#11B981",onPrimary:"#FFFFFF"},
+    dark:{text:"#F2F0FA",textSecondary:"#9A95B5",background:"#13111F",card:"#1C1930",backgroundElement:"#211B3A",backgroundSelected:"#2A2640",border:"#2A2640",primary:"#8B5CF6",primarySoft:"#211B3A",primaryDeep:"#A78BFA",verify:"#11B981",onPrimary:"#FFFFFF"},
+  },
+  ui:{radius:14,fontScale:1,bannerHeight:88,postPaddingV:11,postThumb:64},
+  assets:{logo:null},
+};
+let cfg = JSON.parse(JSON.stringify(DEFAULTS));
+let dirHandle = null;
+let pvScheme = "light";
+const APP_URL = "http://localhost:8081";
+const LIVE_FILE = "ui-config.json";
+const DRAFT_FILE = "ui-config.draft.json";
+
+function setStatus(t){ document.getElementById("status").textContent = t; }
+
+// ---- 컨트롤 렌더 ----
+function colorRow(mode, key, label){
+  const v = cfg.colors[mode][key];
+  return `<div class="row">
+    <div><label>${label}</label><div class="key">${key}</div></div>
+    <div class="swatch">
+      <input type="color" value="${v}" data-cmode="${mode}" data-ckey="${key}" />
+      <input type="text" value="${v}" data-tmode="${mode}" data-tkey="${key}" />
+    </div></div>`;
+}
+function renderColors(){
+  document.getElementById("panel-light").innerHTML = COLOR_KEYS.map(([k,l])=>colorRow("light",k,l)).join("");
+  document.getElementById("panel-dark").innerHTML = COLOR_KEYS.map(([k,l])=>colorRow("dark",k,l)).join("");
+}
+function renderSizes(){
+  document.getElementById("panel-size").innerHTML = UI_KEYS.map(([k,l,mn,mx,st])=>{
+    const v = cfg.ui[k];
+    return `<div class="row">
+      <div><label>${l}</label><div class="key">${k}</div></div>
+      <div class="swatch"><input type="range" min="${mn}" max="${mx}" step="${st}" value="${v}" data-uk="${k}"/>
+      <span class="val" data-ukval="${k}">${v}</span></div></div>`;
+  }).join("");
+}
+function renderLogo(){
+  const img = document.getElementById("logoPrev");
+  if(cfg.assets.logo){ img.src = cfg.assets.logo; img.style.display="block"; } else { img.style.display="none"; }
+}
+
+// ---- 이벤트 ----
+document.addEventListener("input", (e)=>{
+  const t = e.target;
+  if(t.dataset.cmode){ // color picker
+    cfg.colors[t.dataset.cmode][t.dataset.ckey] = t.value.toUpperCase();
+    const tx = document.querySelector(`input[data-tmode="${t.dataset.cmode}"][data-tkey="${t.dataset.ckey}"]`);
+    if(tx) tx.value = t.value.toUpperCase(); paint();
+  } else if(t.dataset.tmode){ // hex text
+    let val = t.value.trim(); if(/^#?[0-9a-fA-F]{6}$/.test(val)){ if(val[0]!=="#") val="#"+val; cfg.colors[t.dataset.tmode][t.dataset.tkey]=val.toUpperCase();
+      const cp=document.querySelector(`input[data-cmode="${t.dataset.tmode}"][data-ckey="${t.dataset.tkey}"]`); if(cp) cp.value=val; paint(); }
+  } else if(t.dataset.uk){ // slider
+    let v = parseFloat(t.value); cfg.ui[t.dataset.uk]=v;
+    const lab=document.querySelector(`[data-ukval="${t.dataset.uk}"]`); if(lab) lab.textContent = (t.dataset.uk==="fontScale")? v.toFixed(2): v;
+    paint();
+  }
+});
+document.getElementById("logoFile").addEventListener("change", (e)=>{
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader(); r.onload = ()=>{ cfg.assets.logo = r.result; renderLogo(); paint(); }; r.readAsDataURL(f);
+});
+document.getElementById("logoClear").addEventListener("click", ()=>{ cfg.assets.logo=null; renderLogo(); paint(); });
+
+// 탭
+document.getElementById("tabs").addEventListener("click",(e)=>{
+  const tab=e.target.closest(".tab"); if(!tab) return;
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on")); tab.classList.add("on");
+  ["light","dark","size","logo"].forEach(p=>document.getElementById("panel-"+p).classList.toggle("hide", p!==tab.dataset.tab));
+});
+// 프리뷰 라이트/다크
+document.querySelectorAll('[data-pv]').forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll('[data-pv]').forEach(x=>x.classList.remove("on")); b.classList.add("on"); pvScheme=b.dataset.pv; paint();
+}));
+
+// ---- 폴더 열기 + 2단계 저장 ----
+document.getElementById("openBtn").addEventListener("click", async ()=>{
+  try{
+    if(!window.showDirectoryPicker){ alert("이 브라우저는 직접 저장이 안 돼요. Chrome/Edge를 쓰거나 ‘JSON 내려받기’로 받아서 교체하세요."); return; }
+    dirHandle = await window.showDirectoryPicker();
+    // 현재 live 값을 불러와 시작점으로
+    try{
+      const fh = await dirHandle.getFileHandle(LIVE_FILE);
+      const loaded = JSON.parse(await (await fh.getFile()).text());
+      cfg = { colors:{light:{...DEFAULTS.colors.light,...(loaded.colors?.light||{})}, dark:{...DEFAULTS.colors.dark,...(loaded.colors?.dark||{})}},
+              ui:{...DEFAULTS.ui,...(loaded.ui||{})}, assets:{...DEFAULTS.assets,...(loaded.assets||{})} };
+      renderColors(); renderSizes(); renderLogo(); paint();
+    }catch(_){ /* 파일 없으면 기본값 유지 */ }
+    document.getElementById("draftBtn").disabled = false;
+    document.getElementById("applyBtn").disabled = false;
+    setStatus("연결됨: "+dirHandle.name+" 폴더");
+  }catch(err){ if(err.name!=="AbortError") setStatus("열기 실패: "+err.message); }
+});
+async function writeTo(filename){
+  const fh = await dirHandle.getFileHandle(filename, { create:true });
+  const w = await fh.createWritable(); await w.write(JSON.stringify(cfg, null, 2)); await w.close();
+}
+// 1단계: 검수용(draft) 저장
+document.getElementById("draftBtn").addEventListener("click", async ()=>{
+  if(!dirHandle) return;
+  try{ await writeTo(DRAFT_FILE); setStatus("🧪 테스트 저장 완료 — [테스트 앱 열기]로 확인하세요"); }
+  catch(e){ setStatus("저장 실패: "+e.message); }
+});
+// 2단계: 실서비스(live) 적용
+document.getElementById("applyBtn").addEventListener("click", async ()=>{
+  if(!dirHandle) return;
+  if(!confirm("이 값을 실제 앱(live)에 적용할까요?\n실제 사용자에게 보이는 디자인이 바뀝니다.")) return;
+  try{ await writeTo(LIVE_FILE); await writeTo(DRAFT_FILE); setStatus("🚀 실제 적용 완료 — 앱이 곧 새로고침돼요"); }
+  catch(e){ setStatus("적용 실패: "+e.message); }
+});
+// 검수 모드로 앱 열기 / 종료
+document.getElementById("testAppBtn").addEventListener("click", ()=> window.open(APP_URL+"/?ui=test","wavely_app"));
+document.getElementById("exitTestBtn").addEventListener("click", ()=> window.open(APP_URL+"/?ui=live","wavely_app"));
+document.getElementById("dlBtn").addEventListener("click", ()=>{
+  const blob = new Blob([JSON.stringify(cfg,null,2)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="ui-config.json"; a.click();
+});
+document.getElementById("resetBtn").addEventListener("click", ()=>{
+  if(!confirm("기본값으로 되돌릴까요?")) return; cfg=JSON.parse(JSON.stringify(DEFAULTS)); renderColors(); renderSizes(); renderLogo(); paint();
+});
+
+// ---- 실시간 미리보기 (앱 화면 목업) ----
+function paint(){
+  const C = cfg.colors[pvScheme], U = cfg.ui, fs = U.fontScale, R = U.radius;
+  const f = (n)=> (n*fs).toFixed(1)+"px";
+  const logo = cfg.assets.logo ? `<img src="${cfg.assets.logo}" style="height:${20*fs}px;border-radius:5px;vertical-align:middle;margin-right:6px"/>` : "";
+  const post = (title, body, img, comments)=>`
+    <div style="display:flex;gap:12px;padding:${U.postPaddingV}px 16px;border-bottom:1px solid ${C.border};background:${C.card}">
+      ${img?`<div style="width:${U.postThumb}px;height:${U.postThumb}px;border-radius:${Math.min(R,12)}px;background:${C.primarySoft};flex:none"></div>`:""}
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">
+          <div style="width:${22*fs}px;height:${22*fs}px;border-radius:50%;background:${C.primarySoft}"></div>
+          <span style="font-size:${f(13)};font-weight:700;color:${C.text}">익명</span>
+          <span style="font-size:${f(11)};font-weight:800;color:${C.primary};background:${C.primarySoft};padding:2px 7px;border-radius:6px">자유</span>
+          <span style="margin-left:auto;font-size:${f(11)};color:${C.textSecondary}">💬 ${comments}　${ "5일"}</span>
+        </div>
+        <div style="font-size:${f(15)};font-weight:700;color:${C.text};margin-bottom:2px">${title}</div>
+        <div style="font-size:${f(13)};color:${C.textSecondary}">${body}</div>
+      </div>
+    </div>`;
+  document.getElementById("preview").innerHTML = `
+  <div style="background:${C.background};min-height:620px;font-family:inherit">
+    <div style="padding:12px 16px;background:${C.card};border-bottom:1px solid ${C.border}">
+      <div style="font-size:${f(18)};font-weight:800;color:${C.text}">${logo}강원 춘천시 ▾</div>
+      <div style="font-size:${f(11)};font-weight:700;color:${C.textSecondary};margin-top:2px">우리 동네 커뮤니티 · 익명으로 편하게</div>
+    </div>
+    <div style="display:flex;gap:7px;padding:11px 16px;background:${C.card};border-bottom:1px solid ${C.border}">
+      ${["전체","자유","홍보","사장님"].map((t,i)=>`<span style="padding:7px 13px;border-radius:999px;font-size:${f(13)};font-weight:700;background:${i===0?C.primary:C.background};color:${i===0?C.onPrimary:C.textSecondary}">${t}</span>`).join("")}
+    </div>
+    <!-- 광고 스트립 배너 -->
+    <div style="display:flex;align-items:center;height:${U.bannerHeight}px;margin:12px;border-radius:${R}px;border:1.5px solid ${hexA(C.primary,.55)};background:${C.primarySoft};overflow:hidden">
+      <div style="position:relative;width:124px;height:100%;background:linear-gradient(135deg,${C.primary},${C.primaryDeep})">
+        <div style="position:absolute;inset:0;background:linear-gradient(90deg,transparent 50%,${C.primarySoft})"></div>
+        <span style="position:absolute;top:7px;left:7px;background:rgba(0,0,0,.5);color:#fff;font-size:9.5px;font-weight:800;padding:2px 6px;border-radius:4px">광고</span>
+      </div>
+      <div style="flex:1;padding:0 8px 0 4px">
+        <div style="font-size:${f(15)};font-weight:800;color:${C.text}">오픈기념</div>
+        <div style="font-size:${f(12)};font-weight:600;color:${C.textSecondary}">모토모토 · 카페</div>
+      </div>
+      <div style="margin-right:12px;background:${C.primary};color:${C.onPrimary};font-size:${f(12.5)};font-weight:800;padding:7px 14px;border-radius:999px">보기</div>
+    </div>
+    ${post("오늘 점심 추천받아요","춘천 시내 가성비 맛집 어디 없을까요?","img",3)}
+    ${post("첫 게시글은 테스트랍니다 :)","TEST.",null,2)}
+    <div style="padding:16px"><div style="background:${C.primary};color:${C.onPrimary};font-size:${f(15)};font-weight:800;text-align:center;padding:14px;border-radius:${R}px">✏️ 글쓰기</div></div>
+    <div style="display:flex;justify-content:space-around;padding:12px;background:${C.card};border-top:1px solid ${C.border}">
+      ${["커뮤니티","우리동네","채팅","내정보"].map((t,i)=>`<span style="font-size:${f(12)};font-weight:700;color:${i===0?C.primary:C.textSecondary}">${t}</span>`).join("")}
+    </div>
+  </div>`;
+}
+function hexA(hex,a){ const h=hex.replace("#",""); return `rgba(${parseInt(h.slice(0,2),16)},${parseInt(h.slice(2,4),16)},${parseInt(h.slice(4,6),16)},${a})`; }
+
+renderColors(); renderSizes(); renderLogo(); paint();
+</script>
+</body>
+</html>
