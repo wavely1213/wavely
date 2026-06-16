@@ -9,7 +9,7 @@ import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 
 const REASONS = ['스팸·광고', '욕설·비방', '음란·불법', '허위정보', '도배', '기타'];
-const TYPE_LABEL: Record<string, string> = { post: '게시글', comment: '댓글', review: '리뷰', store: '매장', place: '장소', user: '사용자' };
+const TYPE_LABEL: Record<string, string> = { post: '게시글', comment: '댓글', review: '리뷰', store: '매장', place: '장소', user: '사용자', market: '중고거래 글', job: '구인구직 글' };
 
 export default function ReportScreen() {
   const scheme = useScheme();

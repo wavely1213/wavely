@@ -14,7 +14,7 @@ const STATUS: Record<string, { label: string; color: string }> = {
   resolved: { label: '조치완료', color: '#11B981' },
   dismissed: { label: '반려', color: '#8A94A6' },
 };
-const TYPE_LABEL: Record<string, string> = { post: '게시글', comment: '댓글', review: '리뷰', store: '매장', place: '장소', user: '사용자' };
+const TYPE_LABEL: Record<string, string> = { post: '게시글', comment: '댓글', review: '리뷰', store: '매장', place: '장소', user: '사용자', market: '중고거래 글', job: '구인구직 글' };
 
 type Rp = { id: string; target_type: string; target_id: string; target_label: string | null; reason: string; detail: string | null; status: string; reporter_nick: string | null; created_at: string };
 
