@@ -72,7 +72,7 @@ export default function CommunityScreen() {
   const scheme = useScheme();
   const c = Colors[scheme];
   const router = useRouter();
-  const { session } = useAuth();
+  const { session, profile } = useAuth();
 
   const params = useLocalSearchParams<{ tag?: string | string[] }>();
   const tag = Array.isArray(params.tag) ? params.tag[0] : params.tag;
@@ -203,6 +203,8 @@ export default function CommunityScreen() {
             { icon: '🛒', label: '중고거래', to: '/market' },
             { icon: '💼', label: '구인구직', to: '/jobs' },
             { icon: '🔔', label: '키워드', to: '/keywords' },
+            // 플레이스 순위는 인증매장 사장님에게만 노출
+            ...(profile?.role === 'owner' && profile?.biz_verified ? [{ icon: '📈', label: '플레이스', to: '/place-rank' }] : []),
           ].map((q) => (
             <Pressable key={q.to} onPress={() => router.push(q.to as any)} style={styles.quickItem}>
               <View style={[styles.quickIcon, { backgroundColor: c.primarySoft }]}><Text style={{ fontSize: 21 }}>{q.icon}</Text></View>
