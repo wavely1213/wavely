@@ -65,6 +65,7 @@ export default function AccountScreen() {
           <Row icon="💼" label="구인구직" onPress={() => router.push('/jobs')} />
           <Row icon="🔥" label="인기글" onPress={() => router.push('/hot')} />
           <Row icon="🔔" label="키워드 알림" onPress={() => router.push('/keywords')} />
+          <Row icon="📈" label="플레이스 분석 (사장님)" onPress={() => router.push('/place-rank')} />
 
           <Text style={[styles.menuHead, { color: c.textSecondary }]}>계정</Text>
           <Row icon="🤝" label="친구" onPress={() => router.push('/friends')} />
@@ -74,7 +75,6 @@ export default function AccountScreen() {
           <Row icon="✏️" label="내 정보 수정" onPress={() => router.push('/account-edit')} />
           {!(profile.role === 'owner' && profile.biz_verified) && <Row icon="💼" label="사업주 인증하기" onPress={() => router.push('/account-edit?biz=1')} />}
           {profile.role === 'owner' && profile.biz_verified && <Row icon="📢" label="광고 센터" onPress={() => router.push('/ad')} />}
-          {profile.role === 'owner' && profile.biz_verified && <Row icon="📈" label="플레이스 순위" onPress={() => router.push('/place-rank')} />}
 
           <Text style={[styles.menuHead, { color: c.textSecondary }]}>참여</Text>
           <Row icon="💡" label={profile.is_admin ? '사용 개선 제안 (관리자 보고서)' : '사용 개선 제안'} onPress={() => router.push('/suggest')} />

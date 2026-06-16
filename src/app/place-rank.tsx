@@ -102,16 +102,16 @@ export default function PlaceRankScreen() {
     <SafeAreaView style={[styles.root, { backgroundColor: c.background }]} edges={['top']}>
       <View style={[styles.header, { borderColor: c.border, backgroundColor: c.card }]}>
         <Pressable onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} hitSlop={8}><Text style={[styles.back, { color: c.text }]}>‹ 뒤로</Text></Pressable>
-        <Text style={[styles.hTitle, { color: c.text }]}>📈 플레이스 순위</Text>
+        <Text style={[styles.hTitle, { color: c.text }]}>📈 플레이스 분석</Text>
         <View style={{ width: 40 }} />
       </View>
 
       {stores.length === 0 ? (
         <View style={styles.center}>
-          <Text style={{ fontSize: 42, marginBottom: 8 }}>📈</Text>
-          <Text style={{ color: c.text, fontWeight: '800', fontSize: 15, textAlign: 'center' }}>인증 매장 사장님 전용 기능이에요</Text>
-          <Text style={{ color: c.textSecondary, fontSize: 13, textAlign: 'center', marginTop: 6, lineHeight: 19 }}>내 매장의 네이버 플레이스 순위를{'\n'}키워드별로 매일 추적해드려요</Text>
-          <Pressable onPress={() => router.push('/account-edit?biz=1')} style={[styles.cta, { backgroundColor: c.primary }]}><Text style={{ color: c.onPrimary, fontWeight: '800' }}>사업주 인증하기</Text></Pressable>
+          <Text style={{ fontSize: 42, marginBottom: 8 }}>🔒</Text>
+          <Text style={{ color: c.text, fontWeight: '800', fontSize: 15, textAlign: 'center' }}>플레이스 분석은 인증 매장 사장님 전용이에요</Text>
+          <Text style={{ color: c.textSecondary, fontSize: 13, textAlign: 'center', marginTop: 6, lineHeight: 19 }}>내 매장의 네이버 플레이스 순위를 키워드별로{'\n'}매일 추적해드려요. 사업주 인증 후 이용할 수 있어요.</Text>
+          <Pressable onPress={() => router.push('/account-edit?biz=1')} style={[styles.cta, { backgroundColor: c.primary }]}><Text style={{ color: c.onPrimary, fontWeight: '800' }}>🔓 사업주 인증하고 이용하기</Text></Pressable>
         </View>
       ) : (
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 60 }}>
