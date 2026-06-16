@@ -135,7 +135,7 @@ export default function WriteScreen() {
   if (!session || !profile) {
     return (
       <SafeAreaView style={[styles.root, { backgroundColor: c.background }]}>
-        <Pressable style={styles.close} onPress={() => router.back()}>
+        <Pressable style={styles.close} onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}>
           <Text style={[styles.closeTxt, { color: c.textSecondary }]}>✕</Text>
         </Pressable>
         <View style={styles.guideBox}>
@@ -187,7 +187,7 @@ export default function WriteScreen() {
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: c.background }]}>
       <View style={[styles.header, { borderColor: c.border }]}>
-        <Pressable onPress={() => router.back()} hitSlop={8}>
+        <Pressable onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} hitSlop={8}>
           <Text style={[styles.closeTxt, { color: c.textSecondary }]}>✕</Text>
         </Pressable>
         <Text style={[styles.headerTitle, { color: c.text }]}>{editId ? '글 수정' : '글쓰기'}</Text>

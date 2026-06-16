@@ -28,6 +28,8 @@ export default function JobDetail() {
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
   const [confirmDel, setConfirmDel] = useState(false);
+  const [chatBusy, setChatBusy] = useState(false);
+  const [chatErr, setChatErr] = useState('');
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -46,20 +48,22 @@ export default function JobDetail() {
   const del = async () => { await supabase.from('jobs').delete().eq('id', id); router.back(); };
   const chat = async () => {
     if (!session) { router.replace('/login'); return; }
-    if (!job) return;
-    const { data: convId } = await supabase.rpc('get_or_create_dm', { target: job.author_id, target_nick: job.profiles?.nickname ?? '회원', me_nick: profile?.nickname ?? '회원' });
-    if (!convId) return;
+    if (!job || chatBusy) return;
+    setChatBusy(true); setChatErr('');
+    const { data: convId, error } = await supabase.rpc('get_or_create_dm', { target: job.author_id, target_nick: job.profiles?.nickname ?? '회원', me_nick: profile?.nickname ?? '회원' });
+    if (error || !convId) { setChatBusy(false); setChatErr('채팅을 열 수 없어요. 상대가 차단했거나 일시적 오류일 수 있어요.'); return; }
     const { count } = await supabase.from('messages').select('id', { count: 'exact', head: true }).eq('conversation_id', convId);
     if (!count) {
       const intro = `[${job.kind === 'hiring' ? '구인' : '구직'}] "${job.title}" 문의드려요!`;
       await supabase.from('messages').insert({ conversation_id: convId, sender_id: session.user.id, sender_nick: profile?.nickname ?? '회원', body: intro });
       await supabase.from('conversations').update({ last_message: intro, last_at: new Date().toISOString() }).eq('id', convId);
     }
+    setChatBusy(false);
     router.push(`/chat/${convId}`);
   };
 
   if (loading) return <SafeAreaView style={[styles.root, { backgroundColor: c.background }]}><ActivityIndicator color={c.primary} style={{ marginTop: 40 }} /></SafeAreaView>;
-  if (!job) return <SafeAreaView style={[styles.root, { backgroundColor: c.background }]} edges={['top']}><View style={[styles.header, { borderColor: c.border }]}><Pressable onPress={() => router.back()}><Text style={[styles.back, { color: c.text }]}>‹ 뒤로</Text></Pressable></View><View style={styles.center}><Text style={{ color: c.textSecondary }}>삭제됐거나 없는 공고예요</Text></View></SafeAreaView>;
+  if (!job) return <SafeAreaView style={[styles.root, { backgroundColor: c.background }]} edges={['top']}><View style={[styles.header, { borderColor: c.border }]}><Pressable onPress={() => (router.canGoBack() ? router.back() : router.replace('/jobs'))}><Text style={[styles.back, { color: c.text }]}>‹ 뒤로</Text></Pressable></View><View style={styles.center}><Text style={{ color: c.textSecondary }}>삭제됐거나 없는 공고예요</Text></View></SafeAreaView>;
 
   const payText = job.pay_type === 'negotiable' || !job.pay ? '협의' : `${PAY_TYPES[job.pay_type ?? ''] ?? ''} ${job.pay.toLocaleString()}원`;
 
@@ -118,9 +122,12 @@ export default function JobDetail() {
       </ScrollView>
 
       {session && !mine ? (
-        <View style={[styles.bottomBar, { backgroundColor: c.card, borderColor: c.border }]}>
-          {job.contact ? <Pressable onPress={() => Linking.openURL(`tel:${job.contact!.replace(/[^0-9]/g, '')}`)} style={[styles.callBtn, { borderColor: c.primary }]}><Text style={{ color: c.primary, fontWeight: '800' }}>📞 전화</Text></Pressable> : null}
-          <Pressable onPress={chat} style={[styles.chatBtn, { backgroundColor: c.primary }]}><Text style={{ color: c.onPrimary, fontWeight: '800', fontSize: 15 }}>💬 채팅 문의</Text></Pressable>
+        <View>
+          {chatErr ? <Pressable onPress={() => setChatErr('')} style={{ backgroundColor: '#E5484D', paddingHorizontal: 14, paddingVertical: 9 }}><Text style={{ color: '#fff', fontWeight: '700', fontSize: 12.5 }}>{chatErr} (탭하여 닫기)</Text></Pressable> : null}
+          <View style={[styles.bottomBar, { backgroundColor: c.card, borderColor: c.border }]}>
+            {job.contact ? <Pressable onPress={() => Linking.openURL(`tel:${job.contact!.replace(/[^0-9]/g, '')}`)} style={[styles.callBtn, { borderColor: c.primary }]}><Text style={{ color: c.primary, fontWeight: '800' }}>📞 전화</Text></Pressable> : null}
+            <Pressable onPress={chat} disabled={chatBusy} style={[styles.chatBtn, { backgroundColor: c.primary, opacity: chatBusy ? 0.6 : 1 }]}><Text style={{ color: c.onPrimary, fontWeight: '800', fontSize: 15 }}>{chatBusy ? '여는 중…' : '💬 채팅 문의'}</Text></Pressable>
+          </View>
         </View>
       ) : null}
     </SafeAreaView>

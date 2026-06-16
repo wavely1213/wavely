@@ -165,7 +165,7 @@ export default function StoreDetailScreen() {
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: c.background }]} edges={['top']}>
       <View style={[styles.header, { borderColor: c.border, backgroundColor: c.card }]}>
-        <Pressable onPress={() => router.back()} hitSlop={8}><Text style={[styles.back, { color: c.text }]}>‹ 뒤로</Text></Pressable>
+        <Pressable onPress={() => (router.canGoBack() ? router.back() : router.replace('/explore'))} hitSlop={8}><Text style={[styles.back, { color: c.text }]}>‹ 뒤로</Text></Pressable>
       </View>
 
       {loading ? (

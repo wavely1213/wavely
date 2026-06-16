@@ -82,7 +82,7 @@ export default function AdScreen() {
     setDaily(((dd as any[]) ?? []).map((r) => ({ d: String(r.d), impressions: Number(r.impressions) || 0, clicks: Number(r.clicks) || 0 })));
     // 광고비 지갑 (잔액·카드·내역)
     const { data: w } = await supabase.rpc('my_wallet');
-    if (w) setWallet(w as any);
+    if (w) setWallet({ balance: 0, unlimited: false, card: null, ledger: [], ...(w as any) });
     if (profile?.is_admin) {
       const { data: pa } = await supabase.from('ads').select('id,store_id,format,plan,bid_amount,monthly_fee,status,ends_at,banner_image,headline,stores(name)').eq('status', 'under_review').order('created_at', { ascending: false });
       setPendingAll((pa as any[]) ?? []);

@@ -34,6 +34,8 @@ export default function MarketDetail() {
   const [item, setItem] = useState<Item | null>(null);
   const [loading, setLoading] = useState(true);
   const [confirmDel, setConfirmDel] = useState(false);
+  const [chatBusy, setChatBusy] = useState(false);
+  const [chatErr, setChatErr] = useState('');
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -54,9 +56,10 @@ export default function MarketDetail() {
   const del = async () => { await supabase.from('market_items').delete().eq('id', id); router.back(); };
   const chat = async () => {
     if (!session) { router.replace('/login'); return; }
-    if (!item) return;
-    const { data: convId } = await supabase.rpc('get_or_create_dm', { target: item.seller_id, target_nick: item.profiles?.nickname ?? '판매자', me_nick: profile?.nickname ?? '회원' });
-    if (!convId) return;
+    if (!item || chatBusy) return;
+    setChatBusy(true); setChatErr('');
+    const { data: convId, error } = await supabase.rpc('get_or_create_dm', { target: item.seller_id, target_nick: item.profiles?.nickname ?? '판매자', me_nick: profile?.nickname ?? '회원' });
+    if (error || !convId) { setChatBusy(false); setChatErr('채팅을 열 수 없어요. 상대가 차단했거나 일시적 오류일 수 있어요.'); return; }
     // 첫 대화면 물건 정보를 첫 메시지로 (이미 대화중이면 그대로 열기 — 중복 방지)
     const { count } = await supabase.from('messages').select('id', { count: 'exact', head: true }).eq('conversation_id', convId);
     if (!count) {
@@ -64,11 +67,12 @@ export default function MarketDetail() {
       await supabase.from('messages').insert({ conversation_id: convId, sender_id: session.user.id, sender_nick: profile?.nickname ?? '회원', body: intro });
       await supabase.from('conversations').update({ last_message: intro, last_at: new Date().toISOString() }).eq('id', convId);
     }
+    setChatBusy(false);
     router.push(`/chat/${convId}`);
   };
 
   if (loading) return <SafeAreaView style={[styles.root, { backgroundColor: c.background }]}><ActivityIndicator color={c.primary} style={{ marginTop: 40 }} /></SafeAreaView>;
-  if (!item) return <SafeAreaView style={[styles.root, { backgroundColor: c.background }]} edges={['top']}><Header c={c} onBack={() => router.back()} /><View style={styles.center}><Text style={{ color: c.textSecondary }}>삭제됐거나 없는 글이에요</Text></View></SafeAreaView>;
+  if (!item) return <SafeAreaView style={[styles.root, { backgroundColor: c.background }]} edges={['top']}><Header c={c} onBack={() => (router.canGoBack() ? router.back() : router.replace('/market'))} /><View style={styles.center}><Text style={{ color: c.textSecondary }}>삭제됐거나 없는 글이에요</Text></View></SafeAreaView>;
 
   const W = Math.min(width, 800);
   return (
@@ -133,9 +137,12 @@ export default function MarketDetail() {
       </ScrollView>
 
       {session && !mine ? (
-        <View style={[styles.bottomBar, { backgroundColor: c.card, borderColor: c.border }]}>
-          <Text style={{ flex: 1, color: c.text, fontWeight: '800', fontSize: 17 }}>{item.price === 0 ? '나눔 🧡' : `${item.price.toLocaleString()}원`}</Text>
-          <Pressable onPress={chat} style={[styles.chatBtn, { backgroundColor: c.primary }]}><Text style={{ color: c.onPrimary, fontWeight: '800', fontSize: 15 }}>💬 채팅하기</Text></Pressable>
+        <View>
+          {chatErr ? <Pressable onPress={() => setChatErr('')} style={{ backgroundColor: '#E5484D', paddingHorizontal: 14, paddingVertical: 9 }}><Text style={{ color: '#fff', fontWeight: '700', fontSize: 12.5 }}>{chatErr} (탭하여 닫기)</Text></Pressable> : null}
+          <View style={[styles.bottomBar, { backgroundColor: c.card, borderColor: c.border }]}>
+            <Text style={{ flex: 1, color: c.text, fontWeight: '800', fontSize: 17 }}>{item.price === 0 ? '나눔 🧡' : `${item.price.toLocaleString()}원`}</Text>
+            <Pressable onPress={chat} disabled={chatBusy} style={[styles.chatBtn, { backgroundColor: c.primary, opacity: chatBusy ? 0.6 : 1 }]}><Text style={{ color: c.onPrimary, fontWeight: '800', fontSize: 15 }}>{chatBusy ? '여는 중…' : '💬 채팅하기'}</Text></Pressable>
+          </View>
         </View>
       ) : null}
     </SafeAreaView>

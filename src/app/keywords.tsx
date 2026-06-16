@@ -41,7 +41,7 @@ export default function KeywordsScreen() {
   if (!session) {
     return (
       <SafeAreaView style={[styles.root, { backgroundColor: c.background }]} edges={['top']}>
-        <Header c={c} onBack={() => router.back()} />
+        <Header c={c} onBack={() => (router.canGoBack() ? router.back() : router.replace('/'))} />
         <View style={styles.center}><Text style={{ color: c.textSecondary }}>로그인 후 이용해주세요</Text></View>
       </SafeAreaView>
     );

@@ -30,10 +30,11 @@ export default function ReportsScreen() {
   const [filter, setFilter] = useState<'all' | 'open'>('open');
 
   const load = useCallback(async () => {
+    if (!isAdmin) { setLoading(false); return; }
     const { data } = await supabase.from('reports').select('id,target_type,target_id,target_label,reason,detail,status,reporter_nick,created_at').order('created_at', { ascending: false }).limit(200);
     setList((data as Rp[]) ?? []);
     setLoading(false);
-  }, []);
+  }, [isAdmin]);
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
   const setStatus = async (id: string, status: string) => { await supabase.from('reports').update({ status }).eq('id', id); load(); };

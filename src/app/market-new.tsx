@@ -101,7 +101,7 @@ export default function MarketNewScreen() {
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: c.background }]} edges={['top']}>
       <View style={[styles.header, { borderColor: c.border }]}>
-        <Pressable onPress={() => router.back()} hitSlop={8}><Text style={[styles.x, { color: c.textSecondary }]}>✕</Text></Pressable>
+        <Pressable onPress={() => (router.canGoBack() ? router.back() : router.replace('/market'))} hitSlop={8}><Text style={[styles.x, { color: c.textSecondary }]}>✕</Text></Pressable>
         <Text style={[styles.hTitle, { color: c.text }]}>{editId ? '글 수정' : '판매하기'}</Text>
         <Pressable onPress={submit} disabled={busy} hitSlop={8}><Text style={{ color: c.primary, fontWeight: '800', fontSize: 15 }}>{busy ? '...' : '등록'}</Text></Pressable>
       </View>

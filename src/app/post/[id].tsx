@@ -58,11 +58,13 @@ export default function PostDetailScreen() {
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
   const addComment = async () => {
-    if (!session || !text.trim()) return;
+    if (!session || !text.trim() || sending) return;
+    const body = text.trim();
     setSending(true);
-    await supabase.from('comments').insert({ post_id: id, author_id: session.user.id, body: text.trim(), anonymous: commentAnon });
-    setText('');
+    const { error } = await supabase.from('comments').insert({ post_id: id, author_id: session.user.id, body, anonymous: commentAnon });
     setSending(false);
+    if (error) { setActionMsg('댓글 등록 실패: ' + error.message); return; }
+    setText('');
     load();
   };
 
@@ -95,7 +97,7 @@ export default function PostDetailScreen() {
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: c.background }]} edges={['top']}>
       <View style={[styles.header, { borderColor: c.border, backgroundColor: c.card, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}>
-        <Pressable onPress={() => router.back()} hitSlop={8}>
+        <Pressable onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} hitSlop={8}>
           <Text style={[styles.back, { color: c.text }]}>‹ 뒤로</Text>
         </Pressable>
         {post && session ? (
@@ -153,7 +155,7 @@ export default function PostDetailScreen() {
 
             {post.place_name ? (
               <Pressable
-                onPress={() => post.place_link && Linking.openURL(post.place_link)}
+                onPress={() => post.place_link && /^https?:\/\//i.test(post.place_link) && Linking.openURL(post.place_link)}
                 style={[styles.placeCard, { backgroundColor: c.primarySoft, borderColor: c.primary }]}>
                 <Text style={[styles.placeName, { color: c.primaryDeep }]}>📍 {post.place_name}</Text>
                 {post.place_address ? <Text style={[styles.placeAddr, { color: c.textSecondary }]}>{post.place_address}</Text> : null}

@@ -78,7 +78,7 @@ export default function JobNewScreen() {
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: c.background }]} edges={['top']}>
       <View style={[styles.header, { borderColor: c.border }]}>
-        <Pressable onPress={() => router.back()} hitSlop={8}><Text style={[styles.x, { color: c.textSecondary }]}>✕</Text></Pressable>
+        <Pressable onPress={() => (router.canGoBack() ? router.back() : router.replace('/jobs'))} hitSlop={8}><Text style={[styles.x, { color: c.textSecondary }]}>✕</Text></Pressable>
         <Text style={[styles.hTitle, { color: c.text }]}>{editId ? '공고 수정' : '공고 올리기'}</Text>
         <Pressable onPress={submit} disabled={busy} hitSlop={8}><Text style={{ color: c.primary, fontWeight: '800', fontSize: 15 }}>{busy ? '...' : '등록'}</Text></Pressable>
       </View>

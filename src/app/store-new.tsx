@@ -231,7 +231,8 @@ export default function StoreFormScreen() {
 
     let error;
     if (mode === 'create') {
-      ({ error } = await supabase.from('stores').insert({ owner_id: session.user.id, ...fields, biz_verified: true }));
+      // biz_verified는 클라이언트에서 절대 설정하지 않음 — 사업자 인증(biz-cert) 통과 시 서버에서만 부여
+      ({ error } = await supabase.from('stores').insert({ owner_id: session.user.id, ...fields }));
     } else if (mode === 'edit') {
       ({ error } = await supabase.from('stores').update(fields).eq('id', id));
     } else {

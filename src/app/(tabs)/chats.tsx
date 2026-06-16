@@ -39,6 +39,7 @@ export default function ChatsTab() {
   const [newCode, setNewCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
+  const [listErr, setListErr] = useState('');
   const [filter, setFilter] = useState<'all' | 'dm' | 'group' | 'store'>('all');
   const [publicRooms, setPublicRooms] = useState<{ id: string; title: string; members: number; lastMessage: string | null }[]>([]);
 
@@ -84,11 +85,12 @@ export default function ChatsTab() {
   }, [session]);
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
-  const accept = async (r: Row) => { await supabase.from('conversation_members').update({ status: 'accepted' }).eq('conversation_id', r.convId).eq('user_id', session!.user.id); load(); };
-  const reject = async (r: Row) => { await supabase.from('conversation_members').delete().eq('conversation_id', r.convId).eq('user_id', session!.user.id); load(); };
+  const accept = async (r: Row) => { const { error } = await supabase.from('conversation_members').update({ status: 'accepted' }).eq('conversation_id', r.convId).eq('user_id', session!.user.id); if (error) { setListErr('처리 실패: ' + error.message); return; } load(); };
+  const reject = async (r: Row) => { const { error } = await supabase.from('conversation_members').delete().eq('conversation_id', r.convId).eq('user_id', session!.user.id); if (error) { setListErr('처리 실패: ' + error.message); return; } load(); };
   const block = async (r: Row) => {
     if (r.otherId) await supabase.from('blocks').insert({ blocker_id: session!.user.id, blocked_id: r.otherId });
-    await supabase.from('conversation_members').delete().eq('conversation_id', r.convId).eq('user_id', session!.user.id);
+    const { error } = await supabase.from('conversation_members').delete().eq('conversation_id', r.convId).eq('user_id', session!.user.id);
+    if (error) { setListErr('처리 실패: ' + error.message); return; }
     load();
   };
 
@@ -101,7 +103,9 @@ export default function ChatsTab() {
     setNewCode(data[0].code); setMode('created'); load();
   };
   const joinPublic = async (roomId: string) => {
-    await supabase.from('conversation_members').insert({ conversation_id: roomId, user_id: session!.user.id, nick: profile?.nickname ?? '회원', status: 'accepted' });
+    const { error } = await supabase.from('conversation_members').insert({ conversation_id: roomId, user_id: session!.user.id, nick: profile?.nickname ?? '회원', status: 'accepted' });
+    // 이미 멤버(중복키)면 그냥 입장, 그 외 오류면 안내
+    if (error && !/duplicate|conflict|23505/i.test(error.message)) { setListErr('입장 실패: ' + error.message); return; }
     router.push(`/chat/${roomId}`);
   };
   const joinGroup = async () => {
@@ -141,6 +145,7 @@ export default function ChatsTab() {
         <Text style={[styles.hTitle, { color: c.text }]}>💬 채팅</Text>
         <Pressable onPress={openMenu} hitSlop={8} style={[styles.newBtn, { backgroundColor: c.primarySoft }]}><Text style={{ color: c.primaryDeep, fontWeight: '800', fontSize: 13 }}>＋ 새 채팅</Text></Pressable>
       </View>
+      {listErr ? <Pressable onPress={() => setListErr('')} style={{ backgroundColor: '#E5484D', paddingHorizontal: 14, paddingVertical: 9 }}><Text style={{ color: '#fff', fontWeight: '700', fontSize: 12.5 }}>{listErr} (탭하여 닫기)</Text></Pressable> : null}
 
       {/* 채팅 카테고리 */}
       <View style={[styles.tabBar, { backgroundColor: c.card, borderColor: c.border }]}>
