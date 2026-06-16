@@ -91,7 +91,12 @@ export default function StoreDetailScreen() {
 
   const canEdit = canEditStore(profile, store);
   const approve = async (req: any) => {
-    await supabase.from('stores').update(req.payload).eq('id', id);
+    // payload는 비소유자가 만든 값이라 신뢰 불가 → 편집 허용 컬럼만 화이트리스트로 반영
+    // (biz_verified·is_ad·owner_id·rating 등 권한/신뢰 필드가 섞여 있어도 무시)
+    const ALLOWED = ['name', 'category', 'categories', 'address', 'hours', 'phone', 'lat', 'lng', 'photo'];
+    const safe: Record<string, any> = {};
+    for (const k of ALLOWED) if (k in (req.payload ?? {})) safe[k] = req.payload[k];
+    if (Object.keys(safe).length) await supabase.from('stores').update(safe).eq('id', id);
     await supabase.from('store_change_requests').update({ status: 'approved' }).eq('id', req.id);
     load();
   };
