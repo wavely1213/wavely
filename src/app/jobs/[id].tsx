@@ -31,10 +31,14 @@ export default function JobDetail() {
 
   const load = useCallback(async () => {
     if (!id) return;
-    const { data } = await supabase.from('jobs').select('*,profiles:author_id(nickname,avatar_url)').eq('id', id).single();
+    // 비로그인은 본문·연락처·작성자 정보 열람 불가 → 기본 정보만
+    const cols = session
+      ? '*,profiles:author_id(nickname,avatar_url)'
+      : 'id,author_id,kind,title,pay_type,pay,work_time,dong,status,created_at';
+    const { data } = await supabase.from('jobs').select(cols).eq('id', id).single();
     setJob((data as unknown as Job) ?? null);
     setLoading(false);
-  }, [id]);
+  }, [id, session]);
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
   const mine = !!session && job?.author_id === session.user.id;
@@ -91,20 +95,29 @@ export default function JobDetail() {
           {job.work_time ? <Text style={{ color: c.primaryDeep, fontSize: 13, marginTop: 4 }}>🕒 {job.work_time}</Text> : null}
         </View>
 
-        {job.body ? <Text style={[styles.body, { color: c.text }]}>{job.body}</Text> : null}
-        {job.contact ? <Text style={[styles.contact, { color: c.textSecondary }]}>📞 연락: {job.contact}</Text> : null}
+        {session && job.body ? <Text style={[styles.body, { color: c.text }]}>{job.body}</Text> : null}
+        {session && job.contact ? <Text style={[styles.contact, { color: c.textSecondary }]}>📞 연락: {job.contact}</Text> : null}
 
-        <View style={[styles.author, { borderColor: c.border }]}>
-          <Avatar url={job.profiles?.avatar_url} fallback="🙂" size={34} bg={c.primarySoft} />
-          <Text style={{ color: c.text, fontWeight: '700', fontSize: 14 }}>{job.profiles?.nickname ?? '회원'}</Text>
-        </View>
+        {session ? (
+          <View style={[styles.author, { borderColor: c.border }]}>
+            <Avatar url={job.profiles?.avatar_url} fallback="🙂" size={34} bg={c.primarySoft} />
+            <Text style={{ color: c.text, fontWeight: '700', fontSize: 14 }}>{job.profiles?.nickname ?? '회원'}</Text>
+          </View>
+        ) : (
+          <Pressable onPress={() => router.push('/login')} style={[styles.gate, { backgroundColor: c.primarySoft, borderColor: c.primary }]}>
+            <Text style={{ fontSize: 28 }}>🔒</Text>
+            <Text style={{ color: c.primaryDeep, fontWeight: '800', fontSize: 14.5, marginTop: 6 }}>상세 내용·문의</Text>
+            <Text style={{ color: c.textSecondary, fontSize: 12.5, marginTop: 4, textAlign: 'center' }}>로그인하면 상세 내용을 보고 바로 문의할 수 있어요</Text>
+            <View style={[styles.gateBtn, { backgroundColor: c.primary }]}><Text style={{ color: c.onPrimary, fontWeight: '800', fontSize: 13.5 }}>로그인 / 가입하기</Text></View>
+          </Pressable>
+        )}
 
         {mine ? (
           <Pressable onPress={toggleStatus} style={[styles.statusBtn, { borderColor: c.border }]}><Text style={{ color: c.text, fontWeight: '800' }}>{job.status === 'open' ? '🔒 마감하기' : '🔓 다시 모집' }</Text></Pressable>
         ) : null}
       </ScrollView>
 
-      {!mine ? (
+      {session && !mine ? (
         <View style={[styles.bottomBar, { backgroundColor: c.card, borderColor: c.border }]}>
           {job.contact ? <Pressable onPress={() => Linking.openURL(`tel:${job.contact!.replace(/[^0-9]/g, '')}`)} style={[styles.callBtn, { borderColor: c.primary }]}><Text style={{ color: c.primary, fontWeight: '800' }}>📞 전화</Text></Pressable> : null}
           <Pressable onPress={chat} style={[styles.chatBtn, { backgroundColor: c.primary }]}><Text style={{ color: c.onPrimary, fontWeight: '800', fontSize: 15 }}>💬 채팅 문의</Text></Pressable>
@@ -128,6 +141,8 @@ const styles = StyleSheet.create({
   contact: { fontSize: 13.5, fontWeight: '700', marginTop: 14 },
   author: { flexDirection: 'row', alignItems: 'center', gap: 9, marginTop: 18, paddingTop: 14, borderTopWidth: 1 },
   statusBtn: { marginTop: 16, paddingVertical: 13, borderRadius: 12, borderWidth: 1, alignItems: 'center' },
+  gate: { marginTop: 18, paddingVertical: 22, paddingHorizontal: 16, borderRadius: 14, borderWidth: 1.5, alignItems: 'center' },
+  gateBtn: { marginTop: 14, paddingHorizontal: 22, paddingVertical: 11, borderRadius: 999 },
   bottomBar: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingVertical: 12, borderTopWidth: 1 },
   callBtn: { paddingHorizontal: 18, paddingVertical: 12, borderRadius: 12, borderWidth: 1.5 },
   chatBtn: { flex: 1, paddingVertical: 12, borderRadius: 12, alignItems: 'center' },

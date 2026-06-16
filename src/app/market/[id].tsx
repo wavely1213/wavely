@@ -37,11 +37,15 @@ export default function MarketDetail() {
 
   const load = useCallback(async () => {
     if (!id) return;
-    const { data } = await supabase.from('market_items').select('*,profiles:seller_id(nickname,avatar_url)').eq('id', id).single();
+    // 비로그인은 본문(body)·판매자 정보 열람 불가 → 기본 정보만
+    const cols = session
+      ? '*,profiles:seller_id(nickname,avatar_url)'
+      : 'id,seller_id,title,price,category,status,images,dong,view_count,created_at';
+    const { data } = await supabase.from('market_items').select(cols).eq('id', id).single();
     setItem((data as unknown as Item) ?? null);
     setLoading(false);
     supabase.rpc('bump_market_view', { p_id: id }).then(() => {});
-  }, [id]);
+  }, [id, session]);
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
   const mine = !!session && item?.seller_id === session.user.id;
@@ -85,21 +89,33 @@ export default function MarketDetail() {
         ) : <View style={{ width: W, height: 120, alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontSize: 40 }}>📦</Text></View>}
 
         <View style={{ padding: 16 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9 }}>
-            <Avatar url={item.profiles?.avatar_url} fallback="🙂" size={38} bg={c.primarySoft} />
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: c.text, fontWeight: '800', fontSize: 14 }}>{item.profiles?.nickname ?? '회원'}</Text>
-              <Text style={{ color: c.textSecondary, fontSize: 12 }}>{item.dong ? `📍${item.dong}` : '춘천'}</Text>
-            </View>
-          </View>
-
-          <View style={[styles.divider, { backgroundColor: c.border }]} />
+          {session ? (
+            <>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9 }}>
+                <Avatar url={item.profiles?.avatar_url} fallback="🙂" size={38} bg={c.primarySoft} />
+                <View style={{ flex: 1 }}>
+                  <Text style={{ color: c.text, fontWeight: '800', fontSize: 14 }}>{item.profiles?.nickname ?? '회원'}</Text>
+                  <Text style={{ color: c.textSecondary, fontSize: 12 }}>{item.dong ? `📍${item.dong}` : '춘천'}</Text>
+                </View>
+              </View>
+              <View style={[styles.divider, { backgroundColor: c.border }]} />
+            </>
+          ) : null}
 
           {item.status !== 'selling' ? <View style={[styles.bigSt, { backgroundColor: item.status === 'sold' ? '#8A94A6' : '#FF9F40' }]}><Text style={{ color: '#fff', fontWeight: '800', fontSize: 12 }}>{item.status === 'sold' ? '거래완료' : '예약중'}</Text></View> : null}
           <Text style={[styles.title, { color: c.text }]}>{item.title}</Text>
-          <Text style={[styles.meta, { color: c.textSecondary }]}>{item.category ?? ''} · {ago(item.created_at)} · 조회 {item.view_count ?? 0}</Text>
+          <Text style={[styles.meta, { color: c.textSecondary }]}>{item.category ?? ''} · {ago(item.created_at)}{session ? ` · 조회 ${item.view_count ?? 0}` : ''}{item.dong ? ` · 📍${item.dong}` : ''}</Text>
           <Text style={[styles.price, { color: c.text }]}>{item.price === 0 ? '나눔 🧡' : `${item.price.toLocaleString()}원`}</Text>
-          {item.body ? <Text style={[styles.body, { color: c.text }]}>{item.body}</Text> : null}
+          {session && item.body ? <Text style={[styles.body, { color: c.text }]}>{item.body}</Text> : null}
+
+          {!session ? (
+            <Pressable onPress={() => router.push('/login')} style={[styles.gate, { backgroundColor: c.primarySoft, borderColor: c.primary }]}>
+              <Text style={{ fontSize: 28 }}>🔒</Text>
+              <Text style={{ color: c.primaryDeep, fontWeight: '800', fontSize: 14.5, marginTop: 6 }}>상세 내용·판매자와 채팅</Text>
+              <Text style={{ color: c.textSecondary, fontSize: 12.5, marginTop: 4, textAlign: 'center' }}>로그인하면 설명을 보고 판매자와 바로 거래할 수 있어요</Text>
+              <View style={[styles.gateBtn, { backgroundColor: c.primary }]}><Text style={{ color: c.onPrimary, fontWeight: '800', fontSize: 13.5 }}>로그인 / 가입하기</Text></View>
+            </Pressable>
+          ) : null}
 
           {mine ? (
             <View style={{ marginTop: 18 }}>
@@ -116,7 +132,7 @@ export default function MarketDetail() {
         </View>
       </ScrollView>
 
-      {!mine ? (
+      {session && !mine ? (
         <View style={[styles.bottomBar, { backgroundColor: c.card, borderColor: c.border }]}>
           <Text style={{ flex: 1, color: c.text, fontWeight: '800', fontSize: 17 }}>{item.price === 0 ? '나눔 🧡' : `${item.price.toLocaleString()}원`}</Text>
           <Pressable onPress={chat} style={[styles.chatBtn, { backgroundColor: c.primary }]}><Text style={{ color: c.onPrimary, fontWeight: '800', fontSize: 15 }}>💬 채팅하기</Text></Pressable>
@@ -158,4 +174,6 @@ const styles = StyleSheet.create({
   stBtn: { flex: 1, paddingVertical: 11, borderRadius: 10, borderWidth: 1, alignItems: 'center' },
   bottomBar: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderTopWidth: 1 },
   chatBtn: { paddingHorizontal: 22, paddingVertical: 12, borderRadius: 12 },
+  gate: { alignItems: 'center', padding: 20, borderRadius: 14, borderWidth: 1.5, marginTop: 18 },
+  gateBtn: { marginTop: 12, paddingHorizontal: 20, paddingVertical: 11, borderRadius: 999 },
 });
