@@ -14,6 +14,7 @@ export default function SecurityScreen() {
   const router = useRouter();
   const { session } = useAuth();
 
+  const [curPw, setCurPw] = useState('');
   const [newPw, setNewPw] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
   const [pwMsg, setPwMsg] = useState('');
@@ -27,13 +28,18 @@ export default function SecurityScreen() {
 
   const changePassword = async () => {
     setPwMsg('');
-    if (newPw.length < 6) { setPwMsg('비밀번호는 6자 이상이에요'); return; }
-    if (newPw !== confirmPw) { setPwMsg('비밀번호가 일치하지 않아요'); return; }
+    if (!curPw) { setPwMsg('현재 비밀번호를 입력해주세요'); return; }
+    if (newPw.length < 6) { setPwMsg('새 비밀번호는 6자 이상이에요'); return; }
+    if (newPw !== confirmPw) { setPwMsg('새 비밀번호가 일치하지 않아요'); return; }
+    if (newPw === curPw) { setPwMsg('현재 비밀번호와 다른 비밀번호를 입력해주세요'); return; }
     setPwBusy(true);
+    // 현재 비밀번호 검증 — 재인증 (남이 세션만으로 비번 못 바꾸게)
+    const { error: vErr } = await supabase.auth.signInWithPassword({ email: session.user.email ?? '', password: curPw });
+    if (vErr) { setPwBusy(false); setPwMsg('현재 비밀번호가 일치하지 않아요'); return; }
     const { error } = await supabase.auth.updateUser({ password: newPw });
     setPwBusy(false);
     if (error) { setPwMsg('변경 실패: ' + error.message); return; }
-    setNewPw(''); setConfirmPw(''); setPwMsg('✅ 비밀번호가 변경됐어요');
+    setCurPw(''); setNewPw(''); setConfirmPw(''); setPwMsg('✅ 비밀번호가 변경됐어요');
   };
 
   const changeEmail = async () => {
@@ -65,6 +71,7 @@ export default function SecurityScreen() {
         </View>
 
         <Text style={[styles.sect, { color: c.text }]}>🔑 비밀번호 변경</Text>
+        <TextInput style={[styles.input, { backgroundColor: c.card, borderColor: c.border, color: c.text }]} placeholder="현재 비밀번호" placeholderTextColor={c.textSecondary} value={curPw} onChangeText={setCurPw} secureTextEntry />
         <TextInput style={[styles.input, { backgroundColor: c.card, borderColor: c.border, color: c.text }]} placeholder="새 비밀번호 (6자 이상)" placeholderTextColor={c.textSecondary} value={newPw} onChangeText={setNewPw} secureTextEntry />
         <TextInput style={[styles.input, { backgroundColor: c.card, borderColor: c.border, color: c.text }]} placeholder="새 비밀번호 확인" placeholderTextColor={c.textSecondary} value={confirmPw} onChangeText={setConfirmPw} secureTextEntry />
         {pwMsg ? <Text style={[styles.msg, { color: pwMsg.startsWith('✅') ? c.verify : '#E5484D' }]}>{pwMsg}</Text> : null}

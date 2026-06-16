@@ -18,8 +18,8 @@ git push -u origin main
 2. **Add New → Project** → 방금 올린 `wavely` 저장소 선택
 3. 설정은 `vercel.json`이 자동 적용 (빌드: `npx expo export --platform web`, 출력: `dist`)
 
-## 3) Root Directory 지정
-- 저장소에 `workmate` 폴더가 들어있으면, Vercel 프로젝트 설정의 **Root Directory**를 `workmate`로 지정
+## 3) Root Directory
+- 저장소를 **workmate 폴더에서 직접** 올렸으므로 repo 루트가 곧 프로젝트 루트예요 → **Root Directory는 기본값(`./`) 그대로** 두면 돼요. (vercel.json이 루트에 있어 자동 인식)
 
 ## 4) 환경변수 등록 (중요!)
 Vercel → Project → **Settings → Environment Variables** 에 `.env`의 값들을 그대로 추가:
