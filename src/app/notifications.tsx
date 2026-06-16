@@ -52,6 +52,13 @@ export default function NotificationsScreen() {
         {items.length > 0 ? <Pressable onPress={clearAll} hitSlop={8}><Text style={{ color: c.textSecondary, fontSize: 12.5, fontWeight: '700' }}>모두 지우기</Text></Pressable> : <View style={{ width: 40 }} />}
       </View>
 
+      {session ? (
+        <Pressable onPress={() => router.push('/keywords')} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: c.primarySoft, paddingHorizontal: 16, paddingVertical: 13 }}>
+          <Text style={{ color: c.primaryDeep, fontWeight: '800', fontSize: 13.5 }}>🔔 키워드 알림 설정</Text>
+          <Text style={{ color: c.primaryDeep, fontWeight: '800', fontSize: 16 }}>›</Text>
+        </Pressable>
+      ) : null}
+
       {!session ? (
         <View style={styles.center}><Text style={{ color: c.textSecondary }}>로그인 후 이용해주세요</Text></View>
       ) : loading ? (
