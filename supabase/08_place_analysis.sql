@@ -72,8 +72,10 @@ notify pgrst, 'reload schema';
 --   루프(예: 10~20초 간격):
 --   a) select * from place_analysis_requests where status='pending' order by requested_at limit 1;
 --   b) update ... set status='running' where id=:id;  (service_role 키 사용)
---   c) 해당 store 의 naver_place_id + place_rank_keywords 로 종합 수집:
+--   c) 해당 store 의 naver_place_id 로 종합 수집 (adlog식 — 키워드 자동 발견):
+--        - place_id가 노출되는 키워드 전체를 자동 탐색(사용자가 키워드 미지정해도 OK)
 --        - 키워드별 오가닉 순위(rank) → place_rankings upsert (store_id,keyword,snap_date)
+--          (place_rank_keywords[사용자 고정 키워드]는 선택사항 — 있으면 우선/병합, 없어도 자동탐색)
 --        - 저장수/방문리뷰/블로그 + N1~3 지수 계산 → place_analysis insert
 --   d) update ... set status='done', finished_at=now() where id=:id;  (실패 시 status='failed', error=...)
 --   RATE 제한(2.5~5초 간격, 일일3000) 준수. service_role 키는 수집기 .env 에만.
