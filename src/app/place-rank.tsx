@@ -74,10 +74,10 @@ export default function PlaceRankScreen() {
     setStores((arr) => arr.map((s) => (s.id === selStore ? { ...s, naver_place_id: v } : s)));
   };
 
-  // 온디맨드 분석: 요청 큐 적재 → 집 PC 수집기 처리 완료까지 폴링
+  // 온디맨드 분석: 요청 큐 적재 → 수집 서버 처리 완료까지 폴링
   const pollAnalysis = useCallback(async (reqId: string, tries: number) => {
     if (!aliveRef.current) return;
-    if (tries > 40) { setAnalyzing(false); setMsg('수집기가 응답하지 않아요. 집 PC 수집기(스케줄러)가 켜져 있는지 확인해주세요.'); return; }
+    if (tries > 40) { setAnalyzing(false); setMsg('지금 분석 서버가 응답하지 않아요. 잠시 후 다시 시도해주세요.'); return; }
     const { data } = await supabase.from('place_analysis_requests').select('status,error').eq('id', reqId).single();
     const st = (data as any)?.status;
     if (st === 'done') { if (!aliveRef.current) return; setAnalyzing(false); setMsg('✅ 분석이 완료됐어요!'); loadStore(selStore); return; }
@@ -90,7 +90,7 @@ export default function PlaceRankScreen() {
     setAnalyzing(true); setMsg('');
     const { data, error } = await supabase.from('place_analysis_requests').insert({ store_id: selStore, requested_by: session!.user.id }).select('id').single();
     if (error || !data) { setAnalyzing(false); setMsg('분석 요청 실패: ' + (error?.message ?? '잠시 후 다시 시도')); return; }
-    setMsg('🔄 분석 요청을 보냈어요. 집 PC 수집기가 노출 키워드 전체를 수집·분석 중이에요…');
+    setMsg('🔄 분석을 시작했어요. 노출 키워드 전체를 수집·분석 중이에요… (최대 1~2분)');
     pollAnalysis((data as any).id, 0);
   };
 
@@ -171,7 +171,7 @@ export default function PlaceRankScreen() {
 
           {placeIdSet && !hasData ? (
             <View style={[styles.card, { backgroundColor: c.card, borderColor: c.border }]}>
-              <Text style={{ color: c.textSecondary, fontSize: 13, lineHeight: 19 }}>아직 분석 결과가 없어요. 위 [🔍 분석 시작]을 누르면 집 PC 수집기가 노출 키워드 전체를 찾아 순위·N지수·저장·리뷰까지 분석해드려요. (수집기가 켜져 있어야 해요)</Text>
+              <Text style={{ color: c.textSecondary, fontSize: 13, lineHeight: 19 }}>아직 분석 결과가 없어요. 위 [🔍 분석 시작]을 누르면 노출 키워드 전체를 찾아 순위·N지수·저장·리뷰까지 분석해드려요. (분석에는 1~2분 걸려요)</Text>
             </View>
           ) : null}
 
