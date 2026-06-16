@@ -72,6 +72,7 @@ export default function StoreFormScreen() {
   const [address, setAddress] = useState('');
   const [hours, setHours] = useState('');
   const [phone, setPhone] = useState('');
+  const [naverPlaceId, setNaverPlaceId] = useState('');
   const [coord, setCoord] = useState<{ lat: number | null; lng: number | null }>({ lat: null, lng: null });
   const [image, setImage] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -148,6 +149,7 @@ export default function StoreFormScreen() {
       setAddress(data.address ?? '');
       setHours(data.hours ?? '');
       setPhone(data.phone ?? '');
+      setNaverPlaceId(data.naver_place_id ?? '');
       setCoord({ lat: data.lat, lng: data.lng });
       setExistingPhoto(data.photo ?? null);
       if (data.lat != null && data.lng != null) {
@@ -227,7 +229,9 @@ export default function StoreFormScreen() {
       if (g && g[0]) { lat = (g[0] as any).lat; lng = (g[0] as any).lng; }
     }
     const cats = category.split(',').map((s) => s.trim()).filter(Boolean);
-    const fields = { name: name.trim(), category: category.trim() || null, categories: cats.length ? cats : null, address: address.trim() || null, hours: hours.trim() || null, phone: phone.trim() || null, lat, lng, photo: photoUrl };
+    const fields = { name: name.trim(), category: category.trim() || null, categories: cats.length ? cats : null, address: address.trim() || null, hours: hours.trim() || null, phone: phone.trim() || null, lat, lng, photo: photoUrl,
+      // 네이버 플레이스 ID: 소유자(create/edit)만 저장 → 플레이스 분석에 자동 사용. 변경신청 경로엔 미포함(승인 화이트리스트에서도 제외)
+      ...(mode !== 'request' ? { naver_place_id: naverPlaceId.trim() || null } : {}) };
 
     let error;
     if (mode === 'create') {
@@ -293,6 +297,12 @@ export default function StoreFormScreen() {
         <TextInput style={[styles.input, { backgroundColor: c.card, borderColor: c.border, color: c.text }]} placeholder="주소" placeholderTextColor={c.textSecondary} value={address} onChangeText={setAddress} />
         <TextInput style={[styles.input, { backgroundColor: c.card, borderColor: c.border, color: c.text }]} placeholder="🕒 영업시간 (예: 매일 10:00–22:00 / 월 휴무)" placeholderTextColor={c.textSecondary} value={hours} onChangeText={setHours} />
         <TextInput style={[styles.input, { backgroundColor: c.card, borderColor: c.border, color: c.text }]} placeholder="📞 매장 안내 전화번호 (예: 033-123-4567)" placeholderTextColor={c.textSecondary} value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+        {mode !== 'request' && (
+          <>
+            <TextInput style={[styles.input, { backgroundColor: c.card, borderColor: c.border, color: c.text }]} placeholder="📈 네이버 플레이스 ID (선택 · 플레이스 분석용)" placeholderTextColor={c.textSecondary} value={naverPlaceId} onChangeText={setNaverPlaceId} keyboardType="number-pad" />
+            <Text style={{ color: c.textSecondary, fontSize: 11.5, marginTop: -4, marginBottom: 2, lineHeight: 16 }}>네이버 지도에서 내 매장 URL의 숫자예요(예: …/place/2006014171). 입력하면 플레이스 분석에 자동으로 쓰여요.</Text>
+          </>
+        )}
 
         <Text style={[styles.label, { color: c.textSecondary, marginTop: 8 }]}>③ 지도에서 정확한 위치 찍기</Text>
         {Platform.OS === 'web' ? (

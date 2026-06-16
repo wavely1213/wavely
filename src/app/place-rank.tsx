@@ -94,7 +94,17 @@ export default function PlaceRankScreen() {
     const rows = snaps.filter((s) => s.keyword === kw); // 이미 snap_date desc 정렬
     return { latest: rows[0] ?? null, prev: rows[1] ?? null };
   };
-  const placeIdSet = !!stores.find((s) => s.id === selStore)?.naver_place_id;
+  const curStore = stores.find((s) => s.id === selStore);
+  const placeIdSet = !!curStore?.naver_place_id;
+
+  // 종합분석 집계 (키워드별 최신 스냅 기준)
+  const latestPerKw = kws.map((k) => byKeyword(k.keyword).latest).filter((s): s is Snap => !!s);
+  const ranked = latestPerKw.filter((s) => s.rank != null) as (Snap & { rank: number })[];
+  const best = ranked.length ? ranked.reduce((a, b) => (b.rank < a.rank ? b : a)) : null;
+  const avgRank = ranked.length ? Math.round(ranked.reduce((a, s) => a + s.rank, 0) / ranked.length) : null;
+  const storeMetric = latestPerKw[0] ?? null; // 저장수·리뷰는 매장 단위 → 아무 최신 스냅
+  const lastDate = snaps[0]?.snap_date ?? null;
+  const hasData = snaps.length > 0;
 
   if (loading) return <SafeAreaView style={[styles.root, { backgroundColor: c.background }]}><ActivityIndicator color={c.primary} style={{ marginTop: 40 }} /></SafeAreaView>;
 
@@ -125,14 +135,38 @@ export default function PlaceRankScreen() {
             </ScrollView>
           )}
 
-          {/* 네이버 연결 */}
+          {/* 내 매장 · 종합분석 요약 */}
           <View style={[styles.card, { backgroundColor: c.card, borderColor: c.border }]}>
-            <Text style={[styles.cardTitle, { color: c.text }]}>네이버 플레이스 연결 {placeIdSet ? '✅' : ''}</Text>
-            <Text style={{ color: c.textSecondary, fontSize: 12, marginBottom: 8, lineHeight: 17 }}>네이버 지도에서 내 매장을 열면 주소 URL에 있는 숫자가 플레이스 ID예요. (예: …/place/<Text style={{ fontWeight: '800', color: c.text }}>2006014171</Text>)</Text>
-            <View style={{ flexDirection: 'row', gap: 8 }}>
-              <TextInput style={[styles.input, { backgroundColor: c.background, borderColor: c.border, color: c.text, flex: 1 }]} placeholder="플레이스 ID (숫자)" placeholderTextColor={c.textSecondary} value={placeIdInput} onChangeText={setPlaceIdInput} keyboardType="number-pad" />
-              <Pressable onPress={savePlaceId} disabled={busy} style={[styles.smallBtn, { backgroundColor: c.primary, opacity: busy ? 0.6 : 1 }]}><Text style={{ color: c.onPrimary, fontWeight: '800' }}>{placeIdSet ? '변경' : '연결'}</Text></Pressable>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: placeIdSet ? 12 : 4 }}>
+              <Text style={[styles.cardTitle, { color: c.text, marginBottom: 0, flex: 1 }]}>🏪 {curStore?.name ?? '내 매장'}</Text>
+              {placeIdSet ? <Text style={{ color: c.primary, fontWeight: '800', fontSize: 12 }}>네이버 연결됨 ✅</Text> : null}
             </View>
+
+            {placeIdSet && hasData ? (
+              <>
+                <View style={styles.statRow}>
+                  <View style={styles.statBox}><Text style={[styles.statVal, { color: c.primaryDeep }]}>{best ? `${best.rank}위` : '-'}</Text><Text style={[styles.statLabel, { color: c.textSecondary }]}>최고 순위</Text></View>
+                  <View style={styles.statBox}><Text style={[styles.statVal, { color: c.text }]}>{avgRank != null ? `${avgRank}위` : '-'}</Text><Text style={[styles.statLabel, { color: c.textSecondary }]}>평균 순위</Text></View>
+                  <View style={styles.statBox}><Text style={[styles.statVal, { color: c.text }]}>{ranked.length}/{kws.length}</Text><Text style={[styles.statLabel, { color: c.textSecondary }]}>노출 키워드</Text></View>
+                </View>
+                <View style={[styles.statRow, { marginTop: 10 }]}>
+                  <View style={styles.statBox}><Text style={[styles.statVal, { color: c.text }]}>{storeMetric?.save_count ?? '-'}</Text><Text style={[styles.statLabel, { color: c.textSecondary }]}>저장수</Text></View>
+                  <View style={styles.statBox}><Text style={[styles.statVal, { color: c.text }]}>{storeMetric?.visitor_review ?? '-'}</Text><Text style={[styles.statLabel, { color: c.textSecondary }]}>방문리뷰</Text></View>
+                  <View style={styles.statBox}><Text style={[styles.statVal, { color: c.text }]}>{storeMetric?.blog_review ?? '-'}</Text><Text style={[styles.statLabel, { color: c.textSecondary }]}>블로그</Text></View>
+                </View>
+                {best ? <Text style={{ color: c.textSecondary, fontSize: 12, marginTop: 12 }}>최고 순위 키워드: <Text style={{ color: c.text, fontWeight: '700' }}>{best.keyword}</Text>{lastDate ? `  ·  최근 수집 ${lastDate}` : ''}</Text> : null}
+              </>
+            ) : placeIdSet ? (
+              <Text style={{ color: c.textSecondary, fontSize: 13, lineHeight: 19 }}>네이버 연결 완료! 매일 새벽 자동 수집되며, 보통 하루 뒤부터 종합분석이 채워져요. 아래에서 추적할 키워드를 추가해두세요.</Text>
+            ) : (
+              <>
+                <Text style={{ color: c.textSecondary, fontSize: 12, marginBottom: 8, lineHeight: 17 }}>내 매장의 네이버 플레이스를 한 번만 연결하면 자동으로 저장돼 매일 분석해드려요. 네이버 지도에서 내 매장 URL의 숫자가 ID예요. (예: …/place/<Text style={{ fontWeight: '800', color: c.text }}>2006014171</Text>)</Text>
+                <View style={{ flexDirection: 'row', gap: 8 }}>
+                  <TextInput style={[styles.input, { backgroundColor: c.background, borderColor: c.border, color: c.text, flex: 1 }]} placeholder="플레이스 ID (숫자)" placeholderTextColor={c.textSecondary} value={placeIdInput} onChangeText={setPlaceIdInput} keyboardType="number-pad" />
+                  <Pressable onPress={savePlaceId} disabled={busy} style={[styles.smallBtn, { backgroundColor: c.primary, opacity: busy ? 0.6 : 1 }]}><Text style={{ color: c.onPrimary, fontWeight: '800' }}>연결</Text></Pressable>
+                </View>
+              </>
+            )}
           </View>
 
           {/* 추적 키워드 */}
@@ -157,10 +191,10 @@ export default function PlaceRankScreen() {
 
           {msg ? <Pressable onPress={() => setMsg('')} style={{ marginBottom: 12 }}><Text style={{ color: msg.startsWith('✅') ? c.primary : '#E5484D', fontWeight: '700', fontSize: 13 }}>{msg}</Text></Pressable> : null}
 
-          {/* 순위 현황 */}
-          <Text style={[styles.sectionTitle, { color: c.text }]}>순위 현황</Text>
+          {/* 키워드별 순위 */}
+          <Text style={[styles.sectionTitle, { color: c.text }]}>키워드별 순위</Text>
           {!placeIdSet ? (
-            <Text style={{ color: c.textSecondary, fontSize: 13, marginTop: 8 }}>먼저 위에서 네이버 플레이스를 연결해주세요.</Text>
+            <Text style={{ color: c.textSecondary, fontSize: 13, marginTop: 8 }}>먼저 위에서 내 매장 네이버 플레이스를 연결해주세요.</Text>
           ) : kws.length === 0 ? (
             <Text style={{ color: c.textSecondary, fontSize: 13, marginTop: 8 }}>추적할 키워드를 추가하면 순위가 표시돼요.</Text>
           ) : snaps.length === 0 ? (
@@ -194,6 +228,14 @@ export default function PlaceRankScreen() {
               );
             })
           )}
+
+          {/* 다른 매장 분석 (경쟁사) — 개발 중 */}
+          <Text style={[styles.sectionTitle, { color: c.text, marginTop: 22 }]}>다른 매장 분석</Text>
+          <View style={[styles.card, { backgroundColor: c.backgroundElement ?? c.card, borderColor: c.border, marginTop: 8, alignItems: 'center', paddingVertical: 22 }]}>
+            <Text style={{ fontSize: 26 }}>🚧</Text>
+            <Text style={{ color: c.text, fontWeight: '800', fontSize: 14, marginTop: 8 }}>개발 중이에요</Text>
+            <Text style={{ color: c.textSecondary, fontSize: 12.5, marginTop: 4, textAlign: 'center', lineHeight: 18 }}>경쟁 매장·관심 매장의 순위 분석 기능을{'\n'}준비하고 있어요. 지금은 내 인증 매장만 분석돼요.</Text>
+          </View>
         </ScrollView>
       )}
     </SafeAreaView>
@@ -214,4 +256,8 @@ const styles = StyleSheet.create({
   input: { borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14 },
   smallBtn: { paddingHorizontal: 16, justifyContent: 'center', borderRadius: 10 },
   kwChip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, borderWidth: 1 },
+  statRow: { flexDirection: 'row', gap: 10 },
+  statBox: { flex: 1, alignItems: 'center' },
+  statVal: { fontSize: 19, fontWeight: '900' },
+  statLabel: { fontSize: 11.5, fontWeight: '600', marginTop: 3 },
 });
