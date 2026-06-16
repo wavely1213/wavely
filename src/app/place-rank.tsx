@@ -114,6 +114,10 @@ export default function PlaceRankScreen() {
 
   const curStore = stores.find((s) => s.id === selStore);
   const placeIdSet = !!curStore?.naver_place_id;
+  // 종합 점수 = 0.5·N1 + 0.25·N2 + 0.25·N3 (docs/플레이스-N지수-계산식.md). N값 다 있을 때만.
+  const nScore = analysis && analysis.n1 != null && analysis.n2 != null && analysis.n3 != null
+    ? Math.round((0.5 * analysis.n1 + 0.25 * analysis.n2 + 0.25 * analysis.n3) * 10) / 10
+    : null;
 
   if (loading) return <SafeAreaView style={[styles.root, { backgroundColor: c.background }]}><ActivityIndicator color={c.primary} style={{ marginTop: 40 }} /></SafeAreaView>;
 
@@ -192,6 +196,12 @@ export default function PlaceRankScreen() {
               {/* 플레이스 지수 + 지표 */}
               <View style={[styles.card, { backgroundColor: c.card, borderColor: c.border }]}>
                 <Text style={[styles.cardTitle, { color: c.text }]}>플레이스 지수</Text>
+                {nScore != null ? (
+                  <View style={{ alignItems: 'center', marginBottom: 14 }}>
+                    <Text style={{ color: c.primaryDeep, fontWeight: '900', fontSize: 34 }}>{nScore}<Text style={{ fontSize: 15, fontWeight: '800' }}> 점</Text></Text>
+                    <Text style={{ color: c.textSecondary, fontSize: 11.5 }}>종합 플레이스 점수 (100점 만점)</Text>
+                  </View>
+                ) : null}
                 <View style={styles.statRow}>
                   <View style={styles.statBox}><Text style={[styles.statVal, { color: c.primaryDeep, fontSize: 16 }]}>{analysis?.n1 ?? '-'}</Text><Text style={[styles.statLabel, { color: c.textSecondary }]}>N1 지수</Text></View>
                   <View style={styles.statBox}><Text style={[styles.statVal, { color: c.primaryDeep, fontSize: 16 }]}>{analysis?.n2 ?? '-'}</Text><Text style={[styles.statLabel, { color: c.textSecondary }]}>N2 지수</Text></View>
