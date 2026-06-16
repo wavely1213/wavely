@@ -90,7 +90,7 @@ export default function PlaceRankScreen() {
     setAnalyzing(true); setMsg('');
     const { data, error } = await supabase.from('place_analysis_requests').insert({ store_id: selStore, requested_by: session!.user.id }).select('id').single();
     if (error || !data) { setAnalyzing(false); setMsg('분석 요청 실패: ' + (error?.message ?? '잠시 후 다시 시도')); return; }
-    setMsg('🔄 분석을 시작했어요. 노출 키워드 전체를 수집·분석 중이에요… (최대 1~2분)');
+    setMsg('🔄 최신 순위를 수집·분석 중이에요… (최대 1~2분, 끝나면 자동 반영)');
     pollAnalysis((data as any).id, 0);
   };
 
@@ -152,10 +152,13 @@ export default function PlaceRankScreen() {
             </View>
 
             {placeIdSet ? (
-              <Pressable onPress={requestAnalysis} disabled={analyzing} style={[styles.analyzeBtn, { backgroundColor: c.primary, opacity: analyzing ? 0.7 : 1 }]}>
-                {analyzing ? <ActivityIndicator color={c.onPrimary} size="small" /> : null}
-                <Text style={{ color: c.onPrimary, fontWeight: '800', fontSize: 14.5 }}>{analyzing ? '  수집·분석 중…' : '🔍 분석 시작'}</Text>
-              </Pressable>
+              <>
+                <Pressable onPress={requestAnalysis} disabled={analyzing} style={[styles.analyzeBtn, { backgroundColor: hasData ? c.card : c.primary, borderWidth: hasData ? 1.5 : 0, borderColor: c.primary, opacity: analyzing ? 0.7 : 1 }]}>
+                  {analyzing ? <ActivityIndicator color={hasData ? c.primary : c.onPrimary} size="small" /> : null}
+                  <Text style={{ color: hasData ? c.primary : c.onPrimary, fontWeight: '800', fontSize: 14.5 }}>{analyzing ? '  갱신 중…' : hasData ? '🔄 최신순위로 갱신' : '🔍 첫 분석 시작'}</Text>
+                </Pressable>
+                <Text style={{ color: c.textSecondary, fontSize: 11.5, marginTop: 8, textAlign: 'center', lineHeight: 16 }}>{hasData ? '자동 수집된 최신 데이터예요. 더 최신으로 갱신하려면 위 버튼 (1~2분)' : '키워드는 안 정해도 노출 키워드 전체를 자동으로 분석해요. 첫 분석은 1~2분, 이후엔 자동 수집돼 열면 바로 떠요.'}</Text>
+              </>
             ) : (
               <>
                 <Text style={{ color: c.textSecondary, fontSize: 12, marginBottom: 8, lineHeight: 17 }}>내 매장의 네이버 플레이스를 한 번만 연결하면 자동으로 저장돼요. 네이버 지도에서 내 매장 URL의 숫자가 ID예요. (예: …/place/<Text style={{ fontWeight: '800', color: c.text }}>2006014171</Text>) 키워드는 따로 안 정해도 노출 키워드 전체를 자동으로 분석해드려요.</Text>
@@ -171,7 +174,7 @@ export default function PlaceRankScreen() {
 
           {placeIdSet && !hasData ? (
             <View style={[styles.card, { backgroundColor: c.card, borderColor: c.border }]}>
-              <Text style={{ color: c.textSecondary, fontSize: 13, lineHeight: 19 }}>아직 분석 결과가 없어요. 위 [🔍 분석 시작]을 누르면 노출 키워드 전체를 찾아 순위·N지수·저장·리뷰까지 분석해드려요. (분석에는 1~2분 걸려요)</Text>
+              <Text style={{ color: c.textSecondary, fontSize: 13, lineHeight: 19 }}>아직 첫 분석 전이에요. 위 [🔍 첫 분석 시작]을 누르면 노출 키워드 전체를 찾아 순위·N지수·저장·리뷰까지 분석해드려요(첫 분석 1~2분). 이후엔 자동으로 수집돼서 열면 바로 떠요.</Text>
             </View>
           ) : null}
 
