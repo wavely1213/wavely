@@ -2,7 +2,7 @@ import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, useColorScheme, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, TextInput, useColorScheme, View } from 'react-native';
 import { useScheme } from '@/lib/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -32,6 +32,34 @@ export default function WriteScreen() {
   useEffect(() => {
     supabase.rpc('dong_list').then(({ data }) => setDongOptions(mergeDongs(((data as any[]) ?? []).map((d) => d.dong))));
   }, []);
+
+  // 동네 미선택 시, 내 위치로 자동 채움 (위치 기반 노출에 잡히게) — 사용자가 다시 바꿀 수 있음
+  useEffect(() => {
+    if (editId || dongParam || dong) return;
+    let alive = true;
+    (async () => {
+      try {
+        let lat: number | undefined, lng: number | undefined;
+        if (Platform.OS === 'web') {
+          const g = (globalThis as any).navigator?.geolocation;
+          if (!g) return;
+          await new Promise<void>((res) => g.getCurrentPosition(
+            (p: any) => { lat = p.coords.latitude; lng = p.coords.longitude; res(); },
+            () => res(), { timeout: 8000, maximumAge: 300000 }));
+        } else {
+          const Location = await import('expo-location');
+          const { status } = await Location.requestForegroundPermissionsAsync();
+          if (status !== 'granted') return;
+          const pos = await Location.getCurrentPositionAsync({});
+          lat = pos.coords.latitude; lng = pos.coords.longitude;
+        }
+        if (lat == null || lng == null) return;
+        const { data } = await supabase.rpc('nearest_dong', { p_lat: lat, p_lng: lng });
+        if (alive && typeof data === 'string' && data) setDong((cur) => cur ?? data);
+      } catch {}
+    })();
+    return () => { alive = false; };
+  }, [editId, dongParam]);
 
   // 수정 모드: 기존 글 불러오기
   useEffect(() => {

@@ -18,6 +18,7 @@ export default function LoginScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [infoMsg, setInfoMsg] = useState('');
+  const [needConfirm, setNeedConfirm] = useState(false);
 
   const resetPassword = async () => {
     setErrorMsg(''); setInfoMsg('');
@@ -29,13 +30,33 @@ export default function LoginScreen() {
   };
 
   const handleLogin = async () => {
-    setErrorMsg('');
+    setErrorMsg(''); setInfoMsg(''); setNeedConfirm(false);
     if (!isSupabaseConfigured) { setErrorMsg('서버 연결 설정이 없어요(.env 확인).'); return; }
     setSubmitting(true);
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password: pw });
     setSubmitting(false);
-    if (error) { setErrorMsg('로그인 실패: ' + error.message); return; }
+    if (error) {
+      const m = (error.message ?? '').toLowerCase();
+      if (m.includes('email not confirmed') || m.includes('not confirmed')) {
+        setNeedConfirm(true);
+        setErrorMsg('이메일 인증이 필요해요. 가입 때 받은 메일의 링크를 눌러주세요. (메일이 안 보이면 스팸함도 확인)');
+      } else if (m.includes('invalid login') || m.includes('invalid credentials')) {
+        setErrorMsg('이메일 또는 비밀번호가 올바르지 않아요.');
+      } else {
+        setErrorMsg('로그인 실패: ' + error.message);
+      }
+      return;
+    }
     router.replace('/');
+  };
+
+  const resendConfirm = async () => {
+    setErrorMsg(''); setInfoMsg('');
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) { setErrorMsg('이메일을 먼저 입력해주세요.'); return; }
+    const { error } = await supabase.auth.resend({ type: 'signup', email: email.trim() });
+    if (error) { setErrorMsg('재발송 실패: ' + error.message); return; }
+    setNeedConfirm(false);
+    setInfoMsg('📧 인증 메일을 다시 보냈어요. 메일함(스팸함 포함)을 확인해주세요.');
   };
 
   const kakaoLogin = async () => {
@@ -108,6 +129,11 @@ export default function LoginScreen() {
 
         {errorMsg ? <Text style={[styles.msg, { color: '#E5484D' }]}>{errorMsg}</Text> : null}
         {infoMsg ? <Text style={[styles.msg, { color: c.verify }]}>{infoMsg}</Text> : null}
+        {needConfirm ? (
+          <Pressable onPress={resendConfirm} hitSlop={8} style={{ alignSelf: 'center', marginTop: 8 }}>
+            <Text style={[styles.link, { color: c.primary, fontWeight: '800' }]}>📧 인증 메일 다시 보내기</Text>
+          </Pressable>
+        ) : null}
 
         <Pressable
           disabled={submitting}
