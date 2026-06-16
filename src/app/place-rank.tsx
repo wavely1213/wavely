@@ -9,10 +9,12 @@ import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 
 type Store = { id: string; name: string; category: string | null; address: string | null; naver_place_id: string | null; biz_verified: boolean };
+type Kw = { id: string; keyword: string };
 type Snap = { keyword: string; rank: number | null; save_count: number | null; visitor_review: number | null; blog_review: number | null; snap_date: string };
 type Analysis = { n1: number | null; n2: number | null; n3: number | null; save_count: number | null; visitor_review: number | null; blog_review: number | null; analyzed_at: string };
 
-const UP = '#E5484D';   // 상승(▲) — 빨강 (플레이스 분석 관행)
+const MAX_KW = 5; // 07_place_rank.sql 트리거 상한과 동일
+const UP = '#E5484D';   // 상승(▲) — 빨강
 const DOWN = '#3B82F6'; // 하락(▼) — 파랑
 
 export default function PlaceRankScreen() {
@@ -23,10 +25,12 @@ export default function PlaceRankScreen() {
 
   const [stores, setStores] = useState<Store[]>([]);
   const [selStore, setSelStore] = useState<string>('');
+  const [kws, setKws] = useState<Kw[]>([]);
   const [snaps, setSnaps] = useState<Snap[]>([]);
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [loading, setLoading] = useState(true);
   const [placeIdInput, setPlaceIdInput] = useState('');
+  const [newKw, setNewKw] = useState('');
   const [msg, setMsg] = useState('');
   const [busy, setBusy] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
@@ -34,7 +38,9 @@ export default function PlaceRankScreen() {
   useEffect(() => () => { aliveRef.current = false; }, []);
 
   const loadStore = useCallback(async (sid: string) => {
-    // 테이블 미생성(07·08 SQL 미적용) 시에도 안전하게 빈 배열 처리
+    // 테이블 미생성 시에도 안전하게 빈 배열 처리
+    const { data: k } = await supabase.from('place_rank_keywords').select('id,keyword').eq('store_id', sid).order('created_at');
+    setKws((k as Kw[]) ?? []);
     const { data: r } = await supabase.from('place_rankings').select('keyword,rank,save_count,visitor_review,blog_review,snap_date').eq('store_id', sid).order('snap_date', { ascending: false });
     setSnaps((r as Snap[]) ?? []);
     const { data: a } = await supabase.from('place_analysis').select('n1,n2,n3,save_count,visitor_review,blog_review,analyzed_at').eq('store_id', sid).order('analyzed_at', { ascending: false }).limit(1);
@@ -70,8 +76,26 @@ export default function PlaceRankScreen() {
     const { error } = await supabase.from('stores').update({ naver_place_id: v }).eq('id', selStore);
     setBusy(false);
     if (error) { setMsg('저장 실패: ' + error.message); return; }
-    setMsg('✅ 네이버 매장이 연결됐어요. [분석 시작]을 누르면 노출 키워드 전체를 분석해드려요.');
+    setMsg('✅ 네이버 매장이 연결됐어요. 분석할 키워드를 추가하고 [분석 시작]을 눌러주세요.');
     setStores((arr) => arr.map((s) => (s.id === selStore ? { ...s, naver_place_id: v } : s)));
+  };
+
+  const addKw = async () => {
+    const v = newKw.trim();
+    if (!v) return;
+    if (kws.length >= MAX_KW) { setMsg(`키워드는 매장당 최대 ${MAX_KW}개까지예요.`); return; }
+    if (kws.some((k) => k.keyword.toLowerCase() === v.toLowerCase())) { setMsg('이미 등록한 키워드예요.'); return; }
+    setBusy(true); setMsg('');
+    const { error } = await supabase.from('place_rank_keywords').insert({ store_id: selStore, keyword: v });
+    setBusy(false);
+    if (error) { setMsg('등록 실패: ' + error.message); return; }
+    setNewKw('');
+    loadStore(selStore);
+  };
+
+  const delKw = async (id: string) => {
+    await supabase.from('place_rank_keywords').delete().eq('id', id);
+    loadStore(selStore);
   };
 
   // 온디맨드 분석: 요청 큐 적재 → 수집 서버 처리 완료까지 폴링
@@ -87,6 +111,7 @@ export default function PlaceRankScreen() {
 
   const requestAnalysis = async () => {
     if (analyzing) return;
+    if (kws.length === 0) { setMsg('먼저 분석할 키워드를 1개 이상 추가해주세요.'); return; }
     setAnalyzing(true); setMsg('');
     const { data, error } = await supabase.from('place_analysis_requests').insert({ store_id: selStore, requested_by: session!.user.id }).select('id').single();
     if (error || !data) { setAnalyzing(false); setMsg('분석 요청 실패: ' + (error?.message ?? '잠시 후 다시 시도')); return; }
@@ -94,7 +119,7 @@ export default function PlaceRankScreen() {
     pollAnalysis((data as any).id, 0);
   };
 
-  // 키워드별 최신 + 직전(추이)
+  // 키워드별 최신 + 직전(추이) — 결과는 place_rankings(snaps) 기준
   const latestByKw = (kw: string) => { const rows = snaps.filter((s) => s.keyword === kw); return { latest: rows[0] ?? null, prev: rows[1] ?? null }; };
   const keywords = Array.from(new Set(snaps.map((s) => s.keyword)));
   const kwRows = keywords.map((kw) => {
@@ -106,18 +131,17 @@ export default function PlaceRankScreen() {
   const total = kwRows.length;
   const top3 = kwRows.filter((r) => r.rank != null && r.rank <= 3).length;
   const top10 = kwRows.filter((r) => r.rank != null && r.rank <= 10).length;
-  const rising = kwRows.filter((r) => r.delta != null && r.delta > 0).length;
-  const falling = kwRows.filter((r) => r.delta != null && r.delta < 0).length;
-  const metric = analysis ?? (snaps[0] as any) ?? null; // 저장수·리뷰: 분석결과 우선, 없으면 최신 스냅
+  const beyond = total - top10;
+  const rising = kwRows.filter((r) => r.delta != null && r.delta > 0);
+  const falling = kwRows.filter((r) => r.delta != null && r.delta < 0);
+  // 노출 점수(0~100): 키워드별 DCG gain 평균. rank1→100, 3→50, 10→29, 권외→0
+  const exposure = total ? Math.round((kwRows.reduce((s, r) => s + (r.rank ? 100 / Math.log2(r.rank + 1) : 0), 0) / total)) : 0;
+  const metric = analysis ?? (snaps[0] as any) ?? null;
   const lastDate = snaps[0]?.snap_date ?? null;
   const hasData = snaps.length > 0;
 
   const curStore = stores.find((s) => s.id === selStore);
   const placeIdSet = !!curStore?.naver_place_id;
-  // 종합 점수 = 0.5·N1 + 0.25·N2 + 0.25·N3 (docs/플레이스-N지수-계산식.md). N값 다 있을 때만.
-  const nScore = analysis && analysis.n1 != null && analysis.n2 != null && analysis.n3 != null
-    ? Math.round((0.5 * analysis.n1 + 0.25 * analysis.n2 + 0.25 * analysis.n3) * 10) / 10
-    : null;
 
   if (loading) return <SafeAreaView style={[styles.root, { backgroundColor: c.background }]}><ActivityIndicator color={c.primary} style={{ marginTop: 40 }} /></SafeAreaView>;
 
@@ -138,7 +162,7 @@ export default function PlaceRankScreen() {
         </View>
       ) : (
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 60 }}>
-          {/* 매장 선택 (여러 개일 때) */}
+          {/* 매장 선택 */}
           {stores.length > 1 && (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 7, paddingBottom: 12 }}>
               {stores.map((s) => {
@@ -159,13 +183,13 @@ export default function PlaceRankScreen() {
               <>
                 <Pressable onPress={requestAnalysis} disabled={analyzing} style={[styles.analyzeBtn, { backgroundColor: hasData ? c.card : c.primary, borderWidth: hasData ? 1.5 : 0, borderColor: c.primary, opacity: analyzing ? 0.7 : 1 }]}>
                   {analyzing ? <ActivityIndicator color={hasData ? c.primary : c.onPrimary} size="small" /> : null}
-                  <Text style={{ color: hasData ? c.primary : c.onPrimary, fontWeight: '800', fontSize: 14.5 }}>{analyzing ? '  갱신 중…' : hasData ? '🔄 최신순위로 갱신' : '🔍 첫 분석 시작'}</Text>
+                  <Text style={{ color: hasData ? c.primary : c.onPrimary, fontWeight: '800', fontSize: 14.5 }}>{analyzing ? '  수집·분석 중…' : hasData ? '🔄 최신순위로 갱신' : '🔍 분석 시작'}</Text>
                 </Pressable>
-                <Text style={{ color: c.textSecondary, fontSize: 11.5, marginTop: 8, textAlign: 'center', lineHeight: 16 }}>{hasData ? '자동 수집된 최신 데이터예요. 더 최신으로 갱신하려면 위 버튼 (1~2분)' : '키워드는 안 정해도 노출 키워드 전체를 자동으로 분석해요. 첫 분석은 1~2분, 이후엔 자동 수집돼 열면 바로 떠요.'}</Text>
+                <Text style={{ color: c.textSecondary, fontSize: 11.5, marginTop: 8, textAlign: 'center', lineHeight: 16 }}>{hasData ? '자동 수집된 최신 데이터예요. 더 최신으로 갱신하려면 위 버튼 (1~2분)' : '아래에 분석할 키워드를 추가한 뒤 [분석 시작]을 누르세요. (1~2분, 이후 자동 수집)'}</Text>
               </>
             ) : (
               <>
-                <Text style={{ color: c.textSecondary, fontSize: 12, marginBottom: 8, lineHeight: 17 }}>내 매장의 네이버 플레이스를 한 번만 연결하면 자동으로 저장돼요. 네이버 지도에서 내 매장 URL의 숫자가 ID예요. (예: …/place/<Text style={{ fontWeight: '800', color: c.text }}>2006014171</Text>) 키워드는 따로 안 정해도 노출 키워드 전체를 자동으로 분석해드려요.</Text>
+                <Text style={{ color: c.textSecondary, fontSize: 12, marginBottom: 8, lineHeight: 17 }}>내 매장의 네이버 플레이스를 한 번만 연결하면 자동으로 저장돼요. 네이버 지도에서 내 매장 URL의 숫자가 ID예요. (예: …/place/<Text style={{ fontWeight: '800', color: c.text }}>2006014171</Text>)</Text>
                 <View style={{ flexDirection: 'row', gap: 8 }}>
                   <TextInput style={[styles.input, { backgroundColor: c.background, borderColor: c.border, color: c.text, flex: 1 }]} placeholder="플레이스 ID (숫자)" placeholderTextColor={c.textSecondary} value={placeIdInput} onChangeText={setPlaceIdInput} keyboardType="number-pad" />
                   <Pressable onPress={savePlaceId} disabled={busy} style={[styles.smallBtn, { backgroundColor: c.primary, opacity: busy ? 0.6 : 1 }]}><Text style={{ color: c.onPrimary, fontWeight: '800' }}>연결</Text></Pressable>
@@ -174,11 +198,33 @@ export default function PlaceRankScreen() {
             )}
           </View>
 
+          {/* 분석 키워드 관리 */}
+          {placeIdSet ? (
+            <View style={[styles.card, { backgroundColor: c.card, borderColor: c.border }]}>
+              <Text style={[styles.cardTitle, { color: c.text }]}>분석 키워드 ({kws.length}/{MAX_KW})</Text>
+              <Text style={{ color: c.textSecondary, fontSize: 12, marginBottom: 10 }}>이 키워드로 검색했을 때 내 매장 순위를 분석해요.</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 7, marginBottom: kws.length ? 12 : 0 }}>
+                {kws.map((k) => (
+                  <View key={k.id} style={[styles.kwChip, { backgroundColor: c.primarySoft, borderColor: c.primary }]}>
+                    <Text style={{ color: c.primaryDeep, fontWeight: '700', fontSize: 13 }}>{k.keyword}</Text>
+                    <Pressable onPress={() => delKw(k.id)} hitSlop={6} accessibilityLabel={`${k.keyword} 키워드 삭제`}><Text style={{ color: c.primaryDeep, fontWeight: '800', fontSize: 14 }}> ✕</Text></Pressable>
+                  </View>
+                ))}
+              </View>
+              {kws.length < MAX_KW && (
+                <View style={{ flexDirection: 'row', gap: 8 }}>
+                  <TextInput style={[styles.input, { backgroundColor: c.background, borderColor: c.border, color: c.text, flex: 1 }]} placeholder="예: 춘천 닭갈비" placeholderTextColor={c.textSecondary} value={newKw} onChangeText={setNewKw} onSubmitEditing={addKw} returnKeyType="done" maxLength={40} />
+                  <Pressable onPress={addKw} disabled={busy || !newKw.trim()} style={[styles.smallBtn, { backgroundColor: c.primary, opacity: busy || !newKw.trim() ? 0.5 : 1 }]}><Text style={{ color: c.onPrimary, fontWeight: '800' }}>추가</Text></Pressable>
+                </View>
+              )}
+            </View>
+          ) : null}
+
           {msg ? <Pressable onPress={() => setMsg('')} style={{ marginBottom: 12 }}><Text style={{ color: msg.startsWith('✅') || msg.startsWith('🔄') ? c.primary : '#E5484D', fontWeight: '700', fontSize: 13, lineHeight: 18 }}>{msg}</Text></Pressable> : null}
 
           {placeIdSet && !hasData ? (
             <View style={[styles.card, { backgroundColor: c.card, borderColor: c.border }]}>
-              <Text style={{ color: c.textSecondary, fontSize: 13, lineHeight: 19 }}>아직 첫 분석 전이에요. 위 [🔍 첫 분석 시작]을 누르면 노출 키워드 전체를 찾아 순위·N지수·저장·리뷰까지 분석해드려요(첫 분석 1~2분). 이후엔 자동으로 수집돼서 열면 바로 떠요.</Text>
+              <Text style={{ color: c.textSecondary, fontSize: 13, lineHeight: 19 }}>아직 분석 결과가 없어요. 키워드를 추가하고 위 [🔍 분석 시작]을 누르면 순위·N지수·저장·리뷰까지 분석해드려요(1~2분). 이후엔 자동으로 수집돼서 열면 바로 떠요.</Text>
             </View>
           ) : null}
 
@@ -189,30 +235,59 @@ export default function PlaceRankScreen() {
                 <View style={styles.statBox}><Text style={[styles.statVal, { color: c.text }]}>{total}</Text><Text style={[styles.statLabel, { color: c.textSecondary }]}>총 키워드</Text></View>
                 <View style={styles.statBox}><Text style={[styles.statVal, { color: c.primaryDeep }]}>{top3}</Text><Text style={[styles.statLabel, { color: c.textSecondary }]}>TOP 3</Text></View>
                 <View style={styles.statBox}><Text style={[styles.statVal, { color: c.primary }]}>{top10}</Text><Text style={[styles.statLabel, { color: c.textSecondary }]}>TOP 10</Text></View>
-                <View style={styles.statBox}><Text style={[styles.statVal, { color: UP }]}>{rising}</Text><Text style={[styles.statLabel, { color: c.textSecondary }]}>상승</Text></View>
-                <View style={styles.statBox}><Text style={[styles.statVal, { color: DOWN }]}>{falling}</Text><Text style={[styles.statLabel, { color: c.textSecondary }]}>하락</Text></View>
+                <View style={styles.statBox}><Text style={[styles.statVal, { color: UP }]}>{rising.length}</Text><Text style={[styles.statLabel, { color: c.textSecondary }]}>상승</Text></View>
+                <View style={styles.statBox}><Text style={[styles.statVal, { color: DOWN }]}>{falling.length}</Text><Text style={[styles.statLabel, { color: c.textSecondary }]}>하락</Text></View>
               </View>
 
-              {/* 플레이스 지수 + 지표 */}
+              {/* 노출 점수 + 지수 + 지표 */}
               <View style={[styles.card, { backgroundColor: c.card, borderColor: c.border }]}>
-                <Text style={[styles.cardTitle, { color: c.text }]}>플레이스 지수</Text>
-                {nScore != null ? (
-                  <View style={{ alignItems: 'center', marginBottom: 14 }}>
-                    <Text style={{ color: c.primaryDeep, fontWeight: '900', fontSize: 34 }}>{nScore}<Text style={{ fontSize: 15, fontWeight: '800' }}> 점</Text></Text>
-                    <Text style={{ color: c.textSecondary, fontSize: 11.5 }}>종합 플레이스 점수 (100점 만점)</Text>
-                  </View>
-                ) : null}
+                <View style={{ alignItems: 'center', marginBottom: 14 }}>
+                  <Text style={{ color: c.primaryDeep, fontWeight: '900', fontSize: 34 }}>{exposure}<Text style={{ fontSize: 15, fontWeight: '800' }}> 점</Text></Text>
+                  <Text style={{ color: c.textSecondary, fontSize: 11.5 }}>노출 점수 (상위노출일수록 ↑, 100점 만점)</Text>
+                </View>
                 <View style={styles.statRow}>
-                  <View style={styles.statBox}><Text style={[styles.statVal, { color: c.primaryDeep, fontSize: 16 }]}>{analysis?.n1 ?? '-'}</Text><Text style={[styles.statLabel, { color: c.textSecondary }]}>N1 지수</Text></View>
                   <View style={styles.statBox}><Text style={[styles.statVal, { color: c.primaryDeep, fontSize: 16 }]}>{analysis?.n2 ?? '-'}</Text><Text style={[styles.statLabel, { color: c.textSecondary }]}>N2 지수</Text></View>
                   <View style={styles.statBox}><Text style={[styles.statVal, { color: c.primaryDeep, fontSize: 16 }]}>{analysis?.n3 ?? '-'}</Text><Text style={[styles.statLabel, { color: c.textSecondary }]}>N3 지수</Text></View>
+                  <View style={styles.statBox}><Text style={[styles.statVal, { color: c.text }]}>{metric?.save_count ?? '-'}</Text><Text style={[styles.statLabel, { color: c.textSecondary }]}>저장수</Text></View>
                 </View>
                 <View style={[styles.statRow, { marginTop: 12 }]}>
-                  <View style={styles.statBox}><Text style={[styles.statVal, { color: c.text }]}>{metric?.save_count ?? '-'}</Text><Text style={[styles.statLabel, { color: c.textSecondary }]}>저장수</Text></View>
                   <View style={styles.statBox}><Text style={[styles.statVal, { color: c.text }]}>{metric?.visitor_review ?? '-'}</Text><Text style={[styles.statLabel, { color: c.textSecondary }]}>방문리뷰</Text></View>
                   <View style={styles.statBox}><Text style={[styles.statVal, { color: c.text }]}>{metric?.blog_review ?? '-'}</Text><Text style={[styles.statLabel, { color: c.textSecondary }]}>블로그</Text></View>
+                  <View style={styles.statBox}><Text style={[styles.statVal, { color: c.text }]}>{beyond}</Text><Text style={[styles.statLabel, { color: c.textSecondary }]}>10위권 밖</Text></View>
                 </View>
                 {lastDate ? <Text style={{ color: c.textSecondary, fontSize: 11.5, marginTop: 12, textAlign: 'right' }}>최근 분석 {analysis ? String(analysis.analyzed_at).slice(0, 16).replace('T', ' ') : lastDate}</Text> : null}
+              </View>
+
+              {/* 급등 / 급락 */}
+              {(rising.length > 0 || falling.length > 0) ? (
+                <View style={{ flexDirection: 'row', gap: 12, marginBottom: 12 }}>
+                  <View style={[styles.card, { backgroundColor: c.card, borderColor: c.border, flex: 1, marginBottom: 0 }]}>
+                    <Text style={{ color: UP, fontWeight: '800', fontSize: 13, marginBottom: 8 }}>📈 급등</Text>
+                    {rising.length ? rising.slice(0, 5).map((r) => (
+                      <View key={r.kw} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3 }}>
+                        <Text style={{ color: c.text, fontSize: 12.5, flex: 1 }} numberOfLines={1}>{r.kw}</Text>
+                        <Text style={{ color: UP, fontWeight: '800', fontSize: 12.5 }}>▲{r.delta}</Text>
+                      </View>
+                    )) : <Text style={{ color: c.textSecondary, fontSize: 12 }}>없음</Text>}
+                  </View>
+                  <View style={[styles.card, { backgroundColor: c.card, borderColor: c.border, flex: 1, marginBottom: 0 }]}>
+                    <Text style={{ color: DOWN, fontWeight: '800', fontSize: 13, marginBottom: 8 }}>📉 급락</Text>
+                    {falling.length ? falling.slice(0, 5).map((r) => (
+                      <View key={r.kw} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3 }}>
+                        <Text style={{ color: c.text, fontSize: 12.5, flex: 1 }} numberOfLines={1}>{r.kw}</Text>
+                        <Text style={{ color: DOWN, fontWeight: '800', fontSize: 12.5 }}>▼{-r.delta!}</Text>
+                      </View>
+                    )) : <Text style={{ color: c.textSecondary, fontSize: 12 }}>없음</Text>}
+                  </View>
+                </View>
+              ) : null}
+
+              {/* 순위 분포 */}
+              <View style={[styles.card, { backgroundColor: c.card, borderColor: c.border }]}>
+                <Text style={[styles.cardTitle, { color: c.text }]}>순위 분포</Text>
+                <DistBar c={c} label="TOP 3" n={top3} total={total} color={c.primaryDeep} />
+                <DistBar c={c} label="TOP 4~10" n={top10 - top3} total={total} color={c.primary} />
+                <DistBar c={c} label="그 외 (10위권 밖)" n={beyond} total={total} color={c.textSecondary} last />
               </View>
 
               {/* 기본정보 */}
@@ -240,7 +315,7 @@ export default function PlaceRankScreen() {
             </>
           ) : null}
 
-          {/* 다른 매장 분석 (경쟁사) — 개발 중 */}
+          {/* 다른 매장 분석 — 개발 중 */}
           <Text style={[styles.sectionTitle, { color: c.text, marginTop: 22 }]}>다른 매장 분석</Text>
           <View style={[styles.card, { backgroundColor: c.backgroundElement ?? c.card, borderColor: c.border, marginTop: 8, alignItems: 'center', paddingVertical: 22 }]}>
             <Text style={{ fontSize: 26 }}>🚧</Text>
@@ -258,6 +333,21 @@ function InfoRow({ c, label, value, last }: { c: any; label: string; value: stri
     <View style={{ flexDirection: 'row', paddingVertical: 8, borderBottomWidth: last ? 0 : 1, borderColor: c.border }}>
       <Text style={{ color: c.textSecondary, fontSize: 13, width: 90 }}>{label}</Text>
       <Text style={{ color: c.text, fontSize: 13, flex: 1, fontWeight: '600' }}>{value}</Text>
+    </View>
+  );
+}
+
+function DistBar({ c, label, n, total, color, last }: { c: any; label: string; n: number; total: number; color: string; last?: boolean }) {
+  const pct = total ? Math.round((n / total) * 100) : 0;
+  return (
+    <View style={{ marginBottom: last ? 0 : 10 }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+        <Text style={{ color: c.text, fontSize: 12.5, fontWeight: '600' }}>{label}</Text>
+        <Text style={{ color: c.textSecondary, fontSize: 12 }}>{n}개 · {pct}%</Text>
+      </View>
+      <View style={{ height: 8, borderRadius: 4, backgroundColor: c.background, overflow: 'hidden' }}>
+        <View style={{ width: `${pct}%`, height: 8, backgroundColor: color, borderRadius: 4 }} />
+      </View>
     </View>
   );
 }
@@ -280,6 +370,7 @@ const styles = StyleSheet.create({
   statBox: { flex: 1, alignItems: 'center' },
   statVal: { fontSize: 19, fontWeight: '900' },
   statLabel: { fontSize: 11, fontWeight: '600', marginTop: 3 },
+  kwChip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, borderWidth: 1 },
   kwRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 11, borderBottomWidth: 1 },
   rankPill: { minWidth: 44, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, alignItems: 'center' },
 });
