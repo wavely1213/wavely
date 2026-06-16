@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, useColorScheme, View } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, useColorScheme, View } from 'react-native';
 import { useScheme } from '@/lib/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -131,6 +131,8 @@ export default function CommunityScreen() {
   useEffect(() => { const t = setTimeout(() => setDebSearch(search), 350); return () => clearTimeout(t); }, [search]);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(async () => { setRefreshing(true); await load(); setRefreshing(false); }, [load]);
 
   const [notifUnread, setNotifUnread] = useState(0);
   useFocusEffect(useCallback(() => {
@@ -210,7 +212,7 @@ export default function CommunityScreen() {
         </View>
       ) : null}
 
-      {loading ? (
+      {loading && !refreshing ? (
         <View style={styles.centerBox}><ActivityIndicator color={c.primary} /></View>
       ) : !session ? (
         anonDenied ? (
@@ -275,7 +277,7 @@ export default function CommunityScreen() {
           <Text style={[styles.emptySub, { color: c.textSecondary }]}>{search ? '다른 검색어로 찾아보세요' : dong ? `${dong}의 첫 글을 남겨보세요!` : '첫 글을 남겨보세요!'}</Text>
         </View>
       ) : (
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 150 }}>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 150 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} colors={[c.primary]} />}>
           {posts.map((p) => {
             const tags = parseHashtags(`${p.title} ${p.body_preview ?? ''}`);
             return (

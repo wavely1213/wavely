@@ -1,6 +1,6 @@
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DongPicker } from '@/components/DongPicker';
@@ -53,6 +53,8 @@ export default function JobsScreen() {
     setLoading(false);
   }, [kind, dong, debSearch]);
   useFocusEffect(useCallback(() => { load(); }, [load]));
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(async () => { setRefreshing(true); await load(); setRefreshing(false); }, [load]);
 
   const TABS: { k: typeof kind; l: string }[] = [{ k: 'all', l: '전체' }, { k: 'hiring', l: '🙋 구인(알바)' }, { k: 'seeking', l: '✋ 구직' }];
 
@@ -79,12 +81,14 @@ export default function JobsScreen() {
         </View>
       </View>
 
-      {loading ? (
+      {loading && !refreshing ? (
         <ActivityIndicator color={c.primary} style={{ marginTop: 30 }} />
       ) : jobs.length === 0 ? (
-        <View style={styles.center}><Text style={{ fontSize: 40, marginBottom: 6 }}>💼</Text><Text style={{ color: c.textSecondary }}>아직 공고가 없어요. 첫 글을 올려보세요!</Text></View>
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} colors={[c.primary]} />}>
+          <View style={styles.center}><Text style={{ fontSize: 40, marginBottom: 6 }}>💼</Text><Text style={{ color: c.textSecondary }}>아직 공고가 없어요. 첫 글을 올려보세요!</Text></View>
+        </ScrollView>
       ) : (
-        <ScrollView contentContainerStyle={{ paddingBottom: 110 }}>
+        <ScrollView contentContainerStyle={{ paddingBottom: 110 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} colors={[c.primary]} />}>
           {jobs.map((j) => (
             <Pressable key={j.id} onPress={() => router.push(`/jobs/${j.id}`)} style={[styles.row, { borderColor: c.border, opacity: j.status === 'closed' ? 0.55 : 1 }]}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
