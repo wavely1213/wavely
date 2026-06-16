@@ -5,6 +5,8 @@ import { useEffect, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { DongPicker } from '@/components/DongPicker';
+import { mergeDongs } from '@/constants/app';
 import { Colors } from '@/constants/theme';
 import { useScheme } from '@/lib/theme';
 import { useAuth } from '@/lib/auth';
@@ -27,8 +29,14 @@ export default function MarketNewScreen() {
   const [cat, setCat] = useState<string>(MARKET_CATS[0]);
   const [body, setBody] = useState('');
   const [dong, setDong] = useState<string | null>(null);
+  const [dongOptions, setDongOptions] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
+
+  // 동네 선택지(GPS가 틀리거나 꺼져 있을 때 직접 고를 수 있게)
+  useEffect(() => {
+    supabase.rpc('dong_list').then(({ data }) => setDongOptions(mergeDongs(((data as any[]) ?? []).map((d) => d.dong))));
+  }, []);
 
   // 동네 자동(GPS)
   useEffect(() => {
@@ -142,8 +150,9 @@ export default function MarketNewScreen() {
 
         <TextInput style={[styles.input, { backgroundColor: c.card, borderColor: c.border, color: c.text, height: 140, textAlignVertical: 'top' }]} placeholder="설명 (상태·구입시기·거래방법 등)" placeholderTextColor={c.textSecondary} value={body} onChangeText={setBody} multiline />
 
-        <Text style={[styles.label, { color: c.textSecondary }]}>거래 동네 {dong ? `· 📍${dong}` : '(위치 자동)'}</Text>
-        {msg ? <Text style={{ color: '#E5484D', fontWeight: '700' }}>{msg}</Text> : null}
+        <Text style={[styles.label, { color: c.textSecondary }]}>거래 동네 {dong ? '· 📍 자동감지됨' : '(위치 자동 — 직접 선택도 가능)'}</Text>
+        <DongPicker value={dong} options={dongOptions} onChange={setDong} allLabel="동네 선택" />
+        {msg ? <Text style={{ color: '#E5484D', fontWeight: '700', marginTop: 8 }}>{msg}</Text> : null}
       </ScrollView>
     </SafeAreaView>
   );

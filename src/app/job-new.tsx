@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { DongPicker } from '@/components/DongPicker';
+import { mergeDongs } from '@/constants/app';
 import { Colors } from '@/constants/theme';
 import { useScheme } from '@/lib/theme';
 import { useAuth } from '@/lib/auth';
@@ -25,8 +27,14 @@ export default function JobNewScreen() {
   const [workTime, setWorkTime] = useState('');
   const [contact, setContact] = useState('');
   const [dong, setDong] = useState<string | null>(null);
+  const [dongOptions, setDongOptions] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
+
+  // 동네 선택지(GPS가 틀리거나 꺼져 있을 때 직접 고를 수 있게)
+  useEffect(() => {
+    supabase.rpc('dong_list').then(({ data }) => setDongOptions(mergeDongs(((data as any[]) ?? []).map((d) => d.dong))));
+  }, []);
 
   useEffect(() => {
     if (editId) return;
@@ -115,8 +123,9 @@ export default function JobNewScreen() {
         <TextInput style={[styles.input, { backgroundColor: c.card, borderColor: c.border, color: c.text, height: 120, textAlignVertical: 'top' }]} placeholder="상세 내용 (업무·자격·우대사항 등)" placeholderTextColor={c.textSecondary} value={body} onChangeText={setBody} multiline />
         <TextInput style={[styles.input, { backgroundColor: c.card, borderColor: c.border, color: c.text }]} placeholder="연락 방법 (선택 · 비우면 앱 채팅으로 받아요)" placeholderTextColor={c.textSecondary} value={contact} onChangeText={setContact} />
 
-        <Text style={[styles.label, { color: c.textSecondary }]}>동네 {dong ? `· 📍${dong}` : '(위치 자동)'}</Text>
-        {msg ? <Text style={{ color: '#E5484D', fontWeight: '700' }}>{msg}</Text> : null}
+        <Text style={[styles.label, { color: c.textSecondary }]}>동네 {dong ? '· 📍 자동감지됨' : '(위치 자동 — 직접 선택도 가능)'}</Text>
+        <DongPicker value={dong} options={dongOptions} onChange={setDong} allLabel="동네 선택" />
+        {msg ? <Text style={{ color: '#E5484D', fontWeight: '700', marginTop: 8 }}>{msg}</Text> : null}
       </ScrollView>
     </SafeAreaView>
   );
