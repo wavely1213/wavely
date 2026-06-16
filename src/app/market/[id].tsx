@@ -51,8 +51,16 @@ export default function MarketDetail() {
   const chat = async () => {
     if (!session) { router.replace('/login'); return; }
     if (!item) return;
-    const { data } = await supabase.rpc('get_or_create_dm', { target: item.seller_id, target_nick: item.profiles?.nickname ?? '판매자', me_nick: profile?.nickname ?? '회원' });
-    if (data) router.push(`/chat/${data}`);
+    const { data: convId } = await supabase.rpc('get_or_create_dm', { target: item.seller_id, target_nick: item.profiles?.nickname ?? '판매자', me_nick: profile?.nickname ?? '회원' });
+    if (!convId) return;
+    // 첫 대화면 물건 정보를 첫 메시지로 (이미 대화중이면 그대로 열기 — 중복 방지)
+    const { count } = await supabase.from('messages').select('id', { count: 'exact', head: true }).eq('conversation_id', convId);
+    if (!count) {
+      const intro = `[중고거래] "${item.title}" (${item.price === 0 ? '나눔' : item.price.toLocaleString() + '원'}) 문의드려요!`;
+      await supabase.from('messages').insert({ conversation_id: convId, sender_id: session.user.id, sender_nick: profile?.nickname ?? '회원', body: intro });
+      await supabase.from('conversations').update({ last_message: intro, last_at: new Date().toISOString() }).eq('id', convId);
+    }
+    router.push(`/chat/${convId}`);
   };
 
   if (loading) return <SafeAreaView style={[styles.root, { backgroundColor: c.background }]}><ActivityIndicator color={c.primary} style={{ marginTop: 40 }} /></SafeAreaView>;

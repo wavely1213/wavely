@@ -43,8 +43,15 @@ export default function JobDetail() {
   const chat = async () => {
     if (!session) { router.replace('/login'); return; }
     if (!job) return;
-    const { data } = await supabase.rpc('get_or_create_dm', { target: job.author_id, target_nick: job.profiles?.nickname ?? '회원', me_nick: profile?.nickname ?? '회원' });
-    if (data) router.push(`/chat/${data}`);
+    const { data: convId } = await supabase.rpc('get_or_create_dm', { target: job.author_id, target_nick: job.profiles?.nickname ?? '회원', me_nick: profile?.nickname ?? '회원' });
+    if (!convId) return;
+    const { count } = await supabase.from('messages').select('id', { count: 'exact', head: true }).eq('conversation_id', convId);
+    if (!count) {
+      const intro = `[${job.kind === 'hiring' ? '구인' : '구직'}] "${job.title}" 문의드려요!`;
+      await supabase.from('messages').insert({ conversation_id: convId, sender_id: session.user.id, sender_nick: profile?.nickname ?? '회원', body: intro });
+      await supabase.from('conversations').update({ last_message: intro, last_at: new Date().toISOString() }).eq('id', convId);
+    }
+    router.push(`/chat/${convId}`);
   };
 
   if (loading) return <SafeAreaView style={[styles.root, { backgroundColor: c.background }]}><ActivityIndicator color={c.primary} style={{ marginTop: 40 }} /></SafeAreaView>;
