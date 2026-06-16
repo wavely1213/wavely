@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, useColorScheme, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, useColorScheme, View } from 'react-native';
 import { useScheme } from '@/lib/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -250,7 +250,8 @@ export default function PostDetailScreen() {
         </ScrollView>
       )}
 
-      {/* 댓글 입력 */}
+      {/* 댓글 입력 (iOS에서 키보드가 입력칸 가리지 않게) */}
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       {session ? (
         <View style={[styles.inputBar, { backgroundColor: c.card, borderColor: c.border }]}>
           <Pressable onPress={() => setCommentAnon((v) => !v)} style={[styles.anonToggle, { backgroundColor: commentAnon ? c.backgroundElement : c.primarySoft, borderColor: commentAnon ? c.border : c.primary }]}>
@@ -272,6 +273,7 @@ export default function PostDetailScreen() {
           <Text style={{ color: c.primary, fontWeight: '700' }}>로그인하고 댓글 달기</Text>
         </Pressable>
       )}
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
