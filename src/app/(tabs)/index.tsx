@@ -189,6 +189,23 @@ export default function CommunityScreen() {
       {/* 게시판 상단 스트립 배너 광고 */}
       {!tag && <StripBanner scheme={scheme} />}
 
+      {/* 빠른 메뉴 (로그인 시) */}
+      {session && !tag ? (
+        <View style={[styles.quickRow, { backgroundColor: c.card, borderColor: c.border }]}>
+          {[
+            { icon: '🔥', label: '인기글', to: '/hot' },
+            { icon: '🛒', label: '중고거래', to: '/market' },
+            { icon: '💼', label: '구인구직', to: '/jobs' },
+            { icon: '🔔', label: '키워드', to: '/keywords' },
+          ].map((q) => (
+            <Pressable key={q.to} onPress={() => router.push(q.to as any)} style={styles.quickItem}>
+              <View style={[styles.quickIcon, { backgroundColor: c.primarySoft }]}><Text style={{ fontSize: 21 }}>{q.icon}</Text></View>
+              <Text style={[styles.quickLabel, { color: c.text }]}>{q.label}</Text>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
+
       {loading ? (
         <View style={styles.centerBox}><ActivityIndicator color={c.primary} /></View>
       ) : !session ? (
@@ -333,6 +350,10 @@ const styles = StyleSheet.create({
   centerBox: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 6 },
   emptyTitle: { fontSize: 16, fontWeight: '800' },
   emptySub: { fontSize: 13 },
+  quickRow: { flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 12, paddingHorizontal: 8, borderBottomWidth: 1 },
+  quickItem: { alignItems: 'center', gap: 5 },
+  quickIcon: { width: 48, height: 48, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  quickLabel: { fontSize: 11.5, fontWeight: '700' },
   dongHeader: { paddingHorizontal: 16, paddingVertical: 10, marginBottom: 2 },
   wallOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'flex-start', paddingTop: 40 },
   wallCard: { alignItems: 'center', paddingVertical: 22, paddingHorizontal: 24, marginHorizontal: 28, borderRadius: 18, borderWidth: 1.5, boxShadow: '0 6px 20px rgba(0,0,0,0.18)' },
