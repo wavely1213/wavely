@@ -1,6 +1,6 @@
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DongPicker } from '@/components/DongPicker';
@@ -35,6 +35,7 @@ export default function JobsScreen() {
   const [kind, setKind] = useState<'all' | 'hiring' | 'seeking'>('all');
   const [dong, setDong] = useState<string | null>(null);
   const [dongOptions, setDongOptions] = useState<string[]>([]);
+  const [search, setSearch] = useState('');
 
   const load = useCallback(async () => {
     if (!isSupabaseConfigured) { setLoading(false); return; }
@@ -43,10 +44,11 @@ export default function JobsScreen() {
     let q = supabase.from('jobs').select('id,kind,title,pay_type,pay,work_time,dong,status,created_at').order('created_at', { ascending: false }).limit(60);
     if (kind !== 'all') q = q.eq('kind', kind);
     if (dong) q = q.eq('dong', dong);
+    if (search.trim()) q = q.ilike('title', `%${search.trim()}%`);
     const { data } = await q;
     setJobs((data as Job[]) ?? []);
     setLoading(false);
-  }, [kind, dong]);
+  }, [kind, dong, search]);
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
   const TABS: { k: typeof kind; l: string }[] = [{ k: 'all', l: '전체' }, { k: 'hiring', l: '🙋 구인(알바)' }, { k: 'seeking', l: '✋ 구직' }];
@@ -68,6 +70,10 @@ export default function JobsScreen() {
       </View>
       <View style={[styles.dongBar, { backgroundColor: c.card, borderColor: c.border }]}>
         <DongPicker value={dong} options={dongOptions} onChange={setDong} allLabel="춘천시 전체" />
+        <View style={[styles.searchBox, { backgroundColor: c.background, borderColor: c.border }]}>
+          <Text style={{ fontSize: 13 }}>🔍</Text>
+          <TextInput style={[styles.searchInput, { color: c.text }]} placeholder="검색" placeholderTextColor={c.textSecondary} value={search} onChangeText={setSearch} returnKeyType="search" />
+        </View>
       </View>
 
       {loading ? (
@@ -106,7 +112,9 @@ const styles = StyleSheet.create({
   hTitle: { fontSize: 16, fontWeight: '800' },
   tabBar: { flexDirection: 'row', gap: 7, paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: 1 },
   tab: { paddingHorizontal: 13, paddingVertical: 7, borderRadius: 999 },
-  dongBar: { paddingHorizontal: 12, paddingVertical: 8, borderBottomWidth: 1, flexDirection: 'row' },
+  dongBar: { paddingHorizontal: 12, paddingVertical: 8, borderBottomWidth: 1, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  searchBox: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, borderWidth: 1 },
+  searchInput: { flex: 1, fontSize: 13.5 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 30 },
   row: { paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1, gap: 6 },
   kindBadge: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 },
