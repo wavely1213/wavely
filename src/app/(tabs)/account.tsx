@@ -74,6 +74,7 @@ export default function AccountScreen() {
           <Row icon="✏️" label="내 정보 수정" onPress={() => router.push('/account-edit')} />
           {!(profile.role === 'owner' && profile.biz_verified) && <Row icon="💼" label="사업주 인증하기" onPress={() => router.push('/account-edit?biz=1')} />}
           {profile.role === 'owner' && profile.biz_verified && <Row icon="📢" label="광고 센터" onPress={() => router.push('/ad')} />}
+          {profile.role === 'owner' && profile.biz_verified && <Row icon="📈" label="플레이스 순위" onPress={() => router.push('/place-rank')} />}
 
           <Text style={[styles.menuHead, { color: c.textSecondary }]}>참여</Text>
           <Row icon="💡" label={profile.is_admin ? '사용 개선 제안 (관리자 보고서)' : '사용 개선 제안'} onPress={() => router.push('/suggest')} />
