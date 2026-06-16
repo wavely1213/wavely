@@ -41,7 +41,8 @@ export default function LoginScreen() {
   const kakaoLogin = async () => {
     setErrorMsg('');
     const redirectTo = Platform.OS === 'web' ? (globalThis as any).location?.origin : 'wavely://';
-    const { error } = await supabase.auth.signInWithOAuth({ provider: 'kakao', options: { redirectTo } });
+    // 닉네임·프로필 사진 동의항목 요청 (가입 시 프로필에 자동 동기화)
+    const { error } = await supabase.auth.signInWithOAuth({ provider: 'kakao', options: { redirectTo, scopes: 'profile_nickname profile_image' } });
     if (error) {
       const m = (error.message ?? '').toLowerCase();
       if (m.includes('provider') || m.includes('not enabled') || m.includes('unsupported')) setErrorMsg('카카오 로그인은 곧 제공돼요 (연동 준비 중).');

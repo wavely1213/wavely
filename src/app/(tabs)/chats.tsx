@@ -39,6 +39,7 @@ export default function ChatsTab() {
   const [newCode, setNewCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
+  const [filter, setFilter] = useState<'all' | 'dm' | 'group' | 'store'>('all');
   const [publicRooms, setPublicRooms] = useState<{ id: string; title: string; members: number; lastMessage: string | null }[]>([]);
 
   const load = useCallback(async () => {
@@ -128,12 +129,30 @@ export default function ChatsTab() {
 
   const requests = rows.filter((r) => r.status === 'pending');
   const active = rows.filter((r) => r.status === 'accepted');
+  const counts = { all: active.length, dm: active.filter((r) => r.type === 'dm').length, group: active.filter((r) => r.type === 'group').length, store: active.filter((r) => r.type === 'store').length };
+  const shown = filter === 'all' ? active : active.filter((r) => r.type === filter);
+  const CHAT_TABS: { key: typeof filter; label: string }[] = [
+    { key: 'all', label: '전체' }, { key: 'dm', label: '1:1' }, { key: 'group', label: '그룹' }, { key: 'store', label: '소식' },
+  ];
 
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: c.background }]} edges={['top']}>
       <View style={[styles.header, { borderColor: c.border, backgroundColor: c.card }]}>
         <Text style={[styles.hTitle, { color: c.text }]}>💬 채팅</Text>
         <Pressable onPress={openMenu} hitSlop={8} style={[styles.newBtn, { backgroundColor: c.primarySoft }]}><Text style={{ color: c.primaryDeep, fontWeight: '800', fontSize: 13 }}>＋ 새 채팅</Text></Pressable>
+      </View>
+
+      {/* 채팅 카테고리 */}
+      <View style={[styles.tabBar, { backgroundColor: c.card, borderColor: c.border }]}>
+        {CHAT_TABS.map((t) => {
+          const on = filter === t.key;
+          const n = counts[t.key];
+          return (
+            <Pressable key={t.key} onPress={() => setFilter(t.key)} style={[styles.tabChip, { backgroundColor: on ? c.primary : c.background }]}>
+              <Text style={[styles.tabTxt, { color: on ? c.onPrimary : c.textSecondary }]}>{t.label}{n > 0 ? ` ${n}` : ''}</Text>
+            </Pressable>
+          );
+        })}
       </View>
 
       {loading ? (
@@ -157,11 +176,11 @@ export default function ChatsTab() {
             </>
           )}
 
-          <Text style={[styles.sect, { color: c.text }]}>채팅</Text>
-          {active.length === 0 ? (
-            <Text style={[styles.empty, { color: c.textSecondary }]}>아직 채팅이 없어요.{'\n'}매장 소식방·1:1 톡·단체 채팅을 시작해보세요!</Text>
+          <Text style={[styles.sect, { color: c.text }]}>{filter === 'all' ? '채팅' : CHAT_TABS.find((t) => t.key === filter)?.label + ' 채팅'}</Text>
+          {shown.length === 0 ? (
+            <Text style={[styles.empty, { color: c.textSecondary }]}>{filter === 'all' ? '아직 채팅이 없어요.\n매장 소식방·1:1 톡·단체 채팅을 시작해보세요!' : '이 카테고리에 채팅이 없어요'}</Text>
           ) : (
-            active.map((r) => (
+            shown.map((r) => (
               <Pressable key={r.convId} onPress={() => router.push(`/chat/${r.convId}`)} style={[styles.chatRow, { borderColor: c.border }]}>
                 {r.type === 'dm'
                   ? <Avatar url={r.avatar} fallback="🙂" size={46} bg={c.primarySoft} />
@@ -260,6 +279,9 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1 },
   hTitle: { fontSize: 18, fontWeight: '800' },
   newBtn: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999 },
+  tabBar: { flexDirection: 'row', gap: 7, paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1 },
+  tabChip: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 999 },
+  tabTxt: { fontSize: 13, fontWeight: '700' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   btn: { paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12 },
   sect: { fontSize: 14, fontWeight: '800', paddingHorizontal: 16, paddingTop: 18, paddingBottom: 8 },
