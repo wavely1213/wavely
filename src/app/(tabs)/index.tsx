@@ -153,7 +153,7 @@ export default function CommunityScreen() {
           </Text>
           <Text style={[styles.sub, { color: c.textSecondary }]}>{dong ? `${dong} 동네 커뮤니티` : '우리 동네 커뮤니티 · 익명으로 편하게'}</Text>
         </View>
-        <Pressable onPress={() => router.push(session ? '/notifications' : '/login')} hitSlop={8} style={{ padding: 4 }}>
+        <Pressable onPress={() => router.push(session ? '/notifications' : '/login')} hitSlop={8} style={{ padding: 4 }} accessibilityRole="button" accessibilityLabel={notifUnread > 0 ? `알림 ${notifUnread}개` : '알림'}>
           <Text style={{ fontSize: 22 }}>🔔</Text>
           {notifUnread > 0 ? <View style={styles.notifBadge}><Text style={styles.notifBadgeTxt}>{notifUnread > 9 ? '9+' : notifUnread}</Text></View> : null}
         </Pressable>
@@ -166,7 +166,7 @@ export default function CommunityScreen() {
           <View style={[styles.searchBox, { backgroundColor: c.background, borderColor: c.border }]}>
             <Text style={{ fontSize: 13 }}>🔍</Text>
             <TextInput style={[styles.searchInput, { color: c.text }]} placeholder="글 검색" placeholderTextColor={c.textSecondary} value={search} onChangeText={setSearch} returnKeyType="search" />
-            {search ? <Pressable onPress={() => setSearch('')} hitSlop={8}><Text style={{ color: c.textSecondary, fontSize: 13 }}>✕</Text></Pressable> : null}
+            {search ? <Pressable onPress={() => setSearch('')} hitSlop={8} accessibilityRole="button" accessibilityLabel="검색어 지우기"><Text style={{ color: c.textSecondary, fontSize: 13 }}>✕</Text></Pressable> : null}
           </View>
         </View>
       )}
