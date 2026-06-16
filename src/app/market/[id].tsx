@@ -36,14 +36,18 @@ export default function MarketDetail() {
   const [confirmDel, setConfirmDel] = useState(false);
   const [chatBusy, setChatBusy] = useState(false);
   const [chatErr, setChatErr] = useState('');
+  const [failed, setFailed] = useState(false);
 
   const load = useCallback(async () => {
     if (!id) return;
+    setFailed(false);
     // 비로그인은 본문(body)·판매자 정보 열람 불가 → 기본 정보만
     const cols = session
       ? '*,profiles:seller_id(nickname,avatar_url)'
       : 'id,seller_id,title,price,category,status,images,dong,view_count,created_at';
-    const { data } = await supabase.from('market_items').select(cols).eq('id', id).single();
+    const { data, error } = await supabase.from('market_items').select(cols).eq('id', id).single();
+    // PGRST116 = 행 없음(삭제됨). 그 외 에러는 네트워크/일시 오류 → 재시도 안내
+    if (error && error.code !== 'PGRST116') { setFailed(true); setLoading(false); return; }
     setItem((data as unknown as Item) ?? null);
     setLoading(false);
     supabase.rpc('bump_market_view', { p_id: id }).then(() => {});
@@ -72,6 +76,7 @@ export default function MarketDetail() {
   };
 
   if (loading) return <SafeAreaView style={[styles.root, { backgroundColor: c.background }]}><ActivityIndicator color={c.primary} style={{ marginTop: 40 }} /></SafeAreaView>;
+  if (failed) return <SafeAreaView style={[styles.root, { backgroundColor: c.background }]} edges={['top']}><Header c={c} onBack={() => (router.canGoBack() ? router.back() : router.replace('/market'))} /><View style={styles.center}><Text style={{ color: c.textSecondary, marginBottom: 12 }}>불러오지 못했어요. 연결을 확인해주세요.</Text><Pressable onPress={() => { setLoading(true); load(); }} style={{ backgroundColor: c.primary, paddingHorizontal: 24, paddingVertical: 11, borderRadius: 10 }}><Text style={{ color: c.onPrimary, fontWeight: '800' }}>다시 시도</Text></Pressable></View></SafeAreaView>;
   if (!item) return <SafeAreaView style={[styles.root, { backgroundColor: c.background }]} edges={['top']}><Header c={c} onBack={() => (router.canGoBack() ? router.back() : router.replace('/market'))} /><View style={styles.center}><Text style={{ color: c.textSecondary }}>삭제됐거나 없는 글이에요</Text></View></SafeAreaView>;
 
   const W = Math.min(width, 800);

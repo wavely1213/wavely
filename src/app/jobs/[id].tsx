@@ -30,14 +30,17 @@ export default function JobDetail() {
   const [confirmDel, setConfirmDel] = useState(false);
   const [chatBusy, setChatBusy] = useState(false);
   const [chatErr, setChatErr] = useState('');
+  const [failed, setFailed] = useState(false);
 
   const load = useCallback(async () => {
     if (!id) return;
+    setFailed(false);
     // 비로그인은 본문·연락처·작성자 정보 열람 불가 → 기본 정보만
     const cols = session
       ? '*,profiles:author_id(nickname,avatar_url)'
       : 'id,author_id,kind,title,pay_type,pay,work_time,dong,status,created_at';
-    const { data } = await supabase.from('jobs').select(cols).eq('id', id).single();
+    const { data, error } = await supabase.from('jobs').select(cols).eq('id', id).single();
+    if (error && error.code !== 'PGRST116') { setFailed(true); setLoading(false); return; }
     setJob((data as unknown as Job) ?? null);
     setLoading(false);
   }, [id, session]);
@@ -63,6 +66,7 @@ export default function JobDetail() {
   };
 
   if (loading) return <SafeAreaView style={[styles.root, { backgroundColor: c.background }]}><ActivityIndicator color={c.primary} style={{ marginTop: 40 }} /></SafeAreaView>;
+  if (failed) return <SafeAreaView style={[styles.root, { backgroundColor: c.background }]} edges={['top']}><View style={[styles.header, { borderColor: c.border }]}><Pressable onPress={() => (router.canGoBack() ? router.back() : router.replace('/jobs'))}><Text style={[styles.back, { color: c.text }]}>‹ 뒤로</Text></Pressable></View><View style={styles.center}><Text style={{ color: c.textSecondary, marginBottom: 12 }}>불러오지 못했어요. 연결을 확인해주세요.</Text><Pressable onPress={() => { setLoading(true); load(); }} style={[styles.chatBtn, { backgroundColor: c.primary, flex: 0, paddingHorizontal: 24 }]}><Text style={{ color: c.onPrimary, fontWeight: '800' }}>다시 시도</Text></Pressable></View></SafeAreaView>;
   if (!job) return <SafeAreaView style={[styles.root, { backgroundColor: c.background }]} edges={['top']}><View style={[styles.header, { borderColor: c.border }]}><Pressable onPress={() => (router.canGoBack() ? router.back() : router.replace('/jobs'))}><Text style={[styles.back, { color: c.text }]}>‹ 뒤로</Text></Pressable></View><View style={styles.center}><Text style={{ color: c.textSecondary }}>삭제됐거나 없는 공고예요</Text></View></SafeAreaView>;
 
   const payText = job.pay_type === 'negotiable' || !job.pay ? '협의' : `${PAY_TYPES[job.pay_type ?? ''] ?? ''} ${job.pay.toLocaleString()}원`;

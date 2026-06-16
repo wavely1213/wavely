@@ -34,20 +34,24 @@ export default function PostDetailScreen() {
   const [editText, setEditText] = useState('');
   const [savingEdit, setSavingEdit] = useState(false);
   const [actionMsg, setActionMsg] = useState('');
+  const [failed, setFailed] = useState(false);
 
   const load = useCallback(async () => {
     if (!id) return;
+    setFailed(false);
     // 비로그인은 본문·사진·댓글 열람 불가 → 제목 등 최소 컬럼만
     const authed = !!session;
     if (!authed) {
-      const { data: p } = await supabase.from('posts').select('id,title,dong,board,created_at').eq('id', id).single();
+      const { data: p, error } = await supabase.from('posts').select('id,title,dong,board,created_at').eq('id', id).single();
+      if (error && error.code !== 'PGRST116') { setFailed(true); setLoading(false); return; }
       setPost((p as unknown as Post) ?? null);
       setComments([]);
       setLoading(false);
       return;
     }
     const cols = 'id,board,author_id,title,body,body_preview,image_url,media_type,place_name,place_address,place_link,created_at,anonymous,profiles(nickname,avatar_url)';
-    const { data: p } = await supabase.from('posts').select(cols).eq('id', id).single();
+    const { data: p, error } = await supabase.from('posts').select(cols).eq('id', id).single();
+    if (error && error.code !== 'PGRST116') { setFailed(true); setLoading(false); return; }
     setPost((p as unknown as Post) ?? null);
     const { data: cs } = await supabase
       .from('comments').select('id,body,created_at,anonymous,author_id,profiles(nickname,avatar_url)').eq('post_id', id).order('created_at', { ascending: true });
@@ -128,6 +132,8 @@ export default function PostDetailScreen() {
 
       {loading ? (
         <View style={styles.center}><ActivityIndicator color={c.primary} /></View>
+      ) : failed ? (
+        <View style={styles.center}><Text style={{ color: c.textSecondary, marginBottom: 12 }}>불러오지 못했어요. 연결을 확인해주세요.</Text><Pressable onPress={() => { setLoading(true); load(); }} style={{ backgroundColor: c.primary, paddingHorizontal: 24, paddingVertical: 11, borderRadius: 10 }}><Text style={{ color: c.onPrimary, fontWeight: '800' }}>다시 시도</Text></Pressable></View>
       ) : !post ? (
         <View style={styles.center}><Text style={{ color: c.textSecondary }}>글을 찾을 수 없어요</Text></View>
       ) : (

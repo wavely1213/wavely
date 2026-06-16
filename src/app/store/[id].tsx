@@ -35,6 +35,7 @@ export default function StoreDetailScreen() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
   const [rating, setRating] = useState(0);
   const [body, setBody] = useState('');
   const [method, setMethod] = useState<'none' | 'gps' | 'receipt'>('none');
@@ -77,7 +78,9 @@ export default function StoreDetailScreen() {
 
   const load = useCallback(async () => {
     if (!id) return;
-    const { data: s } = await supabase.from('stores').select('id,name,category,categories,address,photo,biz_verified,is_ad,rating,review_count,lat,lng,owner_id,hours,phone').eq('id', id).single();
+    setFailed(false);
+    const { data: s, error } = await supabase.from('stores').select('id,name,category,categories,address,photo,biz_verified,is_ad,rating,review_count,lat,lng,owner_id,hours,phone').eq('id', id).single();
+    if (error && error.code !== 'PGRST116') { setFailed(true); setLoading(false); return; }
     setStore((s as Store) ?? null);
     const { data: r } = await supabase.from('reviews').select('id,rating,body,created_at,author_id,verify_method,verified,receipt_url,profiles(nickname)').eq('store_id', id).order('verified', { ascending: false }).order('created_at', { ascending: false });
     setReviews((r as unknown as Review[]) ?? []);
@@ -168,7 +171,9 @@ export default function StoreDetailScreen() {
         <Pressable onPress={() => (router.canGoBack() ? router.back() : router.replace('/explore'))} hitSlop={8}><Text style={[styles.back, { color: c.text }]}>‹ 뒤로</Text></Pressable>
       </View>
 
-      {loading ? (
+      {failed ? (
+        <View style={styles.center}><Text style={{ color: c.textSecondary, marginBottom: 12 }}>불러오지 못했어요. 연결을 확인해주세요.</Text><Pressable onPress={() => { setLoading(true); load(); }} style={{ backgroundColor: c.primary, paddingHorizontal: 24, paddingVertical: 11, borderRadius: 10 }}><Text style={{ color: c.onPrimary, fontWeight: '800' }}>다시 시도</Text></Pressable></View>
+      ) : loading ? (
         <View style={styles.center}><ActivityIndicator color={c.primary} /></View>
       ) : !store ? (
         <View style={styles.center}><Text style={{ color: c.textSecondary }}>매장을 찾을 수 없어요</Text></View>
