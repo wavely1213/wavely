@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -36,6 +36,9 @@ export default function MarketScreen() {
   const [dongOptions, setDongOptions] = useState<string[]>([]);
   const [cat, setCat] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  const [debSearch, setDebSearch] = useState('');
+  // 검색어는 350ms 디바운스 후에만 쿼리(키 입력마다 DB 호출·경쟁 방지)
+  useEffect(() => { const t = setTimeout(() => setDebSearch(search), 350); return () => clearTimeout(t); }, [search]);
 
   const load = useCallback(async () => {
     if (!isSupabaseConfigured) { setLoading(false); return; }
@@ -44,11 +47,11 @@ export default function MarketScreen() {
     let q = supabase.from('market_items').select('id,title,price,status,images,dong,created_at').order('created_at', { ascending: false }).limit(60);
     if (dong) q = q.eq('dong', dong);
     if (cat) q = q.eq('category', cat);
-    if (search.trim()) q = q.ilike('title', `%${search.trim()}%`);
+    if (debSearch.trim()) q = q.ilike('title', `%${debSearch.trim()}%`);
     const { data } = await q;
     setItems((data as Item[]) ?? []);
     setLoading(false);
-  }, [dong, cat, search]);
+  }, [dong, cat, debSearch]);
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
   return (

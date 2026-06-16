@@ -79,6 +79,7 @@ export default function CommunityScreen() {
 
   const [active, setActive] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  const [debSearch, setDebSearch] = useState('');
   const [dong, setDong] = useState<string | null>(null); // null = 춘천시 전체
   const [dongOptions, setDongOptions] = useState<string[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
@@ -119,12 +120,15 @@ export default function CommunityScreen() {
     else {
       if (dong) q = q.eq('dong', dong);
       if (active) q = q.eq('board', active);
-      if (search.trim()) q = q.or(`title.ilike.%${search.trim()}%,body.ilike.%${search.trim()}%`);
+      if (debSearch.trim()) q = q.or(`title.ilike.%${debSearch.trim()}%,body.ilike.%${debSearch.trim()}%`);
     }
     const { data } = await q;
     setPosts((data as unknown as Post[]) ?? []);
     setLoading(false);
-  }, [active, dong, tag, search, session]);
+  }, [active, dong, tag, debSearch, session]);
+
+  // 검색어는 350ms 디바운스 후에만 쿼리(키 입력마다 DB 호출·경쟁 방지)
+  useEffect(() => { const t = setTimeout(() => setDebSearch(search), 350); return () => clearTimeout(t); }, [search]);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
 

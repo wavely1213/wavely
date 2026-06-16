@@ -1,5 +1,5 @@
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -36,6 +36,9 @@ export default function JobsScreen() {
   const [dong, setDong] = useState<string | null>(null);
   const [dongOptions, setDongOptions] = useState<string[]>([]);
   const [search, setSearch] = useState('');
+  const [debSearch, setDebSearch] = useState('');
+  // 검색어는 입력 즉시가 아니라 350ms 디바운스 후에만 쿼리(키 입력마다 DB 호출 방지)
+  useEffect(() => { const t = setTimeout(() => setDebSearch(search), 350); return () => clearTimeout(t); }, [search]);
 
   const load = useCallback(async () => {
     if (!isSupabaseConfigured) { setLoading(false); return; }
@@ -44,11 +47,11 @@ export default function JobsScreen() {
     let q = supabase.from('jobs').select('id,kind,title,pay_type,pay,work_time,dong,status,created_at').order('created_at', { ascending: false }).limit(60);
     if (kind !== 'all') q = q.eq('kind', kind);
     if (dong) q = q.eq('dong', dong);
-    if (search.trim()) q = q.ilike('title', `%${search.trim()}%`);
+    if (debSearch.trim()) q = q.ilike('title', `%${debSearch.trim()}%`);
     const { data } = await q;
     setJobs((data as Job[]) ?? []);
     setLoading(false);
-  }, [kind, dong, search]);
+  }, [kind, dong, debSearch]);
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
   const TABS: { k: typeof kind; l: string }[] = [{ k: 'all', l: '전체' }, { k: 'hiring', l: '🙋 구인(알바)' }, { k: 'seeking', l: '✋ 구직' }];
