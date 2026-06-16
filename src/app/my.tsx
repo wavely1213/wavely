@@ -9,7 +9,7 @@ import { Colors } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 
-type Tab = 'posts' | 'reviews' | 'scraps';
+type Tab = 'posts' | 'reviews' | 'scraps' | 'market' | 'jobs';
 
 export default function MyScreen() {
   const scheme = useScheme();
@@ -21,6 +21,8 @@ export default function MyScreen() {
   const [posts, setPosts] = useState<any[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
   const [scraps, setScraps] = useState<any[]>([]);
+  const [market, setMarket] = useState<any[]>([]);
+  const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
@@ -33,7 +35,7 @@ export default function MyScreen() {
     } else if (tab === 'reviews') {
       const { data } = await supabase.from('reviews').select('id,rating,body,store_id,place_id,verified,stores(name),places(name)').eq('author_id', me).order('created_at', { ascending: false }).limit(100);
       setReviews((data as any[]) ?? []);
-    } else {
+    } else if (tab === 'scraps') {
       const { data: sc } = await supabase.from('scraps').select('target_type,target_id,created_at').eq('user_id', me).order('created_at', { ascending: false }).limit(100);
       const rows = (sc as any[]) ?? [];
       const byType: Record<string, string[]> = { post: [], place: [], store: [] };
@@ -43,6 +45,12 @@ export default function MyScreen() {
       if (byType.place.length) { const { data } = await supabase.from('places').select('id,name').in('id', byType.place.map(Number)); (data as any[])?.forEach((p) => (labels[`place:${p.id}`] = p.name)); }
       if (byType.store.length) { const { data } = await supabase.from('stores').select('id,name').in('id', byType.store); (data as any[])?.forEach((p) => (labels[`store:${p.id}`] = p.name)); }
       setScraps(rows.map((r) => ({ ...r, label: labels[`${r.target_type}:${r.target_id}`] ?? '삭제된 항목' })));
+    } else if (tab === 'market') {
+      const { data } = await supabase.from('market_items').select('id,title,price,status,images,created_at').eq('seller_id', me).order('created_at', { ascending: false }).limit(100);
+      setMarket((data as any[]) ?? []);
+    } else if (tab === 'jobs') {
+      const { data } = await supabase.from('jobs').select('id,kind,title,status,created_at').eq('author_id', me).order('created_at', { ascending: false }).limit(100);
+      setJobs((data as any[]) ?? []);
     }
     setLoading(false);
   }, [session, tab]);
@@ -69,13 +77,13 @@ export default function MyScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      <View style={[styles.tabs, { borderColor: c.border }]}>
-        {([['posts', '📝 내 글'], ['reviews', '⭐ 내 리뷰'], ['scraps', '🔖 스크랩']] as [Tab, string][]).map(([k, lbl]) => (
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={[styles.tabs, { borderColor: c.border }]} contentContainerStyle={{ alignItems: 'center' }}>
+        {([['posts', '📝 내 글'], ['reviews', '⭐ 리뷰'], ['scraps', '🔖 스크랩'], ['market', '🛒 내 판매'], ['jobs', '💼 내 공고']] as [Tab, string][]).map(([k, lbl]) => (
           <Pressable key={k} onPress={() => setTab(k)} style={[styles.tab, tab === k && { borderBottomColor: c.primary, borderBottomWidth: 2 }]}>
             <Text style={{ color: tab === k ? c.primary : c.textSecondary, fontWeight: '800', fontSize: 13.5 }}>{lbl}</Text>
           </Pressable>
         ))}
-      </View>
+      </ScrollView>
 
       {loading ? (
         <ActivityIndicator color={c.primary} style={{ marginTop: 30 }} />
@@ -108,6 +116,26 @@ export default function MyScreen() {
               <Text style={{ color: c.textSecondary, fontSize: 18 }}>›</Text>
             </Pressable>
           )))}
+
+          {tab === 'market' && (market.length === 0 ? <Empty c={c} emoji="🛒" txt="올린 판매글이 없어요" /> : market.map((m) => (
+            <Pressable key={m.id} onPress={() => router.push(`/market/${m.id}`)} style={[styles.row, { borderColor: c.border, opacity: m.status === 'sold' ? 0.55 : 1 }]}>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.rowTitle, { color: c.text }]} numberOfLines={1}>{m.title}</Text>
+                <Text style={[styles.rowSub, { color: c.textSecondary }]}>{m.price === 0 ? '나눔' : `${m.price.toLocaleString()}원`}{m.status === 'reserved' ? ' · 예약중' : m.status === 'sold' ? ' · 거래완료' : ' · 판매중'}</Text>
+              </View>
+              <Text style={{ color: c.textSecondary, fontSize: 18 }}>›</Text>
+            </Pressable>
+          )))}
+
+          {tab === 'jobs' && (jobs.length === 0 ? <Empty c={c} emoji="💼" txt="올린 공고가 없어요" /> : jobs.map((j) => (
+            <Pressable key={j.id} onPress={() => router.push(`/jobs/${j.id}`)} style={[styles.row, { borderColor: c.border, opacity: j.status === 'closed' ? 0.55 : 1 }]}>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.rowTitle, { color: c.text }]} numberOfLines={1}>{j.title}</Text>
+                <Text style={[styles.rowSub, { color: c.textSecondary }]}>{j.kind === 'hiring' ? '🙋 구인' : '✋ 구직'}{j.status === 'closed' ? ' · 마감' : ' · 모집중'}</Text>
+              </View>
+              <Text style={{ color: c.textSecondary, fontSize: 18 }}>›</Text>
+            </Pressable>
+          )))}
         </ScrollView>
       )}
     </SafeAreaView>
@@ -129,8 +157,8 @@ const styles = StyleSheet.create({
   back: { fontSize: 16, fontWeight: '700' },
   hTitle: { fontSize: 16, fontWeight: '800' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  tabs: { flexDirection: 'row', borderBottomWidth: 1 },
-  tab: { flex: 1, alignItems: 'center', paddingVertical: 13 },
+  tabs: { borderBottomWidth: 1, flexGrow: 0 },
+  tab: { paddingHorizontal: 18, paddingVertical: 13, alignItems: 'center' },
   row: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1 },
   rowTitle: { fontSize: 15, fontWeight: '700' },
   rowSub: { fontSize: 12.5, marginTop: 3 },
