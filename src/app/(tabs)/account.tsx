@@ -60,6 +60,12 @@ export default function AccountScreen() {
             <Text style={[styles.email, { color: c.textSecondary }]}>{session.user.email}</Text>
           </View>
 
+          <Text style={[styles.menuHead, { color: c.textSecondary }]}>동네 생활</Text>
+          <Row icon="🛒" label="중고거래" onPress={() => router.push('/market')} />
+          <Row icon="💼" label="구인구직" onPress={() => router.push('/jobs')} />
+          <Row icon="🔥" label="인기글" onPress={() => router.push('/hot')} />
+          <Row icon="🔔" label="키워드 알림" onPress={() => router.push('/keywords')} />
+
           <Text style={[styles.menuHead, { color: c.textSecondary }]}>계정</Text>
           <Row icon="🤝" label="친구" onPress={() => router.push('/friends')} />
           <Row icon="🔒" label="계정 보안 (비밀번호·이메일)" onPress={() => router.push('/security')} />
