@@ -10,7 +10,7 @@ import { supabase } from '@/lib/supabase';
 
 type Store = { id: string; name: string; category: string | null; address: string | null; naver_place_id: string | null; biz_verified: boolean };
 type Kw = { id: string; keyword: string };
-type Snap = { keyword: string; rank: number | null; save_count: number | null; visitor_review: number | null; blog_review: number | null; snap_date: string };
+type Snap = { keyword: string; rank: number | null; save_count: number | null; visitor_review: number | null; blog_review: number | null; search_volume: number | null; snap_date: string };
 type Analysis = { n1: number | null; n2: number | null; n3: number | null; save_count: number | null; visitor_review: number | null; blog_review: number | null; analyzed_at: string };
 
 const MAX_KW = 30; // 사용자 제한 사실상 없음. 수집 서버 부하 보호용 상한(트리거도 30으로 맞춤)
@@ -35,6 +35,7 @@ export default function PlaceRankScreen() {
   const [msg, setMsg] = useState('');
   const [busy, setBusy] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
+  const [kwSort, setKwSort] = useState<'rank' | 'volume'>('volume');
   const aliveRef = useRef(true);
   useEffect(() => () => { aliveRef.current = false; }, []);
 
@@ -42,7 +43,7 @@ export default function PlaceRankScreen() {
     // 테이블 미생성 시에도 안전하게 빈 배열 처리
     const { data: k } = await supabase.from('place_rank_keywords').select('id,keyword').eq('store_id', sid).order('created_at');
     setKws((k as Kw[]) ?? []);
-    const { data: r } = await supabase.from('place_rankings').select('keyword,rank,save_count,visitor_review,blog_review,snap_date').eq('store_id', sid).order('snap_date', { ascending: false });
+    const { data: r } = await supabase.from('place_rankings').select('keyword,rank,save_count,visitor_review,blog_review,search_volume,snap_date').eq('store_id', sid).order('snap_date', { ascending: false });
     setSnaps((r as Snap[]) ?? []);
     const { data: a } = await supabase.from('place_analysis').select('n1,n2,n3,save_count,visitor_review,blog_review,analyzed_at').eq('store_id', sid).order('analyzed_at', { ascending: false }).limit(14);
     const hist = (a as Analysis[]) ?? [];
@@ -136,8 +137,10 @@ export default function PlaceRankScreen() {
   const kwRows = keywords.map((kw) => {
     const { latest, prev } = latestByKw(kw);
     const delta = latest?.rank != null && prev?.rank != null ? prev.rank - latest.rank : null; // +면 상승
-    return { kw, rank: latest?.rank ?? null, delta };
-  }).sort((a, b) => (a.rank ?? 9999) - (b.rank ?? 9999));
+    return { kw, rank: latest?.rank ?? null, delta, volume: latest?.search_volume ?? null };
+  }).sort((a, b) => kwSort === 'volume'
+    ? (b.volume ?? -1) - (a.volume ?? -1)
+    : (a.rank ?? 9999) - (b.rank ?? 9999));
 
   const total = kwRows.length;
   const top3 = kwRows.filter((r) => r.rank != null && r.rank <= 3).length;
@@ -336,13 +339,25 @@ export default function PlaceRankScreen() {
               </View>
 
               {/* 키워드 순위 목록 */}
-              <Text style={[styles.sectionTitle, { color: c.text }]}>키워드 순위 ({total})</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4, marginBottom: 8 }}>
+                <Text style={[styles.sectionTitle, { color: c.text, marginTop: 0, marginBottom: 0 }]}>키워드 순위 ({total})</Text>
+                <View style={{ flexDirection: 'row', gap: 6 }}>
+                  {(['volume', 'rank'] as const).map((s) => (
+                    <Pressable key={s} onPress={() => setKwSort(s)} style={[styles.sortChip, { backgroundColor: kwSort === s ? c.primary : c.card, borderColor: kwSort === s ? c.primary : c.border }]}>
+                      <Text style={{ color: kwSort === s ? c.onPrimary : c.textSecondary, fontSize: 11.5, fontWeight: '700' }}>{s === 'volume' ? '검색량순' : '순위순'}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
               {kwRows.map((r) => (
                 <View key={r.kw} style={[styles.kwRow, { borderColor: c.border }]}>
                   <View style={[styles.rankPill, { backgroundColor: r.rank != null && r.rank <= 3 ? c.primary : r.rank != null && r.rank <= 10 ? c.primarySoft : c.backgroundElement ?? c.background }]}>
                     <Text style={{ color: r.rank != null && r.rank <= 3 ? c.onPrimary : r.rank != null && r.rank <= 10 ? c.primaryDeep : c.textSecondary, fontWeight: '800', fontSize: 12.5 }}>{r.rank != null ? `${r.rank}위` : '권외'}</Text>
                   </View>
-                  <Text style={{ color: c.text, fontWeight: '600', fontSize: 14, flex: 1 }} numberOfLines={1}>{r.kw}</Text>
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text style={{ color: c.text, fontWeight: '600', fontSize: 14 }} numberOfLines={1}>{r.kw}</Text>
+                    <Text style={{ color: c.textSecondary, fontSize: 11.5, marginTop: 1 }}>월 검색 {r.volume != null ? r.volume.toLocaleString() : '-'}</Text>
+                  </View>
                   {r.delta != null && r.delta !== 0 ? (
                     <Text style={{ color: r.delta > 0 ? UP : DOWN, fontWeight: '800', fontSize: 13 }}>{r.delta > 0 ? `▲${r.delta}` : `▼${-r.delta}`}</Text>
                   ) : <Text style={{ color: c.textSecondary, fontSize: 13 }}>-</Text>}
@@ -429,4 +444,5 @@ const styles = StyleSheet.create({
   kwChip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, borderWidth: 1 },
   kwRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 11, borderBottomWidth: 1 },
   rankPill: { minWidth: 44, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, alignItems: 'center' },
+  sortChip: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, borderWidth: 1 },
 });
