@@ -150,9 +150,12 @@ export default function PlaceRankScreen() {
   const metric = analysis ?? (snaps[0] as any) ?? null;
   const lastDate = snaps[0]?.snap_date ?? null;
   const hasData = snaps.length > 0;
-  // 일자별 추이(차트용): 분석 이력을 오래된→최신 순으로
-  const chrono = [...history].reverse();
-  const showTrend = chrono.length >= 2;
+  // 일자별 추이(차트용): 하루 1포인트로 묶음(같은 날 여러 번 분석해도 최신 1개), 오래된→최신.
+  // history는 analyzed_at desc → 날짜별 첫 항목이 그날 최신.
+  const byDate: Record<string, Analysis> = {};
+  for (const h of history) { const d = String(h.analyzed_at).slice(0, 10); if (!byDate[d]) byDate[d] = h; }
+  const chrono = Object.keys(byDate).sort().map((d) => byDate[d]);
+  const showTrend = chrono.length >= 3;   // 3일 이상 쌓여야 추이가 의미 있음
 
   const curStore = stores.find((s) => s.id === selStore);
   const placeIdSet = !!curStore?.naver_place_id;
@@ -282,9 +285,14 @@ export default function PlaceRankScreen() {
                   <TrendChart c={c} label="N1 지수" data={chrono.map((h) => h.n1)} color={c.primaryDeep} />
                   <TrendChart c={c} label="N2 지수" data={chrono.map((h) => h.n2)} color={c.primaryDeep} />
                   <TrendChart c={c} label="N3 지수" data={chrono.map((h) => h.n3)} color={c.primaryDeep} />
-                  <Text style={{ color: c.textSecondary, fontSize: 11, marginTop: 2 }}>왼쪽=과거 · 오른쪽=최신. 분석할수록 더 촘촘해져요.</Text>
+                  <Text style={{ color: c.textSecondary, fontSize: 11, marginTop: 2 }}>왼쪽=과거 · 오른쪽=최신.</Text>
                 </View>
-              ) : null}
+              ) : (
+                <View style={[styles.card, { backgroundColor: c.card, borderColor: c.border }]}>
+                  <Text style={[styles.cardTitle, { color: c.text }]}>일자별 추이</Text>
+                  <Text style={{ color: c.textSecondary, fontSize: 12.5, lineHeight: 18 }}>분석이 3일 이상 쌓이면 방문리뷰·블로그·저장수·N지수 추이를 그래프로 보여드려요. (현재 {chrono.length}일치 · 매일 자동 수집되며 쌓여요)</Text>
+                </View>
+              )}
 
               {/* 급등 / 급락 */}
               {(rising.length > 0 || falling.length > 0) ? (
