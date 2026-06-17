@@ -245,6 +245,7 @@ export default function WriteScreen() {
           placeholderTextColor={c.textSecondary}
           value={title}
           onChangeText={setTitle}
+          maxLength={120}
         />
         <TextInput
           style={[styles.body, { color: c.text }]}
@@ -254,6 +255,7 @@ export default function WriteScreen() {
           onChangeText={setBody}
           multiline
           textAlignVertical="top"
+          maxLength={5000}
         />
 
         {/* 사진·영상 */}

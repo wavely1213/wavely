@@ -186,7 +186,7 @@ export default function PlaceDetailScreen() {
               </Pressable>
             </View>
             <Text style={[styles.vNote, { color: c.textSecondary }]}>인증한 리뷰만 별점에 반영돼요 · 미인증 리뷰는 표시되지만 점수엔 미반영</Text>
-            <TextInput style={[styles.input, { backgroundColor: c.card, borderColor: c.border, color: c.text }]} placeholder="이 가게는 어땠나요? (선택)" placeholderTextColor={c.textSecondary} value={body} onChangeText={setBody} multiline />
+            <TextInput style={[styles.input, { backgroundColor: c.card, borderColor: c.border, color: c.text }]} placeholder="이 가게는 어땠나요? (선택)" placeholderTextColor={c.textSecondary} value={body} onChangeText={setBody} multiline maxLength={2000} />
             {msg ? <Text style={{ color: msg.startsWith('✅') || msg.startsWith('🧾') ? c.verify : '#E5484D', fontWeight: '700', marginTop: 6 }}>{msg}</Text> : null}
             <Pressable style={[styles.btn, { backgroundColor: c.primary }]} onPress={submit} disabled={sending}>
               <Text style={[styles.btnTxt, { color: c.onPrimary }]}>{sending ? '등록중...' : session ? '리뷰 등록' : '로그인하고 리뷰 쓰기'}</Text>

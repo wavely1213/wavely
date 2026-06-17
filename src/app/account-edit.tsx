@@ -189,7 +189,7 @@ export default function AccountEditScreen() {
         </View>
 
         <Text style={[styles.label, { color: c.textSecondary }]}>닉네임</Text>
-        <TextInput style={[styles.input, { backgroundColor: c.card, borderColor: c.border, color: c.text }]} value={nickname} onChangeText={setNickname} placeholder="닉네임" placeholderTextColor={c.textSecondary} />
+        <TextInput style={[styles.input, { backgroundColor: c.card, borderColor: c.border, color: c.text }]} value={nickname} onChangeText={setNickname} placeholder="닉네임" placeholderTextColor={c.textSecondary} maxLength={24} />
 
         <Text style={[styles.label, { color: c.textSecondary, marginTop: 6 }]}>전화번호 <Text style={{ fontWeight: '500' }}>(결제·알림에 쓰여요)</Text></Text>
         <TextInput style={[styles.input, { backgroundColor: c.card, borderColor: c.border, color: c.text }]} value={phone} onChangeText={setPhone} placeholder="010-1234-5678" placeholderTextColor={c.textSecondary} keyboardType="phone-pad" />

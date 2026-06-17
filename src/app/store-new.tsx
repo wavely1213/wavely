@@ -76,6 +76,7 @@ export default function StoreFormScreen() {
   const [coord, setCoord] = useState<{ lat: number | null; lng: number | null }>({ lat: null, lng: null });
   const [image, setImage] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [confirmDel, setConfirmDel] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [okMsg, setOkMsg] = useState('');
 
@@ -214,6 +215,10 @@ export default function StoreFormScreen() {
 
   const handleSubmit = async () => {
     setErrorMsg(''); setOkMsg('');
+    // 네이버 플레이스 ID는 숫자만 (place-rank 와 동일 검증) — 잘못 넣으면 분석이 조용히 깨짐
+    if (mode !== 'request' && naverPlaceId.trim() && !/^\d{5,}$/.test(naverPlaceId.trim())) {
+      setErrorMsg('네이버 플레이스 ID는 숫자만 입력해주세요. (예: 2006014171)'); return;
+    }
     setSubmitting(true);
 
     let photoUrl: string | null = existingPhoto;
@@ -335,9 +340,17 @@ export default function StoreFormScreen() {
         {errorMsg ? <Text style={{ color: '#E5484D', fontWeight: '700' }}>{errorMsg}</Text> : null}
 
         {mode === 'edit' && (
-          <Pressable style={[styles.deleteBtn, { borderColor: '#E5484D' }]} onPress={handleDelete} disabled={submitting}>
-            <Text style={{ color: '#E5484D', fontWeight: '800' }}>매장 삭제</Text>
-          </Pressable>
+          confirmDel ? (
+            <View style={{ flexDirection: 'row', gap: 10, marginTop: 14, alignItems: 'center' }}>
+              <Text style={{ color: c.text, fontWeight: '700', flex: 1 }}>정말 이 매장을 삭제할까요? 되돌릴 수 없어요.</Text>
+              <Pressable onPress={() => setConfirmDel(false)} style={[styles.deleteBtn, { borderColor: c.border, marginTop: 0, paddingHorizontal: 16 }]}><Text style={{ color: c.textSecondary, fontWeight: '800' }}>취소</Text></Pressable>
+              <Pressable onPress={handleDelete} disabled={submitting} style={[styles.deleteBtn, { borderColor: '#E5484D', backgroundColor: '#E5484D', marginTop: 0, paddingHorizontal: 16 }]}><Text style={{ color: '#fff', fontWeight: '800' }}>삭제</Text></Pressable>
+            </View>
+          ) : (
+            <Pressable style={[styles.deleteBtn, { borderColor: '#E5484D' }]} onPress={() => setConfirmDel(true)} disabled={submitting}>
+              <Text style={{ color: '#E5484D', fontWeight: '800' }}>매장 삭제</Text>
+            </Pressable>
+          )
         )}
       </ScrollView>
     </SafeAreaView>

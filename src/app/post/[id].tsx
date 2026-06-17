@@ -263,6 +263,7 @@ export default function PostDetailScreen() {
             placeholderTextColor={c.textSecondary}
             value={text}
             onChangeText={setText}
+            maxLength={2000}
           />
           <Pressable onPress={addComment} disabled={sending || !text.trim()}>
             <Text style={[styles.send, { color: text.trim() ? c.primary : c.textSecondary }]}>등록</Text>

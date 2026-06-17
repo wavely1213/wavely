@@ -125,7 +125,7 @@ export default function MarketNewScreen() {
           ))}
         </ScrollView>
 
-        <TextInput style={[styles.input, { backgroundColor: c.card, borderColor: c.border, color: c.text }]} placeholder="제목" placeholderTextColor={c.textSecondary} value={title} onChangeText={setTitle} />
+        <TextInput style={[styles.input, { backgroundColor: c.card, borderColor: c.border, color: c.text }]} placeholder="제목" placeholderTextColor={c.textSecondary} value={title} onChangeText={setTitle} maxLength={120} />
 
         <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
           <Pressable onPress={() => setFree((v) => !v)} style={[styles.freeBtn, { backgroundColor: free ? c.primary : c.card, borderColor: free ? c.primary : c.border }]}>
@@ -148,7 +148,7 @@ export default function MarketNewScreen() {
           </View>
         </View>
 
-        <TextInput style={[styles.input, { backgroundColor: c.card, borderColor: c.border, color: c.text, height: 140, textAlignVertical: 'top' }]} placeholder="설명 (상태·구입시기·거래방법 등)" placeholderTextColor={c.textSecondary} value={body} onChangeText={setBody} multiline />
+        <TextInput style={[styles.input, { backgroundColor: c.card, borderColor: c.border, color: c.text, height: 140, textAlignVertical: 'top' }]} placeholder="설명 (상태·구입시기·거래방법 등)" placeholderTextColor={c.textSecondary} value={body} onChangeText={setBody} multiline maxLength={5000} />
 
         <Text style={[styles.label, { color: c.textSecondary }]}>거래 동네 {dong ? '· 📍 자동감지됨' : '(위치 자동 — 직접 선택도 가능)'}</Text>
         <DongPicker value={dong} options={dongOptions} onChange={setDong} allLabel="동네 선택" />

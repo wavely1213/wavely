@@ -161,7 +161,7 @@ export default function ChatRoom() {
           {sendErr ? <Text style={{ color: '#E5484D', fontSize: 12, fontWeight: '700', textAlign: 'center', paddingVertical: 4 }}>전송에 실패했어요 — 다시 보내주세요</Text> : null}
           {session ? (
             <View style={[styles.inputBar, { backgroundColor: c.card, borderColor: c.border }]}>
-              <TextInput style={[styles.input, { backgroundColor: c.background, color: c.text, borderColor: c.border }]} placeholder="메시지 입력..." placeholderTextColor={c.textSecondary} value={text} onChangeText={(v) => { setText(v); if (sendErr) setSendErr(false); }} onSubmitEditing={send} returnKeyType="send" />
+              <TextInput style={[styles.input, { backgroundColor: c.background, color: c.text, borderColor: c.border }]} placeholder="메시지 입력..." placeholderTextColor={c.textSecondary} value={text} onChangeText={(v) => { setText(v); if (sendErr) setSendErr(false); }} onSubmitEditing={send} returnKeyType="send" maxLength={3000} />
               <Pressable onPress={send} disabled={sending || !text.trim()} style={[styles.sendBtn, { backgroundColor: text.trim() ? c.primary : c.backgroundElement }]}>
                 <Text style={{ color: text.trim() ? c.onPrimary : c.textSecondary, fontWeight: '800' }}>전송</Text>
               </Pressable>

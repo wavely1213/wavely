@@ -83,6 +83,7 @@ export default function PlaceRankScreen() {
   const addKw = async () => {
     const v = newKw.trim();
     if (!v) return;
+    if (v.length < 2) { setMsg('키워드는 2글자 이상으로 입력해주세요.'); return; }
     if (kws.length >= MAX_KW) { setMsg(`키워드는 매장당 최대 ${MAX_KW}개까지예요.`); return; }
     if (kws.some((k) => k.keyword.toLowerCase() === v.toLowerCase())) { setMsg('이미 등록한 키워드예요.'); return; }
     setBusy(true); setMsg('');
@@ -94,7 +95,8 @@ export default function PlaceRankScreen() {
   };
 
   const delKw = async (id: string) => {
-    await supabase.from('place_rank_keywords').delete().eq('id', id);
+    const { error } = await supabase.from('place_rank_keywords').delete().eq('id', id);
+    if (error) { setMsg('키워드 삭제 실패: ' + error.message); return; }
     loadStore(selStore);
   };
 
@@ -114,7 +116,13 @@ export default function PlaceRankScreen() {
     if (kws.length === 0) { setMsg('먼저 분석할 키워드를 1개 이상 추가해주세요.'); return; }
     setAnalyzing(true); setMsg('');
     const { data, error } = await supabase.from('place_analysis_requests').insert({ store_id: selStore, requested_by: session!.user.id }).select('id').single();
-    if (error || !data) { setAnalyzing(false); setMsg('분석 요청 실패: ' + (error?.message ?? '잠시 후 다시 시도')); return; }
+    if (error || !data) {
+      // 이미 진행중인 요청이 있으면(서버 유니크) 친절히 안내
+      const dup = error && /duplicate|conflict|23505|unique/i.test(error.message);
+      setAnalyzing(false);
+      setMsg(dup ? '이미 분석이 진행 중이에요. 잠시만 기다려주세요. (끝나면 자동 반영)' : '분석 요청 실패: ' + (error?.message ?? '잠시 후 다시 시도'));
+      return;
+    }
     setMsg('🔄 최신 순위를 수집·분석 중이에요… (최대 1~2분, 끝나면 자동 반영)');
     pollAnalysis((data as any).id, 0);
   };

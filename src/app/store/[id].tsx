@@ -278,6 +278,7 @@ export default function StoreDetailScreen() {
               value={body}
               onChangeText={setBody}
               multiline
+              maxLength={2000}
             />
             {msg ? <Text style={{ color: '#E5484D', fontWeight: '700', marginTop: 6 }}>{msg}</Text> : null}
             <Pressable style={[styles.btn, { backgroundColor: c.primary }]} onPress={submit} disabled={sending}>

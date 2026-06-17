@@ -73,7 +73,7 @@ export default function ReportScreen() {
           </View>
 
           <Text style={[styles.label, { color: c.textSecondary, marginTop: 4 }]}>상세 내용 (선택)</Text>
-          <TextInput style={[styles.input, { backgroundColor: c.card, borderColor: c.border, color: c.text }]} placeholder="어떤 점이 문제인지 적어주세요" placeholderTextColor={c.textSecondary} value={detail} onChangeText={setDetail} multiline />
+          <TextInput style={[styles.input, { backgroundColor: c.card, borderColor: c.border, color: c.text }]} placeholder="어떤 점이 문제인지 적어주세요" placeholderTextColor={c.textSecondary} value={detail} onChangeText={setDetail} multiline maxLength={2000} />
 
           {msg ? <Text style={{ color: '#E5484D', fontWeight: '700' }}>{msg}</Text> : null}
           <Pressable style={[styles.btn, { backgroundColor: '#E5484D' }]} onPress={submit} disabled={sending}>

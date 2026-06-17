@@ -100,7 +100,7 @@ export default function JobNewScreen() {
           ))}
         </View>
 
-        <TextInput style={[styles.input, { backgroundColor: c.card, borderColor: c.border, color: c.text }]} placeholder={kind === 'hiring' ? '제목 (예: 주말 홀서빙 구해요)' : '제목 (예: 카페 알바 구해요)'} placeholderTextColor={c.textSecondary} value={title} onChangeText={setTitle} />
+        <TextInput style={[styles.input, { backgroundColor: c.card, borderColor: c.border, color: c.text }]} placeholder={kind === 'hiring' ? '제목 (예: 주말 홀서빙 구해요)' : '제목 (예: 카페 알바 구해요)'} placeholderTextColor={c.textSecondary} value={title} onChangeText={setTitle} maxLength={120} />
 
         <View>
           <Text style={[styles.label, { color: c.textSecondary }]}>급여</Text>
@@ -120,7 +120,7 @@ export default function JobNewScreen() {
         </View>
 
         <TextInput style={[styles.input, { backgroundColor: c.card, borderColor: c.border, color: c.text }]} placeholder="근무시간·기간 (예: 평일 18~22시, 주 3일)" placeholderTextColor={c.textSecondary} value={workTime} onChangeText={setWorkTime} />
-        <TextInput style={[styles.input, { backgroundColor: c.card, borderColor: c.border, color: c.text, height: 120, textAlignVertical: 'top' }]} placeholder="상세 내용 (업무·자격·우대사항 등)" placeholderTextColor={c.textSecondary} value={body} onChangeText={setBody} multiline />
+        <TextInput style={[styles.input, { backgroundColor: c.card, borderColor: c.border, color: c.text, height: 120, textAlignVertical: 'top' }]} placeholder="상세 내용 (업무·자격·우대사항 등)" placeholderTextColor={c.textSecondary} value={body} onChangeText={setBody} multiline maxLength={5000} />
         <TextInput style={[styles.input, { backgroundColor: c.card, borderColor: c.border, color: c.text }]} placeholder="연락 방법 (선택 · 비우면 앱 채팅으로 받아요)" placeholderTextColor={c.textSecondary} value={contact} onChangeText={setContact} />
 
         <Text style={[styles.label, { color: c.textSecondary }]}>동네 {dong ? '· 📍 자동감지됨' : '(위치 자동 — 직접 선택도 가능)'}</Text>
