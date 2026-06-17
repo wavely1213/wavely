@@ -91,11 +91,26 @@ create trigger trg_guard_store_insert before insert on public.stores
   for each row execute function public.guard_store_insert();
 
 -- =====================================================================
--- (E) reviews.verified 자가인증 차단 (별점 조작 방지) — 관리자 RPC로만
+-- (E) reviews.verified 자가인증 차단 (별점 조작 방지) — 관리자 RPC + 트리거
+--     ⚠️ reviews 는 테이블레벨 UPDATE 권한 + reviews_update(본인행 허용) 정책이 있어
+--        컬럼 revoke 로는 안 막힘(테이블권한이 덮음). → BEFORE UPDATE 트리거로 확실히 차단.
 -- =====================================================================
 do $$ begin
   if exists (select 1 from information_schema.tables where table_schema='public' and table_name='reviews') then
-    execute 'revoke update (verified) on public.reviews from authenticated';
+    -- 비관리자가 verified 를 바꾸려 하면 원래값으로 되돌림(조용히). 관리자(RPC 경유 포함)는 허용.
+    execute $f$
+      create or replace function public.guard_review_verified()
+      returns trigger language plpgsql security definer set search_path=public as $body$
+      begin
+        if new.verified is distinct from old.verified
+           and not coalesce((select is_admin from public.profiles where id=auth.uid()), false) then
+          new.verified := old.verified;
+        end if;
+        return new;
+      end; $body$;
+    $f$;
+    execute 'drop trigger if exists trg_guard_review_verified on public.reviews';
+    execute 'create trigger trg_guard_review_verified before update on public.reviews for each row execute function public.guard_review_verified()';
   end if;
 end $$;
 create or replace function public.admin_set_review_verified(p_review uuid, p_verified boolean)
@@ -110,18 +125,17 @@ end; $$;
 --    supabase.rpc('admin_set_review_verified', {p_review, p_verified}) 로 교체 필요(별도 커밋).
 
 -- =====================================================================
--- (F) reports 관리자 전용 (신고자 신원·내용 보호 + status 조작 방지). INSERT는 열어둠.
+-- (F) reports — ⚠️ 라이브엔 이미 올바른 정책(rp_read=본인or관리자 / rp_update=관리자 / rp_insert=본인)
+--     이 존재함(2026-06-17 확인). 그 위에 관리자정책을 OR로 더하면 INSERT가 오히려 완화됨.
+--     → **정책이 하나도 없는 새 DB일 때만** 올바른 정책을 생성. 기존 있으면 건드리지 않음.
 -- =====================================================================
 do $$ begin
-  if exists (select 1 from information_schema.tables where table_schema='public' and table_name='reports') then
+  if exists (select 1 from information_schema.tables where table_schema='public' and table_name='reports')
+     and not exists (select 1 from pg_policies where schemaname='public' and tablename='reports') then
     execute 'alter table public.reports enable row level security';
-    execute 'drop policy if exists reports_admin_rw on public.reports';
-    execute 'create policy reports_admin_rw on public.reports for select using (coalesce((select is_admin from public.profiles where id=auth.uid()),false))';
-    execute 'drop policy if exists reports_admin_update on public.reports';
-    execute 'create policy reports_admin_update on public.reports for update using (coalesce((select is_admin from public.profiles where id=auth.uid()),false)) with check (coalesce((select is_admin from public.profiles where id=auth.uid()),false))';
-    -- 신고 등록은 로그인 사용자 누구나
-    execute 'drop policy if exists reports_insert on public.reports';
-    execute 'create policy reports_insert on public.reports for insert with check (auth.uid() is not null)';
+    execute 'create policy rp_read on public.reports for select using (auth.uid() = reporter_id or coalesce((select is_admin from public.profiles where id=auth.uid()),false))';
+    execute 'create policy rp_update on public.reports for update using (coalesce((select is_admin from public.profiles where id=auth.uid()),false)) with check (coalesce((select is_admin from public.profiles where id=auth.uid()),false))';
+    execute 'create policy rp_insert on public.reports for insert with check (auth.uid() = reporter_id)';
   end if;
 end $$;
 
@@ -129,6 +143,18 @@ end $$;
 -- (G) place_analysis_requests: 매장당 동시 1건 + requested_by 위조 차단
 -- =====================================================================
 -- 매장당 pending/running 1건만 (큐 폭주·수집기 DoS 방지)
+-- 먼저 중복 활성요청 정리(미처리 stale 요청 — 유니크 인덱스 생성 위해). 최신 1건만 남김.
+delete from public.place_analysis_requests par
+  using (select store_id, max(requested_at) as mx
+         from public.place_analysis_requests where status in ('pending','running')
+         group by store_id having count(*) > 1) dup
+  where par.store_id = dup.store_id and par.status in ('pending','running')
+    and par.requested_at < dup.mx;
+-- 그래도 동일 timestamp 중복이 남으면 안전하게 전부 정리(미처리 요청이라 무해)
+delete from public.place_analysis_requests a
+  using public.place_analysis_requests b
+  where a.status in ('pending','running') and b.status in ('pending','running')
+    and a.store_id = b.store_id and a.requested_at = b.requested_at and a.id < b.id;
 create unique index if not exists par_one_active_per_store
   on public.place_analysis_requests (store_id)
   where status in ('pending','running');
