@@ -116,7 +116,7 @@ export default function PlaceRankScreen() {
 
   const requestAnalysis = async () => {
     if (analyzing) return;
-    if (kws.length === 0) { setMsg('먼저 분석할 키워드를 1개 이상 추가해주세요.'); return; }
+    // 키워드 등록 안 해도 OK — 등록 키워드 없으면 수집서버가 색인에서 노출 키워드 자동매칭
     setAnalyzing(true); setMsg('');
     const { data, error } = await supabase.from('place_analysis_requests').insert({ store_id: selStore, requested_by: session!.user.id }).select('id').single();
     if (error || !data) {
@@ -199,7 +199,7 @@ export default function PlaceRankScreen() {
                   {analyzing ? <ActivityIndicator color={hasData ? c.primary : c.onPrimary} size="small" /> : null}
                   <Text style={{ color: hasData ? c.primary : c.onPrimary, fontWeight: '800', fontSize: 14.5 }}>{analyzing ? '  수집·분석 중…' : hasData ? '🔄 최신순위로 갱신' : '🔍 분석 시작'}</Text>
                 </Pressable>
-                <Text style={{ color: c.textSecondary, fontSize: 11.5, marginTop: 8, textAlign: 'center', lineHeight: 16 }}>{hasData ? '자동 수집된 최신 데이터예요. 더 최신으로 갱신하려면 위 버튼 (1~2분)' : '아래에 분석할 키워드를 추가한 뒤 [분석 시작]을 누르세요. (1~2분, 이후 자동 수집)'}</Text>
+                <Text style={{ color: c.textSecondary, fontSize: 11.5, marginTop: 8, textAlign: 'center', lineHeight: 16 }}>{hasData ? '자동 수집된 최신 데이터예요. 더 최신으로 갱신하려면 위 버튼 (1~2분)' : '키워드 입력 없이 [분석 시작]만 누르면 노출 키워드를 자동으로 찾아 분석해요. (1~2분)'}</Text>
               </>
             ) : (
               <>
@@ -215,8 +215,8 @@ export default function PlaceRankScreen() {
           {/* 분석 키워드 관리 */}
           {placeIdSet ? (
             <View style={[styles.card, { backgroundColor: c.card, borderColor: c.border }]}>
-              <Text style={[styles.cardTitle, { color: c.text }]}>분석 키워드 ({kws.length}/{MAX_KW})</Text>
-              <Text style={{ color: c.textSecondary, fontSize: 12, marginBottom: 10 }}>이 키워드로 검색했을 때 내 매장 순위를 분석해요.</Text>
+              <Text style={[styles.cardTitle, { color: c.text }]}>고정 키워드 (선택 · {kws.length}/{MAX_KW})</Text>
+              <Text style={{ color: c.textSecondary, fontSize: 12, marginBottom: 10 }}>비워둬도 노출 키워드를 자동으로 찾아 분석해요. 꼭 챙겨보고 싶은 키워드만 추가하세요.</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 7, marginBottom: kws.length ? 12 : 0 }}>
                 {kws.map((k) => (
                   <View key={k.id} style={[styles.kwChip, { backgroundColor: c.primarySoft, borderColor: c.primary }]}>
@@ -238,7 +238,7 @@ export default function PlaceRankScreen() {
 
           {placeIdSet && !hasData ? (
             <View style={[styles.card, { backgroundColor: c.card, borderColor: c.border }]}>
-              <Text style={{ color: c.textSecondary, fontSize: 13, lineHeight: 19 }}>아직 분석 결과가 없어요. 키워드를 추가하고 위 [🔍 분석 시작]을 누르면 순위·N지수·저장·리뷰까지 분석해드려요(1~2분). 이후엔 자동으로 수집돼서 열면 바로 떠요.</Text>
+              <Text style={{ color: c.textSecondary, fontSize: 13, lineHeight: 19 }}>아직 분석 결과가 없어요. 위 [🔍 분석 시작]을 누르면 노출 키워드를 자동으로 찾아 순위·N지수·저장·리뷰까지 분석해드려요. (키워드 입력 불필요)</Text>
             </View>
           ) : null}
 
@@ -260,14 +260,14 @@ export default function PlaceRankScreen() {
                   <Text style={{ color: c.textSecondary, fontSize: 11.5 }}>노출 점수 (상위노출일수록 ↑, 100점 만점)</Text>
                 </View>
                 <View style={styles.statRow}>
+                  <View style={styles.statBox}><Text style={[styles.statVal, { color: c.primaryDeep, fontSize: 16 }]}>{analysis?.n1 ?? '-'}</Text><Text style={[styles.statLabel, { color: c.textSecondary }]}>N1 지수</Text></View>
                   <View style={styles.statBox}><Text style={[styles.statVal, { color: c.primaryDeep, fontSize: 16 }]}>{analysis?.n2 ?? '-'}</Text><Text style={[styles.statLabel, { color: c.textSecondary }]}>N2 지수</Text></View>
                   <View style={styles.statBox}><Text style={[styles.statVal, { color: c.primaryDeep, fontSize: 16 }]}>{analysis?.n3 ?? '-'}</Text><Text style={[styles.statLabel, { color: c.textSecondary }]}>N3 지수</Text></View>
-                  <View style={styles.statBox}><Text style={[styles.statVal, { color: c.text }]}>{metric?.save_count ?? '-'}</Text><Text style={[styles.statLabel, { color: c.textSecondary }]}>저장수</Text></View>
                 </View>
                 <View style={[styles.statRow, { marginTop: 12 }]}>
+                  <View style={styles.statBox}><Text style={[styles.statVal, { color: c.text }]}>{metric?.save_count ?? '-'}</Text><Text style={[styles.statLabel, { color: c.textSecondary }]}>저장수</Text></View>
                   <View style={styles.statBox}><Text style={[styles.statVal, { color: c.text }]}>{metric?.visitor_review ?? '-'}</Text><Text style={[styles.statLabel, { color: c.textSecondary }]}>방문리뷰</Text></View>
                   <View style={styles.statBox}><Text style={[styles.statVal, { color: c.text }]}>{metric?.blog_review ?? '-'}</Text><Text style={[styles.statLabel, { color: c.textSecondary }]}>블로그</Text></View>
-                  <View style={styles.statBox}><Text style={[styles.statVal, { color: c.text }]}>{beyond}</Text><Text style={[styles.statLabel, { color: c.textSecondary }]}>10위권 밖</Text></View>
                 </View>
                 {lastDate ? <Text style={{ color: c.textSecondary, fontSize: 11.5, marginTop: 12, textAlign: 'right' }}>최근 분석 {analysis ? String(analysis.analyzed_at).slice(0, 16).replace('T', ' ') : lastDate}</Text> : null}
               </View>
