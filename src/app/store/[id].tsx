@@ -104,7 +104,7 @@ export default function StoreDetailScreen() {
     await supabase.from('store_change_requests').update({ status: 'rejected' }).eq('id', req.id);
     load();
   };
-  const approveReview = async (rid: string) => { await supabase.from('reviews').update({ verified: true }).eq('id', rid); load(); };
+  const approveReview = async (rid: string) => { await supabase.rpc('admin_set_review_verified', { p_review: rid, p_verified: true }); load(); };
   const rejectReview = async (rid: string) => { await supabase.from('reviews').update({ verify_method: 'none' }).eq('id', rid); load(); };
   const deleteReview = async (rid: string) => { await supabase.from('reviews').delete().eq('id', rid); load(); };
   const pendingReceipts = reviews.filter((r) => r.verify_method === 'receipt' && !r.verified);

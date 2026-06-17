@@ -57,7 +57,7 @@ export default function PlaceDetailScreen() {
   }, [id]);
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
-  const approveReview = async (rid: string) => { await supabase.from('reviews').update({ verified: true }).eq('id', rid); load(); };
+  const approveReview = async (rid: string) => { await supabase.rpc('admin_set_review_verified', { p_review: rid, p_verified: true }); load(); };
   const rejectReview = async (rid: string) => { await supabase.from('reviews').update({ verify_method: 'none' }).eq('id', rid); load(); };
   const deleteReview = async (rid: string) => { await supabase.from('reviews').delete().eq('id', rid); load(); };
   const pendingReceipts = reviews.filter((rv) => rv.verify_method === 'receipt' && !rv.verified);

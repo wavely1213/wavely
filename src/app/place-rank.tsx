@@ -13,7 +13,7 @@ type Kw = { id: string; keyword: string };
 type Snap = { keyword: string; rank: number | null; save_count: number | null; visitor_review: number | null; blog_review: number | null; snap_date: string };
 type Analysis = { n1: number | null; n2: number | null; n3: number | null; save_count: number | null; visitor_review: number | null; blog_review: number | null; analyzed_at: string };
 
-const MAX_KW = 5; // 07_place_rank.sql 트리거 상한과 동일
+const MAX_KW = 30; // 사용자 제한 사실상 없음. 수집 서버 부하 보호용 상한(트리거도 30으로 맞춤)
 const UP = '#E5484D';   // 상승(▲) — 빨강
 const DOWN = '#3B82F6'; // 하락(▼) — 파랑
 
@@ -28,6 +28,7 @@ export default function PlaceRankScreen() {
   const [kws, setKws] = useState<Kw[]>([]);
   const [snaps, setSnaps] = useState<Snap[]>([]);
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
+  const [history, setHistory] = useState<Analysis[]>([]);
   const [loading, setLoading] = useState(true);
   const [placeIdInput, setPlaceIdInput] = useState('');
   const [newKw, setNewKw] = useState('');
@@ -43,8 +44,10 @@ export default function PlaceRankScreen() {
     setKws((k as Kw[]) ?? []);
     const { data: r } = await supabase.from('place_rankings').select('keyword,rank,save_count,visitor_review,blog_review,snap_date').eq('store_id', sid).order('snap_date', { ascending: false });
     setSnaps((r as Snap[]) ?? []);
-    const { data: a } = await supabase.from('place_analysis').select('n1,n2,n3,save_count,visitor_review,blog_review,analyzed_at').eq('store_id', sid).order('analyzed_at', { ascending: false }).limit(1);
-    setAnalysis(((a as Analysis[]) ?? [])[0] ?? null);
+    const { data: a } = await supabase.from('place_analysis').select('n1,n2,n3,save_count,visitor_review,blog_review,analyzed_at').eq('store_id', sid).order('analyzed_at', { ascending: false }).limit(14);
+    const hist = (a as Analysis[]) ?? [];
+    setAnalysis(hist[0] ?? null);
+    setHistory(hist);
   }, []);
 
   const load = useCallback(async () => {
@@ -147,6 +150,9 @@ export default function PlaceRankScreen() {
   const metric = analysis ?? (snaps[0] as any) ?? null;
   const lastDate = snaps[0]?.snap_date ?? null;
   const hasData = snaps.length > 0;
+  // 일자별 추이(차트용): 분석 이력을 오래된→최신 순으로
+  const chrono = [...history].reverse();
+  const showTrend = chrono.length >= 2;
 
   const curStore = stores.find((s) => s.id === selStore);
   const placeIdSet = !!curStore?.naver_place_id;
@@ -266,6 +272,19 @@ export default function PlaceRankScreen() {
                 {lastDate ? <Text style={{ color: c.textSecondary, fontSize: 11.5, marginTop: 12, textAlign: 'right' }}>최근 분석 {analysis ? String(analysis.analyzed_at).slice(0, 16).replace('T', ' ') : lastDate}</Text> : null}
               </View>
 
+              {/* 일자별 추이 (분석 2회 이상 쌓이면 표시) */}
+              {showTrend ? (
+                <View style={[styles.card, { backgroundColor: c.card, borderColor: c.border }]}>
+                  <Text style={[styles.cardTitle, { color: c.text }]}>일자별 추이 (최근 {chrono.length}회)</Text>
+                  <TrendChart c={c} label="방문자 리뷰" data={chrono.map((h) => h.visitor_review)} color={c.primary} />
+                  <TrendChart c={c} label="블로그 리뷰" data={chrono.map((h) => h.blog_review)} color="#3B82F6" />
+                  <TrendChart c={c} label="저장수" data={chrono.map((h) => h.save_count)} color="#11B981" />
+                  <TrendChart c={c} label="N2 지수" data={chrono.map((h) => h.n2)} color={c.primaryDeep} />
+                  <TrendChart c={c} label="N3 지수" data={chrono.map((h) => h.n3)} color={c.primaryDeep} />
+                  <Text style={{ color: c.textSecondary, fontSize: 11, marginTop: 2 }}>왼쪽=과거 · 오른쪽=최신. 분석할수록 더 촘촘해져요.</Text>
+                </View>
+              ) : null}
+
               {/* 급등 / 급락 */}
               {(rising.length > 0 || falling.length > 0) ? (
                 <View style={{ flexDirection: 'row', gap: 12, marginBottom: 12 }}>
@@ -341,6 +360,26 @@ function InfoRow({ c, label, value, last }: { c: any; label: string; value: stri
     <View style={{ flexDirection: 'row', paddingVertical: 8, borderBottomWidth: last ? 0 : 1, borderColor: c.border }}>
       <Text style={{ color: c.textSecondary, fontSize: 13, width: 90 }}>{label}</Text>
       <Text style={{ color: c.text, fontSize: 13, flex: 1, fontWeight: '600' }}>{value}</Text>
+    </View>
+  );
+}
+
+function TrendChart({ c, label, data, color, suffix }: { c: any; label: string; data: (number | null)[]; color: string; suffix?: string }) {
+  const pts = data.filter((v): v is number => v != null);
+  if (pts.length < 2) return null;
+  const min = Math.min(...pts), max = Math.max(...pts), range = (max - min) || 1;
+  const latest = pts[pts.length - 1];
+  return (
+    <View style={{ marginBottom: 14 }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
+        <Text style={{ color: c.textSecondary, fontSize: 12, fontWeight: '700' }}>{label}</Text>
+        <Text style={{ color: c.text, fontSize: 12.5, fontWeight: '800' }}>{latest}{suffix ?? ''}</Text>
+      </View>
+      <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 3, height: 38 }}>
+        {data.map((v, i) => (
+          <View key={i} style={{ flex: 1, height: v != null ? 6 + 30 * ((v - min) / range) : 3, backgroundColor: v != null ? color : c.border, borderRadius: 2, opacity: i === data.length - 1 ? 1 : 0.5 }} />
+        ))}
+      </View>
     </View>
   );
 }
