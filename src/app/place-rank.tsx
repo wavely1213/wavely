@@ -279,6 +279,7 @@ export default function PlaceRankScreen() {
                   <TrendChart c={c} label="방문자 리뷰" data={chrono.map((h) => h.visitor_review)} color={c.primary} />
                   <TrendChart c={c} label="블로그 리뷰" data={chrono.map((h) => h.blog_review)} color="#3B82F6" />
                   <TrendChart c={c} label="저장수" data={chrono.map((h) => h.save_count)} color="#11B981" />
+                  <TrendChart c={c} label="N1 지수" data={chrono.map((h) => h.n1)} color={c.primaryDeep} />
                   <TrendChart c={c} label="N2 지수" data={chrono.map((h) => h.n2)} color={c.primaryDeep} />
                   <TrendChart c={c} label="N3 지수" data={chrono.map((h) => h.n3)} color={c.primaryDeep} />
                   <Text style={{ color: c.textSecondary, fontSize: 11, marginTop: 2 }}>왼쪽=과거 · 오른쪽=최신. 분석할수록 더 촘촘해져요.</Text>
