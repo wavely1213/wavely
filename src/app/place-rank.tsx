@@ -35,7 +35,7 @@ export default function PlaceRankScreen() {
   const [msg, setMsg] = useState('');
   const [busy, setBusy] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
-  const [kwSort, setKwSort] = useState<'rank' | 'volume'>('volume');
+  const [kwSort, setKwSort] = useState<'rank' | 'volume'>('rank');
   const aliveRef = useRef(true);
   useEffect(() => () => { aliveRef.current = false; }, []);
 
@@ -342,7 +342,7 @@ export default function PlaceRankScreen() {
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4, marginBottom: 8 }}>
                 <Text style={[styles.sectionTitle, { color: c.text, marginTop: 0, marginBottom: 0 }]}>키워드 순위 ({total})</Text>
                 <View style={{ flexDirection: 'row', gap: 6 }}>
-                  {(['volume', 'rank'] as const).map((s) => (
+                  {(['rank', 'volume'] as const).map((s) => (
                     <Pressable key={s} onPress={() => setKwSort(s)} style={[styles.sortChip, { backgroundColor: kwSort === s ? c.primary : c.card, borderColor: kwSort === s ? c.primary : c.border }]}>
                       <Text style={{ color: kwSort === s ? c.onPrimary : c.textSecondary, fontSize: 11.5, fontWeight: '700' }}>{s === 'volume' ? '검색량순' : '순위순'}</Text>
                     </Pressable>
