@@ -217,6 +217,7 @@ export default function StoresScreen() {
   const [search, setSearch] = useState('');
   const [places, setPlaces] = useState<Place[]>([]);
   const [members, setMembers] = useState<Store[]>([]);
+  const [nByStore, setNByStore] = useState<Record<string, number>>({});   // 등록매장 N지수(n3) — 상위노출 가중
   const [loading, setLoading] = useState(true);
   const [mapType, setMapType] = useState<'일반' | '위성'>('일반');
   const [page, setPage] = useState(1);
@@ -236,7 +237,7 @@ export default function StoresScreen() {
     if (!isSupabaseConfigured) { setLoading(false); return; }
     setLoading(true);
     const from = (page - 1) * PAGE_SIZE;
-    const mq = supabase.from('stores').select('id,name,category,categories,address,biz_verified,photo,is_ad,ad_weight,rating,review_count,lat,lng').not('owner_id', 'is', null).limit(50);
+    const mq = supabase.from('stores').select('id,name,category,categories,address,biz_verified,photo,is_ad,ad_weight,rating,review_count,lat,lng').not('owner_id', 'is', null).not('is_probe', 'is', true).limit(50);
     let pq = supabase.from('places').select('id,name,category,address,main_cat,lat,lng', { count: 'exact' });
     if (main) pq = pq.eq('main_cat', main);
     if (sub) pq = pq.ilike('category', `%${sub}%`);
@@ -249,9 +250,19 @@ export default function StoresScreen() {
     }
     pq = pq.order('name').range(from, from + PAGE_SIZE - 1);
     const [{ data: m }, pr] = await Promise.all([mq, pq]);
-    setMembers((m as Store[]) ?? []);
+    const mem = (m as Store[]) ?? [];
+    setMembers(mem);
     setPlaces((pr.data as Place[]) ?? []);
     setTotal(pr.count ?? 0);
+    // 등록매장 N지수(최신 n3) 로드 — 상위노출 가중치용
+    const ids = mem.map((s) => s.id);
+    if (ids.length) {
+      const { data: na } = await supabase.from('place_analysis')
+        .select('store_id,n3,analyzed_at').in('store_id', ids).order('analyzed_at', { ascending: false });
+      const nb: Record<string, number> = {};
+      for (const r of (na ?? []) as any[]) { if (!(r.store_id in nb) && r.n3 != null) nb[r.store_id] = r.n3; }
+      setNByStore(nb);
+    }
     setLoading(false);
   }, [main, sub, search, page, radius, myLoc]);
 
@@ -359,13 +370,18 @@ export default function StoresScreen() {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const subList = main ? (SUBS[main] ?? []) : [];
   const canRegister = profile?.role === 'owner';
+  // 등록매장 노출점수 = 기존 복합점수 + N지수(SEO) 가중. 분석된(구독) 매장이 상위노출.
+  const memberScore = (s: Store) => exposureScore(s) + (nByStore[s.id] ?? 0) * 70;
   const displayMembers = useMemo(() => {
     const sl = main && sub ? SUBS[main]?.find((x) => x.pat === sub)?.label ?? null : null;
+    const q = search.trim();
     return members
       .filter((s) => {
         const cats = s.categories && s.categories.length ? s.categories : s.category ? [s.category] : [];
         if (main && !cats.some((cc) => deriveMain(cc) === main)) return false;
         if (sub && !cats.some((cc) => cc.includes(sub) || (sl ? cc.includes(sl) : false))) return false;
+        // 키워드 검색 — 등록매장도 이름/업종 매칭으로 노출(네이버 플레이스식)
+        if (q && !((s.name ?? '').includes(q) || (s.category ?? '').includes(q) || cats.some((cc) => cc.includes(q)))) return false;
         if (onlyVerified && !s.biz_verified) return false;
         // 반경 필터 — 광고/인증은 보너스 거리까지 노출 (각 +10%, 둘 다면 +20%)
         if (radius) {
@@ -376,8 +392,8 @@ export default function StoresScreen() {
         }
         return true;
       })
-      .sort((a, b) => exposureScore(b) - exposureScore(a)); // 복합 노출점수 순
-  }, [members, main, sub, onlyVerified, radius, myLoc]);
+      .sort((a, b) => memberScore(b) - memberScore(a)); // N지수 포함 복합 노출점수 순
+  }, [members, nByStore, search, main, sub, onlyVerified, radius, myLoc]);
 
   // 네이티브(앱) 지도 마커 데이터 — 웹 지도는 별도 useEffect에서 그림
   const nativeMapItems = useMemo<DongMapItem[]>(() => {
@@ -507,6 +523,7 @@ export default function StoresScreen() {
                   <Text style={[styles.cardName, { color: c.text }]} numberOfLines={1}>{s.name}</Text>
                   {s.is_ad && <View style={[styles.badge, { backgroundColor: c.primary }]}><Text style={styles.badgeTxt}>광고</Text></View>}
                   {s.biz_verified && <View style={[styles.badge, { backgroundColor: c.verify }]}><Text style={styles.badgeTxt}>✓ 인증</Text></View>}
+                  {nByStore[s.id] != null && <View style={[styles.badge, { backgroundColor: c.primaryDeep ?? c.primary }]}><Text style={styles.badgeTxt}>N {nByStore[s.id].toFixed(2)}</Text></View>}
                 </View>
                 <View style={styles.ratingRow}>
                   <Text style={styles.star}>⭐</Text>

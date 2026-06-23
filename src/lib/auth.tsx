@@ -15,7 +15,18 @@ export type Profile = {
   username: string | null;
   avatar_url: string | null;
   phone: string | null;
+  place_pass_until: string | null;   // 플레이스 분석 이용권 만료일시(null=무료). > now 면 유료.
+  place_plan: 'basic' | 'premium' | null;   // 활성 등급
 };
+
+// 활성 이용권(등급 무관: basic/premium) 여부
+export function hasPlacePass(profile: Profile | null): boolean {
+  return !!profile?.place_pass_until && new Date(profile.place_pass_until).getTime() > Date.now();
+}
+// 활성 프리미엄(경쟁사 분석 가능) 여부
+export function isPlacePremium(profile: Profile | null): boolean {
+  return hasPlacePass(profile) && profile?.place_plan === 'premium';
+}
 
 // 매장 수정/삭제 권한: 관리자 · 매장 사장님 · 매장 소속 직원
 export function canEditStore(profile: Profile | null, store: { owner_id?: string | null; id: string } | null): boolean {
@@ -48,7 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const loadProfile = async (userId: string) => {
-    const sel = 'id,nickname,role,biz_verified,company_id,is_admin,friend_code,username,avatar_url,phone';
+    const sel = 'id,nickname,role,biz_verified,company_id,is_admin,friend_code,username,avatar_url,phone,place_pass_until,place_plan';
     let { data } = await supabase.from('profiles').select(sel).eq('id', userId).maybeSingle();
     if (!data) {
       // 프로필이 없으면 자동 생성 후 재조회 (소셜 로그인·구 계정 안전장치 → 1계정=1프로필 보장)

@@ -39,6 +39,7 @@ export default function SignupScreen() {
     supabase
       .from('stores')
       .select('id,name,category,address')
+      .not('is_probe', 'is', true)
       .then(({ data }) => { if (data) setStores(data as RegisteredStore[]); });
   }, []);
 

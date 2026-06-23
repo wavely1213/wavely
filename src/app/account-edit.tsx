@@ -61,7 +61,7 @@ export default function AccountEditScreen() {
 
   const searchStores = async () => {
     if (!storeQuery.trim()) return;
-    const { data } = await supabase.from('stores').select('id,name,category,address').ilike('name', `%${storeQuery.trim()}%`).limit(8);
+    const { data } = await supabase.from('stores').select('id,name,category,address').ilike('name', `%${storeQuery.trim()}%`).not('is_probe', 'is', true).limit(8);
     setStoreResults((data as any[]) ?? []);
   };
 
