@@ -99,6 +99,7 @@ export default function ChatRoom() {
     const { error } = await supabase.from('messages').insert({ conversation_id: id, sender_id: session.user.id, sender_nick: profile?.nickname ?? '회원', body: t });
     if (error) { setText(t); setSendErr(true); setSending(false); return; } // 실패 시 입력 복원 (메시지 유실 방지)
     await supabase.from('conversations').update({ last_message: t, last_at: new Date().toISOString() }).eq('id', id);
+    supabase.rpc('earn_biz_money', { p_action: 'chat' }).then(() => {}, () => {}); // 사장님 채팅 적립(서버 일일한도). 비사장님/한도초과는 0 반환
     setSending(false);
   };
 

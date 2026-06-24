@@ -33,7 +33,7 @@ export default function AdScreen() {
   const [ads, setAds] = useState<Ad[]>([]);
   const [adStats, setAdStats] = useState<Record<string, { impressions: number; clicks: number }>>({});
   const [daily, setDaily] = useState<{ d: string; impressions: number; clicks: number }[]>([]);
-  const [wallet, setWallet] = useState<{ balance: number; unlimited?: boolean; card: { id: string; card_name: string; masked: string | null } | null; ledger: any[] }>({ balance: 0, card: null, ledger: [] });
+  const [wallet, setWallet] = useState<{ balance: number; free?: number; paid?: number; free_expires_at?: string | null; unlimited?: boolean; card: { id: string; card_name: string; masked: string | null } | null; ledger: any[] }>({ balance: 0, free: 0, card: null, ledger: [] });
   const [walletBusy, setWalletBusy] = useState(false);
   const [walletMsg, setWalletMsg] = useState('');
   const [pendingAll, setPendingAll] = useState<any[]>([]);
@@ -82,7 +82,7 @@ export default function AdScreen() {
     setDaily(((dd as any[]) ?? []).map((r) => ({ d: String(r.d), impressions: Number(r.impressions) || 0, clicks: Number(r.clicks) || 0 })));
     // 광고비 지갑 (잔액·카드·내역)
     const { data: w } = await supabase.rpc('my_wallet');
-    if (w) setWallet({ balance: 0, unlimited: false, card: null, ledger: [], ...(w as any) });
+    if (w) setWallet({ balance: 0, free: 0, unlimited: false, card: null, ledger: [], ...(w as any) });
     if (profile?.is_admin) {
       const { data: pa } = await supabase.from('ads').select('id,store_id,format,plan,bid_amount,monthly_fee,status,ends_at,banner_image,headline,stores(name)').eq('status', 'under_review').order('created_at', { ascending: false });
       setPendingAll((pa as any[]) ?? []);
@@ -305,6 +305,20 @@ export default function AdScreen() {
                   <Text style={{ color: c.textSecondary, fontWeight: '700', fontSize: 13 }}>현재 잔액{wallet.unlimited ? ' · 개발자' : ''}</Text>
                   <Text style={{ color: c.primaryDeep, fontWeight: '900', fontSize: 26 }}>{wallet.unlimited ? '무제한' : `${wallet.balance.toLocaleString()}원`}</Text>
                 </View>
+                {!wallet.unlimited && (wallet.free ?? 0) > 0 && (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
+                    <View style={{ backgroundColor: c.primarySoft, borderRadius: 8, paddingHorizontal: 9, paddingVertical: 3 }}>
+                      <Text style={{ color: c.verify, fontSize: 11.5, fontWeight: '800' }}>🎁 무료 {(wallet.free ?? 0).toLocaleString()}원</Text>
+                    </View>
+                    <View style={{ borderWidth: 1, borderColor: c.border, borderRadius: 8, paddingHorizontal: 9, paddingVertical: 3 }}>
+                      <Text style={{ color: c.textSecondary, fontSize: 11.5, fontWeight: '700' }}>유료 {(wallet.paid ?? Math.max(0, wallet.balance - (wallet.free ?? 0))).toLocaleString()}원</Text>
+                    </View>
+                    {wallet.free_expires_at ? <Text style={{ color: c.textSecondary, fontSize: 10.5 }}>· 무료 만료 {String(wallet.free_expires_at).slice(0, 10)}</Text> : null}
+                  </View>
+                )}
+                {!wallet.unlimited && (
+                  <Text style={{ color: c.textSecondary, fontSize: 11.5, marginTop: 8, lineHeight: 17 }}>🎁 게시글·채팅·출석으로 <Text style={{ color: c.verify, fontWeight: '800' }}>무료 광고비</Text>가 쌓여요. 광고비 차감 시 무료분이 먼저 쓰여요. (1년 유효)</Text>
+                )}
 
                 {/* 등록 카드 */}
                 <View style={{ marginTop: 14 }}>

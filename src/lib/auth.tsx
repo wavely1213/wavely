@@ -77,6 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (data.session) {
         loadProfile(data.session.user.id).finally(() => setLoading(false));
         registerPush(data.session.user.id);
+        supabase.rpc('earn_biz_money', { p_action: 'attendance' }).then(() => {}, () => {}); // 출석 적립(사장님, 1일 1회)
       } else setLoading(false);
     });
 
@@ -85,6 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (newSession) {
         loadProfile(newSession.user.id);
         registerPush(newSession.user.id);
+        supabase.rpc('earn_biz_money', { p_action: 'attendance' }).then(() => {}, () => {}); // 출석 적립(사장님, 1일 1회)
       } else setProfile(null);
     });
 
