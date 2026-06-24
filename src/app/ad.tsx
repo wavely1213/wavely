@@ -19,7 +19,7 @@ const STATUS_LABEL: Record<string, string> = { pending_payment: '결제 대기',
 const TOPUP_AMOUNTS = [10000, 30000, 50000, 100000];
 
 type Store = { id: string; name: string; is_ad: boolean; ad_weight: number | null };
-type Ad = { id: string; store_id: string; format: string; plan: string; bid_amount: number; monthly_fee: number; status: string; ends_at: string | null };
+type Ad = { id: string; store_id: string; format: string; plan: string; bid_amount: number; monthly_fee: number; status: string; ends_at: string | null; reject_reason: string | null };
 
 export default function AdScreen() {
   const scheme = useScheme();
@@ -71,7 +71,7 @@ export default function AdScreen() {
     const list = (st as Store[]) ?? [];
     setStores(list);
     if (!selStore && list.length) setSelStore(storeParam && list.find((s) => s.id === storeParam) ? String(storeParam) : list[0].id);
-    const { data: ad } = await supabase.from('ads').select('id,store_id,format,plan,bid_amount,monthly_fee,status,ends_at').eq('owner_id', session.user.id).order('created_at', { ascending: false });
+    const { data: ad } = await supabase.from('ads').select('id,store_id,format,plan,bid_amount,monthly_fee,status,ends_at,reject_reason').eq('owner_id', session.user.id).order('created_at', { ascending: false });
     setAds((ad as Ad[]) ?? []);
     // 내 광고 성과(노출·클릭)
     const { data: statRows } = await supabase.rpc('my_ad_stats');
@@ -151,6 +151,7 @@ export default function AdScreen() {
 
   const adminActivate = async (adId: string) => { await supabase.functions.invoke('ad-activate', { body: { ad_id: adId, days: 30 } }); load(); };
   const adminReject = async (adId: string) => { await supabase.rpc('admin_reject_ad', { target: adId }); load(); };
+  const requestRereview = async (adId: string) => { await supabase.rpc('request_ad_rereview', { target: adId }); load(); };
 
   // 자동결제 카드 등록 (빌링키 발급 → 서버 검증·저장)
   const registerCard = async () => {
@@ -396,6 +397,15 @@ export default function AdScreen() {
                         <View style={styles.metric}><Text style={[styles.metricVal, { color: c.text }]}>{aCtr}%</Text><Text style={[styles.metricLabel, { color: c.textSecondary }]}>클릭률</Text></View>
                         <View style={styles.metric}><Text style={[styles.metricVal, { color: c.text }]}>{cost.toLocaleString()}</Text><Text style={[styles.metricLabel, { color: c.textSecondary }]}>광고료</Text></View>
                       </View>
+                      {a.status === 'rejected' ? (
+                        <View style={{ marginTop: 8, padding: 10, borderRadius: 10, backgroundColor: c.background, borderWidth: 1, borderColor: '#E5484D' }}>
+                          <Text style={{ color: '#E5484D', fontWeight: '800', fontSize: 12.5 }}>검토 반려됨</Text>
+                          {a.reject_reason ? <Text style={{ color: c.text, fontSize: 12, marginTop: 3, lineHeight: 17 }}>사유: {a.reject_reason}</Text> : null}
+                          <Pressable onPress={() => requestRereview(a.id)} disabled={busy} style={{ marginTop: 8, paddingVertical: 8, borderRadius: 8, backgroundColor: c.primary, alignItems: 'center', opacity: busy ? 0.6 : 1 }}>
+                            <Text style={{ color: c.onPrimary, fontWeight: '800', fontSize: 12.5 }}>🔄 재검토 요청</Text>
+                          </Pressable>
+                        </View>
+                      ) : null}
                     </View>
                   );
                 })}

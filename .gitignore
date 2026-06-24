@@ -45,3 +45,5 @@ example
 
 # logs
 *.log
+
+.vercel

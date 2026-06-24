@@ -40,9 +40,16 @@ export default function AdminDashboardScreen() {
   }, [isAdmin]);
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
-  const act = async (fn: () => Promise<any>, id: string) => { setBusyId(id); await fn(); setBusyId(null); load(); };
+  const act = async (fn: () => PromiseLike<any>, id: string) => { setBusyId(id); await fn(); setBusyId(null); load(); };
   const approve = (id: string) => act(() => supabase.functions.invoke('ad-activate', { body: { ad_id: id, days: 30 } }), id);
-  const reject = (id: string) => act(() => supabase.rpc('admin_reject_ad', { target: id }), id);
+  const reject = (id: string) => {
+    // 반려 사유 입력(담당자에게 알림으로 전달). 웹은 prompt, 취소 시 중단.
+    const reason = (typeof window !== 'undefined' && window.prompt)
+      ? window.prompt('반려 사유를 입력하세요 (해당 매장 담당자에게 알림으로 전달됩니다)', '')
+      : '';
+    if (reason === null) return;   // 취소
+    act(() => supabase.rpc('admin_reject_ad', { target: id, reason: reason || null }), id);
+  };
   const pause = (id: string) => act(() => supabase.rpc('admin_pause_ad', { target: id }), id);
   const resume = (id: string) => act(() => supabase.rpc('admin_resume_ad', { target: id }), id);
 
@@ -127,7 +134,10 @@ export default function AdminDashboardScreen() {
                     <Text style={[styles.name, { color: c.text }]}>{a.stores?.name ?? a.store_id}</Text>
                     <Text style={[styles.meta, { color: c.textSecondary }]}>{metaTxt(a)}</Text>
                   </View>
-                  <Pressable style={[styles.smallBtn, { backgroundColor: c.primary }]} disabled={busyId === a.id} onPress={() => resume(a.id)}><Text style={{ color: c.onPrimary, fontWeight: '800', fontSize: 12 }}>▶ 재개</Text></Pressable>
+                  <View style={{ flexDirection: 'row', gap: 6 }}>
+                    <Pressable style={[styles.smallBtn, { backgroundColor: c.primary }]} disabled={busyId === a.id} onPress={() => resume(a.id)}><Text style={{ color: c.onPrimary, fontWeight: '800', fontSize: 12 }}>▶ 재개</Text></Pressable>
+                    <Pressable style={[styles.smallBtn, { borderColor: '#E5484D', borderWidth: 1.5 }]} disabled={busyId === a.id} onPress={() => reject(a.id)}><Text style={{ color: '#E5484D', fontWeight: '800', fontSize: 12 }}>반려</Text></Pressable>
+                  </View>
                 </View>
               ))}
             </>
