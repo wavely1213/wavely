@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, useColorScheme, View } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, useColorScheme, useWindowDimensions, View } from 'react-native';
 import { useScheme } from '@/lib/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -143,8 +143,12 @@ export default function CommunityScreen() {
   const goWrite = () => router.push(session ? `/write?dong=${encodeURIComponent(dong ?? '')}` : '/login');
   const setTag = (t: string | undefined) => router.setParams({ tag: t });
 
+  const { width } = useWindowDimensions();
+  const desktop = Platform.OS === 'web' && width >= 1024; // 데스크톱 셸이 사이드바/로고/알림을 제공 → 모바일 상단바·FAB는 숨김
+
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: c.background }]} edges={['top']}>
+      {!desktop && (
       <View style={[styles.topbar, { backgroundColor: c.card, borderColor: c.border, flexDirection: 'row', alignItems: 'center' }]}>
         {Assets.logo ? <Image source={{ uri: Assets.logo }} style={{ width: 30, height: 30, borderRadius: 7, marginRight: 9 }} contentFit="contain" /> : null}
         <View style={{ flex: 1 }}>
@@ -158,6 +162,7 @@ export default function CommunityScreen() {
           {notifUnread > 0 ? <View style={styles.notifBadge}><Text style={styles.notifBadgeTxt}>{notifUnread > 9 ? '9+' : notifUnread}</Text></View> : null}
         </Pressable>
       </View>
+      )}
 
       {/* 동네(동) 선택 + 검색 */}
       {!tag && (
@@ -332,9 +337,11 @@ export default function CommunityScreen() {
         </ScrollView>
       )}
 
-      <Pressable style={[styles.fab, { backgroundColor: c.primary }]} onPress={goWrite}>
-        <Text style={styles.fabTxt}>✏️ 글쓰기</Text>
-      </Pressable>
+      {!desktop && (
+        <Pressable style={[styles.fab, { backgroundColor: c.primary }]} onPress={goWrite}>
+          <Text style={styles.fabTxt}>✏️ 글쓰기</Text>
+        </Pressable>
+      )}
     </SafeAreaView>
   );
 }
