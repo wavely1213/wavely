@@ -4,7 +4,7 @@ import { Image, Pressable, StyleSheet, Text, useColorScheme, View } from 'react-
 import { useScheme } from '@/lib/theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Colors } from '@/constants/theme';
+import { Colors, Shadow, Radius } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 
@@ -73,8 +73,8 @@ const styles = StyleSheet.create({
   wrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
   pill: {
     flexDirection: 'row', alignItems: 'center', gap: 2,
-    paddingHorizontal: 7, paddingVertical: 7, borderRadius: 30, borderWidth: 1,
-    boxShadow: '0 6px 18px rgba(0,0,0,0.22)', elevation: 8,
+    paddingHorizontal: 7, paddingVertical: 7, borderRadius: Radius.tabbar, borderWidth: 1,
+    boxShadow: Shadow.float, elevation: 8,
   },
   tab: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 13, paddingVertical: 9, borderRadius: 22 },
   label: { fontSize: 12.5, fontWeight: '800' },

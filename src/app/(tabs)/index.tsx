@@ -9,7 +9,7 @@ import { Avatar } from '@/components/Avatar';
 import { DongPicker } from '@/components/DongPicker';
 import { StripBanner } from '@/components/StripBanner';
 import { boardLabel, mergeDongs, parseHashtags } from '@/constants/app';
-import { Assets, Colors, UI } from '@/constants/theme';
+import { Assets, Colors, UI, Radius, Shadow } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 
@@ -369,7 +369,7 @@ const styles = StyleSheet.create({
   post: { paddingHorizontal: 16, paddingVertical: 11, borderBottomWidth: 1 },
   row: { flexDirection: 'row', gap: 12 },
   content: { flex: 1, minWidth: 0 },
-  thumb: { width: 64, height: 64, borderRadius: 10 },
+  thumb: { width: 64, height: 64, borderRadius: Radius.image },
   head: { flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: 5 },
   headRight: { flexDirection: 'row', alignItems: 'center', gap: 8, marginLeft: 'auto' },
   anon: { width: 26, height: 26, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
@@ -386,6 +386,6 @@ const styles = StyleSheet.create({
   tagsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 7 },
   hashChip: { paddingHorizontal: 9, paddingVertical: 4, borderRadius: 999 },
   hashTxt: { fontSize: 12, fontWeight: '700' },
-  fab: { position: 'absolute', right: 18, bottom: 92, paddingHorizontal: 18, paddingVertical: 14, borderRadius: 999, boxShadow: '0 3px 8px rgba(0,0,0,0.2)', elevation: 5 },
+  fab: { position: 'absolute', right: 18, bottom: 92, paddingHorizontal: 18, paddingVertical: 14, borderRadius: Radius.pill, boxShadow: Shadow.fab, elevation: 5 },
   fabTxt: { color: '#fff', fontSize: 15, fontWeight: '800' },
 });

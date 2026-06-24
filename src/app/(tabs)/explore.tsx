@@ -8,7 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import NativeDongMap, { type DongMapItem } from '@/components/NativeDongMap';
 import { StripBanner } from '@/components/StripBanner';
 import { prettyCat } from '@/constants/app';
-import { Colors } from '@/constants/theme';
+import { Colors, Radius, Shadow } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 
@@ -703,7 +703,7 @@ const styles = StyleSheet.create({
   adBadgeTxt: { fontSize: 10, fontWeight: '800' },
   adTitle: { fontSize: 14, fontWeight: '800' },
   adDesc: { fontSize: 12, marginTop: 2 },
-  card: { borderRadius: 14, borderWidth: 1, marginBottom: 10, overflow: 'hidden' },
+  card: { borderRadius: Radius.card, borderWidth: 1, marginBottom: 12, overflow: 'hidden', boxShadow: Shadow.card },
   cardImg: { width: '100%', height: 130 },
   cardBody: { padding: 12 },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
@@ -724,6 +724,6 @@ const styles = StyleSheet.create({
   pager: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, paddingVertical: 20 },
   pageArrow: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
   pageNum: { width: 30, height: 30, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
-  fab: { position: 'absolute', right: 18, bottom: 92, paddingHorizontal: 18, paddingVertical: 14, borderRadius: 999, boxShadow: '0 3px 8px rgba(0,0,0,0.2)', elevation: 5 },
+  fab: { position: 'absolute', right: 18, bottom: 92, paddingHorizontal: 18, paddingVertical: 14, borderRadius: Radius.pill, boxShadow: Shadow.fab, elevation: 5 },
   fabTxt: { color: '#fff', fontSize: 15, fontWeight: '800' },
 });

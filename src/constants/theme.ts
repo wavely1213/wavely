@@ -117,3 +117,43 @@ export const Spacing = {
 
 export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
 export const MaxContentWidth = 800;
+
+// ── 디자인 핸드오프(Claude Design) — 화면별 블렌드를 코드로 강제하는 표면 토큰 ──
+// 규칙: 클린(리스트) 화면 = borderBottomWidth:1 + 그림자 없음
+//       소프트(카드) 화면 = borderRadius:Radius.card + boxShadow:Shadow.card
+export const Radius = {
+  list: 12,    // 게시판/리스트 행, 작은 칩
+  card: 16,    // 매장·장소 카드 (소프트)
+  image: 12,   // 썸네일
+  button: 12,
+  pill: 999,   // 칩/뱃지/FAB
+  tabbar: 30,  // 플로팅 탭바
+} as const;
+
+// RN 'boxShadow' 문자열(웹). 네이티브는 elevation 병기 권장.
+export const Shadow = {
+  card: '0 1px 2px rgba(20,18,40,0.04), 0 5px 18px rgba(20,18,40,0.05)', // 소프트 카드
+  cardDark: '0 1px 3px rgba(0,0,0,0.40)',
+  float: '0 6px 18px rgba(0,0,0,0.22)',        // 플로팅 탭바
+  fab: '0 4px 12px rgba(124,92,252,0.40)',     // 글쓰기 FAB
+} as const;
+
+// 뱃지/태그 컬러 맵 — 흩어진 인라인 태그 색을 한곳에서 관리
+export const TagColors = {
+  // 게시판(board)
+  free: { label: '자유', fg: '#5E3FE0', bg: '#EDE8FE' },
+  promo: { label: '📢 홍보', fg: '#D9730D', bg: '#FFE7CC' },
+  owner: { label: '사장님', fg: '#7C5CFC', bg: '#EDE8FE' },
+  staff: { label: '직장인', fg: '#0E8C6A', bg: '#DDF3EC' },
+  // 매장 상태
+  verify: { label: '✓ 인증', fg: '#FFFFFF', bg: '#11B981' },
+  ad: { label: '광고', fg: '#FFFFFF', bg: '#7C5CFC' },
+} as const;
+
+// 다크모드 태그 오버라이드 (대비 보정용 — 필요한 것만)
+export const TagColorsDark: Partial<Record<keyof typeof TagColors, { fg: string; bg: string }>> = {
+  free: { fg: '#C4B5FD', bg: '#2E2546' },
+  promo: { fg: '#F0A35A', bg: '#3A2A18' },
+  owner: { fg: '#C4B5FD', bg: '#2E2546' },
+  staff: { fg: '#6EE7B7', bg: '#13352A' },
+};
