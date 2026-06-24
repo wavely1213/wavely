@@ -416,11 +416,17 @@ export default function PlaceRankScreen() {
                   <Text style={{ color: hasData ? c.primary : c.onPrimary, fontWeight: '800', fontSize: 14.5 }}>{analyzing ? '  수집·분석 중…' : hasData ? '🔄 최신순위로 갱신' : '🔍 분석 시작'}</Text>
                 </Pressable>
                 <Text style={{ color: c.textSecondary, fontSize: 11.5, marginTop: 8, textAlign: 'center', lineHeight: 16 }}>{hasData ? '자동 수집된 최신 데이터예요. 더 최신으로 갱신하려면 위 버튼 (1~2분)' : '키워드 입력 없이 [분석 시작]만 누르면 노출 키워드를 자동으로 찾아 분석해요. (1~2분)'}</Text>
-                {/* 무료 잔여/유료 상태 */}
-                <Text style={{ color: paid ? c.primary : (freeLeft > 0 ? c.textSecondary : '#E5484D'), fontSize: 11.5, marginTop: 6, textAlign: 'center', fontWeight: '700' }}>
-                  {premium ? '⭐ 프리미엄 — 무제한 + 경쟁사 분석' : paid ? '✅ 월 구독 — 본인 매장 무제한' : freeLeft > 0 ? '이번 주 무료 분석 1회 남음 (7일 1회)' : '이번 주 무료 분석 소진 — 구독으로 계속하기'}
-                  {!paid && freeLeft <= 0 ? <Text onPress={() => setPayReason('weekly')} style={{ color: c.primary }}>  구독 →</Text> : null}
+                {/* 무료 잔여/유료/관리자 상태 */}
+                <Text style={{ color: isAdmin || paid ? c.primary : (freeLeft > 0 ? c.textSecondary : '#E5484D'), fontSize: 11.5, marginTop: 6, textAlign: 'center', fontWeight: '700' }}>
+                  {isAdmin ? '🔧 관리자 — 무료 무제한 분석' : premium ? '⭐ 프리미엄 — 무제한 + 경쟁사 분석' : paid ? '✅ 월 구독 — 본인 매장 무제한' : freeLeft > 0 ? '이번 주 무료 분석 1회 남음 (7일 1회)' : '이번 주 무료 분석 소진 — 구독으로 계속하기'}
+                  {!isAdmin && !paid && freeLeft <= 0 ? <Text onPress={() => setPayReason('weekly')} style={{ color: c.primary }}>  구독 →</Text> : null}
                 </Text>
+                {/* 관리자 전용: 결제창 없이 무료 분석 */}
+                {isAdmin ? (
+                  <Pressable onPress={requestAnalysis} disabled={analyzing} style={{ marginTop: 10, paddingVertical: 11, borderRadius: 12, borderWidth: 1.5, borderColor: c.primary, borderStyle: 'dashed', alignItems: 'center', opacity: analyzing ? 0.6 : 1 }}>
+                    <Text style={{ color: c.primary, fontWeight: '800', fontSize: 13.5 }}>🔧 무료 분석 (관리자) — 결제창 없이</Text>
+                  </Pressable>
+                ) : null}
               </>
             ) : (
               <>
