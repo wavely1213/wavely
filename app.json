@@ -20,7 +20,8 @@
       "package": "com.wavely.app",
       "permissions": [
         "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION"
+        "ACCESS_COARSE_LOCATION",
+        "POST_NOTIFICATIONS"
       ],
       "adaptiveIcon": {
         "backgroundColor": "#7C5CFC",
@@ -34,6 +35,12 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-notifications",
+        {
+          "color": "#7C5CFC"
+        }
+      ],
       [
         "expo-splash-screen",
         {
