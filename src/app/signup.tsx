@@ -32,6 +32,7 @@ export default function SignupScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [infoMsg, setInfoMsg] = useState('');
+  const [agree, setAgree] = useState(false);   // 만14세+이용약관+개인정보 동의(필수)
 
   // 진짜 DB에서 등록 매장 목록 가져오기
   useEffect(() => {
@@ -73,6 +74,7 @@ export default function SignupScreen() {
     email.trim().length > 0 &&
     password.length >= 6 &&
     (!needsCompany || company !== null) &&
+    agree &&
     !submitting;
 
   const handleSubmit = async () => {
@@ -229,6 +231,15 @@ export default function SignupScreen() {
 
         {errorMsg ? <Text style={[styles.msg, { color: '#E5484D' }]}>{errorMsg}</Text> : null}
         {infoMsg ? <Text style={[styles.msg, { color: c.verify }]}>{infoMsg}</Text> : null}
+
+        <Pressable onPress={() => setAgree(!agree)} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginTop: 10, marginBottom: 6 }}>
+          <View style={{ width: 20, height: 20, borderRadius: 6, borderWidth: 1.5, borderColor: agree ? c.primary : c.border, backgroundColor: agree ? c.primary : 'transparent', alignItems: 'center', justifyContent: 'center', marginTop: 1 }}>
+            {agree ? <Text style={{ color: c.onPrimary, fontSize: 13, fontWeight: '900' }}>✓</Text> : null}
+          </View>
+          <Text style={{ flex: 1, fontSize: 12.5, color: c.textSecondary, lineHeight: 18 }}>
+            만 14세 이상이며, <Text style={{ color: c.primary, fontWeight: '800' }} onPress={() => router.push('/terms')}>이용약관</Text> · <Text style={{ color: c.primary, fontWeight: '800' }} onPress={() => router.push('/privacy')}>개인정보처리방침</Text>에 동의합니다. (필수)
+          </Text>
+        </Pressable>
 
         <Pressable
           disabled={!canSubmit}
