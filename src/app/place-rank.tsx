@@ -36,6 +36,17 @@ function estN1(total: number | null, vol: number | null, kw?: string | null, cat
   return Math.max(0, n1);
 }
 
+// W지수(와벨리 커뮤니티 지수): 커뮤니티 신호를 N지수와 같은 0~2 스케일로 정규화(v1 기준치 추후 튜닝).
+// 기준치: 언급 10건 / 좋아요 50개 / 댓글 34개 = 각 만점. 데이터 없으면 null(수집 대기).
+type WData = { mentions: number; likes: number; comments: number; recent30: number };
+function calcWScore(w: WData | null): number | null {
+  if (!w || (w.mentions === 0 && w.likes === 0 && w.comments === 0)) return null;
+  const m = Math.min(1, w.mentions / 10);
+  const l = Math.min(1, w.likes / 50);
+  const c = Math.min(1, w.comments / 34);
+  return +((m * 0.45 + l * 0.30 + c * 0.25) * 2).toFixed(2);
+}
+
 export default function PlaceRankScreen() {
   const scheme = useScheme();
   const c = Colors[scheme];
@@ -64,6 +75,7 @@ export default function PlaceRankScreen() {
   const [probeId, setProbeId] = useState('');   // 관리자: 다른 매장 분석용 플레이스 ID
   const [usedWeek, setUsedWeek] = useState(0);     // 최근 7일 사용자 분석 요청 수(무료 7일 1회 판정)
   const [payReason, setPayReason] = useState<string | null>(null);   // 페이월 사유: 'weekly'|'competitor'
+  const [wData, setWData] = useState<WData | null>(null);   // W지수(와벨리 커뮤니티 지수) 원천
   const paid = hasPlacePass(profile);              // 유료(basic/premium) 여부
   const premium = isPlacePremium(profile);         // 프리미엄(경쟁사 분석 가능)
   const freeLeft = paid ? Infinity : Math.max(0, 1 - usedWeek);
@@ -106,6 +118,28 @@ export default function PlaceRankScreen() {
     setLoading(false);
   }, [session, selStore, loadStore]);
   useFocusEffect(useCallback(() => { load(); }, [load]));
+
+  // W지수: 선택 매장명이 장소로 첨부된 커뮤니티 글의 언급·반응·댓글 집계 (네이버 N지수와 대비되는 와벨리 지수)
+  useEffect(() => {
+    const st = stores.find((s) => s.id === selStore);
+    if (!st?.name) { setWData(null); return; }
+    let alive = true;
+    (async () => {
+      const { data } = await supabase.from('posts')
+        .select('id,like_count,created_at,comments(count)')
+        .ilike('place_name', `%${st.name}%`)
+        .order('created_at', { ascending: false }).limit(200);
+      if (!alive) return;
+      const posts = (data as any[]) ?? [];
+      setWData({
+        mentions: posts.length,
+        likes: posts.reduce((s, p) => s + (p.like_count || 0), 0),
+        comments: posts.reduce((s, p) => s + (p.comments?.[0]?.count || 0), 0),
+        recent30: posts.filter((p) => Date.now() - new Date(p.created_at).getTime() < 30 * 86400 * 1000).length,
+      });
+    })();
+    return () => { alive = false; };
+  }, [selStore, stores]);
 
   const pickStore = (sid: string) => {
     setSelStore(sid);
@@ -503,6 +537,27 @@ export default function PlaceRankScreen() {
                 </View>
                 <Text style={{ color: c.textSecondary, fontSize: 11, marginTop: 12, lineHeight: 16 }}>순위·저장·리뷰는 네이버에서 직접 수집한 실측값이에요. N지수는 경쟁강도·검색량·리뷰 기반 추정치라 타 서비스와 ±0.05 정도 차이날 수 있어요.</Text>
                 {lastDate ? <Text style={{ color: c.textSecondary, fontSize: 11.5, marginTop: 6, textAlign: 'right' }}>최근 분석 {analysis ? String(analysis.analyzed_at).slice(0, 16).replace('T', ' ') : lastDate}</Text> : null}
+              </View>
+
+              {/* W지수 (와벨리 커뮤니티 지수) — N지수=네이버 기반 / W지수=와벨리 커뮤니티 기반 */}
+              <View style={[styles.card, { backgroundColor: c.card, borderColor: c.border }]}>
+                <Text style={[styles.cardTitle, { color: c.text }]}>💬 와벨리 W지수 <Text style={{ fontSize: 12, fontWeight: '400', color: c.textSecondary }}>(커뮤니티 기반)</Text></Text>
+                {wData && (wData.mentions > 0 || wData.likes > 0 || wData.comments > 0) ? (
+                  <>
+                    <View style={{ alignItems: 'center', marginVertical: 10 }}>
+                      <Text style={{ color: c.primaryDeep, fontWeight: '900', fontSize: 30 }}>{calcWScore(wData) ?? '-'}</Text>
+                      <Text style={{ color: c.textSecondary, fontSize: 11.5 }}>W지수 (와벨리 커뮤니티)</Text>
+                    </View>
+                    <View style={styles.statRow}>
+                      <View style={styles.statBox}><Text style={[styles.statVal, { color: c.text }]}>{wData.mentions}</Text><Text style={[styles.statLabel, { color: c.textSecondary }]}>언급</Text></View>
+                      <View style={styles.statBox}><Text style={[styles.statVal, { color: c.text }]}>{wData.likes}</Text><Text style={[styles.statLabel, { color: c.textSecondary }]}>좋아요</Text></View>
+                      <View style={styles.statBox}><Text style={[styles.statVal, { color: c.text }]}>{wData.comments}</Text><Text style={[styles.statLabel, { color: c.textSecondary }]}>댓글</Text></View>
+                    </View>
+                  </>
+                ) : (
+                  <Text style={{ color: c.textSecondary, fontSize: 12.5, marginTop: 4, lineHeight: 18 }}>아직 와벨리 커뮤니티에 우리 매장 언급이 없어요. 이웃들이 글에 매장을 첨부하면 자동 집계돼요.</Text>
+                )}
+                <Text style={{ color: c.textSecondary, fontSize: 11, marginTop: 10, lineHeight: 16 }}>N지수=네이버 기반 · W지수=와벨리 커뮤니티에서 우리 매장이 언급·반응된 정도예요.</Text>
               </View>
 
               {/* 일자별 추이 — 시리즈별 카드 그리드(방문리뷰·블로그·저장수·N1·N2·N3) + 토글칩 */}
