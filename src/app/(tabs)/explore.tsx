@@ -218,6 +218,7 @@ export default function StoresScreen() {
   const [places, setPlaces] = useState<Place[]>([]);
   const [members, setMembers] = useState<Store[]>([]);
   const [nByStore, setNByStore] = useState<Record<string, number>>({});   // 등록매장 N지수(n3) — 상위노출 가중
+  const [adByStore, setAdByStore] = useState<Record<string, string>>({}); // store_id→ad_id (플레이스 광고 클릭 과금 매핑)
   const [loading, setLoading] = useState(true);
   const [mapType, setMapType] = useState<'일반' | '위성'>('일반');
   const [page, setPage] = useState(1);
@@ -263,10 +264,28 @@ export default function StoresScreen() {
       for (const r of (na ?? []) as any[]) { if (!(r.store_id in nb) && r.n3 != null) nb[r.store_id] = r.n3; }
       setNByStore(nb);
     }
+    // 활성 플레이스/랭크 광고 → store_id→ad_id 매핑 (부스트 매장 클릭 시 CPC 과금 신호용).
+    // 공개 RPC(active_ads_public)는 입찰가·소유자 비노출. 실패해도 목록엔 영향 없음.
+    try {
+      const { data: ads } = await supabase.rpc('active_ads_public');
+      const ab: Record<string, string> = {};
+      for (const a of (ads ?? []) as any[]) {
+        if ((a.format === 'place' || a.format === 'rank') && a.store_id && !ab[a.store_id]) ab[a.store_id] = a.id;
+      }
+      setAdByStore(ab);
+    } catch {}
     setLoading(false);
   }, [main, sub, search, page, radius, myLoc]);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
+
+  // 매장 카드 진입 — 플레이스 광고면 클릭 과금 신호를 먼저 보냄(서버 log_ad_event가 잔액·상태 최종 검증·차감).
+  const openStore = useCallback((s: Store) => {
+    if (s.is_ad && adByStore[s.id]) {
+      supabase.rpc('log_ad_event', { p_ad_id: adByStore[s.id], p_type: 'click' }).then(() => {}, () => {});
+    }
+    router.push(`/store/${s.id}`);
+  }, [adByStore]);
 
   const mapCtx = useRef<any>(null);
   const markersRef = useRef<Record<string, any>>({});
@@ -516,7 +535,7 @@ export default function StoresScreen() {
 
           {/* 1페이지 상단: 노출점수 높은 매장(광고·인증·인기) 우선 */}
           {page === 1 && displayMembers.map((s) => (
-            <Pressable key={s.id} onPress={() => router.push(`/store/${s.id}`)} style={[styles.card, { backgroundColor: c.card, borderColor: s.is_ad ? c.primary : c.border }]}>
+            <Pressable key={s.id} onPress={() => openStore(s)} style={[styles.card, { backgroundColor: c.card, borderColor: s.is_ad ? c.primary : c.border }]}>
               <Image source={{ uri: s.photo ?? imgFor(s.category, deriveMain(s.category)) }} style={styles.cardImg} contentFit="cover" transition={150} />
               <View style={styles.cardBody}>
                 <View style={styles.nameRow}>

@@ -29,6 +29,14 @@ Deno.serve(async (req) => {
   if (!ad || ad.owner_id !== uid) return json({ ok: false, reason: '권한이 없어요' }, 403);
   if (ad.status === 'active') return json({ ok: true, already: true });
 
+  // 1.5) 결제 리플레이 방지 — 이 payment_id가 이미 사용됐는지 검사(verify-place-pass와 동일 가드).
+  // 같은 광고면 멱등 성공, 다른 광고에 재사용하려는 시도면 거부(1건 결제로 다수 광고 활성화 차단).
+  const { data: usedPay } = await admin.from('payments').select('payment_id, ad_id, status').eq('payment_id', payment_id).maybeSingle();
+  if (usedPay && usedPay.status === 'paid') {
+    if (usedPay.ad_id === ad_id) return json({ ok: true, already: true });
+    return json({ ok: false, reason: '이미 사용된 결제예요' }, 409);
+  }
+
   // 2) PortOne 결제 조회
   let pay: any;
   try {
