@@ -3,7 +3,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, useColorScheme, View } from 'react-native';
+import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, useColorScheme, useWindowDimensions, View } from 'react-native';
 import { useScheme } from '@/lib/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -21,7 +21,7 @@ function distM(la1: number, lo1: number, la2: number, lo2: number): number {
 }
 const VISIT_RADIUS = 300; // 방문인증 허용 반경(m)
 
-type Store = { id: string; name: string; category: string | null; categories: string[] | null; address: string | null; photo: string | null; biz_verified: boolean; is_ad: boolean; rating: number | null; review_count: number | null; lat: number | null; lng: number | null };
+type Store = { id: string; name: string; category: string | null; categories: string[] | null; address: string | null; photo: string | null; photos?: string[] | null; biz_verified: boolean; is_ad: boolean; rating: number | null; review_count: number | null; lat: number | null; lng: number | null };
 type Review = { id: string; rating: number; body: string | null; created_at: string; author_id: string; verify_method: string | null; verified: boolean; receipt_url: string | null; profiles: { nickname: string } | null };
 
 export default function StoreDetailScreen() {
@@ -31,6 +31,7 @@ export default function StoreDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { session, profile } = useAuth();
 
+  const { width: winW } = useWindowDimensions();
   const [store, setStore] = useState<Store | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [requests, setRequests] = useState<any[]>([]);
@@ -79,9 +80,14 @@ export default function StoreDetailScreen() {
   const load = useCallback(async () => {
     if (!id) return;
     setFailed(false);
-    const { data: s, error } = await supabase.from('stores').select('id,name,category,categories,address,photo,biz_verified,is_ad,rating,review_count,lat,lng,owner_id,hours,phone').eq('id', id).single();
+    const COLS = 'id,name,category,categories,address,photo,biz_verified,is_ad,rating,review_count,lat,lng,owner_id,hours,phone';
+    // photos(갤러리) 컬럼이 있으면 함께, 없으면(23_place_photos.sql 미적용) cover만 폴백.
+    let { data: s, error } = await supabase.from('stores').select(COLS + ',photos').eq('id', id).single();
+    if (error && error.code !== 'PGRST116' && /photos/.test(error.message || '')) {
+      ({ data: s, error } = await supabase.from('stores').select(COLS).eq('id', id).single());
+    }
     if (error && error.code !== 'PGRST116') { setFailed(true); setLoading(false); return; }
-    setStore((s as Store) ?? null);
+    setStore((s as unknown as Store) ?? null);
     const { data: r } = await supabase.from('reviews').select('id,rating,body,created_at,author_id,verify_method,verified,receipt_url,profiles(nickname)').eq('store_id', id).order('verified', { ascending: false }).order('created_at', { ascending: false });
     setReviews((r as unknown as Review[]) ?? []);
     const { data: cr } = await supabase.from('store_change_requests').select('id,payload,note,status,created_at,requester_id').eq('store_id', id).eq('status', 'pending').order('created_at', { ascending: false });
@@ -184,7 +190,23 @@ export default function StoreDetailScreen() {
         <View style={styles.center}><Text style={{ color: c.textSecondary }}>매장을 찾을 수 없어요</Text></View>
       ) : (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 30 }}>
-          {store.photo ? <Image source={{ uri: store.photo }} style={styles.hero} contentFit="cover" /> : <View style={[styles.hero, { backgroundColor: c.primarySoft, alignItems: 'center', justifyContent: 'center' }]}><Text style={{ fontSize: 40 }}>🏪</Text></View>}
+          {(() => {
+            // 네이버 크롤 대표사진 갤러리(가로 스와이프). photos 있으면 여러 장, 없으면 cover 1장.
+            const gphotos = (store.photos && store.photos.length) ? store.photos : (store.photo ? [store.photo] : []);
+            if (gphotos.length === 0) return <View style={[styles.hero, { backgroundColor: c.primarySoft, alignItems: 'center', justifyContent: 'center' }]}><Text style={{ fontSize: 40 }}>🏪</Text></View>;
+            return (
+              <View>
+                <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false}>
+                  {gphotos.map((u, i) => (
+                    <Image key={i} source={{ uri: u }} style={[styles.hero, { width: winW }]} contentFit="cover" />
+                  ))}
+                </ScrollView>
+                {/* 출처 표기: 인증 전(네이버 수집)만 표시. 사장님이 올린 사진은 표기 없음. */}
+                {!store.biz_verified && <Text style={styles.naverTag}>네이버 제공 사진</Text>}
+                {gphotos.length > 1 && <Text style={styles.photoCount}>1 / {gphotos.length}</Text>}
+              </View>
+            );
+          })()}
 
           <View style={{ padding: 16 }}>
             <View style={styles.titleRow}>
@@ -351,6 +373,8 @@ const styles = StyleSheet.create({
   back: { fontSize: 16, fontWeight: '700' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   hero: { width: '100%', height: 200 },
+  naverTag: { position: 'absolute', right: 8, bottom: 8, fontSize: 10, color: '#fff', backgroundColor: 'rgba(0,0,0,0.5)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, overflow: 'hidden' },
+  photoCount: { position: 'absolute', left: 8, bottom: 8, fontSize: 11, color: '#fff', backgroundColor: 'rgba(0,0,0,0.5)', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 10, overflow: 'hidden' },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
   name: { fontSize: 22, fontWeight: '900' },
   badge: { paddingHorizontal: 7, paddingVertical: 3, borderRadius: 6 },
