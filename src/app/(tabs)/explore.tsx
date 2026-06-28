@@ -218,7 +218,8 @@ export default function StoresScreen() {
   const [places, setPlaces] = useState<Place[]>([]);
   const [members, setMembers] = useState<Store[]>([]);
   const [nByStore, setNByStore] = useState<Record<string, number>>({});   // 등록매장 N지수(n3) — 상위노출 가중
-  const [adByStore, setAdByStore] = useState<Record<string, string>>({}); // store_id→ad_id (플레이스 광고 클릭 과금 매핑)
+  const [adByStore, setAdByStore] = useState<Record<string, { id: string; keyword: string | null }>>({}); // store_id→{광고id,키워드} (플레이스 광고 클릭 과금 매핑)
+  const [adKwStores, setAdKwStores] = useState<Set<string>>(new Set());   // 검색 키워드를 타게팅한 광고 매장(상위노출·이름불일치여도 노출)
   const [loading, setLoading] = useState(true);
   const [mapType, setMapType] = useState<'일반' | '위성'>('일반');
   const [page, setPage] = useState(1);
@@ -268,11 +269,21 @@ export default function StoresScreen() {
     // 공개 RPC(active_ads_public)는 입찰가·소유자 비노출. 실패해도 목록엔 영향 없음.
     try {
       const { data: ads } = await supabase.rpc('active_ads_public');
-      const ab: Record<string, string> = {};
+      const ab: Record<string, { id: string; keyword: string | null }> = {};
       for (const a of (ads ?? []) as any[]) {
-        if ((a.format === 'place' || a.format === 'rank') && a.store_id && !ab[a.store_id]) ab[a.store_id] = a.id;
+        if ((a.format === 'place' || a.format === 'rank') && a.store_id && !ab[a.store_id]) ab[a.store_id] = { id: a.id, keyword: null };
+      }
+      // 키워드 검색 시: 그 키워드를 타게팅한 플레이스 광고를 우선 매핑(키워드별 단가로 과금) + 상위노출
+      const kwStores = new Set<string>();
+      const qq = search.trim();
+      if (qq) {
+        const { data: kads } = await supabase.rpc('active_ads_public', { p_keyword: qq });
+        for (const a of (kads ?? []) as any[]) {
+          if (a.store_id) { ab[a.store_id] = { id: a.id, keyword: a.keyword || qq }; kwStores.add(a.store_id); }
+        }
       }
       setAdByStore(ab);
+      setAdKwStores(kwStores);
     } catch {}
     setLoading(false);
   }, [main, sub, search, page, radius, myLoc]);
@@ -281,8 +292,11 @@ export default function StoresScreen() {
 
   // 매장 카드 진입 — 플레이스 광고면 클릭 과금 신호를 먼저 보냄(서버 log_ad_event가 잔액·상태 최종 검증·차감).
   const openStore = useCallback((s: Store) => {
-    if (s.is_ad && adByStore[s.id]) {
-      supabase.rpc('log_ad_event', { p_ad_id: adByStore[s.id], p_type: 'click' }).then(() => {}, () => {});
+    const ad = adByStore[s.id];
+    if (ad) {
+      supabase.rpc('log_ad_event', ad.keyword
+        ? { p_ad_id: ad.id, p_type: 'click', p_keyword: ad.keyword }
+        : { p_ad_id: ad.id, p_type: 'click' }).then(() => {}, () => {});
     }
     router.push(`/store/${s.id}`);
   }, [adByStore]);
@@ -390,7 +404,7 @@ export default function StoresScreen() {
   const subList = main ? (SUBS[main] ?? []) : [];
   const canRegister = profile?.role === 'owner';
   // 등록매장 노출점수 = 기존 복합점수 + N지수(SEO) 가중. 분석된(구독) 매장이 상위노출.
-  const memberScore = (s: Store) => exposureScore(s) + (nByStore[s.id] ?? 0) * 70;
+  const memberScore = (s: Store) => exposureScore(s) + (nByStore[s.id] ?? 0) * 70 + (adKwStores.has(s.id) ? 1000 : 0); // 키워드 타게팅 광고 매장은 검색 시 최상위
   const displayMembers = useMemo(() => {
     const sl = main && sub ? SUBS[main]?.find((x) => x.pat === sub)?.label ?? null : null;
     const q = search.trim();
@@ -400,7 +414,7 @@ export default function StoresScreen() {
         if (main && !cats.some((cc) => deriveMain(cc) === main)) return false;
         if (sub && !cats.some((cc) => cc.includes(sub) || (sl ? cc.includes(sl) : false))) return false;
         // 키워드 검색 — 등록매장도 이름/업종 매칭으로 노출(네이버 플레이스식)
-        if (q && !((s.name ?? '').includes(q) || (s.category ?? '').includes(q) || cats.some((cc) => cc.includes(q)))) return false;
+        if (q && !((s.name ?? '').includes(q) || (s.category ?? '').includes(q) || cats.some((cc) => cc.includes(q)) || adKwStores.has(s.id))) return false; // 키워드 타게팅 광고면 이름 불일치여도 노출
         if (onlyVerified && !s.biz_verified) return false;
         // 반경 필터 — 광고/인증은 보너스 거리까지 노출 (각 +10%, 둘 다면 +20%)
         if (radius) {
@@ -412,7 +426,7 @@ export default function StoresScreen() {
         return true;
       })
       .sort((a, b) => memberScore(b) - memberScore(a)); // N지수 포함 복합 노출점수 순
-  }, [members, nByStore, search, main, sub, onlyVerified, radius, myLoc]);
+  }, [members, nByStore, adKwStores, search, main, sub, onlyVerified, radius, myLoc]);
 
   // 네이티브(앱) 지도 마커 데이터 — 웹 지도는 별도 useEffect에서 그림
   const nativeMapItems = useMemo<DongMapItem[]>(() => {
