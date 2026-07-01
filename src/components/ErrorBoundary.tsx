@@ -36,11 +36,11 @@ export class ErrorBoundary extends Component<Props, State> {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 8, backgroundColor: '#13111C' },
+  root: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 8, backgroundColor: '#0C0C0E' },
   emoji: { fontSize: 44 },
   logo: { width: 72, height: 72, borderRadius: 20 },
   title: { fontSize: 18, fontWeight: '800', color: '#fff', marginTop: 8 },
   msg: { fontSize: 13, color: '#9aa', textAlign: 'center', lineHeight: 19 },
-  btn: { marginTop: 18, backgroundColor: '#8A5CF6', paddingHorizontal: 24, paddingVertical: 13, borderRadius: 12 },
+  btn: { marginTop: 18, backgroundColor: '#7A2BC4', paddingHorizontal: 24, paddingVertical: 13, borderRadius: 12 },
   btnTxt: { color: '#fff', fontWeight: '800', fontSize: 15 },
 });

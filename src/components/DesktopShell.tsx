@@ -63,9 +63,9 @@ export function DesktopSidebar() {
       </Pressable>
 
       {/* 사장님 센터 (다크 카드 → 광고/분석) */}
-      <Pressable onPress={() => router.push(session ? '/place-rank' : '/login')} style={{ marginTop: 10, backgroundColor: '#1C1930', borderRadius: Radius.card, padding: 13 }}>
+      <Pressable onPress={() => router.push(session ? '/place-rank' : '/login')} style={{ marginTop: 10, backgroundColor: '#1E1335', borderRadius: Radius.card, padding: 13 }}>
         <Text style={{ color: '#fff', fontWeight: '900', fontSize: 13.5 }}>📈 사장님 센터</Text>
-        <Text style={{ color: '#C4B5FD', fontSize: 11, marginTop: 3, lineHeight: 16 }}>광고 집행 · 플레이스 분석 · N지수</Text>
+        <Text style={{ color: '#C2A2F2', fontSize: 11, marginTop: 3, lineHeight: 16 }}>광고 집행 · 플레이스 분석 · N지수</Text>
       </Pressable>
 
       <View style={{ flex: 1 }} />
