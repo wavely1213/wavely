@@ -24,7 +24,7 @@
         "POST_NOTIFICATIONS"
       ],
       "adaptiveIcon": {
-        "backgroundColor": "#7C5CFC",
+        "backgroundColor": "#7A2BC4",
         "foregroundImage": "./assets/images/wavely-logo.png"
       },
       "predictiveBackGestureEnabled": false
@@ -38,13 +38,13 @@
       [
         "expo-notifications",
         {
-          "color": "#7C5CFC"
+          "color": "#7A2BC4"
         }
       ],
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#7C5CFC",
+          "backgroundColor": "#7A2BC4",
           "image": "./assets/images/wavely-logo.png",
           "imageWidth": 150,
           "resizeMode": "contain"

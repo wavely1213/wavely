@@ -4,7 +4,7 @@ import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
 
 import { APP_NAME, APP_TAGLINE } from '@/constants/app';
 
-const BRAND = '#7C5CFC';
+const BRAND = '#7A2BC4';
 
 /**
  * 앱 첫 진입 시 보이는 부팅(스플래시) 화면.

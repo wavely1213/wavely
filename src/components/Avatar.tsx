@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { StyleSheet, Text, View } from 'react-native';
 
-export function Avatar({ url, fallback = '🙂', size = 40, bg = '#7C5CFC' }: { url?: string | null; fallback?: string; size?: number; bg?: string }) {
+export function Avatar({ url, fallback = '🙂', size = 40, bg = '#7A2BC4' }: { url?: string | null; fallback?: string; size?: number; bg?: string }) {
   const r = size / 3.2;
   if (url) {
     return <Image source={{ uri: url }} style={{ width: size, height: size, borderRadius: r }} contentFit="cover" />;
