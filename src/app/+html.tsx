@@ -27,6 +27,8 @@ export default function Root({ children }: PropsWithChildren) {
         <meta charSet="utf-8" />
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <link rel="icon" type="image/svg+xml" href="/wavely-icon.svg" />
+        <meta name="theme-color" content="#7A2BC4" />
         <ScrollViewStyleReset />
         <style dangerouslySetInnerHTML={{ __html: BOOT_CSS }} />
       </head>

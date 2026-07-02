@@ -166,7 +166,7 @@ export default function PlaceDetailScreen() {
             ) : (
               <Pressable style={[styles.claimBtn, { borderColor: c.border, flexDirection: 'row', justifyContent: 'center', gap: 6 }]} onPress={() => router.push('/account-edit')}>
                 <Icon name="briefcase" size={15} color={c.primary} />
-                <Text style={{ color: c.primary, fontWeight: '800', fontSize: 13 }}>사업주세요? 사업자 인증하고 매장 등록하기</Text>
+                <Text style={{ color: c.primary, fontWeight: '800', fontSize: 13 }}>사업주세요? 사업자 인증하기</Text>
               </Pressable>
             ))}
           </View>
