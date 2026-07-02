@@ -5,6 +5,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Avatar } from '@/components/Avatar';
+import { Icon } from '@/components/Icon';
 import { boardLabel } from '@/constants/app';
 import { Colors } from '@/constants/theme';
 import { useScheme } from '@/lib/theme';
@@ -37,7 +38,7 @@ export default function HotScreen() {
     <SafeAreaView style={[styles.root, { backgroundColor: c.background }]} edges={['top']}>
       <View style={[styles.header, { borderColor: c.border, backgroundColor: c.card }]}>
         <Pressable onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} hitSlop={8}><Text style={[styles.back, { color: c.text }]}>‹ 뒤로</Text></Pressable>
-        <Text style={[styles.hTitle, { color: c.text }]}>🔥 인기글</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}><Icon name="fire" size={16} color={c.text} /><Text style={[styles.hTitle, { color: c.text }]}>인기글</Text></View>
         <View style={{ width: 40 }} />
       </View>
       <View style={[styles.tabBar, { backgroundColor: c.card, borderColor: c.border }]}>
@@ -53,7 +54,7 @@ export default function HotScreen() {
       ) : loading ? (
         <ActivityIndicator color={c.primary} style={{ marginTop: 30 }} />
       ) : rows.length === 0 ? (
-        <View style={styles.center}><Text style={{ fontSize: 40, marginBottom: 6 }}>🔥</Text><Text style={{ color: c.textSecondary }}>아직 인기글이 없어요</Text></View>
+        <View style={styles.center}><Icon name="fire" size={40} color={c.textSecondary} /><Text style={{ color: c.textSecondary, marginTop: 6 }}>아직 인기글이 없어요</Text></View>
       ) : (
         <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
           {rows.map((p, i) => (
@@ -64,10 +65,16 @@ export default function HotScreen() {
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 3 }}>
                   <Avatar url={null} fallback={p.anonymous ? '🕶️' : '🙂'} size={18} bg={c.primarySoft} />
                   <View style={[styles.tag, { backgroundColor: c.primarySoft }]}><Text style={{ color: c.primary, fontSize: 10.5, fontWeight: '800' }}>{boardLabel(p.board)}</Text></View>
-                  {p.dong ? <Text style={{ color: c.textSecondary, fontSize: 11 }}>📍{p.dong}</Text> : null}
+                  {p.dong ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}><Icon name="pin" size={11} color={c.textSecondary} /><Text style={{ color: c.textSecondary, fontSize: 11 }}>{p.dong}</Text></View> : null}
                 </View>
                 <Text style={[styles.title, { color: c.text }]} numberOfLines={1}>{p.title}</Text>
-                <Text style={[styles.meta, { color: c.textSecondary }]}>❤️ {p.like_count} · 💬 {p.comment_count}</Text>
+                <View style={[styles.meta, { flexDirection: 'row', alignItems: 'center', gap: 4 }]}>
+                  <Icon name="heart" size={12} color={c.textSecondary} />
+                  <Text style={{ color: c.textSecondary, fontSize: 12 }}>{p.like_count}</Text>
+                  <Text style={{ color: c.textSecondary, fontSize: 12 }}> · </Text>
+                  <Icon name="chat" size={12} color={c.textSecondary} />
+                  <Text style={{ color: c.textSecondary, fontSize: 12 }}>{p.comment_count}</Text>
+                </View>
               </View>
             </Pressable>
           ))}

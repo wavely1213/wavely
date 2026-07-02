@@ -5,6 +5,7 @@ import { useScheme } from '@/lib/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Avatar } from '@/components/Avatar';
+import { Icon } from '@/components/Icon';
 import { Colors } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
@@ -122,7 +123,7 @@ export default function ChatsTab() {
   if (!session) {
     return (
       <SafeAreaView style={[styles.root, { backgroundColor: c.background }]} edges={['top']}>
-        <View style={[styles.header, { borderColor: c.border, backgroundColor: c.card }]}><Text style={[styles.hTitle, { color: c.text }]}>💬 채팅</Text></View>
+        <View style={[styles.header, { borderColor: c.border, backgroundColor: c.card }]}><View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Icon name="chat" size={18} color={c.text} /><Text style={[styles.hTitle, { color: c.text }]}>채팅</Text></View></View>
         <View style={styles.center}>
           <Text style={{ color: c.textSecondary, marginBottom: 14 }}>로그인하면 채팅을 이용할 수 있어요</Text>
           <Pressable style={[styles.btn, { backgroundColor: c.primary }]} onPress={() => router.push('/login')}><Text style={{ color: c.onPrimary, fontWeight: '800' }}>로그인</Text></Pressable>
@@ -142,7 +143,7 @@ export default function ChatsTab() {
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: c.background }]} edges={['top']}>
       <View style={[styles.header, { borderColor: c.border, backgroundColor: c.card }]}>
-        <Text style={[styles.hTitle, { color: c.text }]}>💬 채팅</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Icon name="chat" size={18} color={c.text} /><Text style={[styles.hTitle, { color: c.text }]}>채팅</Text></View>
         <Pressable onPress={openMenu} hitSlop={8} style={[styles.newBtn, { backgroundColor: c.primarySoft }]}><Text style={{ color: c.primaryDeep, fontWeight: '800', fontSize: 13 }}>＋ 새 채팅</Text></Pressable>
       </View>
       {listErr ? <Pressable onPress={() => setListErr('')} style={{ backgroundColor: '#E5484D', paddingHorizontal: 14, paddingVertical: 9 }}><Text style={{ color: '#fff', fontWeight: '700', fontSize: 12.5 }}>{listErr} (탭하여 닫기)</Text></Pressable> : null}
@@ -205,7 +206,7 @@ export default function ChatsTab() {
           {/* 추천 공개 채팅방 */}
           {publicRooms.length > 0 && (
             <>
-              <Text style={[styles.sect, { color: c.text }]}>🔥 추천 공개 채팅방</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 16, paddingTop: 18, paddingBottom: 8 }}><Icon name="fire" size={14} color={c.text} /><Text style={[styles.sect, { color: c.text, padding: 0 }]}>추천 공개 채팅방</Text></View>
               {publicRooms.map((p) => (
                 <View key={p.id} style={[styles.chatRow, { borderColor: c.border }]}>
                   <View style={[styles.avatar, { backgroundColor: '#FF9F40' }]}><Text style={{ fontSize: 18 }}>🌐</Text></View>
@@ -244,7 +245,7 @@ export default function ChatsTab() {
                 <TextInput style={[styles.input, { backgroundColor: c.card, borderColor: c.border, color: c.text }]} placeholder="채팅방 이름 (예: 퇴계동 맛집 모임)" placeholderTextColor={c.textSecondary} value={groupTitle} onChangeText={setGroupTitle} />
                 <View style={{ flexDirection: 'row', gap: 8, marginTop: 10 }}>
                   <Pressable onPress={() => setGroupVis('private')} style={[styles.visBtn, { borderColor: groupVis === 'private' ? c.primary : c.border, backgroundColor: groupVis === 'private' ? c.primarySoft : c.card }]}>
-                    <Text style={[styles.visTtl, { color: groupVis === 'private' ? c.primaryDeep : c.text }]}>🔒 비밀방</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Icon name="lock" size={14} color={groupVis === 'private' ? c.primaryDeep : c.text} /><Text style={[styles.visTtl, { color: groupVis === 'private' ? c.primaryDeep : c.text }]}>비밀방</Text></View>
                     <Text style={[styles.visSub, { color: c.textSecondary }]}>초대 코드로만 입장</Text>
                   </Pressable>
                   <Pressable onPress={() => setGroupVis('public')} style={[styles.visBtn, { borderColor: groupVis === 'public' ? c.primary : c.border, backgroundColor: groupVis === 'public' ? c.primarySoft : c.card }]}>

@@ -6,6 +6,7 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, useColorScheme, Vie
 import { useScheme } from '@/lib/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Icon } from '@/components/Icon';
 import { ROLES, type RoleKey } from '@/constants/app';
 import { Colors } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
@@ -112,7 +113,7 @@ export default function AccountEditScreen() {
   if (!session || !profile) {
     return (
       <SafeAreaView style={[styles.root, { backgroundColor: c.background }]}>
-        <Pressable style={styles.close} onPress={goBack}><Text style={[styles.closeTxt, { color: c.textSecondary }]}>✕</Text></Pressable>
+        <Pressable style={styles.close} onPress={goBack}><Icon name="x" size={20} color={c.textSecondary} /></Pressable>
         <View style={styles.center}><Text style={{ color: c.text }}>로그인 후 이용해주세요</Text></View>
       </SafeAreaView>
     );
@@ -170,7 +171,7 @@ export default function AccountEditScreen() {
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: c.background }]}>
       <View style={[styles.header, { borderColor: c.border }]}>
-        <Pressable onPress={goBack} hitSlop={8}><Text style={[styles.closeTxt, { color: c.textSecondary }]}>✕</Text></Pressable>
+        <Pressable onPress={goBack} hitSlop={8}><Icon name="x" size={20} color={c.textSecondary} /></Pressable>
         <Text style={[styles.headerTitle, { color: c.text }]}>내 정보 수정</Text>
         <Pressable onPress={save} disabled={saving} hitSlop={8}><Text style={[styles.post, { color: c.primary }]}>{saving ? '저장중' : '저장'}</Text></Pressable>
       </View>
@@ -181,7 +182,7 @@ export default function AccountEditScreen() {
             {avatar || avatarUrl ? (
               <Image source={{ uri: avatar ? avatar.uri : avatarUrl! }} style={styles.avatar} contentFit="cover" />
             ) : (
-              <View style={[styles.avatar, { backgroundColor: c.primary, alignItems: 'center', justifyContent: 'center' }]}><Text style={{ fontSize: 36 }}>🙋</Text></View>
+              <View style={[styles.avatar, { backgroundColor: c.primary, alignItems: 'center', justifyContent: 'center' }]}><Icon name="user" size={36} color={c.onPrimary} /></View>
             )}
             <View style={[styles.avatarCam, { backgroundColor: c.card, borderColor: c.border }]}><Text style={{ fontSize: 14 }}>📷</Text></View>
           </Pressable>
@@ -216,7 +217,7 @@ export default function AccountEditScreen() {
               <Pressable key={r.key} onPress={() => setRoleSel(r.key)} style={[styles.roleCard, { backgroundColor: on ? c.primarySoft : c.card, borderColor: on ? c.primary : c.border }]}>
                 <Text style={{ fontSize: 20 }}>{r.emoji}</Text>
                 <Text style={[styles.roleCardLabel, { color: on ? c.primaryDeep : c.text }]}>{r.label}</Text>
-                {current ? <Text style={[styles.roleTag, { color: c.textSecondary }]}>현재</Text> : ownerLocked ? <Text style={[styles.roleTag, { color: '#FF9F40' }]}>🔒 인증 필요</Text> : null}
+                {current ? <Text style={[styles.roleTag, { color: c.textSecondary }]}>현재</Text> : ownerLocked ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}><Icon name="lock" size={11} color="#FF9F40" /><Text style={[styles.roleTag, { color: '#FF9F40' }]}>인증 필요</Text></View> : null}
               </Pressable>
             );
           })}
@@ -260,7 +261,7 @@ export default function AccountEditScreen() {
         {/* 사업주 인증 (사업주 선택 + 미인증) */}
         {!isOwnerVerified && roleSel === 'owner' && (
           <View style={[styles.bizBox, { backgroundColor: c.card, borderColor: c.border }]}>
-            <Text style={[styles.checkTxt, { color: c.text, marginBottom: 4 }]}>💼 사업자 인증하면 사장님으로 전환돼요</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}><Icon name="briefcase" size={16} color={c.text} /><Text style={[styles.checkTxt, { color: c.text }]}>사업자 인증하면 사장님으로 전환돼요</Text></View>
             <Text style={[styles.hint, { color: c.textSecondary }]}>사업자등록증 사진을 올리면 자동으로 인증돼요. 등록증에서 번호·대표자명·개업일을 읽어 국세청 진위확인까지 한 번에 처리됩니다.</Text>
             {bizCert ? (
               <View style={{ marginTop: 10 }}>
@@ -276,7 +277,7 @@ export default function AccountEditScreen() {
               <Text style={{ color: bizCert ? c.onPrimary : c.textSecondary, fontWeight: '800' }}>{verifyingBiz ? '인증 확인 중...' : '등록증으로 인증하기'}</Text>
             </Pressable>
             {bizMsg ? <Text style={{ color: bizVerified ? c.verify : bizMsg.startsWith('🕒') ? '#FF9F40' : '#E5484D', fontWeight: '700', fontSize: 12.5, marginTop: 8, lineHeight: 18 }}>{bizMsg}</Text> : null}
-            <Text style={[styles.hint, { color: c.textSecondary, fontSize: 11, marginTop: 8 }]}>🔒 등록증은 비공개로 안전하게 보관되며 인증 용도로만 사용돼요.</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 5, marginTop: 8 }}><Icon name="lock" size={13} color={c.textSecondary} /><Text style={[styles.hint, { color: c.textSecondary, fontSize: 11, marginTop: 0, flex: 1 }]}>등록증은 비공개로 안전하게 보관되며 인증 용도로만 사용돼요.</Text></View>
           </View>
         )}
 

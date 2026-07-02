@@ -8,6 +8,7 @@ import { useScheme } from '@/lib/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { prettyCat } from '@/constants/app';
+import { Icon } from '@/components/Icon';
 import { ReactionBar } from '@/components/ReactionBar';
 import { Colors } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
@@ -145,21 +146,27 @@ export default function PlaceDetailScreen() {
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 30 }}>
           <View style={{ padding: 16 }}>
             <Text style={[styles.name, { color: c.text }]}>{place.name}</Text>
-            <Text style={[styles.rating, { color: c.text }]}>⭐ {(place.rating ?? 0) > 0 ? (place.rating ?? 0).toFixed(1) : '신규'} <Text style={{ color: c.textSecondary, fontWeight: '600' }}>· 리뷰 {place.review_count ?? 0}</Text></Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8 }}>
+              <Icon name="star" size={16} color={c.text} />
+              <Text style={[styles.rating, { color: c.text, marginTop: 0 }]}>{(place.rating ?? 0) > 0 ? (place.rating ?? 0).toFixed(1) : '신규'} <Text style={{ color: c.textSecondary, fontWeight: '600' }}>· 리뷰 {place.review_count ?? 0}</Text></Text>
+            </View>
             <Text style={[styles.cat, { color: c.textSecondary }]}>{prettyCat(place.category)}</Text>
             {place.address ? (
-              <Pressable onPress={() => Linking.openURL(`https://map.naver.com/v5/search/${encodeURIComponent(place.name)}`)}>
-                <Text style={[styles.addr, { color: c.textSecondary }]}>📍 {place.address}  <Text style={{ color: c.primary, fontWeight: '700' }}>지도 ›</Text></Text>
+              <Pressable onPress={() => Linking.openURL(`https://map.naver.com/v5/search/${encodeURIComponent(place.name)}`)} style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 }}>
+                <Icon name="pin" size={14} color={c.textSecondary} />
+                <Text style={[styles.addr, { color: c.textSecondary, marginTop: 0 }]}>{place.address}  <Text style={{ color: c.primary, fontWeight: '700' }}>지도 ›</Text></Text>
               </Pressable>
             ) : null}
 
             {session && (profile?.role === 'owner' ? (
-              <Pressable style={[styles.claimBtn, { borderColor: c.border }]} onPress={() => router.push('/store-new')}>
-                <Text style={{ color: c.primary, fontWeight: '800', fontSize: 13 }}>🏪 이 가게 사장님이세요? 매장 등록하기</Text>
+              <Pressable style={[styles.claimBtn, { borderColor: c.border, flexDirection: 'row', justifyContent: 'center', gap: 6 }]} onPress={() => router.push('/store-new')}>
+                <Icon name="store" size={15} color={c.primary} />
+                <Text style={{ color: c.primary, fontWeight: '800', fontSize: 13 }}>이 가게 사장님이세요? 매장 등록하기</Text>
               </Pressable>
             ) : (
-              <Pressable style={[styles.claimBtn, { borderColor: c.border }]} onPress={() => router.push('/account-edit')}>
-                <Text style={{ color: c.primary, fontWeight: '800', fontSize: 13 }}>💼 사업주세요? 사업자 인증하고 매장 등록하기</Text>
+              <Pressable style={[styles.claimBtn, { borderColor: c.border, flexDirection: 'row', justifyContent: 'center', gap: 6 }]} onPress={() => router.push('/account-edit')}>
+                <Icon name="briefcase" size={15} color={c.primary} />
+                <Text style={{ color: c.primary, fontWeight: '800', fontSize: 13 }}>사업주세요? 사업자 인증하고 매장 등록하기</Text>
               </Pressable>
             ))}
           </View>
@@ -232,8 +239,9 @@ export default function PlaceDetailScreen() {
                 </View>
                 {rv.body ? <Text style={[styles.rBody, { color: c.textSecondary }]}>{rv.body}</Text> : null}
                 {session && rv.author_id === session.user.id ? (
-                  <Pressable onPress={() => deleteReview(rv.id)} hitSlop={6} style={{ alignSelf: 'flex-end', marginTop: 4 }}>
-                    <Text style={{ color: '#E5484D', fontSize: 11, fontWeight: '800' }}>🗑 삭제</Text>
+                  <Pressable onPress={() => deleteReview(rv.id)} hitSlop={6} style={{ alignSelf: 'flex-end', marginTop: 4, flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                    <Icon name="trash" size={12} color="#E5484D" />
+                    <Text style={{ color: '#E5484D', fontSize: 11, fontWeight: '800' }}>삭제</Text>
                   </Pressable>
                 ) : session ? (
                   <Pressable onPress={() => router.push(`/report?type=review&id=${rv.id}&label=${encodeURIComponent((rv.body ?? '리뷰').slice(0, 30))}`)} hitSlop={6} style={{ alignSelf: 'flex-end', marginTop: 4 }}>

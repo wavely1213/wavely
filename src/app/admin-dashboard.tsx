@@ -6,6 +6,7 @@ import { useScheme } from '@/lib/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Colors } from '@/constants/theme';
+import { Icon } from '@/components/Icon';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 
@@ -106,14 +107,14 @@ export default function AdminDashboardScreen() {
               {a.banner_image ? <Image source={{ uri: a.banner_image }} style={styles.img} contentFit="cover" transition={150} /> : null}
               {a.headline ? <Text style={[styles.headline, { color: c.text }]}>“{a.headline}”</Text> : null}
               <View style={styles.btnRow}>
-                <Pressable style={[styles.btn, { backgroundColor: c.verify }]} disabled={busyId === a.id} onPress={() => approve(a.id)}><Text style={styles.btnW}>✅ 승인 (노출)</Text></Pressable>
+                <Pressable style={[styles.btn, { backgroundColor: c.verify, flexDirection: 'row', gap: 6 }]} disabled={busyId === a.id} onPress={() => approve(a.id)}><Icon name="check" size={16} color="#fff" /><Text style={styles.btnW}>승인 (노출)</Text></Pressable>
                 <Pressable style={[styles.btn, { borderColor: '#E5484D', borderWidth: 1.5 }]} disabled={busyId === a.id} onPress={() => reject(a.id)}><Text style={[styles.btnR]}>반려</Text></Pressable>
               </View>
             </View>
           ))}
 
           {/* 노출중 */}
-          <Text style={[styles.sect, { color: c.text }]}>📢 노출중 {active.length > 0 ? `· ${active.length}` : ''}</Text>
+          <View style={styles.sectRow}><Icon name="megaphone" size={16} color={c.text} /><Text style={[styles.sect, { color: c.text }]}>노출중 {active.length > 0 ? `· ${active.length}` : ''}</Text></View>
           {active.length === 0 ? <Text style={[styles.empty, { color: c.textSecondary }]}>노출중인 광고가 없어요</Text> : active.map((a) => (
             <View key={a.id} style={[styles.rowCard, { backgroundColor: c.card, borderColor: c.border }]}>
               <View style={{ flex: 1 }}>
@@ -135,7 +136,7 @@ export default function AdminDashboardScreen() {
                     <Text style={[styles.meta, { color: c.textSecondary }]}>{metaTxt(a)}</Text>
                   </View>
                   <View style={{ flexDirection: 'row', gap: 6 }}>
-                    <Pressable style={[styles.smallBtn, { backgroundColor: c.primary }]} disabled={busyId === a.id} onPress={() => resume(a.id)}><Text style={{ color: c.onPrimary, fontWeight: '800', fontSize: 12 }}>▶ 재개</Text></Pressable>
+                    <Pressable style={[styles.smallBtn, { backgroundColor: c.primary, flexDirection: 'row', alignItems: 'center', gap: 4 }]} disabled={busyId === a.id} onPress={() => resume(a.id)}><Icon name="play" size={12} color={c.onPrimary} /><Text style={{ color: c.onPrimary, fontWeight: '800', fontSize: 12 }}>재개</Text></Pressable>
                     <Pressable style={[styles.smallBtn, { borderColor: '#E5484D', borderWidth: 1.5 }]} disabled={busyId === a.id} onPress={() => reject(a.id)}><Text style={{ color: '#E5484D', fontWeight: '800', fontSize: 12 }}>반려</Text></Pressable>
                   </View>
                 </View>
@@ -161,7 +162,7 @@ function Header({ c, onBack }: { c: any; onBack: () => void }) {
   return (
     <View style={[styles.header, { borderColor: c.border }]}>
       <Pressable onPress={onBack} hitSlop={8}><Text style={[styles.back, { color: c.text }]}>‹ 뒤로</Text></Pressable>
-      <Text style={[styles.hTitle, { color: c.text }]}>📊 관리자 대시보드</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Icon name="chart" size={16} color={c.text} /><Text style={[styles.hTitle, { color: c.text }]}>관리자 대시보드</Text></View>
       <View style={{ width: 40 }} />
     </View>
   );
@@ -183,6 +184,7 @@ const styles = StyleSheet.create({
   linkBtn: { flex: 1, borderWidth: 1, borderRadius: 12, paddingVertical: 12, alignItems: 'center' },
   linkTxt: { fontSize: 13, fontWeight: '800' },
   sect: { fontSize: 15, fontWeight: '800', marginTop: 24, marginBottom: 10 },
+  sectRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   empty: { fontSize: 13, paddingVertical: 8 },
   card: { borderWidth: 1, borderRadius: 14, padding: 14, marginBottom: 10 },
   rowCard: { flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderRadius: 12, padding: 14, marginBottom: 8 },

@@ -7,8 +7,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { APP_NAME, APP_TAGLINE, ROLES } from '@/constants/app';
 import { Colors } from '@/constants/theme';
+import { Icon, type IconName } from '@/components/Icon';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
+
+const ICON_NAMES = new Set<string>(['fire','cart','briefcase','bell','chart','search','edit','pin','chat','lock','megaphone','store','star','bookmark','heart','user','plus','check','chevronDown','chevronRight','chevronLeft','play','home','map','card','x','note','refresh','wallet','building','clock','image','trash','share','phone','settings','shield','sparkles','inbox']);
 
 export default function AccountScreen() {
   const scheme = useScheme();
@@ -33,7 +36,9 @@ export default function AccountScreen() {
     const roleInfo = ROLES.find((r) => r.key === profile.role);
     const Row = ({ icon, label, onPress, danger }: { icon: string; label: string; onPress: () => void; danger?: boolean }) => (
       <Pressable onPress={onPress} style={[styles.row, { borderColor: c.border }]}>
-        <Text style={{ fontSize: 17 }}>{icon}</Text>
+        {ICON_NAMES.has(icon)
+          ? <Icon name={icon as IconName} size={17} color={danger ? '#E5484D' : c.text} />
+          : <Text style={{ fontSize: 17 }}>{icon}</Text>}
         <Text style={[styles.rowTxt, { color: danger ? '#E5484D' : c.text }]}>{label}</Text>
         <Text style={{ color: c.textSecondary, fontSize: 18 }}>›</Text>
       </Pressable>
@@ -56,34 +61,39 @@ export default function AccountScreen() {
               {profile.role === 'owner' && profile.biz_verified && <View style={[styles.verifyChip, { backgroundColor: c.verify }]}><Text style={styles.verifyTxt}>✓ 사업자 인증</Text></View>}
               {profile.is_admin && <View style={[styles.verifyChip, { backgroundColor: c.primaryDeep }]}><Text style={styles.verifyTxt}>관리자</Text></View>}
             </View>
-            {companyName && <Text style={[styles.company, { color: c.textSecondary }]}>🏢 소속: {companyName}</Text>}
+            {companyName && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8 }}>
+                <Icon name="building" size={13} color={c.textSecondary} />
+                <Text style={[styles.company, { color: c.textSecondary, marginTop: 0 }]}>소속: {companyName}</Text>
+              </View>
+            )}
             <Text style={[styles.email, { color: c.textSecondary }]}>{session.user.email}</Text>
           </View>
 
           <Text style={[styles.menuHead, { color: c.textSecondary }]}>동네 생활</Text>
-          <Row icon="🛒" label="중고거래" onPress={() => router.push('/market')} />
-          <Row icon="💼" label="구인구직" onPress={() => router.push('/jobs')} />
-          <Row icon="🔥" label="인기글" onPress={() => router.push('/hot')} />
-          <Row icon="🔔" label="키워드 알림" onPress={() => router.push('/keywords')} />
-          <Row icon="📈" label="플레이스 분석 (사장님)" onPress={() => router.push('/place-rank')} />
+          <Row icon="cart" label="중고거래" onPress={() => router.push('/market')} />
+          <Row icon="briefcase" label="구인구직" onPress={() => router.push('/jobs')} />
+          <Row icon="fire" label="인기글" onPress={() => router.push('/hot')} />
+          <Row icon="bell" label="키워드 알림" onPress={() => router.push('/keywords')} />
+          <Row icon="chart" label="플레이스 분석 (사장님)" onPress={() => router.push('/place-rank')} />
 
           <Text style={[styles.menuHead, { color: c.textSecondary }]}>계정</Text>
           <Row icon="🤝" label="친구" onPress={() => router.push('/friends')} />
-          <Row icon="🔒" label="계정 보안 (비밀번호·이메일)" onPress={() => router.push('/security')} />
-          <Row icon="🔔" label="알림" onPress={() => router.push('/notifications')} />
+          <Row icon="lock" label="계정 보안 (비밀번호·이메일)" onPress={() => router.push('/security')} />
+          <Row icon="bell" label="알림" onPress={() => router.push('/notifications')} />
           <Row icon="📋" label="내 활동 (글·리뷰·스크랩)" onPress={() => router.push('/my')} />
-          <Row icon="✏️" label="내 정보 수정" onPress={() => router.push('/account-edit')} />
-          {!(profile.role === 'owner' && profile.biz_verified) && <Row icon="💼" label="사업주 인증하기" onPress={() => router.push('/account-edit?biz=1')} />}
-          {profile.role === 'owner' && profile.biz_verified && <Row icon="📢" label="광고 센터" onPress={() => router.push('/ad')} />}
+          <Row icon="edit" label="내 정보 수정" onPress={() => router.push('/account-edit')} />
+          {!(profile.role === 'owner' && profile.biz_verified) && <Row icon="briefcase" label="사업주 인증하기" onPress={() => router.push('/account-edit?biz=1')} />}
+          {profile.role === 'owner' && profile.biz_verified && <Row icon="megaphone" label="광고 센터" onPress={() => router.push('/ad')} />}
 
           <Text style={[styles.menuHead, { color: c.textSecondary }]}>참여</Text>
           <Row icon="💡" label={profile.is_admin ? '사용 개선 제안 (관리자 보고서)' : '사용 개선 제안'} onPress={() => router.push('/suggest')} />
-          {profile.is_admin && <Row icon="📊" label="관리자 대시보드" onPress={() => router.push('/admin-dashboard')} />}
+          {profile.is_admin && <Row icon="chart" label="관리자 대시보드" onPress={() => router.push('/admin-dashboard')} />}
           {profile.is_admin && <Row icon="🚩" label="신고 관리 (관리자)" onPress={() => router.push('/reports')} />}
           {profile.is_admin && <Row icon="📄" label="사업자 검토 (관리자)" onPress={() => router.push('/admin-biz')} />}
 
           <Text style={[styles.menuHead, { color: c.textSecondary }]}>설정</Text>
-          <Row icon="⚙️" label="설정 (알림·약관·문의·탈퇴)" onPress={() => router.push('/settings')} />
+          <Row icon="settings" label="설정 (알림·약관·문의·탈퇴)" onPress={() => router.push('/settings')} />
           <Row icon="🚪" label="로그아웃" onPress={signOut} danger />
         </ScrollView>
       </SafeAreaView>

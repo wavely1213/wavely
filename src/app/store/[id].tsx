@@ -7,6 +7,7 @@ import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, Text, Te
 import { useScheme } from '@/lib/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Icon } from '@/components/Icon';
 import { ReactionBar } from '@/components/ReactionBar';
 import { Colors } from '@/constants/theme';
 import { canEditStore, useAuth } from '@/lib/auth';
@@ -193,7 +194,7 @@ export default function StoreDetailScreen() {
           {(() => {
             // 네이버 크롤 대표사진 갤러리(가로 스와이프). photos 있으면 여러 장, 없으면 cover 1장.
             const gphotos = (store.photos && store.photos.length) ? store.photos : (store.photo ? [store.photo] : []);
-            if (gphotos.length === 0) return <View style={[styles.hero, { backgroundColor: c.primarySoft, alignItems: 'center', justifyContent: 'center' }]}><Text style={{ fontSize: 40 }}>🏪</Text></View>;
+            if (gphotos.length === 0) return <View style={[styles.hero, { backgroundColor: c.primarySoft, alignItems: 'center', justifyContent: 'center' }]}><Icon name="store" size={40} color={c.textSecondary} /></View>;
             return (
               <View>
                 <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false}>
@@ -214,17 +215,27 @@ export default function StoreDetailScreen() {
               {store.is_ad && <View style={[styles.badge, { backgroundColor: c.primary }]}><Text style={styles.badgeTxt}>광고</Text></View>}
               {store.biz_verified && <View style={[styles.badge, { backgroundColor: c.verify }]}><Text style={styles.badgeTxt}>✓ 인증</Text></View>}
             </View>
-            <Text style={[styles.rating, { color: c.text }]}>⭐ {(store.rating ?? 0) > 0 ? (store.rating ?? 0).toFixed(1) : '신규'} <Text style={{ color: c.textSecondary, fontWeight: '600' }}>· 리뷰 {store.review_count ?? 0}</Text></Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8 }}>
+              <Icon name="star" size={16} color={c.text} />
+              <Text style={[styles.rating, { color: c.text, marginTop: 0 }]}>{(store.rating ?? 0) > 0 ? (store.rating ?? 0).toFixed(1) : '신규'} <Text style={{ color: c.textSecondary, fontWeight: '600' }}>· 리뷰 {store.review_count ?? 0}</Text></Text>
+            </View>
             <Text style={[styles.cat, { color: c.textSecondary }]}>{cats}</Text>
             {store.address ? (
-              <Pressable onPress={() => Linking.openURL(`https://map.naver.com/v5/search/${encodeURIComponent(store.name)}`)}>
-                <Text style={[styles.addr, { color: c.textSecondary }]}>📍 {store.address}  <Text style={{ color: c.primary, fontWeight: '700' }}>지도 ›</Text></Text>
+              <Pressable onPress={() => Linking.openURL(`https://map.naver.com/v5/search/${encodeURIComponent(store.name)}`)} style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 }}>
+                <Icon name="pin" size={13} color={c.textSecondary} />
+                <Text style={[styles.addr, { color: c.textSecondary, marginTop: 0 }]}>{store.address}  <Text style={{ color: c.primary, fontWeight: '700' }}>지도 ›</Text></Text>
               </Pressable>
             ) : null}
-            {(store as any).hours ? <Text style={[styles.addr, { color: c.textSecondary }]}>🕒 {(store as any).hours}</Text> : null}
+            {(store as any).hours ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 }}>
+                <Icon name="clock" size={13} color={c.textSecondary} />
+                <Text style={[styles.addr, { color: c.textSecondary, marginTop: 0 }]}>{(store as any).hours}</Text>
+              </View>
+            ) : null}
             {(store as any).phone ? (
-              <Pressable onPress={() => Linking.openURL(`tel:${String((store as any).phone).replace(/[^0-9+]/g, '')}`)}>
-                <Text style={[styles.addr, { color: c.textSecondary }]}>📞 {(store as any).phone}  <Text style={{ color: c.primary, fontWeight: '700' }}>전화 ›</Text></Text>
+              <Pressable onPress={() => Linking.openURL(`tel:${String((store as any).phone).replace(/[^0-9+]/g, '')}`)} style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 }}>
+                <Icon name="phone" size={13} color={c.textSecondary} />
+                <Text style={[styles.addr, { color: c.textSecondary, marginTop: 0 }]}>{(store as any).phone}  <Text style={{ color: c.primary, fontWeight: '700' }}>전화 ›</Text></Text>
               </Pressable>
             ) : null}
 
@@ -232,8 +243,9 @@ export default function StoreDetailScreen() {
               <ReactionBar targetType="store" targetId={String(id)} title={store.name} sharePath={`/store/${id}`} />
             </View>
 
-            <Pressable style={[styles.roomBtn, { backgroundColor: c.primary, marginTop: 12 }]} onPress={openStoreRoom}>
-              <Text style={{ color: c.onPrimary, fontWeight: '800', fontSize: 14 }}>💬 실시간 소식방 — “오늘 영업해요?” 물어보기</Text>
+            <Pressable style={[styles.roomBtn, { backgroundColor: c.primary, marginTop: 12, flexDirection: 'row', gap: 6 }]} onPress={openStoreRoom}>
+              <Icon name="chat" size={16} color={c.onPrimary} />
+              <Text style={{ color: c.onPrimary, fontWeight: '800', fontSize: 14 }}>실시간 소식방 — “오늘 영업해요?” 물어보기</Text>
             </Pressable>
             {session && (store as any)?.owner_id && (store as any).owner_id !== session.user.id ? (
               <Pressable style={[styles.editBtn, { borderColor: c.primary, marginTop: 8 }]} onPress={messageOwner}>
@@ -241,12 +253,14 @@ export default function StoreDetailScreen() {
               </Pressable>
             ) : null}
 
-            <Pressable style={[styles.editBtn, { borderColor: c.border, marginTop: 8 }]} onPress={() => (session ? router.push(`/store-new?id=${id}`) : router.push('/login'))}>
-              <Text style={{ color: canEdit ? c.primary : c.textSecondary, fontWeight: '800', fontSize: 13 }}>{canEdit ? '✏️ 매장 정보 수정' : '✏️ 정보 수정 신청'}</Text>
+            <Pressable style={[styles.editBtn, { borderColor: c.border, marginTop: 8, flexDirection: 'row', gap: 6 }]} onPress={() => (session ? router.push(`/store-new?id=${id}`) : router.push('/login'))}>
+              <Icon name="edit" size={14} color={canEdit ? c.primary : c.textSecondary} />
+              <Text style={{ color: canEdit ? c.primary : c.textSecondary, fontWeight: '800', fontSize: 13 }}>{canEdit ? '매장 정보 수정' : '정보 수정 신청'}</Text>
             </Pressable>
             {session && (store as any)?.owner_id === session.user.id ? (
-              <Pressable style={[styles.editBtn, { borderColor: c.primary, marginTop: 8 }]} onPress={() => router.push(`/ad?store=${id}`)}>
-                <Text style={{ color: c.primary, fontWeight: '800', fontSize: 13 }}>📢 광고 신청 · 관리{store.is_ad ? ' (노출중)' : ''}</Text>
+              <Pressable style={[styles.editBtn, { borderColor: c.primary, marginTop: 8, flexDirection: 'row', gap: 6 }]} onPress={() => router.push(`/ad?store=${id}`)}>
+                <Icon name="megaphone" size={14} color={c.primary} />
+                <Text style={{ color: c.primary, fontWeight: '800', fontSize: 13 }}>광고 신청 · 관리{store.is_ad ? ' (노출중)' : ''}</Text>
               </Pressable>
             ) : null}
           </View>
@@ -350,8 +364,9 @@ export default function StoreDetailScreen() {
                 </View>
                 {rv.body ? <Text style={[styles.rBody, { color: c.textSecondary }]}>{rv.body}</Text> : null}
                 {session && rv.author_id === session.user.id ? (
-                  <Pressable onPress={() => deleteReview(rv.id)} hitSlop={6} style={{ alignSelf: 'flex-end', marginTop: 4 }}>
-                    <Text style={{ color: '#E5484D', fontSize: 11, fontWeight: '800' }}>🗑 삭제</Text>
+                  <Pressable onPress={() => deleteReview(rv.id)} hitSlop={6} style={{ alignSelf: 'flex-end', marginTop: 4, flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                    <Icon name="trash" size={12} color="#E5484D" />
+                    <Text style={{ color: '#E5484D', fontSize: 11, fontWeight: '800' }}>삭제</Text>
                   </Pressable>
                 ) : session ? (
                   <Pressable onPress={() => router.push(`/report?type=review&id=${rv.id}&label=${encodeURIComponent((rv.body ?? '리뷰').slice(0, 30))}`)} hitSlop={6} style={{ alignSelf: 'flex-end', marginTop: 4 }}>

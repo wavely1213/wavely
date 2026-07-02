@@ -4,6 +4,7 @@ import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, T
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DongPicker } from '@/components/DongPicker';
+import { Icon } from '@/components/Icon';
 import { mergeDongs } from '@/constants/app';
 import { Colors } from '@/constants/theme';
 import { useScheme } from '@/lib/theme';
@@ -62,7 +63,7 @@ export default function JobsScreen() {
     <SafeAreaView style={[styles.root, { backgroundColor: c.background }]} edges={['top']}>
       <View style={[styles.header, { borderColor: c.border, backgroundColor: c.card }]}>
         <Pressable onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} hitSlop={8}><Text style={[styles.back, { color: c.text }]}>‹ 뒤로</Text></Pressable>
-        <Text style={[styles.hTitle, { color: c.text }]}>💼 구인구직</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Icon name="briefcase" size={16} color={c.text} /><Text style={[styles.hTitle, { color: c.text }]}>구인구직</Text></View>
         <View style={{ width: 40 }} />
       </View>
 
@@ -76,7 +77,7 @@ export default function JobsScreen() {
       <View style={[styles.dongBar, { backgroundColor: c.card, borderColor: c.border }]}>
         <DongPicker value={dong} options={dongOptions} onChange={setDong} allLabel="춘천시 전체" />
         <View style={[styles.searchBox, { backgroundColor: c.background, borderColor: c.border }]}>
-          <Text style={{ fontSize: 13 }}>🔍</Text>
+          <Icon name="search" size={13} color={c.textSecondary} />
           <TextInput style={[styles.searchInput, { color: c.text }]} placeholder="검색" placeholderTextColor={c.textSecondary} value={search} onChangeText={setSearch} returnKeyType="search" />
         </View>
       </View>
@@ -85,7 +86,7 @@ export default function JobsScreen() {
         <ActivityIndicator color={c.primary} style={{ marginTop: 30 }} />
       ) : jobs.length === 0 ? (
         <ScrollView contentContainerStyle={{ flexGrow: 1 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} colors={[c.primary]} />}>
-          <View style={styles.center}><Text style={{ fontSize: 40, marginBottom: 6 }}>💼</Text><Text style={{ color: c.textSecondary }}>아직 공고가 없어요. 첫 글을 올려보세요!</Text></View>
+          <View style={styles.center}><View style={{ marginBottom: 6 }}><Icon name="briefcase" size={40} color={c.textSecondary} /></View><Text style={{ color: c.textSecondary }}>아직 공고가 없어요. 첫 글을 올려보세요!</Text></View>
         </ScrollView>
       ) : (
         <ScrollView contentContainerStyle={{ paddingBottom: 110 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} colors={[c.primary]} />}>

@@ -3,6 +3,7 @@ import { Pressable, Text, View } from 'react-native';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { Icon } from '@/components/Icon';
 import { AuthProvider } from '@/lib/auth';
 import { IS_UI_PREVIEW } from '@/constants/theme';
 import { AppThemeProvider, useScheme } from '@/lib/theme';
@@ -18,9 +19,13 @@ function PreviewBar() {
   };
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, backgroundColor: '#FF9F40', paddingVertical: 6, paddingHorizontal: 12 }}>
-      <Text style={{ color: '#3A2400', fontWeight: '900', fontSize: 12.5 }}>🔍 검수 모드 — 테스트(draft) 값 미리보기 중</Text>
-      <Pressable onPress={exit} style={{ backgroundColor: 'rgba(0,0,0,0.18)', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3 }}>
-        <Text style={{ color: '#3A2400', fontWeight: '900', fontSize: 11.5 }}>검수 종료 ✕</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+        <Icon name="search" size={12.5} color="#3A2400" strokeWidth={2} />
+        <Text style={{ color: '#3A2400', fontWeight: '900', fontSize: 12.5 }}>검수 모드 — 테스트(draft) 값 미리보기 중</Text>
+      </View>
+      <Pressable onPress={exit} style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(0,0,0,0.18)', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3 }}>
+        <Text style={{ color: '#3A2400', fontWeight: '900', fontSize: 11.5 }}>검수 종료</Text>
+        <Icon name="x" size={11.5} color="#3A2400" strokeWidth={2} />
       </Pressable>
     </View>
   );

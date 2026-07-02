@@ -6,6 +6,8 @@ import { useScheme } from '@/lib/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Avatar } from '@/components/Avatar';
+import { Icon } from '@/components/Icon';
+import { Logo } from '@/components/Logo';
 import { DongPicker } from '@/components/DongPicker';
 import { StripBanner } from '@/components/StripBanner';
 import { boardLabel, mergeDongs, parseHashtags } from '@/constants/app';
@@ -150,7 +152,7 @@ export default function CommunityScreen() {
     <SafeAreaView style={[styles.root, { backgroundColor: c.background }]} edges={['top']}>
       {!desktop && (
       <View style={[styles.topbar, { backgroundColor: c.card, borderColor: c.border, flexDirection: 'row', alignItems: 'center' }]}>
-        {Assets.logo ? <Image source={{ uri: Assets.logo }} style={{ width: 30, height: 30, borderRadius: 7, marginRight: 9 }} contentFit="contain" /> : null}
+        <View style={{ marginRight: 9 }}><Logo size={30} bg={c.primary} rounded={7} /></View>
         <View style={{ flex: 1 }}>
           <Text style={[styles.loc, { color: c.text }]}>
             강원 춘천시{dong ? ` · ${dong}` : ''} <Text style={{ color: c.textSecondary, fontSize: 13 }}>▾</Text>
@@ -158,7 +160,7 @@ export default function CommunityScreen() {
           <Text style={[styles.sub, { color: c.textSecondary }]}>{dong ? `${dong} 동네 커뮤니티` : '우리 동네 커뮤니티 · 익명으로 편하게'}</Text>
         </View>
         <Pressable onPress={() => router.push(session ? '/notifications' : '/login')} hitSlop={8} style={{ padding: 4 }} accessibilityRole="button" accessibilityLabel={notifUnread > 0 ? `알림 ${notifUnread}개` : '알림'}>
-          <Text style={{ fontSize: 22 }}>🔔</Text>
+          <Icon name="bell" size={22} color={c.text} />
           {notifUnread > 0 ? <View style={styles.notifBadge}><Text style={styles.notifBadgeTxt}>{notifUnread > 9 ? '9+' : notifUnread}</Text></View> : null}
         </Pressable>
       </View>
@@ -169,7 +171,7 @@ export default function CommunityScreen() {
         <View style={[styles.dongBar, { backgroundColor: c.card, borderColor: c.border, flexDirection: 'row', alignItems: 'center', gap: 8 }]}>
           <DongPicker value={dong} options={dongOptions} onChange={(d) => { setDong(d); }} allLabel="춘천시 전체" />
           <View style={[styles.searchBox, { backgroundColor: c.background, borderColor: c.border }]}>
-            <Text style={{ fontSize: 13 }}>🔍</Text>
+            <Icon name="search" size={16} color={c.textSecondary} />
             <TextInput style={[styles.searchInput, { color: c.text }]} placeholder="글 검색" placeholderTextColor={c.textSecondary} value={search} onChangeText={setSearch} returnKeyType="search" />
             {search ? <Pressable onPress={() => setSearch('')} hitSlop={8} accessibilityRole="button" accessibilityLabel="검색어 지우기"><Text style={{ color: c.textSecondary, fontSize: 13 }}>✕</Text></Pressable> : null}
           </View>
@@ -204,15 +206,15 @@ export default function CommunityScreen() {
       {session && !tag ? (
         <View style={[styles.quickRow, { backgroundColor: c.card, borderColor: c.border }]}>
           {[
-            { icon: '🔥', label: '인기글', to: '/hot' },
-            { icon: '🛒', label: '중고거래', to: '/market' },
-            { icon: '💼', label: '구인구직', to: '/jobs' },
-            { icon: '🔔', label: '키워드', to: '/keywords' },
+            { icon: 'fire', label: '인기글', to: '/hot' },
+            { icon: 'cart', label: '중고거래', to: '/market' },
+            { icon: 'briefcase', label: '구인구직', to: '/jobs' },
+            { icon: 'bell', label: '키워드', to: '/keywords' },
             // 모두에게 노출하되, 실제 이용은 인증매장 사장님만(place-rank 화면에서 잠금)
-            { icon: '📈', label: '플레이스 분석', to: '/place-rank' },
+            { icon: 'chart', label: '플레이스 분석', to: '/place-rank' },
           ].map((q) => (
             <Pressable key={q.to} onPress={() => router.push(q.to as any)} style={styles.quickItem}>
-              <View style={[styles.quickIcon, { backgroundColor: c.primarySoft }]}><Text style={{ fontSize: 21 }}>{q.icon}</Text></View>
+              <View style={[styles.quickIcon, { backgroundColor: c.primarySoft }]}><Icon name={q.icon as any} size={22} color={c.primaryDeep} /></View>
               <Text style={[styles.quickLabel, { color: c.text }]}>{q.label}</Text>
             </Pressable>
           ))}
@@ -224,8 +226,8 @@ export default function CommunityScreen() {
       ) : !session ? (
         anonDenied ? (
           <View style={[styles.centerBox, { paddingHorizontal: 32 }]}>
-            <Text style={{ fontSize: 44, marginBottom: 6 }}>📍</Text>
-            <Text style={[styles.emptyTitle, { color: c.text, textAlign: 'center' }]}>내 동네 글을 보려면{'\n'}위치 권한이 필요해요</Text>
+            <Icon name="pin" size={44} color={c.textSecondary} />
+            <Text style={[styles.emptyTitle, { color: c.text, textAlign: 'center', marginTop: 6 }]}>내 동네 글을 보려면{'\n'}위치 권한이 필요해요</Text>
             <Text style={[styles.emptySub, { color: c.textSecondary, textAlign: 'center', marginTop: 4 }]}>위치 기반으로 우리 동네 이야기를 보여드려요</Text>
             <Pressable onPress={() => load()} style={[styles.wallBtn, { backgroundColor: c.primary, marginTop: 16 }]}><Text style={{ color: c.onPrimary, fontWeight: '800', fontSize: 14 }}>📍 위치 다시 시도</Text></Pressable>
             <Pressable onPress={() => router.push('/login')} style={{ marginTop: 14 }}><Text style={{ color: c.primary, fontWeight: '700', fontSize: 13 }}>또는 로그인 / 가입하기 ›</Text></Pressable>
@@ -268,7 +270,7 @@ export default function CommunityScreen() {
             {/* 오버레이 CTA */}
             <View style={styles.wallOverlay} pointerEvents="box-none">
               <Pressable onPress={() => router.push('/login')} style={[styles.wallCard, { backgroundColor: c.card, borderColor: c.primary }]}>
-                <Text style={{ fontSize: 30 }}>🔒</Text>
+                <Icon name="lock" size={30} color={c.primary} />
                 <Text style={{ color: c.text, fontWeight: '900', fontSize: 16, marginTop: 8 }}>우리 동네 이야기, 전부 보기</Text>
                 <Text style={{ color: c.textSecondary, fontSize: 12.5, marginTop: 4, textAlign: 'center', lineHeight: 18 }}>로그인하면 모든 글·사진·댓글을 볼 수 있어요{'\n'}무료로 우리 동네 이웃과 함께해요</Text>
                 <View style={[styles.wallBtn, { backgroundColor: c.primary }]}><Text style={{ color: c.onPrimary, fontWeight: '800', fontSize: 14 }}>로그인 / 가입하기</Text></View>
@@ -279,7 +281,7 @@ export default function CommunityScreen() {
         )
       ) : posts.length === 0 ? (
         <View style={styles.centerBox}>
-          <Text style={{ fontSize: 44, marginBottom: 4 }}>{search ? '🔍' : '📝'}</Text>
+          <View style={{ marginBottom: 4 }}><Icon name={search ? 'search' : 'note'} size={44} color={c.textSecondary} /></View>
           <Text style={[styles.emptyTitle, { color: c.text }]}>{search ? `‘${search}’ 검색 결과가 없어요` : tag ? `#${tag} 글이 없어요` : dong ? `${dong} 글이 아직 없어요` : '아직 글이 없어요'}</Text>
           <Text style={[styles.emptySub, { color: c.textSecondary }]}>{search ? '다른 검색어로 찾아보세요' : dong ? `${dong}의 첫 글을 남겨보세요!` : '첫 글을 남겨보세요!'}</Text>
         </View>
@@ -293,7 +295,7 @@ export default function CommunityScreen() {
                   {p.image_url ? (
                     p.media_type === 'video' ? (
                       <View style={[styles.thumb, { width: UI.postThumb, height: UI.postThumb, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' }]}>
-                        <Text style={{ fontSize: 26 }}>▶️</Text>
+                        <Icon name="play" size={24} color="#fff" />
                         <Text style={{ color: '#fff', fontSize: 9, fontWeight: '700' }}>영상</Text>
                       </View>
                     ) : (
@@ -338,8 +340,9 @@ export default function CommunityScreen() {
       )}
 
       {!desktop && (
-        <Pressable style={[styles.fab, { backgroundColor: c.primary }]} onPress={goWrite}>
-          <Text style={styles.fabTxt}>✏️ 글쓰기</Text>
+        <Pressable style={[styles.fab, { backgroundColor: c.primary, flexDirection: 'row', alignItems: 'center', gap: 6 }]} onPress={goWrite}>
+          <Icon name="edit" size={17} color="#fff" />
+          <Text style={styles.fabTxt}>글쓰기</Text>
         </Pressable>
       )}
     </SafeAreaView>

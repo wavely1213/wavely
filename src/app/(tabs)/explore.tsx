@@ -6,6 +6,7 @@ import { useScheme } from '@/lib/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import NativeDongMap, { type DongMapItem } from '@/components/NativeDongMap';
+import { Icon } from '@/components/Icon';
 import { StripBanner } from '@/components/StripBanner';
 import { prettyCat } from '@/constants/app';
 import { Colors, Radius, Shadow } from '@/constants/theme';
@@ -508,9 +509,9 @@ export default function StoresScreen() {
   const LeftPanel = (
     <View style={{ flex: 1 }}>
       <View style={[styles.searchBox, { backgroundColor: c.card, borderColor: c.primary }]}>
-        <Text style={{ fontSize: 16 }}>🔍</Text>
+        <Icon name="search" size={16} color={c.textSecondary} />
         <TextInput style={[styles.searchInput, { color: c.text }]} placeholder="춘천 가게·장소 검색" placeholderTextColor={c.textSecondary} value={search} onChangeText={onSearch} returnKeyType="search" />
-        {search ? <Pressable onPress={() => onSearch('')} hitSlop={8}><Text style={{ color: c.textSecondary }}>✕</Text></Pressable> : null}
+        {search ? <Pressable onPress={() => onSearch('')} hitSlop={8}><Icon name="x" size={16} color={c.textSecondary} /></Pressable> : null}
       </View>
 
       {/* 인증 토글 + 반경 필터 한 줄 (칩 스타일 통일) */}
@@ -559,14 +560,14 @@ export default function StoresScreen() {
                   {nByStore[s.id] != null && <View style={[styles.badge, { backgroundColor: c.primaryDeep ?? c.primary }]}><Text style={styles.badgeTxt}>N {nByStore[s.id].toFixed(2)}</Text></View>}
                 </View>
                 <View style={styles.ratingRow}>
-                  <Text style={styles.star}>⭐</Text>
+                  <Icon name="star" size={12} color={c.textSecondary} />
                   <Text style={[styles.reviewTxt, { color: c.textSecondary }]}>
                     {(s.rating ?? 0) > 0 ? `${(s.rating ?? 0).toFixed(1)} · 리뷰 ${s.review_count ?? 0}` : `신규 · 리뷰 ${s.review_count ?? 0}`}
                   </Text>
                   <Text style={{ color: c.border }}>·</Text>
                   <Text style={[styles.cardCat, { color: c.textSecondary }]} numberOfLines={1}>{(s.categories && s.categories.length ? s.categories.join(' · ') : s.category) ?? ''}</Text>
                 </View>
-                {s.address ? <Text style={[styles.cardAddr, { color: c.textSecondary }]} numberOfLines={1}>📍 {trimAddr(s.address)}</Text> : null}
+                {s.address ? <View style={styles.addrRow}><Icon name="pin" size={12} color={c.textSecondary} /><Text style={[styles.cardAddr, { color: c.textSecondary }]} numberOfLines={1}>{trimAddr(s.address)}</Text></View> : null}
               </View>
             </Pressable>
           ))}
@@ -586,12 +587,12 @@ export default function StoresScreen() {
                     <Text style={[styles.cardName, { color: c.text }]} numberOfLines={1}>{p.name}</Text>
                   </View>
                   <View style={styles.ratingRow}>
-                    <Text style={styles.star}>⭐</Text>
+                    <Icon name="star" size={12} color={c.textSecondary} />
                     <Text style={[styles.reviewTxt, { color: c.textSecondary }]}>리뷰 0</Text>
                     <Text style={{ color: c.border }}>·</Text>
                     <Text style={[styles.cardCat, { color: c.textSecondary }]} numberOfLines={1}>{prettyCat(p.category)}</Text>
                   </View>
-                  {p.address ? <Text style={[styles.cardAddr, { color: c.textSecondary }]} numberOfLines={1}>📍 {trimAddr(p.address)}</Text> : null}
+                  {p.address ? <View style={styles.addrRow}><Icon name="pin" size={12} color={c.textSecondary} /><Text style={[styles.cardAddr, { color: c.textSecondary }]} numberOfLines={1}>{trimAddr(p.address)}</Text></View> : null}
                 </View>
               </Pressable>
             ))
@@ -746,7 +747,8 @@ const styles = StyleSheet.create({
   star: { fontSize: 12 },
   reviewTxt: { fontSize: 12.5, fontWeight: '700' },
   cardCat: { fontSize: 12.5, flexShrink: 1 },
-  cardAddr: { fontSize: 12, marginTop: 4 },
+  addrRow: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 4 },
+  cardAddr: { fontSize: 12, flexShrink: 1 },
   badge: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5 },
   badgeTxt: { fontSize: 10, fontWeight: '800', color: '#fff' },
   memberBadge: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5 },

@@ -6,15 +6,17 @@ import { useScheme } from '@/lib/theme';
 import { useAuth } from '@/lib/auth';
 import { Assets, Colors, Radius } from '@/constants/theme';
 import { StripBanner } from '@/components/StripBanner';
+import { Icon } from '@/components/Icon';
+import { Logo } from '@/components/Logo';
 
 export const DESKTOP_MIN = 1024;
 export const RAIL_MIN = 1180;
 
 const NAV = [
-  { key: 'index', label: '커뮤니티', icon: '🏠', path: '/' },
-  { key: 'explore', label: '우리동네', icon: '📍', path: '/explore' },
-  { key: 'chats', label: '채팅', icon: '💬', path: '/chats' },
-  { key: 'account', label: '내정보', icon: '👤', path: '/account' },
+  { key: 'index', label: '커뮤니티', icon: 'home', path: '/' },
+  { key: 'explore', label: '우리동네', icon: 'pin', path: '/explore' },
+  { key: 'chats', label: '채팅', icon: 'chat', path: '/chats' },
+  { key: 'account', label: '내정보', icon: 'user', path: '/account' },
 ] as const;
 
 function activeKey(pathname: string): string {
@@ -36,7 +38,7 @@ export function DesktopSidebar() {
     <View style={{ width: 232, borderRightWidth: 1, borderColor: c.border, backgroundColor: c.card, paddingHorizontal: 14, paddingVertical: 18, gap: 6 }}>
       {/* 로고 */}
       <Pressable onPress={() => router.navigate('/')} style={{ flexDirection: 'row', alignItems: 'center', gap: 9, paddingHorizontal: 6, marginBottom: 6 }}>
-        {Assets.logo ? <Image source={{ uri: Assets.logo }} style={{ width: 30, height: 30, borderRadius: 8 }} /> : <Text style={{ fontSize: 22 }}>🌊</Text>}
+        <Logo size={30} bg="#7A2BC4" rounded={8} />
         <Text style={{ fontSize: 20, fontWeight: '900', color: c.primaryDeep }}>와벨리</Text>
       </Pressable>
 
@@ -51,20 +53,24 @@ export function DesktopSidebar() {
         const on = cur === n.key;
         return (
           <Pressable key={n.key} onPress={() => router.navigate(n.path as any)} style={{ flexDirection: 'row', alignItems: 'center', gap: 11, paddingHorizontal: 11, paddingVertical: 11, borderRadius: Radius.list, backgroundColor: on ? c.primarySoft : 'transparent' }}>
-            <Text style={{ fontSize: 17, opacity: on ? 1 : 0.7 }}>{n.icon}</Text>
+            <View style={{ opacity: on ? 1 : 0.7 }}><Icon name={n.icon as any} size={17} color={on ? c.primaryDeep : c.text} strokeWidth={2} /></View>
             <Text style={{ fontSize: 14.5, fontWeight: on ? '800' : '600', color: on ? c.primaryDeep : c.text }}>{n.label}</Text>
           </Pressable>
         );
       })}
 
       {/* 글쓰기 */}
-      <Pressable onPress={() => router.push(session ? '/write' : '/login')} style={{ marginTop: 8, backgroundColor: c.primary, borderRadius: Radius.button, paddingVertical: 12, alignItems: 'center' }}>
-        <Text style={{ color: c.onPrimary, fontWeight: '800', fontSize: 14.5 }}>✏️ 글쓰기</Text>
+      <Pressable onPress={() => router.push(session ? '/write' : '/login')} style={{ marginTop: 8, backgroundColor: c.primary, borderRadius: Radius.button, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+        <Icon name="edit" size={16} color={c.onPrimary} strokeWidth={2} />
+        <Text style={{ color: c.onPrimary, fontWeight: '800', fontSize: 14.5 }}>글쓰기</Text>
       </Pressable>
 
       {/* 사장님 센터 (다크 카드 → 광고/분석) */}
       <Pressable onPress={() => router.push(session ? '/place-rank' : '/login')} style={{ marginTop: 10, backgroundColor: '#1E1335', borderRadius: Radius.card, padding: 13 }}>
-        <Text style={{ color: '#fff', fontWeight: '900', fontSize: 13.5 }}>📈 사장님 센터</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <Icon name="chart" size={14} color="#fff" strokeWidth={2} />
+          <Text style={{ color: '#fff', fontWeight: '900', fontSize: 13.5 }}>사장님 센터</Text>
+        </View>
         <Text style={{ color: '#C2A2F2', fontSize: 11, marginTop: 3, lineHeight: 16 }}>광고 집행 · 플레이스 분석 · N지수</Text>
       </Pressable>
 
@@ -99,7 +105,10 @@ export function DesktopRightRail() {
 
         {/* 인기글 */}
         <Pressable onPress={() => router.push('/hot')} style={{ backgroundColor: c.card, borderWidth: 1, borderColor: c.border, borderRadius: Radius.card, padding: 14 }}>
-          <Text style={{ fontSize: 13.5, fontWeight: '900', color: c.text }}>🔥 지금 인기글</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Icon name="fire" size={14} color={c.text} strokeWidth={2} />
+            <Text style={{ fontSize: 13.5, fontWeight: '900', color: c.text }}>지금 인기글</Text>
+          </View>
           <Text style={{ fontSize: 11.5, color: c.textSecondary, marginTop: 4 }}>우리 동네에서 가장 뜨거운 이야기</Text>
           <Text style={{ fontSize: 12, color: c.primaryDeep, fontWeight: '800', marginTop: 8 }}>인기글 보기 ›</Text>
         </Pressable>

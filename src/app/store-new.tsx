@@ -6,6 +6,7 @@ import { Linking, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, 
 import { useScheme } from '@/lib/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Icon } from '@/components/Icon';
 import { Colors } from '@/constants/theme';
 import { canEditStore, useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
@@ -183,7 +184,7 @@ export default function StoreFormScreen() {
   if (!session) {
     return (
       <SafeAreaView style={[styles.root, { backgroundColor: c.background }]}>
-        <Pressable style={styles.close} onPress={() => router.back()}><Text style={[styles.closeTxt, { color: c.textSecondary }]}>✕</Text></Pressable>
+        <Pressable style={styles.close} onPress={() => router.back()}><Icon name="x" size={20} color={c.textSecondary} /></Pressable>
         <View style={styles.guideBox}><Text style={[styles.guideTxt, { color: c.text }]}>로그인 후 이용해주세요</Text></View>
       </SafeAreaView>
     );
@@ -191,7 +192,7 @@ export default function StoreFormScreen() {
   if (!isEdit && profile?.role !== 'owner') {
     return (
       <SafeAreaView style={[styles.root, { backgroundColor: c.background }]}>
-        <Pressable style={styles.close} onPress={() => router.back()}><Text style={[styles.closeTxt, { color: c.textSecondary }]}>✕</Text></Pressable>
+        <Pressable style={styles.close} onPress={() => router.back()}><Icon name="x" size={20} color={c.textSecondary} /></Pressable>
         <View style={styles.guideBox}><Text style={[styles.guideTxt, { color: c.text }]}>매장 등록은 사업자 인증을 마친{'\n'}사업주 회원만 가능해요</Text></View>
       </SafeAreaView>
     );
@@ -268,7 +269,7 @@ export default function StoreFormScreen() {
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: c.background }]}>
       <View style={[styles.header, { borderColor: c.border }]}>
-        <Pressable onPress={() => router.back()} hitSlop={8}><Text style={[styles.closeTxt, { color: c.textSecondary }]}>✕</Text></Pressable>
+        <Pressable onPress={() => router.back()} hitSlop={8}><Icon name="x" size={20} color={c.textSecondary} /></Pressable>
         <Text style={[styles.headerTitle, { color: c.text }]}>{title}</Text>
         <Pressable onPress={handleSubmit} disabled={!canSubmit} hitSlop={8}>
           <Text style={[styles.post, { color: canSubmit ? c.primary : c.textSecondary }]}>{submitting ? '...' : submitLabel}</Text>
@@ -319,15 +320,16 @@ export default function StoreFormScreen() {
 
         <Text style={[styles.label, { color: c.textSecondary, marginTop: 8 }]}>④ 매장 사진</Text>
         {name.trim() ? (
-          <Pressable onPress={() => Linking.openURL(`https://map.naver.com/v5/search/${encodeURIComponent(name.trim())}`)}>
-            <Text style={[styles.naverLink, { color: c.primary }]}>🔍 네이버 플레이스에서 "{name.trim()}" 사진 비교하기 ›</Text>
+          <Pressable onPress={() => Linking.openURL(`https://map.naver.com/v5/search/${encodeURIComponent(name.trim())}`)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Icon name="search" size={13} color={c.primary} />
+            <Text style={[styles.naverLink, { color: c.primary }]}>네이버 플레이스에서 "{name.trim()}" 사진 비교하기 ›</Text>
           </Pressable>
         ) : null}
         {image || existingPhoto ? (
           <View style={styles.preview}>
             <Image source={{ uri: image?.uri ?? existingPhoto! }} style={styles.previewImg} contentFit="cover" />
             <Pressable style={[styles.removeBtn, { backgroundColor: c.text }]} onPress={() => { setImage(null); setExistingPhoto(null); }}>
-              <Text style={{ color: c.background, fontWeight: '900', fontSize: 13 }}>✕</Text>
+              <Icon name="x" size={13} color={c.background} />
             </Pressable>
           </View>
         ) : (

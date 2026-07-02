@@ -7,6 +7,7 @@ import { useScheme } from '@/lib/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Colors } from '@/constants/theme';
+import { Icon } from '@/components/Icon';
 import { useAuth } from '@/lib/auth';
 import { requestAdPayment, requestBillingKey } from '@/lib/pay';
 import { supabase } from '@/lib/supabase';
@@ -184,7 +185,7 @@ export default function AdScreen() {
       <SafeAreaView style={[styles.root, { backgroundColor: c.background }]} edges={['top']}>
         <Header c={c} onBack={() => (router.canGoBack() ? router.back() : router.replace('/'))} />
         <View style={styles.center}>
-          <Text style={{ fontSize: 40 }}>📢</Text>
+          <Icon name="megaphone" size={40} color={c.textSecondary} />
           <Text style={[styles.bigTxt, { color: c.text }]}>광고는 사업주만 신청할 수 있어요</Text>
           <Text style={[styles.subTxt, { color: c.textSecondary }]}>사업자 인증 후 내 매장을 등록하면{'\n'}동네 상위 노출 광고를 쓸 수 있어요</Text>
           <Pressable style={[styles.btn, { backgroundColor: c.primary, marginTop: 18 }]} onPress={() => router.push('/account-edit')}>
@@ -205,7 +206,7 @@ export default function AdScreen() {
       ) : (
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
           <View style={[styles.banner, { backgroundColor: c.primarySoft }]}>
-            <Text style={[styles.bannerTxt, { color: c.primaryDeep }]}>📢 우리 동네 사람들에게 매장을 상위 노출하세요. 광고는 가산점이라 별점·리뷰 관리도 함께 하면 효과가 커져요.</Text>
+            <Text style={[styles.bannerTxt, { color: c.primaryDeep }]}>우리 동네 사람들에게 매장을 상위 노출하세요. 광고는 가산점이라 별점·리뷰 관리도 함께 하면 효과가 커져요.</Text>
           </View>
 
           {stores.length === 0 ? (
@@ -226,11 +227,13 @@ export default function AdScreen() {
 
               <Text style={[styles.label, { color: c.textSecondary, marginTop: 16 }]}>광고 형태</Text>
               <View style={styles.chips}>
-                <Pressable onPress={() => setFormat('rank')} style={[styles.planTab, { backgroundColor: format === 'rank' ? c.primary : c.card, borderColor: format === 'rank' ? c.primary : c.border }]}>
-                  <Text style={[styles.planTabTxt, { color: format === 'rank' ? c.onPrimary : c.text }]}>📈 노출 가산점</Text>
+                <Pressable onPress={() => setFormat('rank')} style={[styles.planTab, { backgroundColor: format === 'rank' ? c.primary : c.card, borderColor: format === 'rank' ? c.primary : c.border, flexDirection: 'row', gap: 6 }]}>
+                  <Icon name="chart" size={14} color={format === 'rank' ? c.onPrimary : c.text} />
+                  <Text style={[styles.planTabTxt, { color: format === 'rank' ? c.onPrimary : c.text }]}>노출 가산점</Text>
                 </Pressable>
-                <Pressable onPress={() => setFormat('banner')} style={[styles.planTab, { backgroundColor: format === 'banner' ? c.primary : c.card, borderColor: format === 'banner' ? c.primary : c.border }]}>
-                  <Text style={[styles.planTabTxt, { color: format === 'banner' ? c.onPrimary : c.text }]}>🖼 노출 배너</Text>
+                <Pressable onPress={() => setFormat('banner')} style={[styles.planTab, { backgroundColor: format === 'banner' ? c.primary : c.card, borderColor: format === 'banner' ? c.primary : c.border, flexDirection: 'row', gap: 6 }]}>
+                  <Icon name="image" size={14} color={format === 'banner' ? c.onPrimary : c.text} />
+                  <Text style={[styles.planTabTxt, { color: format === 'banner' ? c.onPrimary : c.text }]}>노출 배너</Text>
                 </Pressable>
               </View>
               <Text style={[styles.notice, { color: c.textSecondary, marginTop: 6 }]}>
@@ -278,7 +281,10 @@ export default function AdScreen() {
                   <Text style={[styles.label, { color: c.textSecondary, marginTop: 16 }]}>결제 방법</Text>
                   <View style={styles.chips}>
                     <Pressable onPress={() => setBannerPay('wallet')} style={[styles.planTab, { backgroundColor: bannerPay === 'wallet' ? c.primary : c.card, borderColor: bannerPay === 'wallet' ? c.primary : c.border }]}>
-                      <Text style={[styles.planTabTxt, { color: bannerPay === 'wallet' ? c.onPrimary : c.text }]}>💳 지갑 잔액</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Icon name="wallet" size={14} color={bannerPay === 'wallet' ? c.onPrimary : c.text} />
+                        <Text style={[styles.planTabTxt, { color: bannerPay === 'wallet' ? c.onPrimary : c.text }]}>지갑 잔액</Text>
+                      </View>
                       <Text style={{ fontSize: 11, fontWeight: '700', marginTop: 2, color: bannerPay === 'wallet' ? c.onPrimary : c.textSecondary }}>{wallet.unlimited ? '무제한' : `${wallet.balance.toLocaleString()}원`}</Text>
                     </Pressable>
                     <Pressable onPress={() => setBannerPay('card')} style={[styles.planTab, { backgroundColor: bannerPay === 'card' ? c.primary : c.card, borderColor: bannerPay === 'card' ? c.primary : c.border }]}>
@@ -299,7 +305,10 @@ export default function AdScreen() {
               <Text style={[styles.notice, { color: c.textSecondary }]}>※ 배너 광고는 PortOne 결제 후 노출돼요 (현재 테스트 모드). 입찰 광고는 클릭당 과금이라 선결제 없이 아래 지갑 잔액에서 빠져요.</Text>
 
               {/* 광고비 지갑 — 클릭 광고비 충전·자동결제 */}
-              <Text style={[styles.sect, { color: c.text }]}>💳 광고비 지갑</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 26, marginBottom: 10 }}>
+                <Icon name="wallet" size={15} color={c.text} />
+                <Text style={[styles.sect, { color: c.text, marginTop: 0, marginBottom: 0 }]}>광고비 지갑</Text>
+              </View>
               <View style={[styles.box, { backgroundColor: c.card, borderColor: c.border }]}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                   <Text style={{ color: c.textSecondary, fontWeight: '700', fontSize: 13 }}>현재 잔액{wallet.unlimited ? ' · 개발자' : ''}</Text>
@@ -325,7 +334,7 @@ export default function AdScreen() {
                   {wallet.card ? (
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                       <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: c.primarySoft, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10 }}>
-                        <Text style={{ fontSize: 15 }}>💳</Text>
+                        <Icon name="card" size={15} color={c.text} />
                         <Text style={{ color: c.text, fontWeight: '800', fontSize: 13 }} numberOfLines={1}>{wallet.card.card_name}{wallet.card.masked ? ` · ${wallet.card.masked}` : ''}</Text>
                       </View>
                       <Pressable onPress={registerCard} disabled={walletBusy} style={[styles.chip, { borderColor: c.border, backgroundColor: c.card }]}><Text style={[styles.chipTxt, { color: c.textSecondary }]}>변경</Text></Pressable>
@@ -378,7 +387,10 @@ export default function AdScreen() {
             const spend = ads.reduce((s, a) => s + (a.format === 'banner' ? (a.status === 'active' || a.status === 'under_review' ? a.monthly_fee : 0) : (adStats[a.id]?.clicks ?? 0) * a.bid_amount), 0);
             return (
               <>
-                <Text style={[styles.sect, { color: c.text }]}>📊 내 광고 성과</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 26, marginBottom: 10 }}>
+                  <Icon name="chart" size={15} color={c.text} />
+                  <Text style={[styles.sect, { color: c.text, marginTop: 0, marginBottom: 0 }]}>내 광고 성과</Text>
+                </View>
                 <View style={styles.statRow}>
                   <View style={[styles.dashStat, { backgroundColor: c.card, borderColor: c.border }]}><Text style={[styles.dashVal, { color: c.text }]}>{totImp.toLocaleString()}</Text><Text style={[styles.dashLabel, { color: c.textSecondary }]}>총 노출</Text></View>
                   <View style={[styles.dashStat, { backgroundColor: c.card, borderColor: c.border }]}><Text style={[styles.dashVal, { color: c.text }]}>{totClick.toLocaleString()}</Text><Text style={[styles.dashLabel, { color: c.textSecondary }]}>총 클릭</Text></View>
@@ -389,7 +401,10 @@ export default function AdScreen() {
                   <Text style={[styles.spendVal, { color: c.primaryDeep }]}>{spend.toLocaleString()}원</Text>
                 </View>
 
-                <Text style={[styles.chartTitle, { color: c.text }]}>📈 최근 14일 추이</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 18, marginBottom: 8 }}>
+                  <Icon name="chart" size={14} color={c.text} />
+                  <Text style={[styles.chartTitle, { color: c.text, marginTop: 0, marginBottom: 0 }]}>최근 14일 추이</Text>
+                </View>
                 <DailyChart data={daily} c={c} />
 
                 {ads.map((a) => {
@@ -404,7 +419,7 @@ export default function AdScreen() {
                         <Text style={[styles.adName, { color: c.text, flex: 1 }]} numberOfLines={1}>{stores.find((s) => s.id === a.store_id)?.name ?? '매장'}</Text>
                         <View style={[styles.statusChip, { backgroundColor: stColor }]}><Text style={{ color: stText, fontSize: 11, fontWeight: '800' }}>{STATUS_LABEL[a.status] ?? a.status}</Text></View>
                       </View>
-                      <Text style={[styles.adMeta, { color: c.textSecondary, marginTop: 3 }]}>{a.format === 'banner' ? `🖼 배너 · 월 ${a.monthly_fee.toLocaleString()}원` : `📈 입찰 ${a.bid_amount.toLocaleString()}원/클릭`}{a.ends_at ? ` · ~${a.ends_at.slice(0, 10)}` : ''}</Text>
+                      <Text style={[styles.adMeta, { color: c.textSecondary, marginTop: 3 }]}>{a.format === 'banner' ? `배너 · 월 ${a.monthly_fee.toLocaleString()}원` : `입찰 ${a.bid_amount.toLocaleString()}원/클릭`}{a.ends_at ? ` · ~${a.ends_at.slice(0, 10)}` : ''}</Text>
                       <View style={styles.metricRow}>
                         <View style={styles.metric}><Text style={[styles.metricVal, { color: c.text }]}>{stt.impressions.toLocaleString()}</Text><Text style={[styles.metricLabel, { color: c.textSecondary }]}>노출</Text></View>
                         <View style={styles.metric}><Text style={[styles.metricVal, { color: c.text }]}>{stt.clicks.toLocaleString()}</Text><Text style={[styles.metricLabel, { color: c.textSecondary }]}>클릭</Text></View>
@@ -415,8 +430,9 @@ export default function AdScreen() {
                         <View style={{ marginTop: 8, padding: 10, borderRadius: 10, backgroundColor: c.background, borderWidth: 1, borderColor: '#E5484D' }}>
                           <Text style={{ color: '#E5484D', fontWeight: '800', fontSize: 12.5 }}>검토 반려됨</Text>
                           {a.reject_reason ? <Text style={{ color: c.text, fontSize: 12, marginTop: 3, lineHeight: 17 }}>사유: {a.reject_reason}</Text> : null}
-                          <Pressable onPress={() => requestRereview(a.id)} disabled={busy} style={{ marginTop: 8, paddingVertical: 8, borderRadius: 8, backgroundColor: c.primary, alignItems: 'center', opacity: busy ? 0.6 : 1 }}>
-                            <Text style={{ color: c.onPrimary, fontWeight: '800', fontSize: 12.5 }}>🔄 재검토 요청</Text>
+                          <Pressable onPress={() => requestRereview(a.id)} disabled={busy} style={{ marginTop: 8, paddingVertical: 8, borderRadius: 8, backgroundColor: c.primary, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, opacity: busy ? 0.6 : 1 }}>
+                            <Icon name="refresh" size={13} color={c.onPrimary} />
+                            <Text style={{ color: c.onPrimary, fontWeight: '800', fontSize: 12.5 }}>재검토 요청</Text>
                           </Pressable>
                         </View>
                       ) : null}
@@ -431,7 +447,8 @@ export default function AdScreen() {
           {/* 관리자: 대시보드로 이동 (검토·노출·정지 관리 + 통계) */}
           {isAdmin && (
             <Pressable style={[styles.dashLink, { borderColor: c.primary, backgroundColor: c.primarySoft }]} onPress={() => router.push('/admin-dashboard')}>
-              <Text style={{ color: c.primaryDeep, fontWeight: '800', flex: 1 }}>📊 관리자 대시보드{pendingAll.length > 0 ? ` · 검토 대기 ${pendingAll.length}` : ''}</Text>
+              <Icon name="chart" size={15} color={c.primaryDeep} />
+              <Text style={{ color: c.primaryDeep, fontWeight: '800', flex: 1 }}>관리자 대시보드{pendingAll.length > 0 ? ` · 검토 대기 ${pendingAll.length}` : ''}</Text>
               <Text style={{ color: c.primaryDeep, fontWeight: '800' }}>›</Text>
             </Pressable>
           )}
@@ -445,7 +462,10 @@ function Header({ c, onBack }: { c: any; onBack: () => void }) {
   return (
     <View style={[styles.header, { borderColor: c.border }]}>
       <Pressable onPress={onBack} hitSlop={8}><Text style={[styles.back, { color: c.text }]}>‹ 뒤로</Text></Pressable>
-      <Text style={[styles.title, { color: c.text }]}>📢 광고 센터</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+        <Icon name="megaphone" size={16} color={c.text} />
+        <Text style={[styles.title, { color: c.text }]}>광고 센터</Text>
+      </View>
       <View style={{ width: 40 }} />
     </View>
   );

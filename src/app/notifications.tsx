@@ -5,6 +5,7 @@ import { useScheme } from '@/lib/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Colors } from '@/constants/theme';
+import { Icon } from '@/components/Icon';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 
@@ -48,13 +49,19 @@ export default function NotificationsScreen() {
     <SafeAreaView style={[styles.root, { backgroundColor: c.background }]} edges={['top']}>
       <View style={[styles.header, { borderColor: c.border }]}>
         <Pressable onPress={goBack} hitSlop={8}><Text style={[styles.back, { color: c.text }]}>‹ 뒤로</Text></Pressable>
-        <Text style={[styles.hTitle, { color: c.text }]}>🔔 알림</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <Icon name="bell" size={16} color={c.text} strokeWidth={2} />
+          <Text style={[styles.hTitle, { color: c.text }]}>알림</Text>
+        </View>
         {items.length > 0 ? <Pressable onPress={clearAll} hitSlop={8}><Text style={{ color: c.textSecondary, fontSize: 12.5, fontWeight: '700' }}>모두 지우기</Text></Pressable> : <View style={{ width: 40 }} />}
       </View>
 
       {session ? (
         <Pressable onPress={() => router.push('/keywords')} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: c.primarySoft, paddingHorizontal: 16, paddingVertical: 13 }}>
-          <Text style={{ color: c.primaryDeep, fontWeight: '800', fontSize: 13.5 }}>🔔 키워드 알림 설정</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Icon name="bell" size={16} color={c.primaryDeep} strokeWidth={2} />
+            <Text style={{ color: c.primaryDeep, fontWeight: '800', fontSize: 13.5 }}>키워드 알림 설정</Text>
+          </View>
           <Text style={{ color: c.primaryDeep, fontWeight: '800', fontSize: 16 }}>›</Text>
         </Pressable>
       ) : null}
@@ -64,7 +71,7 @@ export default function NotificationsScreen() {
       ) : loading ? (
         <ActivityIndicator color={c.primary} style={{ marginTop: 30 }} />
       ) : items.length === 0 ? (
-        <View style={styles.center}><Text style={{ fontSize: 36 }}>🔔</Text><Text style={{ color: c.textSecondary, marginTop: 8 }}>새 알림이 없어요</Text></View>
+        <View style={styles.center}><Icon name="bell" size={36} color={c.textSecondary} strokeWidth={2} /><Text style={{ color: c.textSecondary, marginTop: 8 }}>새 알림이 없어요</Text></View>
       ) : (
         <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
           {items.map((n) => (

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Icon } from '@/components/Icon';
 import { Colors } from '@/constants/theme';
 import { useScheme } from '@/lib/theme';
 import { useAuth } from '@/lib/auth';
@@ -67,7 +68,7 @@ export default function KeywordsScreen() {
             {kws.map((k) => (
               <View key={k.id} style={[styles.chip, { backgroundColor: c.primarySoft, borderColor: c.primary }]}>
                 <Text style={{ color: c.primaryDeep, fontWeight: '700', fontSize: 13.5 }}>#{k.keyword}</Text>
-                <Pressable onPress={() => remove(k.id)} hitSlop={6}><Text style={{ color: c.primaryDeep, fontWeight: '900' }}>  ✕</Text></Pressable>
+                <Pressable onPress={() => remove(k.id)} hitSlop={6} style={{ marginLeft: 4 }}><Icon name="x" size={14} color={c.primaryDeep} strokeWidth={2} /></Pressable>
               </View>
             ))}
           </View>
@@ -82,7 +83,10 @@ function Header({ c, onBack }: { c: any; onBack: () => void }) {
   return (
     <View style={[styles.header, { borderColor: c.border }]}>
       <Pressable onPress={onBack} hitSlop={8}><Text style={[styles.back, { color: c.text }]}>‹ 뒤로</Text></Pressable>
-      <Text style={[styles.hTitle, { color: c.text }]}>🔔 키워드 알림</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+        <Icon name="bell" size={16} color={c.text} strokeWidth={2} />
+        <Text style={[styles.hTitle, { color: c.text }]}>키워드 알림</Text>
+      </View>
       <View style={{ width: 40 }} />
     </View>
   );

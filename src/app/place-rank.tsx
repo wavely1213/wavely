@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Defs, Line as SvgLine, LinearGradient, Path, Stop, Text as SvgText } from 'react-native-svg';
 
 import { Colors } from '@/constants/theme';
+import { Icon } from '@/components/Icon';
 import { useScheme } from '@/lib/theme';
 import { useAuth, hasPlacePass, isPlacePremium } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
@@ -349,12 +350,12 @@ export default function PlaceRankScreen() {
   const nFmt = (v: number) => v.toFixed(6);
   // 추이 시리즈(mock: 방문리뷰·블로그·저장수·N1·N2·N3). short=토글칩 라벨.
   const TREND_SERIES = [
-    { key: 'visit', short: '방', title: '방문자리뷰', icon: '🙋', color: '#7C3AED', fmt: intFmt, pick: (h: Analysis) => h.visitor_review },
-    { key: 'blog', short: '블', title: '블로그리뷰', icon: '📝', color: '#3B82F6', fmt: intFmt, pick: (h: Analysis) => h.blog_review },
-    { key: 'save', short: '저', title: '저장수', icon: '📌', color: '#10B981', fmt: intFmt, pick: (h: Analysis) => h.save_count },
-    { key: 'n1', short: 'N1', title: 'N1 지수', icon: '📊', color: '#3B82F6', fmt: nFmt, pick: (h: Analysis) => h.n1 },
-    { key: 'n2', short: 'N2', title: 'N2 지수', icon: '📊', color: '#F59E0B', fmt: nFmt, pick: (h: Analysis) => h.n2 },
-    { key: 'n3', short: 'N3', title: 'N3 지수', icon: '📊', color: '#6B7280', fmt: nFmt, pick: (h: Analysis) => h.n3 },
+    { key: 'visit', short: '방', title: '방문자리뷰', icon: 'user', color: '#7C3AED', fmt: intFmt, pick: (h: Analysis) => h.visitor_review },
+    { key: 'blog', short: '블', title: '블로그리뷰', icon: 'note', color: '#3B82F6', fmt: intFmt, pick: (h: Analysis) => h.blog_review },
+    { key: 'save', short: '저', title: '저장수', icon: 'bookmark', color: '#10B981', fmt: intFmt, pick: (h: Analysis) => h.save_count },
+    { key: 'n1', short: 'N1', title: 'N1 지수', icon: 'chart', color: '#3B82F6', fmt: nFmt, pick: (h: Analysis) => h.n1 },
+    { key: 'n2', short: 'N2', title: 'N2 지수', icon: 'chart', color: '#F59E0B', fmt: nFmt, pick: (h: Analysis) => h.n2 },
+    { key: 'n3', short: 'N3', title: 'N3 지수', icon: 'chart', color: '#6B7280', fmt: nFmt, pick: (h: Analysis) => h.n3 },
   ];
   const trendCols = trendW >= 900 ? 3 : trendW >= 560 ? 2 : 1;   // 반응형 컬럼 수
   const trendGap = 10;
@@ -376,14 +377,17 @@ export default function PlaceRankScreen() {
     <SafeAreaView style={[styles.root, { backgroundColor: c.background }]} edges={['top']}>
       <View style={[styles.header, { borderColor: c.border, backgroundColor: c.card }]}>
         <Pressable onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} hitSlop={8}><Text style={[styles.back, { color: c.text }]}>‹ 뒤로</Text></Pressable>
-        <Text style={[styles.hTitle, { color: c.text }]}>📈 플레이스 분석</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <Icon name="chart" size={16} color={c.text} />
+          <Text style={[styles.hTitle, { color: c.text }]}>플레이스 분석</Text>
+        </View>
         <View style={{ width: 40 }} />
       </View>
 
       {stores.length === 0 && !isAdmin ? (
         <View style={styles.center}>
-          <Text style={{ fontSize: 42, marginBottom: 8 }}>🔒</Text>
-          <Text style={{ color: c.text, fontWeight: '800', fontSize: 15, textAlign: 'center' }}>플레이스 분석은 인증 매장 사장님 전용이에요</Text>
+          <Icon name="lock" size={42} color={c.textSecondary} />
+          <Text style={{ color: c.text, fontWeight: '800', fontSize: 15, textAlign: 'center', marginTop: 8 }}>플레이스 분석은 인증 매장 사장님 전용이에요</Text>
           <Text style={{ color: c.textSecondary, fontSize: 13, textAlign: 'center', marginTop: 6, lineHeight: 19 }}>내 매장의 네이버 플레이스 순위를 키워드별로{'\n'}분석해드려요. 사업주 인증 후 이용할 수 있어요.</Text>
           <Pressable onPress={() => router.push('/account-edit?biz=1')} style={[styles.cta, { backgroundColor: c.primary }]}><Text style={{ color: c.onPrimary, fontWeight: '800' }}>🔓 사업주 인증하고 이용하기</Text></Pressable>
         </View>
@@ -392,9 +396,12 @@ export default function PlaceRankScreen() {
           {/* 페이월 — 무료 1회 소진 또는 경쟁사 분석 시도 시 */}
           {payReason ? (
             <View style={[styles.card, { backgroundColor: c.card, borderColor: c.primary, borderWidth: 1.5 }]}>
-              <Text style={{ color: c.text, fontWeight: '800', fontSize: 15, marginBottom: 6 }}>
-                {payReason === 'competitor' ? '🔒 경쟁사 분석은 프리미엄 전용이에요' : '🔒 이번 주 무료 분석(7일 1회)을 모두 썼어요'}
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                <Icon name="lock" size={15} color={c.text} />
+                <Text style={{ color: c.text, fontWeight: '800', fontSize: 15, flex: 1 }}>
+                  {payReason === 'competitor' ? '경쟁사 분석은 프리미엄 전용이에요' : '이번 주 무료 분석(7일 1회)을 모두 썼어요'}
+                </Text>
+              </View>
               <Text style={{ color: c.textSecondary, fontSize: 12.5, lineHeight: 18, marginBottom: 12 }}>
                 본인 매장은 7일에 1회 무료예요. 무제한 분석은 월 구독, 경쟁사 비교·분석과 1:1 상담은 프리미엄에서 이용할 수 있어요.
               </Text>
@@ -409,7 +416,10 @@ export default function PlaceRankScreen() {
               {/* 프리미엄 — 추천 */}
               <Pressable onPress={() => onPay('premium', '프리미엄')} style={{ borderWidth: 2, borderColor: c.primary, borderRadius: 12, padding: 14, backgroundColor: c.primarySoft ?? c.background }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Text style={{ color: c.primaryDeep ?? c.primary, fontWeight: '800', fontSize: 14.5 }}>프리미엄 ⭐</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                    <Text style={{ color: c.primaryDeep ?? c.primary, fontWeight: '800', fontSize: 14.5 }}>프리미엄</Text>
+                    <Icon name="star" size={14.5} color={c.primaryDeep ?? c.primary} />
+                  </View>
                   <Text style={{ color: c.text, fontWeight: '900', fontSize: 17 }}>₩50,000<Text style={{ color: c.textSecondary, fontSize: 11, fontWeight: '600' }}>/월</Text></Text>
                 </View>
                 <Text style={{ color: c.textSecondary, fontSize: 12, marginTop: 4 }}>본인 무제한 + 경쟁사 비교·분석 + 1:1 상담 매니지먼트</Text>
@@ -425,7 +435,7 @@ export default function PlaceRankScreen() {
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 7, paddingBottom: 12 }}>
               {stores.map((s) => {
                 const on = s.id === selStore;
-                return <Pressable key={s.id} onPress={() => pickStore(s.id)} style={[styles.storeChip, { backgroundColor: on ? c.primary : c.card, borderColor: on ? c.primary : c.border }]}><Text style={{ color: on ? c.onPrimary : c.text, fontWeight: '700', fontSize: 13 }}>{s.is_probe ? '🔍 ' : ''}{s.name}</Text></Pressable>;
+                return <Pressable key={s.id} onPress={() => pickStore(s.id)} style={[styles.storeChip, { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: on ? c.primary : c.card, borderColor: on ? c.primary : c.border }]}>{s.is_probe ? <Icon name="search" size={13} color={on ? c.onPrimary : c.text} /> : null}<Text style={{ color: on ? c.onPrimary : c.text, fontWeight: '700', fontSize: 13 }}>{s.name}</Text></Pressable>;
               })}
             </ScrollView>
           )}
@@ -434,10 +444,14 @@ export default function PlaceRankScreen() {
           {curStore ? (
           <View style={[styles.card, { backgroundColor: c.card, borderColor: c.border }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-              <Text style={[styles.cardTitle, { color: c.text, marginBottom: 0, flex: 1 }]}>{curStore?.is_probe ? '🔍' : '🏪'} {curStore?.name ?? '내 매장'}</Text>
+              <Icon name={curStore?.is_probe ? 'search' : 'store'} size={16} color={c.text} />
+              <Text style={[styles.cardTitle, { color: c.text, marginBottom: 0, flex: 1, marginLeft: 6 }]}>{curStore?.name ?? '내 매장'}</Text>
               {placeIdSet ? (
                 <View style={{ alignItems: 'flex-end' }}>
-                  <Text style={{ color: c.primary, fontWeight: '800', fontSize: 12 }}>네이버 연결됨 ✅</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                    <Text style={{ color: c.primary, fontWeight: '800', fontSize: 12 }}>네이버 연결됨</Text>
+                    <Icon name="check" size={12} color={c.primary} />
+                  </View>
                   {lastUpdated ? <Text style={{ color: c.textSecondary, fontSize: 10.5, marginTop: 2 }}>갱신 {lastUpdated}</Text> : null}
                 </View>
               ) : null}
@@ -446,13 +460,13 @@ export default function PlaceRankScreen() {
             {placeIdSet ? (
               <>
                 <Pressable onPress={requestAnalysis} disabled={analyzing} style={[styles.analyzeBtn, { backgroundColor: hasData ? c.card : c.primary, borderWidth: hasData ? 1.5 : 0, borderColor: c.primary, opacity: analyzing ? 0.7 : 1 }]}>
-                  {analyzing ? <ActivityIndicator color={hasData ? c.primary : c.onPrimary} size="small" /> : null}
-                  <Text style={{ color: hasData ? c.primary : c.onPrimary, fontWeight: '800', fontSize: 14.5 }}>{analyzing ? '  수집·분석 중…' : hasData ? '🔄 최신순위로 갱신' : '🔍 분석 시작'}</Text>
+                  {analyzing ? <ActivityIndicator color={hasData ? c.primary : c.onPrimary} size="small" /> : <Icon name={hasData ? 'refresh' : 'search'} size={16} color={hasData ? c.primary : c.onPrimary} />}
+                  <Text style={{ color: hasData ? c.primary : c.onPrimary, fontWeight: '800', fontSize: 14.5, marginLeft: 6 }}>{analyzing ? '수집·분석 중…' : hasData ? '최신순위로 갱신' : '분석 시작'}</Text>
                 </Pressable>
                 <Text style={{ color: c.textSecondary, fontSize: 11.5, marginTop: 8, textAlign: 'center', lineHeight: 16 }}>{hasData ? '자동 수집된 최신 데이터예요. 더 최신으로 갱신하려면 위 버튼 (1~2분)' : '키워드 입력 없이 [분석 시작]만 누르면 노출 키워드를 자동으로 찾아 분석해요. (1~2분)'}</Text>
                 {/* 잔여/유료 상태 (관리자는 지갑 무제한 → 프리미엄과 동일 표시. 런칭빌드에 dev 표식·결제우회 버튼 없음) */}
                 <Text style={{ color: isAdmin || paid ? c.primary : (freeLeft > 0 ? c.textSecondary : '#E5484D'), fontSize: 11.5, marginTop: 6, textAlign: 'center', fontWeight: '700' }}>
-                  {(isAdmin || premium) ? '⭐ 프리미엄 — 무제한 + 경쟁사 분석' : paid ? '✅ 월 구독 — 본인 매장 무제한' : freeLeft > 0 ? '이번 주 무료 분석 1회 남음 (7일 1회)' : '이번 주 무료 분석 소진 — 구독으로 계속하기'}
+                  {(isAdmin || premium) ? '프리미엄 — 무제한 + 경쟁사 분석' : paid ? '월 구독 — 본인 매장 무제한' : freeLeft > 0 ? '이번 주 무료 분석 1회 남음 (7일 1회)' : '이번 주 무료 분석 소진 — 구독으로 계속하기'}
                   {!isAdmin && !paid && freeLeft <= 0 ? <Text onPress={() => setPayReason('weekly')} style={{ color: c.primary }}>  구독 →</Text> : null}
                 </Text>
               </>
@@ -477,7 +491,7 @@ export default function PlaceRankScreen() {
                 {kws.map((k) => (
                   <View key={k.id} style={[styles.kwChip, { backgroundColor: c.primarySoft, borderColor: c.primary }]}>
                     <Text style={{ color: c.primaryDeep, fontWeight: '700', fontSize: 13 }}>{k.keyword}</Text>
-                    <Pressable onPress={() => delKw(k.id)} hitSlop={6} accessibilityLabel={`${k.keyword} 키워드 삭제`}><Text style={{ color: c.primaryDeep, fontWeight: '800', fontSize: 14 }}> ✕</Text></Pressable>
+                    <Pressable onPress={() => delKw(k.id)} hitSlop={6} accessibilityLabel={`${k.keyword} 키워드 삭제`} style={{ marginLeft: 4 }}><Icon name="x" size={14} color={c.primaryDeep} /></Pressable>
                   </View>
                 ))}
               </View>
@@ -541,7 +555,10 @@ export default function PlaceRankScreen() {
 
               {/* W지수 (와벨리 커뮤니티 지수) — N지수=네이버 기반 / W지수=와벨리 커뮤니티 기반 */}
               <View style={[styles.card, { backgroundColor: c.card, borderColor: c.border }]}>
-                <Text style={[styles.cardTitle, { color: c.text }]}>💬 와벨리 W지수 <Text style={{ fontSize: 12, fontWeight: '400', color: c.textSecondary }}>(커뮤니티 기반)</Text></Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+                  <Icon name="chat" size={14.5} color={c.text} />
+                  <Text style={[styles.cardTitle, { color: c.text, marginBottom: 0 }]}>와벨리 W지수 <Text style={{ fontSize: 12, fontWeight: '400', color: c.textSecondary }}>(커뮤니티 기반)</Text></Text>
+                </View>
                 {wData && (wData.mentions > 0 || wData.likes > 0 || wData.comments > 0) ? (
                   <>
                     <View style={{ alignItems: 'center', marginVertical: 10 }}>
@@ -564,7 +581,10 @@ export default function PlaceRankScreen() {
               {showTrend ? (
                 <View style={[styles.card, { backgroundColor: c.card, borderColor: c.border }]}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 6 }}>
-                    <Text style={[styles.cardTitle, { color: c.text, marginBottom: 0 }]}>📈 일자별 추이 (최근 {TREND_DAYS}일)</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Icon name="chart" size={14.5} color={c.text} />
+                      <Text style={[styles.cardTitle, { color: c.text, marginBottom: 0 }]}>일자별 추이 (최근 {TREND_DAYS}일)</Text>
+                    </View>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
                       {TREND_SERIES.map((s) => {
                         const on = !hiddenSeries[s.key];
@@ -603,7 +623,10 @@ export default function PlaceRankScreen() {
               {(rising.length > 0 || falling.length > 0) ? (
                 <View style={{ flexDirection: 'row', gap: 12, marginBottom: 12 }}>
                   <View style={[styles.card, { backgroundColor: c.card, borderColor: c.border, flex: 1, marginBottom: 0 }]}>
-                    <Text style={{ color: UP, fontWeight: '800', fontSize: 13, marginBottom: 8 }}>📈 급등</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 8 }}>
+                      <Icon name="chart" size={13} color={UP} />
+                      <Text style={{ color: UP, fontWeight: '800', fontSize: 13 }}>급등</Text>
+                    </View>
                     {rising.length ? rising.slice(0, 5).map((r) => (
                       <View key={r.kw} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3 }}>
                         <Text style={{ color: c.text, fontSize: 12.5, flex: 1 }} numberOfLines={1}>{r.kw}</Text>
@@ -696,7 +719,10 @@ export default function PlaceRankScreen() {
               {/* 순위 추이 — 체크한 키워드들의 일자별 순위 변화 */}
               <View style={[styles.card, { backgroundColor: c.card, borderColor: c.border, marginTop: 12 }]}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <Text style={[styles.cardTitle, { color: c.text, marginBottom: 0 }]}>📈 순위 추이</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Icon name="chart" size={14.5} color={c.text} />
+                    <Text style={[styles.cardTitle, { color: c.text, marginBottom: 0 }]}>순위 추이</Text>
+                  </View>
                   <Pressable onPress={() => setTrendSel(null)} style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: c.border }}>
                     <Text style={{ color: c.textSecondary, fontSize: 11.5, fontWeight: '700' }}>초기화</Text>
                   </Pressable>
@@ -709,7 +735,7 @@ export default function PlaceRankScreen() {
                         <Pressable key={s.kw} onPress={() => toggleTrendKw(s.kw)} style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 9, paddingVertical: 4, borderRadius: 999, borderWidth: 1, borderColor: c.border, backgroundColor: c.background }}>
                           <View style={{ width: 9, height: 9, borderRadius: 9, backgroundColor: s.color }} />
                           <Text style={{ color: c.text, fontSize: 11.5 }}>{s.kw}</Text>
-                          <Text style={{ color: c.textSecondary, fontSize: 12, fontWeight: '700' }}>✕</Text>
+                          <Icon name="x" size={12} color={c.textSecondary} />
                         </Pressable>
                       ))}
                     </View>
@@ -735,7 +761,10 @@ export default function PlaceRankScreen() {
                   {stores.filter((s) => s.is_probe).map((s) => (
                     <View key={s.id} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8, borderTopWidth: 1, borderColor: c.border }}>
                       <Pressable style={{ flex: 1, minWidth: 0 }} onPress={() => pickStore(s.id)}>
-                        <Text style={{ color: s.id === selStore ? c.primary : c.text, fontWeight: '700', fontSize: 13.5 }} numberOfLines={1}>🔍 {s.name}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                          <Icon name="search" size={13.5} color={s.id === selStore ? c.primary : c.text} />
+                          <Text style={{ color: s.id === selStore ? c.primary : c.text, fontWeight: '700', fontSize: 13.5, flex: 1 }} numberOfLines={1}>{s.name}</Text>
+                        </View>
                         <Text style={{ color: c.textSecondary, fontSize: 11.5, marginTop: 1 }}>ID {s.naver_place_id}</Text>
                       </Pressable>
                       <Pressable onPress={() => delProbe(s.id)} hitSlop={8} style={{ padding: 4 }}><Text style={{ color: '#E5484D', fontWeight: '800', fontSize: 13 }}>삭제</Text></Pressable>
@@ -746,7 +775,7 @@ export default function PlaceRankScreen() {
             </View>
           ) : (
             <Pressable onPress={() => setPayReason('competitor')} style={[styles.card, { backgroundColor: c.backgroundElement ?? c.card, borderColor: c.primary, borderWidth: 1.5, marginTop: 8, alignItems: 'center', paddingVertical: 22 }]}>
-              <Text style={{ fontSize: 26 }}>🔒</Text>
+              <Icon name="lock" size={26} color={c.textSecondary} />
               <Text style={{ color: c.text, fontWeight: '800', fontSize: 14, marginTop: 8 }}>경쟁사 분석은 프리미엄 기능이에요</Text>
               <Text style={{ color: c.textSecondary, fontSize: 12.5, marginTop: 4, textAlign: 'center', lineHeight: 18 }}>경쟁·관심 매장의 노출 키워드·순위·N지수 비교와{'\n'}1:1 상담은 프리미엄 구독에서 이용할 수 있어요.</Text>
               <Text style={{ color: c.primary, fontWeight: '800', fontSize: 13, marginTop: 10 }}>프리미엄 보기 →</Text>
@@ -800,7 +829,7 @@ function MetricChart({ c, title, icon, color, dates, byDate, data, fmt, height =
   return (
     <View style={{ marginBottom: 8 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 2 }}>
-        <Text style={{ fontSize: 12 }}>{icon}</Text>
+        <Icon name={icon as any} size={13} color={color} />
         <Text style={{ color: c.text, fontSize: 12.5, fontWeight: '800' }}>{title}</Text>
       </View>
       <View onLayout={(e) => setW(e.nativeEvent.layout.width)} style={{ width: '100%', height: H }}>

@@ -5,6 +5,7 @@ import { useScheme } from '@/lib/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Avatar } from '@/components/Avatar';
+import { Icon } from '@/components/Icon';
 import { Colors } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
@@ -156,7 +157,7 @@ export default function FriendsScreen() {
             <View key={f.uid} style={[styles.row, { borderColor: c.border }]}>
               <Avatar url={f.avatar} fallback="🙆" size={40} bg={c.verify} />
               <Text style={[styles.nick, { color: c.text, flex: 1 }]}>{f.nick}</Text>
-              <Pressable style={[styles.sBtn, { backgroundColor: c.primary }]} onPress={() => talk(f)}><Text style={{ color: c.onPrimary, fontWeight: '800', fontSize: 12.5 }}>💬 톡</Text></Pressable>
+              <Pressable style={[styles.sBtn, { backgroundColor: c.primary, flexDirection: 'row', alignItems: 'center', gap: 4 }]} onPress={() => talk(f)}><Icon name="chat" size={13} color={c.onPrimary} /><Text style={{ color: c.onPrimary, fontWeight: '800', fontSize: 12.5 }}>톡</Text></Pressable>
               <Pressable style={[styles.sBtnO, { borderColor: c.border }]} onPress={() => unfriend(f)}><Text style={{ color: c.textSecondary, fontWeight: '700', fontSize: 12.5 }}>삭제</Text></Pressable>
             </View>
           ))}

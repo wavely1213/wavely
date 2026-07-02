@@ -4,6 +4,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, useColorSch
 import { useScheme } from '@/lib/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Icon } from '@/components/Icon';
 import { boardLabel } from '@/constants/app';
 import { Colors } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
@@ -57,7 +58,7 @@ export default function MyScreen() {
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
   const goBack = () => (router.canGoBack() ? router.back() : router.replace('/'));
-  const TYPE_EMOJI: Record<string, string> = { post: '📝', place: '📍', store: '🏪' };
+  const TYPE_EMOJI: Record<string, string> = { post: 'note', place: 'pin', store: 'store' };
   const openTarget = (type: string, tid: string) => router.push(`/${type}/${tid}` as any);
 
   if (!session) {
@@ -78,8 +79,9 @@ export default function MyScreen() {
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={[styles.tabs, { borderColor: c.border }]} contentContainerStyle={{ alignItems: 'center' }}>
-        {([['posts', '📝 내 글'], ['reviews', '⭐ 리뷰'], ['scraps', '🔖 스크랩'], ['market', '🛒 내 판매'], ['jobs', '💼 내 공고']] as [Tab, string][]).map(([k, lbl]) => (
-          <Pressable key={k} onPress={() => setTab(k)} style={[styles.tab, tab === k && { borderBottomColor: c.primary, borderBottomWidth: 2 }]}>
+        {([['posts', 'note', '내 글'], ['reviews', 'star', '리뷰'], ['scraps', 'bookmark', '스크랩'], ['market', 'cart', '내 판매'], ['jobs', 'briefcase', '내 공고']] as [Tab, string, string][]).map(([k, ic, lbl]) => (
+          <Pressable key={k} onPress={() => setTab(k)} style={[styles.tab, tab === k && { borderBottomColor: c.primary, borderBottomWidth: 2 }, { flexDirection: 'row', alignItems: 'center', gap: 5 }]}>
+            <Icon name={ic as any} size={15} color={tab === k ? c.primary : c.textSecondary} strokeWidth={2} />
             <Text style={{ color: tab === k ? c.primary : c.textSecondary, fontWeight: '800', fontSize: 13.5 }}>{lbl}</Text>
           </Pressable>
         ))}
@@ -89,7 +91,7 @@ export default function MyScreen() {
         <ActivityIndicator color={c.primary} style={{ marginTop: 30 }} />
       ) : (
         <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
-          {tab === 'posts' && (posts.length === 0 ? <Empty c={c} emoji="📝" txt="아직 쓴 글이 없어요" /> : posts.map((p) => (
+          {tab === 'posts' && (posts.length === 0 ? <Empty c={c} icon="note" txt="아직 쓴 글이 없어요" /> : posts.map((p) => (
             <Pressable key={p.id} onPress={() => router.push(`/post/${p.id}`)} style={[styles.row, { borderColor: c.border }]}>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.rowTitle, { color: c.text }]} numberOfLines={1}>{p.title}</Text>
@@ -99,7 +101,7 @@ export default function MyScreen() {
             </Pressable>
           )))}
 
-          {tab === 'reviews' && (reviews.length === 0 ? <Empty c={c} emoji="⭐" txt="아직 쓴 리뷰가 없어요" /> : reviews.map((r) => (
+          {tab === 'reviews' && (reviews.length === 0 ? <Empty c={c} icon="star" txt="아직 쓴 리뷰가 없어요" /> : reviews.map((r) => (
             <Pressable key={r.id} onPress={() => openTarget(r.store_id ? 'store' : 'place', r.store_id ?? r.place_id)} style={[styles.row, { borderColor: c.border }]}>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.rowTitle, { color: c.text }]} numberOfLines={1}>{r.stores?.name ?? r.places?.name ?? '매장'}</Text>
@@ -109,15 +111,15 @@ export default function MyScreen() {
             </Pressable>
           )))}
 
-          {tab === 'scraps' && (scraps.length === 0 ? <Empty c={c} emoji="🔖" txt="스크랩한 항목이 없어요" /> : scraps.map((s, i) => (
+          {tab === 'scraps' && (scraps.length === 0 ? <Empty c={c} icon="bookmark" txt="스크랩한 항목이 없어요" /> : scraps.map((s, i) => (
             <Pressable key={`${s.target_type}-${s.target_id}-${i}`} onPress={() => openTarget(s.target_type, s.target_id)} style={[styles.row, { borderColor: c.border }]}>
-              <Text style={{ fontSize: 18 }}>{TYPE_EMOJI[s.target_type] ?? '🔖'}</Text>
+              <Icon name={(TYPE_EMOJI[s.target_type] ?? 'bookmark') as any} size={18} color={c.text} strokeWidth={2} />
               <Text style={[styles.rowTitle, { color: c.text, flex: 1 }]} numberOfLines={1}>{s.label}</Text>
               <Text style={{ color: c.textSecondary, fontSize: 18 }}>›</Text>
             </Pressable>
           )))}
 
-          {tab === 'market' && (market.length === 0 ? <Empty c={c} emoji="🛒" txt="올린 판매글이 없어요" /> : market.map((m) => (
+          {tab === 'market' && (market.length === 0 ? <Empty c={c} icon="cart" txt="올린 판매글이 없어요" /> : market.map((m) => (
             <Pressable key={m.id} onPress={() => router.push(`/market/${m.id}`)} style={[styles.row, { borderColor: c.border, opacity: m.status === 'sold' ? 0.55 : 1 }]}>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.rowTitle, { color: c.text }]} numberOfLines={1}>{m.title}</Text>
@@ -127,7 +129,7 @@ export default function MyScreen() {
             </Pressable>
           )))}
 
-          {tab === 'jobs' && (jobs.length === 0 ? <Empty c={c} emoji="💼" txt="올린 공고가 없어요" /> : jobs.map((j) => (
+          {tab === 'jobs' && (jobs.length === 0 ? <Empty c={c} icon="briefcase" txt="올린 공고가 없어요" /> : jobs.map((j) => (
             <Pressable key={j.id} onPress={() => router.push(`/jobs/${j.id}`)} style={[styles.row, { borderColor: c.border, opacity: j.status === 'closed' ? 0.55 : 1 }]}>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.rowTitle, { color: c.text }]} numberOfLines={1}>{j.title}</Text>
@@ -142,10 +144,10 @@ export default function MyScreen() {
   );
 }
 
-function Empty({ c, txt, emoji }: { c: any; txt: string; emoji?: string }) {
+function Empty({ c, txt, icon }: { c: any; txt: string; icon?: string }) {
   return (
     <View style={{ alignItems: 'center', marginTop: 48, gap: 8 }}>
-      {emoji ? <Text style={{ fontSize: 38 }}>{emoji}</Text> : null}
+      {icon ? <Icon name={icon as any} size={38} color={c.textSecondary} strokeWidth={2} /> : null}
       <Text style={{ color: c.textSecondary, textAlign: 'center', fontSize: 13.5 }}>{txt}</Text>
     </View>
   );

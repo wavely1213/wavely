@@ -1,19 +1,20 @@
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useEffect, useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, useColorScheme, View } from 'react-native';
+import { Pressable, StyleSheet, Text, useColorScheme, View } from 'react-native';
 import { useScheme } from '@/lib/theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Colors, Shadow, Radius } from '@/constants/theme';
+import { Icon, IconName } from '@/components/Icon';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 
-type Meta = { label: string; icon?: any; emoji?: string };
+type Meta = { label: string; icon: IconName };
 const TABS: Record<string, Meta> = {
-  index: { label: '커뮤니티', icon: require('@/assets/images/tabIcons/home.png') },
-  explore: { label: '우리동네', icon: require('@/assets/images/tabIcons/explore.png') },
-  chats: { label: '채팅', emoji: '💬' },
-  account: { label: '내정보', icon: require('@/assets/images/tabIcons/account.png') },
+  index: { label: '커뮤니티', icon: 'home' },
+  explore: { label: '우리동네', icon: 'map' },
+  chats: { label: '채팅', icon: 'chat' },
+  account: { label: '내정보', icon: 'user' },
 };
 
 export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
@@ -51,11 +52,7 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
           return (
             <Pressable key={route.key} onPress={onPress} style={[styles.tab, active && { backgroundColor: c.primarySoft }]}>
               <View>
-                {meta.emoji ? (
-                  <Text style={{ fontSize: 19, opacity: active ? 1 : 0.55 }}>{meta.emoji}</Text>
-                ) : (
-                  <Image source={meta.icon} style={{ width: 22, height: 22, tintColor: tint }} resizeMode="contain" />
-                )}
+                <Icon name={meta.icon} size={22} color={tint} strokeWidth={active ? 2.3 : 2} />
                 {showBadge ? (
                   <View style={styles.badge}><Text style={styles.badgeTxt}>{unread > 9 ? '9+' : unread}</Text></View>
                 ) : null}

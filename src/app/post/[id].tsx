@@ -6,6 +6,7 @@ import { useScheme } from '@/lib/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Avatar } from '@/components/Avatar';
+import { Icon } from '@/components/Icon';
 import { ReactionBar } from '@/components/ReactionBar';
 import { VideoPost } from '@/components/VideoPost';
 import { boardLabel, parseHashtags } from '@/constants/app';
@@ -107,8 +108,8 @@ export default function PostDetailScreen() {
         {post && session ? (
           isMine ? (
             <View style={{ flexDirection: 'row', gap: 14 }}>
-              <Pressable onPress={() => router.push(`/write?edit=${id}`)} hitSlop={8}><Text style={{ color: c.primary, fontSize: 13, fontWeight: '800' }}>✏️ 수정</Text></Pressable>
-              <Pressable onPress={() => setConfirmDel(true)} hitSlop={8}><Text style={{ color: '#E5484D', fontSize: 13, fontWeight: '800' }}>🗑 삭제</Text></Pressable>
+              <Pressable onPress={() => router.push(`/write?edit=${id}`)} hitSlop={8} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Icon name="edit" size={13} color={c.primary} /><Text style={{ color: c.primary, fontSize: 13, fontWeight: '800' }}>수정</Text></Pressable>
+              <Pressable onPress={() => setConfirmDel(true)} hitSlop={8} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Icon name="trash" size={13} color="#E5484D" /><Text style={{ color: '#E5484D', fontSize: 13, fontWeight: '800' }}>삭제</Text></Pressable>
             </View>
           ) : (
             <Pressable onPress={() => router.push(`/report?type=post&id=${id}&label=${encodeURIComponent(post.title)}`)} hitSlop={8}>
@@ -163,7 +164,7 @@ export default function PostDetailScreen() {
               <Pressable
                 onPress={() => post.place_link && /^https?:\/\//i.test(post.place_link) && Linking.openURL(post.place_link)}
                 style={[styles.placeCard, { backgroundColor: c.primarySoft, borderColor: c.primary }]}>
-                <Text style={[styles.placeName, { color: c.primaryDeep }]}>📍 {post.place_name}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}><Icon name="pin" size={15} color={c.primaryDeep} /><Text style={[styles.placeName, { color: c.primaryDeep }]}>{post.place_name}</Text></View>
                 {post.place_address ? <Text style={[styles.placeAddr, { color: c.textSecondary }]}>{post.place_address}</Text> : null}
                 <Text style={[styles.placeOpen, { color: c.primary }]}>네이버 지도에서 보기 ›</Text>
               </Pressable>
@@ -182,7 +183,7 @@ export default function PostDetailScreen() {
 
           {!session ? (
             <Pressable onPress={() => router.push('/login')} style={[styles.gate, { backgroundColor: c.primarySoft, borderColor: c.primary }]}>
-              <Text style={{ color: c.primaryDeep, fontWeight: '800', fontSize: 14.5 }}>🔒 전체 내용과 댓글 보기</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Icon name="lock" size={15} color={c.primaryDeep} /><Text style={{ color: c.primaryDeep, fontWeight: '800', fontSize: 14.5 }}>전체 내용과 댓글 보기</Text></View>
               <Text style={{ color: c.textSecondary, fontSize: 12.5, marginTop: 4, textAlign: 'center' }}>로그인하면 글 전체와 댓글을 볼 수 있어요{'\n'}우리 동네 이야기, 무료로 함께해요</Text>
               <View style={[styles.gateBtn, { backgroundColor: c.primary }]}><Text style={{ color: c.onPrimary, fontWeight: '800', fontSize: 13.5 }}>로그인 / 가입하기</Text></View>
             </Pressable>
@@ -210,11 +211,13 @@ export default function PostDetailScreen() {
                     cm.author_id === session.user.id ? (
                       editingId === cm.id ? null : (
                         <View style={{ flexDirection: 'row', gap: 12 }}>
-                          <Pressable onPress={() => startEdit(cm)} hitSlop={6}>
-                            <Text style={{ color: c.primary, fontSize: 11, fontWeight: '800' }}>✏️ 수정</Text>
+                          <Pressable onPress={() => startEdit(cm)} hitSlop={6} style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                            <Icon name="edit" size={11} color={c.primary} />
+                            <Text style={{ color: c.primary, fontSize: 11, fontWeight: '800' }}>수정</Text>
                           </Pressable>
-                          <Pressable onPress={() => deleteComment(cm.id)} hitSlop={6}>
-                            <Text style={{ color: '#E5484D', fontSize: 11, fontWeight: '800' }}>🗑 삭제</Text>
+                          <Pressable onPress={() => deleteComment(cm.id)} hitSlop={6} style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                            <Icon name="trash" size={11} color="#E5484D" />
+                            <Text style={{ color: '#E5484D', fontSize: 11, fontWeight: '800' }}>삭제</Text>
                           </Pressable>
                         </View>
                       )

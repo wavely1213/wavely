@@ -5,6 +5,7 @@ import { useScheme } from '@/lib/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Avatar } from '@/components/Avatar';
+import { Icon } from '@/components/Icon';
 import { Colors } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
@@ -141,8 +142,9 @@ export default function ChatRoom() {
       </View>
 
       {conv?.notice ? (
-        <View style={[styles.noticeBar, { backgroundColor: c.primarySoft }]}>
-          <Text style={[styles.noticeTxt, { color: c.primaryDeep }]} numberOfLines={2}>📢 {conv.notice}</Text>
+        <View style={[styles.noticeBar, { backgroundColor: c.primarySoft, flexDirection: 'row', alignItems: 'flex-start', gap: 6 }]}>
+          <Icon name="megaphone" size={16} color={c.primaryDeep} />
+          <Text style={[styles.noticeTxt, { color: c.primaryDeep, flex: 1 }]} numberOfLines={2}>{conv.notice}</Text>
         </View>
       ) : null}
 
@@ -193,8 +195,9 @@ export default function ChatRoom() {
                   </View>
                 </View>
               ) : (
-                <Pressable style={[styles.noticeEditBtn, { borderColor: c.primary }]} onPress={() => { setNoticeText(conv?.notice ?? ''); setNoticeEdit(true); }}>
-                  <Text style={{ color: c.primary, fontWeight: '800', fontSize: 12.5 }}>📢 {conv?.notice ? '공지 수정' : '공지 작성'}</Text>
+                <Pressable style={[styles.noticeEditBtn, { borderColor: c.primary, flexDirection: 'row', alignItems: 'center', gap: 6 }]} onPress={() => { setNoticeText(conv?.notice ?? ''); setNoticeEdit(true); }}>
+                  <Icon name="megaphone" size={14} color={c.primary} />
+                  <Text style={{ color: c.primary, fontWeight: '800', fontSize: 12.5 }}>{conv?.notice ? '공지 수정' : '공지 작성'}</Text>
                 </Pressable>
               )
             ) : null}
@@ -210,7 +213,7 @@ export default function ChatRoom() {
                     <Avatar url={avatars[m.user_id]} fallback="🙂" size={38} bg={c.primarySoft} />
                     <View style={{ flex: 1, minWidth: 0 }}>
                       <Text style={[styles.memberNick, { color: c.text }]}>{m.nick}{mine ? ' (나)' : ''}</Text>
-                      {m.role === 'owner' ? <Text style={[styles.memberRole, { color: c.primaryDeep }]}>👑 방장</Text> : m.role === 'subhost' ? <Text style={[styles.memberRole, { color: '#D9730D' }]}>⭐ 부방장</Text> : null}
+                      {m.role === 'owner' ? <Text style={[styles.memberRole, { color: c.primaryDeep }]}>👑 방장</Text> : m.role === 'subhost' ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}><Icon name="star" size={12} color="#D9730D" /><Text style={[styles.memberRole, { color: '#D9730D', marginTop: 0 }]}>부방장</Text></View> : null}
                       <View style={styles.actRow}>
                         {!mine && !friendMsg[m.user_id] ? <Pressable onPress={() => addFriend(m)}><Text style={[styles.act, { color: c.primary }]}>🤝 친구추가</Text></Pressable> : null}
                         {friendMsg[m.user_id] ? <Text style={[styles.act, { color: c.verify }]}>{friendMsg[m.user_id]}</Text> : null}

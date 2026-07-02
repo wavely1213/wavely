@@ -4,6 +4,7 @@ import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, Text, Vi
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Avatar } from '@/components/Avatar';
+import { Icon } from '@/components/Icon';
 import { Colors } from '@/constants/theme';
 import { useScheme } from '@/lib/theme';
 import { useAuth } from '@/lib/auth';
@@ -77,8 +78,8 @@ export default function JobDetail() {
         <Pressable onPress={() => (router.canGoBack() ? router.back() : router.replace('/jobs'))} hitSlop={8}><Text style={[styles.back, { color: c.text }]}>‹ 뒤로</Text></Pressable>
         {mine ? (
           <View style={{ flexDirection: 'row', gap: 14 }}>
-            <Pressable onPress={() => router.push(`/job-new?edit=${id}`)} hitSlop={8}><Text style={{ color: c.primary, fontWeight: '800', fontSize: 13 }}>✏️ 수정</Text></Pressable>
-            <Pressable onPress={() => setConfirmDel(true)} hitSlop={8}><Text style={{ color: '#E5484D', fontWeight: '800', fontSize: 13 }}>🗑 삭제</Text></Pressable>
+            <Pressable onPress={() => router.push(`/job-new?edit=${id}`)} hitSlop={8} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Icon name="edit" size={13} color={c.primary} /><Text style={{ color: c.primary, fontWeight: '800', fontSize: 13 }}>수정</Text></Pressable>
+            <Pressable onPress={() => setConfirmDel(true)} hitSlop={8} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Icon name="trash" size={13} color="#E5484D" /><Text style={{ color: '#E5484D', fontWeight: '800', fontSize: 13 }}>삭제</Text></Pressable>
           </View>
         ) : <Pressable onPress={() => router.push(`/report?type=job&id=${id}&label=${encodeURIComponent(job.title)}`)} hitSlop={8}><Text style={{ color: c.textSecondary, fontWeight: '700', fontSize: 13 }}>🚩 신고</Text></Pressable>}
       </View>
@@ -99,12 +100,12 @@ export default function JobDetail() {
 
         <Text style={[styles.title, { color: c.text }]}>{job.title}</Text>
         <View style={[styles.payCard, { backgroundColor: c.primarySoft }]}>
-          <Text style={{ color: c.primaryDeep, fontWeight: '900', fontSize: 17 }}>💰 {payText}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Icon name="wallet" size={17} color={c.primaryDeep} /><Text style={{ color: c.primaryDeep, fontWeight: '900', fontSize: 17 }}>{payText}</Text></View>
           {job.work_time ? <Text style={{ color: c.primaryDeep, fontSize: 13, marginTop: 4 }}>🕒 {job.work_time}</Text> : null}
         </View>
 
         {session && job.body ? <Text style={[styles.body, { color: c.text }]}>{job.body}</Text> : null}
-        {session && job.contact ? <Text style={[styles.contact, { color: c.textSecondary }]}>📞 연락: {job.contact}</Text> : null}
+        {session && job.contact ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 14 }}><Icon name="phone" size={13.5} color={c.textSecondary} /><Text style={[styles.contact, { color: c.textSecondary, marginTop: 0 }]}>연락: {job.contact}</Text></View> : null}
 
         {session ? (
           <View style={[styles.author, { borderColor: c.border }]}>
@@ -113,7 +114,7 @@ export default function JobDetail() {
           </View>
         ) : (
           <Pressable onPress={() => router.push('/login')} style={[styles.gate, { backgroundColor: c.primarySoft, borderColor: c.primary }]}>
-            <Text style={{ fontSize: 28 }}>🔒</Text>
+            <Icon name="lock" size={28} color={c.primaryDeep} />
             <Text style={{ color: c.primaryDeep, fontWeight: '800', fontSize: 14.5, marginTop: 6 }}>상세 내용·문의</Text>
             <Text style={{ color: c.textSecondary, fontSize: 12.5, marginTop: 4, textAlign: 'center' }}>로그인하면 상세 내용을 보고 바로 문의할 수 있어요</Text>
             <View style={[styles.gateBtn, { backgroundColor: c.primary }]}><Text style={{ color: c.onPrimary, fontWeight: '800', fontSize: 13.5 }}>로그인 / 가입하기</Text></View>
@@ -129,8 +130,8 @@ export default function JobDetail() {
         <View>
           {chatErr ? <Pressable onPress={() => setChatErr('')} style={{ backgroundColor: '#E5484D', paddingHorizontal: 14, paddingVertical: 9 }}><Text style={{ color: '#fff', fontWeight: '700', fontSize: 12.5 }}>{chatErr} (탭하여 닫기)</Text></Pressable> : null}
           <View style={[styles.bottomBar, { backgroundColor: c.card, borderColor: c.border }]}>
-            {job.contact ? <Pressable onPress={() => Linking.openURL(`tel:${job.contact!.replace(/[^0-9]/g, '')}`)} style={[styles.callBtn, { borderColor: c.primary }]}><Text style={{ color: c.primary, fontWeight: '800' }}>📞 전화</Text></Pressable> : null}
-            <Pressable onPress={chat} disabled={chatBusy} style={[styles.chatBtn, { backgroundColor: c.primary, opacity: chatBusy ? 0.6 : 1 }]}><Text style={{ color: c.onPrimary, fontWeight: '800', fontSize: 15 }}>{chatBusy ? '여는 중…' : '💬 채팅 문의'}</Text></Pressable>
+            {job.contact ? <Pressable onPress={() => Linking.openURL(`tel:${job.contact!.replace(/[^0-9]/g, '')}`)} style={[styles.callBtn, { borderColor: c.primary, flexDirection: 'row', alignItems: 'center', gap: 5 }]}><Icon name="phone" size={15} color={c.primary} /><Text style={{ color: c.primary, fontWeight: '800' }}>전화</Text></Pressable> : null}
+            <Pressable onPress={chat} disabled={chatBusy} style={[styles.chatBtn, { backgroundColor: c.primary, opacity: chatBusy ? 0.6 : 1, flexDirection: 'row', gap: 6 }]}>{chatBusy ? null : <Icon name="chat" size={15} color={c.onPrimary} />}<Text style={{ color: c.onPrimary, fontWeight: '800', fontSize: 15 }}>{chatBusy ? '여는 중…' : '채팅 문의'}</Text></Pressable>
           </View>
         </View>
       ) : null}

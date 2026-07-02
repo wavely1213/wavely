@@ -5,6 +5,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, useWindowDi
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Avatar } from '@/components/Avatar';
+import { Icon } from '@/components/Icon';
 import { Colors } from '@/constants/theme';
 import { useScheme } from '@/lib/theme';
 import { useAuth } from '@/lib/auth';
@@ -119,7 +120,7 @@ export default function MarketDetail() {
 
           {!session ? (
             <Pressable onPress={() => router.push('/login')} style={[styles.gate, { backgroundColor: c.primarySoft, borderColor: c.primary }]}>
-              <Text style={{ fontSize: 28 }}>🔒</Text>
+              <Icon name="lock" size={28} color={c.primaryDeep} />
               <Text style={{ color: c.primaryDeep, fontWeight: '800', fontSize: 14.5, marginTop: 6 }}>상세 내용·판매자와 채팅</Text>
               <Text style={{ color: c.textSecondary, fontSize: 12.5, marginTop: 4, textAlign: 'center' }}>로그인하면 설명을 보고 판매자와 바로 거래할 수 있어요</Text>
               <View style={[styles.gateBtn, { backgroundColor: c.primary }]}><Text style={{ color: c.onPrimary, fontWeight: '800', fontSize: 13.5 }}>로그인 / 가입하기</Text></View>
@@ -160,8 +161,8 @@ function Header({ c, onBack, mine, onEdit, onDel, onReport }: any) {
       <Pressable onPress={onBack} hitSlop={8}><Text style={[styles.back, { color: c.text }]}>‹ 뒤로</Text></Pressable>
       {mine ? (
         <View style={{ flexDirection: 'row', gap: 14 }}>
-          <Pressable onPress={onEdit} hitSlop={8}><Text style={{ color: c.primary, fontWeight: '800', fontSize: 13 }}>✏️ 수정</Text></Pressable>
-          <Pressable onPress={onDel} hitSlop={8}><Text style={{ color: '#E5484D', fontWeight: '800', fontSize: 13 }}>🗑 삭제</Text></Pressable>
+          <Pressable onPress={onEdit} hitSlop={8} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Icon name="edit" size={13} color={c.primary} /><Text style={{ color: c.primary, fontWeight: '800', fontSize: 13 }}>수정</Text></Pressable>
+          <Pressable onPress={onDel} hitSlop={8} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Icon name="trash" size={13} color="#E5484D" /><Text style={{ color: '#E5484D', fontWeight: '800', fontSize: 13 }}>삭제</Text></Pressable>
         </View>
       ) : (
         <Pressable onPress={onReport} hitSlop={8}><Text style={{ color: c.textSecondary, fontWeight: '700', fontSize: 13 }}>🚩 신고</Text></Pressable>
