@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
   head: { fontSize: 12, fontWeight: '800', paddingHorizontal: 16, paddingTop: 18, paddingBottom: 6 },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 15, borderBottomWidth: 1 },
   rowTxt: { fontSize: 15, fontWeight: '600' },
-  seg: { flexDirection: 'row', borderRadius: 999, padding: 3, gap: 2, backgroundColor: 'rgba(124,92,252,0.12)' },
+  seg: { flexDirection: 'row', borderRadius: 999, padding: 3, gap: 2, backgroundColor: 'rgba(122,43,196,0.12)' },
   segBtn: { paddingHorizontal: 13, paddingVertical: 6, borderRadius: 999 },
   note: { fontSize: 11.5, padding: 16, lineHeight: 17 },
   confirmBox: { margin: 16, borderWidth: 1.5, borderRadius: 14, padding: 16 },

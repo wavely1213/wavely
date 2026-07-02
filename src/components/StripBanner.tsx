@@ -90,7 +90,7 @@ export function StripBanner({ scheme, mainCat }: { scheme: 'light' | 'dark'; mai
 }
 
 const s = StyleSheet.create({
-  strip: { flexDirection: 'row', alignItems: 'center', height: 88, marginHorizontal: 12, marginTop: 12, marginBottom: 12, borderRadius: 14, borderWidth: 1.5, overflow: 'hidden', boxShadow: '0 2px 8px rgba(124,92,252,0.18)' },
+  strip: { flexDirection: 'row', alignItems: 'center', height: 88, marginHorizontal: 12, marginTop: 12, marginBottom: 12, borderRadius: 14, borderWidth: 1.5, overflow: 'hidden', boxShadow: '0 2px 8px rgba(122,43,196,0.18)' },
   imgWrap: { width: 124, height: '100%', position: 'relative' },
   img: { width: '100%', height: '100%' },
   fade: { position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 },
