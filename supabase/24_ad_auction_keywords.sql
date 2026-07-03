@@ -90,7 +90,7 @@ begin
             'review_count', s.review_count, 'address', s.address, 'photo', s.photo) end
       ) as j,
       case when p_keyword is null
-           then ln(random()) / greatest(sc.score, 0.001)   -- 가중 랜덤(점수 클수록 앞쪽 확률↑)
+           then -ln(random()) / greatest(sc.score, 0.001)  -- 지수가중 샘플링(점수 클수록 앞쪽 확률↑). ⚠️부호 필수: ln(random())=음수라 부호 없으면 저점수가 상위로 반전됨
            else -sc.score                                  -- 키워드: 점수순 결정적
       end as ord
     from public.ads a
