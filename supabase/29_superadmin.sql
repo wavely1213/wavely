@@ -10,24 +10,22 @@
 alter table public.profiles add column if not exists is_admin boolean not null default false;
 
 -- ========================================================================
--- (A) 🔐 민감컬럼 SELECT/UPDATE 잠금 (감사 HIGH: 남 잔액·관리자식별 열람 차단)
---     Supabase 기본 grant 가 테이블단위라, 남의 ad_balance/is_admin 을 로그인 유저 누구나
---     sb.from('profiles').select('ad_balance,is_admin') 로 열람 가능했음 → 컬럼단위 회수.
+-- (A) 🔐 민감컬럼 SELECT/UPDATE 잠금 (감사 HIGH: 남 비즈머니 잔액 열람 차단)
+--     Supabase 기본 grant 가 테이블단위라, 남의 ad_balance 를 로그인 유저 누구나
+--     sb.from('profiles').select('ad_balance') 로 열람 가능했음 → 컬럼단위 회수.
 --     본인/관리자는 아래 RPC(my_profile / admin_list_users)로만 읽음.
+--     ⚠️ is_admin 은 SELECT 잠그지 않음(=앱이 자기 is_admin 을 raw select 하므로 잠그면 앱 로그인 깨짐).
+--        is_admin 노출은 "누가 관리자인지"뿐(저위험)이고, 진짜 방패는 아래 UPDATE 회수+guard 트리거.
+--        완전 잠금을 원하면 앱 loadProfile 을 my_profile() 로 배포한 뒤 여기에 is_admin 을 추가.
 -- ========================================================================
-revoke select (ad_balance, is_admin) on public.profiles from authenticated, anon;
-revoke update (is_admin)             on public.profiles from authenticated, anon;
+revoke select (ad_balance) on public.profiles from authenticated, anon;
+revoke update (is_admin)   on public.profiles from authenticated, anon;
 
--- 본인 전체행(잔액/관리자여부 포함) 읽기 — SECURITY DEFINER 라 컬럼회수 우회.
+-- 본인 전체행(잔액/관리자여부/PII 포함) 읽기 — SECURITY DEFINER 라 컬럼회수 우회.
+-- 앱/웹/관리자 모두 본인 프로필은 이 RPC로 읽음(남 행은 nickname/avatar 등 공개컬럼만 직접 조회 가능).
 create or replace function public.my_profile()
 returns json language sql stable security definer set search_path = public as $$
-  select to_json(x) from (
-    select p.id, p.nickname, p.role,
-           coalesce(p.ad_balance, 0)   as ad_balance,
-           coalesce(p.is_admin, false) as is_admin,
-           coalesce(p.biz_verified, false) as biz_verified
-    from public.profiles p where p.id = auth.uid()
-  ) x;
+  select to_json(p) from public.profiles p where p.id = auth.uid();
 $$;
 revoke all on function public.my_profile() from public, anon;
 grant execute on function public.my_profile() to authenticated;
