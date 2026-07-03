@@ -52,10 +52,10 @@ begin
       new.is_admin        := old.is_admin;
       new.ad_balance      := old.ad_balance;
       new.biz_verified    := old.biz_verified;
-      new.role            := old.role;
       new.company_id      := old.company_id;
       new.place_plan      := old.place_plan;
       new.place_pass_until := old.place_pass_until;
+      -- role 은 동결 안 함: 손님↔사장님 전환은 set_role 로 사용자가 바꾸는 정상 기능(권한은 biz_verified·매장소유로 게이팅).
     elsif TG_OP = 'INSERT' then
       new.is_admin     := false;
       new.biz_verified := false;
