@@ -3,9 +3,38 @@
 -- ⚠️ Supabase SQL Editor Run. 멱등.
 
 -- (0) is_admin 컬럼 보장 — is_admin()이 읽는 profiles.is_admin 이 없으면 모든 게이트가 깨짐.
---     본인 계정은 하단 주석의 UPDATE 로 true 로 켜야 슈퍼콘솔이 열림.
+--     본인 계정은 하단 (5) UPDATE 로 true 로 켜야 슈퍼콘솔이 열림.
 alter table public.profiles add column if not exists is_admin boolean not null default false;
 grant select (is_admin) on public.profiles to authenticated;
+revoke update (is_admin) on public.profiles from authenticated, anon;  -- 컬럼단위(방어선1, 아래 트리거가 진짜 방패)
+
+-- (0-b) 🔐 권한상승 차단(방탄) — 컬럼권한/RLS 우회와 무관하게 신뢰필드를 잠금.
+--   Supabase 기본 grant 는 테이블단위 UPDATE 라 컬럼 revoke 가 무효 → 일반 유저가
+--   update profiles set is_admin=true where id=자기 로 갓모드 탈취 가능. 이 트리거가 그걸 막음.
+--   authenticated/anon 세션이 직접 신뢰필드를 바꾸면 OLD 값으로 원복. 관리자 RPC·엣지함수는
+--   SECURITY DEFINER(소유자=postgres)·service_role 로 돌아 current_user 가 authenticated 가 아니라 통과.
+do $$
+declare cols text[] := array['is_admin','ad_balance','biz_verified','role','company_id','place_plan','place_pass_until','place_pass'];
+        c text; body text := '';
+begin
+  foreach c in array cols loop
+    if exists (select 1 from information_schema.columns where table_schema='public' and table_name='profiles' and column_name=c) then
+      body := body || format('      new.%1$I := old.%1$I;'||chr(10), c);
+    end if;
+  end loop;
+  execute format($f$
+    create or replace function public.profiles_guard_privileged()
+    returns trigger language plpgsql as $g$
+    begin
+      if current_user in ('authenticated','anon') then
+%s      end if;
+      return new;
+    end $g$;
+  $f$, body);
+end $$;
+drop trigger if exists trg_profiles_guard on public.profiles;
+create trigger trg_profiles_guard before update on public.profiles
+  for each row execute function public.profiles_guard_privileged();
 
 -- (1) 비즈머니(ad_balance) 임의 충전 — 관리자만. (자가충전 차단 우회는 이 RPC로만)
 create or replace function public.admin_credit_ad_balance(p_user uuid, p_amount int, p_memo text default '관리자 충전')
