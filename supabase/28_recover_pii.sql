@@ -11,7 +11,7 @@ alter table public.profiles
   add column if not exists biz_no       text,
   add column if not exists biz_verified boolean default false,
   add column if not exists biz_rep_name text,
-  add column if not exists biz_open_dt  date,
+  add column if not exists biz_open_dt  text,
   add column if not exists biz_cert_url text,
   add column if not exists username     text,
   add column if not exists friend_code  text;
@@ -21,16 +21,20 @@ do $$
 begin
   if exists (select 1 from information_schema.tables
              where table_schema='public' and table_name='profiles_private') then
-    update public.profiles p set
-      phone        = coalesce(p.phone, pp.phone),
-      biz_no       = coalesce(p.biz_no, pp.biz_no),
-      biz_verified = coalesce(p.biz_verified, pp.biz_verified),
-      biz_rep_name = coalesce(p.biz_rep_name, pp.biz_rep_name),
-      biz_open_dt  = coalesce(p.biz_open_dt, pp.biz_open_dt),
-      biz_cert_url = coalesce(p.biz_cert_url, pp.biz_cert_url),
-      username     = coalesce(p.username, pp.username),
-      friend_code  = coalesce(p.friend_code, pp.friend_code)
-    from public.profiles_private pp where pp.id = p.id;
+    begin  -- 데이터 이관(있으면). 타입불일치 등 에러 나도 스킵하고 테이블은 확실히 제거.
+      update public.profiles p set
+        phone        = coalesce(p.phone, pp.phone),
+        biz_no       = coalesce(p.biz_no, pp.biz_no),
+        biz_verified = coalesce(p.biz_verified, pp.biz_verified),
+        biz_rep_name = coalesce(p.biz_rep_name, pp.biz_rep_name),
+        biz_open_dt  = coalesce(p.biz_open_dt, pp.biz_open_dt::text),
+        biz_cert_url = coalesce(p.biz_cert_url, pp.biz_cert_url),
+        username     = coalesce(p.username, pp.username),
+        friend_code  = coalesce(p.friend_code, pp.friend_code)
+      from public.profiles_private pp where pp.id = p.id;
+    exception when others then
+      raise notice 'profiles_private 이관 스킵(비었거나 타입불일치): %', sqlerrm;
+    end;
     drop table public.profiles_private cascade;
   end if;
 end $$;
