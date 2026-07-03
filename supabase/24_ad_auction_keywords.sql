@@ -165,4 +165,18 @@ end $$;
 revoke all on function public.log_ad_event(uuid, text, text) from public;
 grant execute on function public.log_ad_event(uuid, text, text) to anon, authenticated;
 
+-- ── 7) 🔐 키워드 단가 동결 — 광고주가 active 광고의 키워드 단가를 낮춰 CPC 회피 차단 ──────────
+create or replace function public.adkw_guard_bid()
+returns trigger language plpgsql as $$
+begin
+  if current_user in ('authenticated','anon')
+     and exists (select 1 from public.ads a where a.id = old.ad_id and a.status = 'active') then
+    new.bid_amount := old.bid_amount;
+  end if;
+  return new;
+end; $$;
+drop trigger if exists trg_adkw_guard_bid on public.ad_keywords;
+create trigger trg_adkw_guard_bid before update on public.ad_keywords
+  for each row execute function public.adkw_guard_bid();
+
 notify pgrst, 'reload schema';

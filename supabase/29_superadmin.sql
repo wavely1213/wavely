@@ -1,28 +1,21 @@
 -- 29_superadmin.sql — 슈퍼관리자(is_admin) 콘솔용 RPC + 보안 하드닝.
 -- 관리자 RPC는 전부 SECURITY DEFINER + is_admin() 게이트. is_admin()은 25/28에서 생성.
--- 보안감사(적대적 8건) 반영: 데이터노출·권한상승·과금회피·정렬반전·store부스트 클로버링 차단.
--- ⚠️ Supabase SQL Editor Run. 멱등.
+-- ⚠️ Supabase SQL Editor 에 통째로 붙여넣고 Run. 멱등(여러 번 실행 안전).
+--    한 트랜잭션이라 중간에 하나라도 에러나면 전체 취소됨 → 에러 뜨면 그 메시지 그대로 알려줘.
 
 -- ========================================================================
--- (0) is_admin 컬럼 보장 — is_admin()이 읽는 profiles.is_admin 이 없으면 게이트가 깨짐.
---     본인 계정은 맨 아래 (Z) UPDATE 로 true 로 켜야 슈퍼콘솔이 열림.
+-- (0) is_admin 컬럼 보장 (is_admin()이 읽는 컬럼).
 -- ========================================================================
 alter table public.profiles add column if not exists is_admin boolean not null default false;
 
 -- ========================================================================
--- (A) 🔐 민감컬럼 SELECT/UPDATE 잠금 (감사 HIGH: 남 비즈머니 잔액 열람 차단)
---     Supabase 기본 grant 가 테이블단위라, 남의 ad_balance 를 로그인 유저 누구나
---     sb.from('profiles').select('ad_balance') 로 열람 가능했음 → 컬럼단위 회수.
---     본인/관리자는 아래 RPC(my_profile / admin_list_users)로만 읽음.
---     ⚠️ is_admin 은 SELECT 잠그지 않음(=앱이 자기 is_admin 을 raw select 하므로 잠그면 앱 로그인 깨짐).
---        is_admin 노출은 "누가 관리자인지"뿐(저위험)이고, 진짜 방패는 아래 UPDATE 회수+guard 트리거.
---        완전 잠금을 원하면 앱 loadProfile 을 my_profile() 로 배포한 뒤 여기에 is_admin 을 추가.
+-- (A) 🔐 남 비즈머니 잔액 열람 차단 + 본인/관리자 조회 RPC
+--     Supabase 기본 grant 가 테이블단위라 남의 ad_balance 를 로그인 유저 누구나 읽을 수 있었음.
 -- ========================================================================
 revoke select (ad_balance) on public.profiles from authenticated, anon;
 revoke update (is_admin)   on public.profiles from authenticated, anon;
 
--- 본인 전체행(잔액/관리자여부/PII 포함) 읽기 — SECURITY DEFINER 라 컬럼회수 우회.
--- 앱/웹/관리자 모두 본인 프로필은 이 RPC로 읽음(남 행은 nickname/avatar 등 공개컬럼만 직접 조회 가능).
+-- 본인 전체행(잔액/관리자여부 포함) — SECURITY DEFINER 라 컬럼회수 우회.
 create or replace function public.my_profile()
 returns json language sql stable security definer set search_path = public as $$
   select to_json(p) from public.profiles p where p.id = auth.uid();
@@ -30,15 +23,15 @@ $$;
 revoke all on function public.my_profile() from public, anon;
 grant execute on function public.my_profile() to authenticated;
 
--- 관리자 전용 유저목록(비즈머니 충전 대상 검색) — is_admin 게이트.
+-- 관리자 전용 유저목록(비즈머니 충전 대상) — is_admin 게이트.
 create or replace function public.admin_list_users(p_q text default null)
 returns table(id uuid, nickname text, role text, ad_balance int, is_admin boolean, biz_verified boolean)
 language plpgsql stable security definer set search_path = public as $$
 begin
   if not public.is_admin() then raise exception 'forbidden'; end if;
   return query
-    select p.id, p.nickname, p.role,
-           coalesce(p.ad_balance, 0), coalesce(p.is_admin, false), coalesce(p.biz_verified, false)
+    select p.id, p.nickname::text, p.role::text,
+           coalesce(p.ad_balance, 0)::int, coalesce(p.is_admin, false), coalesce(p.biz_verified, false)
     from public.profiles p
     where p_q is null or btrim(p_q) = '' or p.nickname ilike '%' || btrim(p_q) || '%'
     order by coalesce(p.ad_balance, 0) desc
@@ -48,57 +41,40 @@ revoke all on function public.admin_list_users(text) from public, anon;
 grant execute on function public.admin_list_users(text) to authenticated;
 
 -- ========================================================================
--- (B) 🔐 권한상승 차단(방탄 트리거) — 감사 HIGH/LOW
---     authenticated/anon 세션이 신뢰필드를 직접 INSERT/UPDATE 하면 안전값으로 강제.
---     (컬럼 grant/RLS 우회와 무관. 관리자 RPC·service_role 은 current_user 가 달라 통과.)
---     UPDATE=OLD 로 원복, INSERT=안전기본값(is_admin/biz_verified=false, ad_balance/ad_free=0).
+-- (B) 🔐 권한상승 차단 트리거 — authenticated/anon 세션이 신뢰필드를 직접 바꾸면 안전값 강제.
+--     (컬럼 grant/RLS 우회와 무관. 관리자 RPC·service_role·SQL Editor 는 current_user 가 달라 통과.)
 -- ========================================================================
-do $$
-declare
-  trust text[] := array['is_admin','ad_balance','biz_verified','role','company_id',
-                        'place_plan','place_pass_until','place_pass','ad_free','ad_free_expires_at'];
-  c text; upd text := ''; ins text := '';
+create or replace function public.profiles_guard_privileged()
+returns trigger language plpgsql as $$
 begin
-  foreach c in array trust loop
-    if exists (select 1 from information_schema.columns
-               where table_schema='public' and table_name='profiles' and column_name=c) then
-      upd := upd || format('        new.%1$I := old.%1$I;'||chr(10), c);
-      if c in ('is_admin','biz_verified') then
-        ins := ins || format('        new.%1$I := false;'||chr(10), c);
-      elsif c in ('ad_balance','ad_free') then
-        ins := ins || format('        new.%1$I := 0;'||chr(10), c);
-      elsif c in ('company_id','place_plan','place_pass_until','place_pass','ad_free_expires_at') then
-        ins := ins || format('        new.%1$I := null;'||chr(10), c);
-      end if;
-      -- role 은 가입시 지정(guest/owner)하므로 INSERT 에서 건드리지 않음(UPDATE 는 동결).
+  if current_user in ('authenticated', 'anon') then
+    if TG_OP = 'UPDATE' then
+      new.is_admin        := old.is_admin;
+      new.ad_balance      := old.ad_balance;
+      new.biz_verified    := old.biz_verified;
+      new.role            := old.role;
+      new.company_id      := old.company_id;
+      new.place_plan      := old.place_plan;
+      new.place_pass_until := old.place_pass_until;
+    elsif TG_OP = 'INSERT' then
+      new.is_admin     := false;
+      new.biz_verified := false;
+      new.ad_balance   := 0;
     end if;
-  end loop;
-  execute format($f$
-    create or replace function public.profiles_guard_privileged()
-    returns trigger language plpgsql as $g$
-    begin
-      if current_user in ('authenticated','anon') then
-        if TG_OP = 'UPDATE' then
-%s        elsif TG_OP = 'INSERT' then
-%s        end if;
-      end if;
-      return new;
-    end $g$;
-  $f$, upd, ins);
-end $$;
+  end if;
+  return new;
+end; $$;
 drop trigger if exists trg_profiles_guard on public.profiles;
 create trigger trg_profiles_guard before insert or update on public.profiles
   for each row execute function public.profiles_guard_privileged();
 
 -- ========================================================================
--- (C) 🔐 광고 입찰가 동결 (감사 HIGH: 승인된 광고 bid_amount 를 0으로 낮춰 무료노출·CPC회피)
---     authenticated/anon 세션이 active 광고의 bid_amount/monthly_fee 를 바꾸면 원복.
---     (관리자 RPC 는 SECURITY DEFINER 라 통과. headline 등 다른 필드 수정은 정상.)
+-- (C) 🔐 승인된 광고 입찰가 동결 — 광고주가 자기 active 광고 bid 를 0으로 낮춰 무료노출·CPC회피 차단.
 -- ========================================================================
 create or replace function public.ads_guard_active_bid()
 returns trigger language plpgsql as $$
 begin
-  if current_user in ('authenticated','anon') and old.status = 'active' then
+  if current_user in ('authenticated', 'anon') and old.status = 'active' then
     new.bid_amount  := old.bid_amount;
     new.monthly_fee := old.monthly_fee;
   end if;
@@ -108,28 +84,9 @@ drop trigger if exists trg_ads_guard_bid on public.ads;
 create trigger trg_ads_guard_bid before update on public.ads
   for each row execute function public.ads_guard_active_bid();
 
--- ad_keywords 가 있으면(24 적용시) 키워드 단가도 active 광고에 대해 동결.
-do $$ begin
-  if exists (select 1 from information_schema.tables where table_schema='public' and table_name='ad_keywords') then
-    execute $f$
-      create or replace function public.adkw_guard_bid()
-      returns trigger language plpgsql as $g$
-      begin
-        if current_user in ('authenticated','anon')
-           and exists (select 1 from public.ads a where a.id = old.ad_id and a.status='active') then
-          new.bid_amount := old.bid_amount;
-        end if;
-        return new;
-      end $g$;
-    $f$;
-    execute 'drop trigger if exists trg_adkw_guard_bid on public.ad_keywords';
-    execute 'create trigger trg_adkw_guard_bid before update on public.ad_keywords for each row execute function public.adkw_guard_bid()';
-  end if;
-end $$;
-
 -- ========================================================================
--- (D) 매장 부스트 재계산 헬퍼 — 감사 MED: 광고 하나 승인/반려/정지가 매장의 다른 활성광고
---     부스트를 덮어쓰거나 통째로 끄는 문제 해소. 매장의 '현재 active non-banner 광고' 집합에서 도출.
+-- (D) 매장 부스트 재계산 — 광고 하나 승인/반려/정지가 매장의 다른 활성광고 부스트를
+--     덮어쓰거나 끄지 않도록, 매장의 'active non-banner 광고 집합'에서 도출.
 -- ========================================================================
 create or replace function public.recompute_store_boost(p_store uuid)
 returns void language plpgsql security definer set search_path = public as $$
@@ -147,7 +104,7 @@ begin
 end; $$;
 
 -- ========================================================================
--- (1) 비즈머니(ad_balance) 임의 충전 — 관리자만.
+-- (1) 비즈머니 임의 충전 — 관리자만.
 -- ========================================================================
 create or replace function public.admin_credit_ad_balance(p_user uuid, p_amount int, p_memo text default '관리자 충전')
 returns int language plpgsql security definer set search_path = public as $$
@@ -160,15 +117,14 @@ begin
   begin
     insert into public.ad_ledger(user_id, type, amount, balance_after, ref, memo)
     values (p_user, 'charge', p_amount, v_after, 'admin', p_memo);
-  exception when others then null; end;   -- 원장 스키마 다르면 스킵(잔액반영은 유지)
+  exception when others then null; end;
   return v_after;
 end; $$;
 revoke all on function public.admin_credit_ad_balance(uuid, int, text) from public, anon;
 grant execute on function public.admin_credit_ad_balance(uuid, int, text) to authenticated;
 
 -- ========================================================================
--- (2) 광고 승인·활성화 — 관리자만. ad-activate 엣지함수와 동일 계약(엣지 배포 불필요).
---     store 부스트는 recompute_store_boost 로 매장의 활성광고 집합에서 재계산(덮어쓰기 아님).
+-- (2) 광고 승인·활성화 — 관리자만.
 -- ========================================================================
 create or replace function public.admin_activate_ad(p_ad uuid, p_days int default 30)
 returns text language plpgsql security definer set search_path = public as $$
@@ -185,7 +141,7 @@ revoke all on function public.admin_activate_ad(uuid, int) from public, anon;
 grant execute on function public.admin_activate_ad(uuid, int) to authenticated;
 
 -- ========================================================================
--- (3) 광고 반려/일시정지/재검수 — 관리자만. store 부스트는 남은 활성광고 기준 재계산.
+-- (3) 광고 반려/일시정지/재검수 — 관리자만.
 -- ========================================================================
 create or replace function public.admin_set_ad_status(p_ad uuid, p_status text, p_reason text default null)
 returns text language plpgsql security definer set search_path = public as $$
@@ -204,8 +160,7 @@ revoke all on function public.admin_set_ad_status(uuid, text, text) from public,
 grant execute on function public.admin_set_ad_status(uuid, text, text) to authenticated;
 
 -- ========================================================================
--- (4) reports(신고/문의) — 관리자 SELECT 정책 + INSERT 정책 보강(감사 LOW: 순서안전).
---     09 보다 29 를 먼저 Run 해도 신고 접수(INSERT)가 막히지 않게.
+-- (4) reports(신고/문의) — 관리자 SELECT + 신고 INSERT 정책(순서안전).
 -- ========================================================================
 do $$ begin
   if exists (select 1 from information_schema.tables where table_schema='public' and table_name='reports') then
@@ -221,8 +176,19 @@ end $$;
 notify pgrst, 'reload schema';
 
 -- ========================================================================
--- (Z) ⚡ 본인 계정을 슈퍼관리자로 — 이메일만 본인 것으로 바꿔서 이 한 줄을 Run.
---     (윗부분과 따로 실행해도 됨. 이거 안 하면 슈퍼콘솔 안 보임. SQL Editor=postgres 라 트리거 통과.)
+-- (Z) ⚡ 슈퍼관리자 = wavely1213@motmot.co.kr 계정 하나만. 나머지 전부 해제.
+--     그 이메일로 먼저 가입돼 있어야 함(없으면 아무것도 안 바꾸고 안내만 → 현재 관리자 유지).
+--     ※ 다른 이메일로 바꾸려면 아래 두 군데 이메일만 수정.
 -- ========================================================================
--- update public.profiles set is_admin = true
---   where id = (select id from auth.users where email = 'mulgyeoli2@gmail.com');
+do $$
+declare v_id uuid;
+begin
+  select id into v_id from auth.users where email = 'wavely1213@motmot.co.kr';
+  if v_id is null then
+    raise notice '⚠️ wavely1213@motmot.co.kr 가 auth.users 에 없음 — 그 이메일로 먼저 가입 후 (Z) 만 다시 실행. is_admin 변경 안 함.';
+  else
+    update public.profiles set is_admin = false where is_admin = true and id <> v_id;
+    update public.profiles set is_admin = true  where id = v_id;
+    raise notice '✅ wavely1213@motmot.co.kr 만 슈퍼관리자로 설정됨.';
+  end if;
+end $$;
