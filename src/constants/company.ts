@@ -20,13 +20,13 @@ export const COMPANY = {
   /** 사업장 주소 */
   address: '(사업장 주소)',
   /** 고객센터·문의 이메일 (필수) */
-  email: 'wavely1213@naver.com',
+  email: 'wavely1213@mulgyeol.kr',
   /** 고객센터 전화 (선택) */
   phone: '',
   /** 개인정보 보호책임자 이름 (기본: 대표) */
   privacyOfficer: '박현준',
   /** 개인정보 보호책임자 연락처 (이메일 또는 전화) */
-  privacyOfficerContact: 'wavely1213@naver.com',
+  privacyOfficerContact: 'wavely1213@mulgyeol.kr',
   /** 약관·개인정보처리방침 시행일 (예: 2026년 7월 1일) */
   effectiveDate: '(시행일)',
 };
