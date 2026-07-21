@@ -15,8 +15,6 @@ export default function SettingsScreen() {
   const { mode, setMode } = useThemeMode();
   const router = useRouter();
   const { session, signOut } = useAuth();
-  const [push, setPush] = useState(true);
-  const [marketing, setMarketing] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [err, setErr] = useState('');
@@ -54,10 +52,6 @@ export default function SettingsScreen() {
       </View>
 
       <ScrollView>
-        <Text style={[styles.head, { color: c.textSecondary }]}>알림</Text>
-        <Row label="푸시 알림" value={push} onToggle={setPush} />
-        <Row label="마케팅 · 이벤트 알림" value={marketing} onToggle={setMarketing} />
-
         <Text style={[styles.head, { color: c.textSecondary }]}>화면</Text>
         <View style={[styles.row, { borderColor: c.border }]}>
           <Text style={[styles.rowTxt, { color: c.text }]}>화면 테마</Text>
@@ -114,7 +108,7 @@ export default function SettingsScreen() {
           </Pressable>
         )}
 
-        <Text style={[styles.note, { color: c.textSecondary }]}>* 알림 토글 등 일부 항목은 준비 중이에요. 약관·개인정보처리방침은 표준 템플릿이라 정식 출시 전 회사 정보를 반영합니다.</Text>
+        <View style={{ height: 24 }} />
       </ScrollView>
     </SafeAreaView>
   );

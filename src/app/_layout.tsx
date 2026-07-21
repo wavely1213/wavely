@@ -45,7 +45,6 @@ function RootNav() {
             <Stack.Screen name="signup" options={{ presentation: 'modal' }} />
             <Stack.Screen name="write" options={{ presentation: 'modal' }} />
             <Stack.Screen name="store-new" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="map" options={{ presentation: 'modal' }} />
           </Stack>
         </View>
       </View>

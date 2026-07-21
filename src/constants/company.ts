@@ -27,8 +27,8 @@ export const COMPANY = {
   privacyOfficer: '박현준',
   /** 개인정보 보호책임자 연락처 (이메일 또는 전화) */
   privacyOfficerContact: 'wavely1213@mulgyeol.kr',
-  /** 약관·개인정보처리방침 시행일 (예: 2026년 7월 1일) */
-  effectiveDate: '(시행일)',
+  /** 약관·개인정보처리방침 시행일 (= 출시일 기준. 실제 스토어 승인일이 다르면 이 한 줄만 수정) */
+  effectiveDate: '2026년 7월 21일',
 };
 
 /** 아직 채워지지 않은 항목인지 (괄호로 시작하면 미입력) */

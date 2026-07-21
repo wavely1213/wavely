@@ -38,6 +38,7 @@ export default function ChatRoom() {
   const [avatars, setAvatars] = useState<Record<string, string | null>>({});
   const [members, setMembers] = useState<{ user_id: string; nick: string; role: string }[]>([]);
   const [membersOpen, setMembersOpen] = useState(false);
+  const [actionsOpen, setActionsOpen] = useState(false);   // 1:1 신고/차단 액션시트
   const [friendMsg, setFriendMsg] = useState<Record<string, string>>({});
   const [noticeEdit, setNoticeEdit] = useState(false);
   const [noticeText, setNoticeText] = useState('');
@@ -131,14 +132,29 @@ export default function ChatRoom() {
     );
   };
 
+  // 1:1(dm) 상대 — 신고/차단 대상
+  const otherMember = conv?.type === 'dm' ? members.find((m) => m.user_id !== session?.user.id) : null;
+  const blockUser = async () => {
+    if (!session || !otherMember) return;
+    setActionsOpen(false);
+    await supabase.from('blocks').insert({ blocker_id: session.user.id, blocked_id: otherMember.user_id });
+    router.replace('/chats');   // 차단 후 목록으로
+  };
+
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: c.background }]} edges={['top']}>
       <View style={[styles.header, { borderColor: c.border, backgroundColor: c.card }]}>
         <Pressable onPress={() => (router.canGoBack() ? router.back() : router.replace('/chats'))} hitSlop={8}><Text style={[styles.back, { color: c.text }]}>‹ 뒤로</Text></Pressable>
         <Text style={[styles.title, { color: c.text }]} numberOfLines={1}>{title}</Text>
-        <Pressable onPress={() => setMembersOpen(true)} hitSlop={8} style={{ minWidth: 44, alignItems: 'flex-end' }}>
-          <Text style={{ color: c.text, fontSize: 14, fontWeight: '700' }}>👥 {members.length}</Text>
-        </Pressable>
+        {session && otherMember ? (
+          <Pressable onPress={() => setActionsOpen(true)} hitSlop={8} style={{ minWidth: 44, alignItems: 'flex-end' }}>
+            <Text style={{ color: c.textSecondary, fontSize: 18, fontWeight: '800' }}>⋯</Text>
+          </Pressable>
+        ) : (
+          <Pressable onPress={() => setMembersOpen(true)} hitSlop={8} style={{ minWidth: 44, alignItems: 'flex-end' }}>
+            <Text style={{ color: c.text, fontSize: 14, fontWeight: '700' }}>👥 {members.length}</Text>
+          </Pressable>
+        )}
       </View>
 
       {conv?.notice ? (
@@ -176,6 +192,25 @@ export default function ChatRoom() {
           )}
         </KeyboardAvoidingView>
       )}
+
+      {/* 1:1 신고/차단 액션시트 */}
+      <Modal visible={actionsOpen} transparent animationType="fade" onRequestClose={() => setActionsOpen(false)}>
+        <Pressable style={styles.overlay} onPress={() => setActionsOpen(false)}>
+          <Pressable style={[styles.sheet, { backgroundColor: c.background }]} onPress={(e) => e.stopPropagation()}>
+            <Text style={{ color: c.text, fontWeight: '800', fontSize: 15, marginBottom: 4 }}>{otherMember?.nick ?? '상대'}</Text>
+            <Pressable style={[styles.actionRow, { borderColor: c.border }]} onPress={() => { setActionsOpen(false); router.push(`/report?type=user&id=${otherMember!.user_id}&label=${encodeURIComponent(otherMember?.nick ?? '회원')}`); }}>
+              <Text style={{ color: c.text, fontWeight: '700', fontSize: 15 }}>🚩 신고하기</Text>
+            </Pressable>
+            <Pressable style={[styles.actionRow, { borderColor: c.border }]} onPress={blockUser}>
+              <Text style={{ color: '#E5484D', fontWeight: '700', fontSize: 15 }}>🚫 차단하기</Text>
+            </Pressable>
+            <Text style={{ color: c.textSecondary, fontSize: 11.5, marginTop: 8, lineHeight: 16 }}>차단하면 이 사용자의 메시지·글이 보이지 않고, 서로 채팅할 수 없어요.</Text>
+            <Pressable style={[styles.actionRow, { borderColor: c.border, marginTop: 4 }]} onPress={() => setActionsOpen(false)}>
+              <Text style={{ color: c.textSecondary, fontWeight: '700', fontSize: 15 }}>취소</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       {/* 참여 인원 모달 */}
       <Modal visible={membersOpen} transparent animationType="slide" onRequestClose={() => setMembersOpen(false)}>
@@ -246,6 +281,7 @@ const styles = StyleSheet.create({
   time: { fontSize: 10, marginBottom: 2 },
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
   sheet: { borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 24 },
+  actionRow: { paddingVertical: 14, borderTopWidth: 1, alignItems: 'center' },
   handle: { alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: '#8888', marginVertical: 8 },
   sheetTitle: { fontSize: 16, fontWeight: '800', marginBottom: 8, paddingHorizontal: 4 },
   memberRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingVertical: 11, paddingHorizontal: 4, borderBottomWidth: 1 },

@@ -310,13 +310,15 @@ export default function StoreFormScreen() {
           </>
         )}
 
-        <Text style={[styles.label, { color: c.textSecondary, marginTop: 8 }]}>③ 지도에서 정확한 위치 찍기</Text>
+        <Text style={[styles.label, { color: c.textSecondary, marginTop: 8 }]}>③ 위치</Text>
         {Platform.OS === 'web' ? (
-          <View nativeID="store-loc-map" style={[styles.locMap, { borderColor: c.border }]} />
+          <>
+            <View nativeID="store-loc-map" style={[styles.locMap, { borderColor: c.border }]} />
+            <Text style={[styles.hint, { color: c.textSecondary }]}>지도를 클릭하거나 핀을 드래그해 정확한 위치를 맞춰주세요.{coord.lat != null ? `  📍 ${coord.lat.toFixed(5)}, ${coord.lng?.toFixed(5)}` : ''}</Text>
+          </>
         ) : (
-          <Text style={[styles.hint, { color: c.textSecondary }]}>위치 지정은 웹에서 가능해요 (앱은 준비중)</Text>
+          <Text style={[styles.hint, { color: c.textSecondary }]}>입력한 주소·동네를 기준으로 위치가 자동 지정돼요.{coord.lat != null ? `  📍 ${coord.lat.toFixed(5)}, ${coord.lng?.toFixed(5)}` : ''}</Text>
         )}
-        <Text style={[styles.hint, { color: c.textSecondary }]}>지도를 클릭하거나 핀을 드래그해 정확한 위치를 맞춰주세요.{coord.lat != null ? `  📍 ${coord.lat.toFixed(5)}, ${coord.lng?.toFixed(5)}` : ''}</Text>
 
         <Text style={[styles.label, { color: c.textSecondary, marginTop: 8 }]}>④ 매장 사진</Text>
         {name.trim() ? (

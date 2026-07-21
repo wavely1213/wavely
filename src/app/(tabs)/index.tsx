@@ -108,7 +108,7 @@ export default function CommunityScreen() {
       const { data: nd } = await supabase.rpc('nearest_dong', { p_lat: loc.lat, p_lng: loc.lng });
       const dong = typeof nd === 'string' ? nd : null;
       setAnonDong(dong);
-      let pq = supabase.from('posts').select('id,title,dong,board,created_at').order('created_at', { ascending: false }).limit(2);
+      let pq = supabase.from('posts').select('id,title,dong,board,created_at').order('created_at', { ascending: false }).limit(20);
       if (dong) pq = pq.eq('dong', dong);
       const { data } = await pq;
       setPosts((data as unknown as Post[]) ?? []);
@@ -237,7 +237,7 @@ export default function CommunityScreen() {
           {/* 내 동네 헤더 */}
           <View style={[styles.dongHeader, { backgroundColor: c.primarySoft }]}>
             <Text style={{ color: c.primaryDeep, fontWeight: '800', fontSize: 13.5 }}>📍 {anonDong ? `${anonDong} 이웃들의 글` : '내 주변 글'}</Text>
-            <Text style={{ color: c.textSecondary, fontSize: 11.5, marginTop: 2 }}>비로그인은 우리 동네 글 제목만 볼 수 있어요</Text>
+            <Text style={{ color: c.textSecondary, fontSize: 11.5, marginTop: 2 }}>로그인하면 사진·댓글까지 모두 볼 수 있어요</Text>
           </View>
           {/* 비로그인: 내 동네 최신 제목 2개만 */}
           {posts.length === 0 ? (
@@ -251,32 +251,15 @@ export default function CommunityScreen() {
               <Text style={[styles.title, { color: c.text, marginTop: 6 }]} numberOfLines={1}>{p.title}</Text>
             </Pressable>
           ))}
-          {/* 블러 월 — 로그인 유도 */}
-          <View style={{ position: 'relative', marginTop: 4 }}>
-            <View pointerEvents="none" style={Platform.OS === 'web' ? ({ filter: 'blur(6px)' } as any) : { opacity: 0.25 }}>
-              {[0, 1, 2, 3].map((i) => (
-                <View key={i} style={[styles.post, { backgroundColor: c.card, borderColor: c.border, paddingVertical: UI.postPaddingV }]}>
-                  <View style={{ flexDirection: 'row', gap: 12 }}>
-                    <View style={{ width: UI.postThumb, height: UI.postThumb, borderRadius: 10, backgroundColor: c.backgroundElement }} />
-                    <View style={{ flex: 1, gap: 7, justifyContent: 'center' }}>
-                      <View style={{ height: 12, width: '50%', borderRadius: 6, backgroundColor: c.backgroundElement }} />
-                      <View style={{ height: 14, width: '85%', borderRadius: 7, backgroundColor: c.backgroundElement }} />
-                      <View style={{ height: 11, width: '70%', borderRadius: 6, backgroundColor: c.backgroundElement }} />
-                    </View>
-                  </View>
-                </View>
-              ))}
-            </View>
-            {/* 오버레이 CTA */}
-            <View style={styles.wallOverlay} pointerEvents="box-none">
-              <Pressable onPress={() => router.push('/login')} style={[styles.wallCard, { backgroundColor: c.card, borderColor: c.primary }]}>
-                <Icon name="lock" size={30} color={c.primary} />
-                <Text style={{ color: c.text, fontWeight: '900', fontSize: 16, marginTop: 8 }}>우리 동네 이야기, 전부 보기</Text>
-                <Text style={{ color: c.textSecondary, fontSize: 12.5, marginTop: 4, textAlign: 'center', lineHeight: 18 }}>로그인하면 모든 글·사진·댓글을 볼 수 있어요{'\n'}무료로 우리 동네 이웃과 함께해요</Text>
-                <View style={[styles.wallBtn, { backgroundColor: c.primary }]}><Text style={{ color: c.onPrimary, fontWeight: '800', fontSize: 14 }}>로그인 / 가입하기</Text></View>
-              </Pressable>
-            </View>
-          </View>
+          {/* 로그인 유도 — 비차단 CTA(콘텐츠는 위에서 이미 열람 가능) */}
+          {posts.length > 0 ? (
+            <Pressable onPress={() => router.push('/login')} style={[styles.wallCard, { backgroundColor: c.card, borderColor: c.primary, marginTop: 14 }]}>
+              <Icon name="chat" size={26} color={c.primary} />
+              <Text style={{ color: c.text, fontWeight: '900', fontSize: 15.5, marginTop: 8 }}>사진·댓글까지, 이웃과 함께해요</Text>
+              <Text style={{ color: c.textSecondary, fontSize: 12.5, marginTop: 4, textAlign: 'center', lineHeight: 18 }}>로그인하면 사진·댓글·글쓰기를 쓸 수 있어요{'\n'}무료로 우리 동네 이웃과 함께해요</Text>
+              <View style={[styles.wallBtn, { backgroundColor: c.primary }]}><Text style={{ color: c.onPrimary, fontWeight: '800', fontSize: 14 }}>로그인 / 가입하기</Text></View>
+            </Pressable>
+          ) : null}
         </ScrollView>
         )
       ) : posts.length === 0 ? (
