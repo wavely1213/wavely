@@ -24,6 +24,9 @@
         "ACCESS_COARSE_LOCATION",
         "POST_NOTIFICATIONS"
       ],
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#7A2BC4",
         "foregroundImage": "./assets/images/wavely-logo.png"
