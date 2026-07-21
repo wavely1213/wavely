@@ -1,5 +1,5 @@
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -39,6 +39,12 @@ export default function JobDetail() {
   const [calls, setCalls] = useState<LoveCall[] | null>(null);      // 구직자(mine)가 받은 러브콜
   const [sentState, setSentState] = useState<'none' | 'sent' | 'accepted'>('none');   // 매장(내가 보낸) 상태
   const [loveBusy, setLoveBusy] = useState(false);
+  // ★4 유료 상위노출(boost). pricing=개발자 조정, boostFeat=42 라이브 프로브(미적용 시 dormant).
+  const [price, setPrice] = useState<{ job_boost: number; job_extend: number }>({ job_boost: 3000, job_extend: 500 });
+  const [boostFeat, setBoostFeat] = useState(false);
+  const [promoDays, setPromoDays] = useState(1);
+  const [promoBusy, setPromoBusy] = useState(false);
+  const [promoMsg, setPromoMsg] = useState('');
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -55,6 +61,17 @@ export default function JobDetail() {
     if (j && j.kind === 'seeking' && session) loadLove(j);   // ★2 익명 구직 = 러브콜 플로우
   }, [id, session, profile?.id, profile?.role]);
   useFocusEffect(useCallback(() => { load(); }, [load]));
+
+  // 플랫폼 가격(pricing) + boost 기능 프로브(1회). 둘 다 degrade-safe.
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data } = await supabase.from('pricing').select('key,amount');
+        if (data) { const m: any = { job_boost: 3000, job_extend: 500 }; for (const r of data as any[]) if (r?.key && r?.amount != null) m[r.key] = r.amount; setPrice(m); }
+      } catch {}
+      try { const { error } = await supabase.from('job_posts').select('boost_until').limit(1); if (!error) setBoostFeat(true); } catch {}
+    })();
+  }, []);
 
   const mine = !!session && job?.author_id === session.user.id;
   const seek = job?.kind === 'seeking';
@@ -141,6 +158,17 @@ export default function JobDetail() {
     }
     setLoveBusy(false);
     loadLove(job);   // 목록 갱신
+  };
+
+  // ★4 유료 홍보(상위노출/연장) — promote_job RPC가 광고잔액 차감·서버강제. 잔액부족 시 {ok:false}.
+  const promote = async (action: 'boost' | 'extend', days: number) => {
+    if (!job || promoBusy) return;
+    setPromoBusy(true); setPromoMsg('');
+    const { data, error } = await supabase.rpc('promote_job', { p_job: job.id, p_action: action, p_days: days });
+    setPromoBusy(false);
+    const r = (data ?? {}) as any;
+    if (!error && r.ok) { setPromoMsg('✅ 적용됐어요!'); load(); return; }
+    setPromoMsg((r && r.reason) || error?.message || '처리 실패 · 광고잔액을 확인해주세요');
   };
 
   if (loading) return <SafeAreaView style={[styles.root, { backgroundColor: c.background }]}><ActivityIndicator color={c.primary} style={{ marginTop: 40 }} /></SafeAreaView>;
@@ -234,6 +262,35 @@ export default function JobDetail() {
           </View>
         ) : null}
 
+        {/* ★4 유료 상위노출: 본인 구인 공고, 마감 전, boost 라이브 시 */}
+        {mine && job.kind === 'hiring' && boostFeat && job.status !== 'closed' ? (
+          <View style={[styles.boostCard, { borderColor: c.border, backgroundColor: c.card }]}>
+            <Text style={{ color: c.text, fontWeight: '800', fontSize: 13.5, marginBottom: 10 }}>공고 홍보</Text>
+            {((job as any).boost || 0) > 0 ? (
+              <Text style={{ color: c.primaryDeep, fontWeight: '700', fontSize: 12.5, marginBottom: 10 }}>🔝 상위노출 중 · 알바 목록 최상단에 고정돼 있어요</Text>
+            ) : (
+              <View style={{ marginBottom: 10 }}>
+                <Text style={{ color: c.textSecondary, fontSize: 12.5, marginBottom: 8 }}>상위노출 기간</Text>
+                <View style={{ flexDirection: 'row', gap: 6, marginBottom: 10 }}>
+                  {[1, 3, 7].map((d) => (
+                    <Pressable key={d} onPress={() => setPromoDays(d)} style={[styles.dayChip, { backgroundColor: promoDays === d ? c.primary : c.background, borderColor: promoDays === d ? c.primary : c.border }]}>
+                      <Text style={{ color: promoDays === d ? c.onPrimary : c.text, fontWeight: '700', fontSize: 13 }}>{d}일</Text>
+                    </Pressable>
+                  ))}
+                </View>
+                <Pressable onPress={() => promote('boost', promoDays)} disabled={promoBusy} style={[styles.boostBtn, { backgroundColor: c.primary, opacity: promoBusy ? 0.6 : 1 }]}>
+                  <Text style={{ color: c.onPrimary, fontWeight: '800', fontSize: 14 }}>🔝 {(price.job_boost * promoDays).toLocaleString()}원 상위노출</Text>
+                </Pressable>
+              </View>
+            )}
+            <Pressable onPress={() => promote('extend', 3)} disabled={promoBusy} style={[styles.extendBtn, { borderColor: c.border }]}>
+              <Text style={{ color: c.text, fontWeight: '700', fontSize: 13 }}>📅 노출 3일 연장 ({(price.job_extend * 3).toLocaleString()}원)</Text>
+            </Pressable>
+            {promoMsg ? <Text style={{ color: promoMsg.startsWith('✅') ? c.primaryDeep : '#E5484D', fontSize: 12, fontWeight: '700', marginTop: 8 }}>{promoMsg}</Text> : null}
+            <Text style={{ color: c.textSecondary, fontSize: 11.5, marginTop: 8 }}>광고잔액에서 차감돼요</Text>
+          </View>
+        ) : null}
+
         {mine ? (
           <Pressable onPress={toggleStatus} style={[styles.statusBtn, { borderColor: c.border }]}><Text style={{ color: c.text, fontWeight: '800' }}>{job.status === 'open' ? '🔒 마감하기' : '🔓 다시 모집' }</Text></Pressable>
         ) : null}
@@ -283,6 +340,10 @@ const styles = StyleSheet.create({
   author: { flexDirection: 'row', alignItems: 'center', gap: 9, marginTop: 18, paddingTop: 14, borderTopWidth: 1 },
   callCard: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12, borderRadius: 12, borderWidth: 1, marginTop: 8 },
   loveNotice: { flex: 1, paddingVertical: 12, paddingHorizontal: 12, borderRadius: 12, borderWidth: 1, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center' },
+  boostCard: { marginTop: 18, padding: 14, borderRadius: 12, borderWidth: 1 },
+  dayChip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999, borderWidth: 1 },
+  boostBtn: { paddingVertical: 12, borderRadius: 12, alignItems: 'center' },
+  extendBtn: { paddingVertical: 11, borderRadius: 12, borderWidth: 1, alignItems: 'center' },
   statusBtn: { marginTop: 16, paddingVertical: 13, borderRadius: 12, borderWidth: 1, alignItems: 'center' },
   gate: { marginTop: 18, paddingVertical: 22, paddingHorizontal: 16, borderRadius: 14, borderWidth: 1.5, alignItems: 'center' },
   gateBtn: { marginTop: 14, paddingHorizontal: 22, paddingVertical: 11, borderRadius: 999 },
