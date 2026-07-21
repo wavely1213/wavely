@@ -17,8 +17,10 @@ export const COMPANY = {
   bizNo: '694-09-03009',
   /** 통신판매업 신고번호 (있으면) */
   mailOrderNo: '2026-강원춘천-0191',
-  /** 사업장 주소 */
-  address: '(사업장 주소)',
+  /** 사업장 주소 — 앱은 결제·판매를 하지 않으므로(웹에서 판매) 앱 화면엔 표시하지 않음(빈 값=숨김).
+   *  전자상거래법상 통신판매 사업자정보(주소 포함)는 판매가 일어나는 웹(biz.mulgyeol.kr)에 전체 공개.
+   *  앱에도 표시하려면 여기에 주소를 넣으면 자동 노출됨. */
+  address: '',
   /** 고객센터·문의 이메일 (필수) */
   email: 'wavely1213@mulgyeol.kr',
   /** 고객센터 전화 (선택) */
@@ -34,11 +36,10 @@ export const COMPANY = {
 /** 아직 채워지지 않은 항목인지 (괄호로 시작하면 미입력) */
 export const isPlaceholder = (v: string) => !v || v.trim().startsWith('(');
 
-/** 회사 정보가 모두 채워졌는지 (출시 준비 체크용) */
+/** 회사 정보가 (앱 표시에 필요한 만큼) 채워졌는지. 주소는 앱에서 선택(웹에 전체 공개)이라 제외. */
 export const companyInfoReady =
   !isPlaceholder(COMPANY.legalName) &&
   !isPlaceholder(COMPANY.ceo) &&
   !isPlaceholder(COMPANY.bizNo) &&
-  !isPlaceholder(COMPANY.address) &&
   !isPlaceholder(COMPANY.email) &&
   !isPlaceholder(COMPANY.effectiveDate);

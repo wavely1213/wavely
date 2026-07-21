@@ -23,7 +23,8 @@ const SECTIONS: { h: string; b: string }[] = [
     b:
       `· 상호: ${COMPANY.legalName}\n· 대표자: ${COMPANY.ceo}\n· 사업자등록번호: ${COMPANY.bizNo}` +
       (COMPANY.mailOrderNo ? `\n· 통신판매업신고: ${COMPANY.mailOrderNo}` : '') +
-      `\n· 주소: ${COMPANY.address}\n· 문의: ${COMPANY.email}${COMPANY.phone ? ` / ${COMPANY.phone}` : ''}` +
+      (COMPANY.address ? `\n· 주소: ${COMPANY.address}` : '') +
+      `\n· 문의: ${COMPANY.email}${COMPANY.phone ? ` / ${COMPANY.phone}` : ''}` +
       (companyInfoReady ? '' : '\n\n※ 정식 출시 전 회사 정보를 입력하고 법률 검토를 받아야 합니다.'),
   },
 ];
