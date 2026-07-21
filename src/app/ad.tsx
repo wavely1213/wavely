@@ -9,7 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '@/constants/theme';
 import { Icon } from '@/components/Icon';
 import { useAuth } from '@/lib/auth';
-import { requestAdPayment, requestBillingKey } from '@/lib/pay';
+import { requestAdPayment, requestBillingKey, PAY_AVAILABLE } from '@/lib/pay';
 import { supabase } from '@/lib/supabase';
 
 const BANNER_TIERS = [
@@ -43,7 +43,7 @@ export default function AdScreen() {
   const [format, setFormat] = useState<'rank' | 'banner'>('rank');
   const [bid, setBid] = useState('300');
   const [bannerTier, setBannerTier] = useState(BANNER_TIERS[0].fee);
-  const [bannerPay, setBannerPay] = useState<'wallet' | 'card'>('card');
+  const [bannerPay, setBannerPay] = useState<'wallet' | 'card'>(PAY_AVAILABLE ? 'card' : 'wallet');
   const [bannerImg, setBannerImg] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const [headline, setHeadline] = useState('');
   const [busy, setBusy] = useState(false);
@@ -287,10 +287,12 @@ export default function AdScreen() {
                       </View>
                       <Text style={{ fontSize: 11, fontWeight: '700', marginTop: 2, color: bannerPay === 'wallet' ? c.onPrimary : c.textSecondary }}>{wallet.unlimited ? '무제한' : `${wallet.balance.toLocaleString()}원`}</Text>
                     </Pressable>
-                    <Pressable onPress={() => setBannerPay('card')} style={[styles.planTab, { backgroundColor: bannerPay === 'card' ? c.primary : c.card, borderColor: bannerPay === 'card' ? c.primary : c.border }]}>
-                      <Text style={[styles.planTabTxt, { color: bannerPay === 'card' ? c.onPrimary : c.text }]}>🧾 카드 결제</Text>
-                      <Text style={{ fontSize: 11, fontWeight: '700', marginTop: 2, color: bannerPay === 'card' ? c.onPrimary : c.textSecondary }}>바로 결제</Text>
-                    </Pressable>
+                    {PAY_AVAILABLE && (
+                      <Pressable onPress={() => setBannerPay('card')} style={[styles.planTab, { backgroundColor: bannerPay === 'card' ? c.primary : c.card, borderColor: bannerPay === 'card' ? c.primary : c.border }]}>
+                        <Text style={[styles.planTabTxt, { color: bannerPay === 'card' ? c.onPrimary : c.text }]}>🧾 카드 결제</Text>
+                        <Text style={{ fontSize: 11, fontWeight: '700', marginTop: 2, color: bannerPay === 'card' ? c.onPrimary : c.textSecondary }}>바로 결제</Text>
+                      </Pressable>
+                    )}
                   </View>
                   {bannerPay === 'wallet' && !wallet.unlimited && wallet.balance < bannerTier && (
                     <Text style={[styles.notice, { color: '#E5484D', marginTop: 6 }]}>잔액이 {(bannerTier - wallet.balance).toLocaleString()}원 부족해요. 아래 지갑에서 충전해주세요.</Text>
@@ -302,7 +304,7 @@ export default function AdScreen() {
               <Pressable style={[styles.btn, { backgroundColor: c.primary, marginTop: 14 }]} onPress={apply} disabled={busy}>
                 <Text style={[styles.btnTxt, { color: c.onPrimary }]}>{busy ? '처리중...' : format === 'banner' ? `${bannerPay === 'wallet' ? '지갑으로 ' : '카드로 '}${bannerTier.toLocaleString()}원 결제 · 배너 광고 시작` : `입찰가 ${(parseInt(bid || '0', 10) || 0).toLocaleString()}원 · 광고 시작`}</Text>
               </Pressable>
-              <Text style={[styles.notice, { color: c.textSecondary }]}>※ 배너 광고는 PortOne 결제 후 노출돼요 (현재 테스트 모드). 입찰 광고는 클릭당 과금이라 선결제 없이 아래 지갑 잔액에서 빠져요.</Text>
+              <Text style={[styles.notice, { color: c.textSecondary }]}>※ 배너 광고는 결제 확인 후 관리자 검토를 거쳐 노출돼요. 입찰 광고는 클릭당 과금이라 선결제 없이 지갑 잔액에서 빠져요.</Text>
 
               {/* 광고비 지갑 — 클릭 광고비 충전·자동결제 */}
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 26, marginBottom: 10 }}>
@@ -329,23 +331,25 @@ export default function AdScreen() {
                   <Text style={{ color: c.textSecondary, fontSize: 11.5, marginTop: 8, lineHeight: 17 }}>🎁 게시글·채팅·출석으로 <Text style={{ color: c.verify, fontWeight: '800' }}>무료 광고비</Text>가 쌓여요. 광고비 차감 시 무료분이 먼저 쓰여요. (1년 유효)</Text>
                 )}
 
-                {/* 등록 카드 */}
-                <View style={{ marginTop: 14 }}>
-                  {wallet.card ? (
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                      <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: c.primarySoft, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10 }}>
-                        <Icon name="card" size={15} color={c.text} />
-                        <Text style={{ color: c.text, fontWeight: '800', fontSize: 13 }} numberOfLines={1}>{wallet.card.card_name}{wallet.card.masked ? ` · ${wallet.card.masked}` : ''}</Text>
+                {/* 등록 카드 — 실결제(카드등록·충전)는 웹 전문가센터에서. 네이티브에선 잔액·내역만 표시(스토어 정책). */}
+                {PAY_AVAILABLE && (
+                  <View style={{ marginTop: 14 }}>
+                    {wallet.card ? (
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: c.primarySoft, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10 }}>
+                          <Icon name="card" size={15} color={c.text} />
+                          <Text style={{ color: c.text, fontWeight: '800', fontSize: 13 }} numberOfLines={1}>{wallet.card.card_name}{wallet.card.masked ? ` · ${wallet.card.masked}` : ''}</Text>
+                        </View>
+                        <Pressable onPress={registerCard} disabled={walletBusy} style={[styles.chip, { borderColor: c.border, backgroundColor: c.card }]}><Text style={[styles.chipTxt, { color: c.textSecondary }]}>변경</Text></Pressable>
                       </View>
-                      <Pressable onPress={registerCard} disabled={walletBusy} style={[styles.chip, { borderColor: c.border, backgroundColor: c.card }]}><Text style={[styles.chipTxt, { color: c.textSecondary }]}>변경</Text></Pressable>
-                    </View>
-                  ) : (
-                    <Pressable onPress={registerCard} disabled={walletBusy} style={[styles.btn, { backgroundColor: c.primary }]}><Text style={[styles.btnTxt, { color: c.onPrimary }]}>＋ 자동결제 카드 등록</Text></Pressable>
-                  )}
-                </View>
+                    ) : (
+                      <Pressable onPress={registerCard} disabled={walletBusy} style={[styles.btn, { backgroundColor: c.primary }]}><Text style={[styles.btnTxt, { color: c.onPrimary }]}>＋ 자동결제 카드 등록</Text></Pressable>
+                    )}
+                  </View>
+                )}
 
                 {/* 충전 */}
-                {wallet.card && (
+                {PAY_AVAILABLE && wallet.card && (
                   <>
                     <Text style={[styles.label, { color: c.textSecondary, marginTop: 16 }]}>충전 금액</Text>
                     <View style={[styles.chips, { marginTop: 8 }]}>

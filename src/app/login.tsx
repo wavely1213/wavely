@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Image } from 'expo-image';
 import { Platform, Pressable, StyleSheet, Text, TextInput, useColorScheme, View } from 'react-native';
 import { useScheme } from '@/lib/theme';
@@ -19,6 +19,30 @@ export default function LoginScreen() {
   const [errorMsg, setErrorMsg] = useState('');
   const [infoMsg, setInfoMsg] = useState('');
   const [needConfirm, setNeedConfirm] = useState(false);
+  const [appleAvail, setAppleAvail] = useState(false);   // iOS Sign in with Apple 사용 가능 여부
+
+  // iOS에서만 Apple 로그인 노출(모듈 미설치/타 OS면 자동 숨김 — degrade-safe)
+  useEffect(() => {
+    if (Platform.OS !== 'ios') return;
+    (async () => {
+      try { const AA = await import('expo-apple-authentication'); setAppleAvail(await AA.isAvailableAsync()); } catch {}
+    })();
+  }, []);
+
+  const appleLogin = async () => {
+    setErrorMsg(''); setInfoMsg('');
+    try {
+      const AA = await import('expo-apple-authentication');
+      const cred = await AA.signInAsync({ requestedScopes: [AA.AppleAuthenticationScope.FULL_NAME, AA.AppleAuthenticationScope.EMAIL] });
+      if (!cred.identityToken) { setErrorMsg('Apple 로그인 토큰을 받지 못했어요.'); return; }
+      const { error } = await supabase.auth.signInWithIdToken({ provider: 'apple', token: cred.identityToken });
+      if (error) { setErrorMsg('Apple 로그인 실패: ' + error.message); return; }
+      router.replace('/');
+    } catch (e: any) {
+      if (e?.code === 'ERR_REQUEST_CANCELED') return;   // 사용자가 취소 → 조용히 무시
+      setErrorMsg('Apple 로그인을 사용할 수 없어요.');
+    }
+  };
 
   const resetPassword = async () => {
     setErrorMsg(''); setInfoMsg('');
@@ -153,6 +177,14 @@ export default function LoginScreen() {
           <Text style={[styles.dtxt, { color: c.textSecondary }]}>또는</Text>
           <View style={[styles.dline, { backgroundColor: c.border }]} />
         </View>
+
+        {/* Apple 로그인 — iOS 전용(4.8 요건). 공식 검정 버튼 스타일 준수. */}
+        {appleAvail ? (
+          <Pressable style={[styles.socialBtn, { backgroundColor: '#000' }]} onPress={appleLogin}>
+            <Text style={{ color: '#fff', fontSize: 19, marginTop: -2 }}></Text>
+            <Text style={[styles.socialTxt, { color: '#fff' }]}>Apple로 로그인</Text>
+          </Pressable>
+        ) : null}
 
         {/* 공식 심볼 + 동일 레이아웃 (브랜드 색·로고 준수, 정렬 통일) */}
         <Pressable style={[styles.socialBtn, { backgroundColor: '#FEE500' }]} onPress={kakaoLogin}>

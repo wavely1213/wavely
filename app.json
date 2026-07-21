@@ -4,16 +4,17 @@
     "slug": "wavely",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/wavely-logo.png",
+    "icon": "./assets/images/icon.png",
     "scheme": "wavely",
     "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "com.wavely.app",
-      "supportsTablet": true,
+      "supportsTablet": false,
+      "usesAppleSignIn": true,
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "내 주변 매장 검색과 방문 인증을 위해 위치 정보를 사용합니다.",
         "NSPhotoLibraryUsageDescription": "프로필 사진·게시물 사진/영상 업로드를 위해 사진 보관함에 접근합니다.",
-        "NSCameraUsageDescription": "사진·영상 촬영을 위해 카메라에 접근합니다."
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -38,7 +39,8 @@
       [
         "expo-notifications",
         {
-          "color": "#7A2BC4"
+          "color": "#7A2BC4",
+          "icon": "./assets/images/android-icon-monochrome.png"
         }
       ],
       [
@@ -51,6 +53,7 @@
         }
       ],
       "expo-video",
+      "expo-apple-authentication",
       [
         "@mj-studio/react-native-naver-map",
         {

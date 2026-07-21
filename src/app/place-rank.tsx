@@ -9,7 +9,7 @@ import { Icon } from '@/components/Icon';
 import { useScheme } from '@/lib/theme';
 import { useAuth, hasPlacePass, isPlacePremium } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
-import { requestAdPayment } from '@/lib/pay';
+import { requestAdPayment, PAY_AVAILABLE } from '@/lib/pay';
 
 type Store = { id: string; name: string; category: string | null; address: string | null; naver_place_id: string | null; biz_verified: boolean; is_probe?: boolean };
 type Kw = { id: string; keyword: string };
@@ -403,27 +403,36 @@ export default function PlaceRankScreen() {
                 </Text>
               </View>
               <Text style={{ color: c.textSecondary, fontSize: 12.5, lineHeight: 18, marginBottom: 12 }}>
-                본인 매장은 7일에 1회 무료예요. 무제한 분석은 월 구독, 경쟁사 비교·분석과 1:1 상담은 프리미엄에서 이용할 수 있어요.
+                {PAY_AVAILABLE
+                  ? '본인 매장은 7일에 1회 무료예요. 무제한 분석은 월 구독, 경쟁사 비교·분석과 1:1 상담은 프리미엄에서 이용할 수 있어요.'
+                  : payReason === 'competitor'
+                    ? '경쟁사 비교·분석은 프리미엄 전용 기능이에요.'
+                    : '본인 매장은 7일에 1회 무료로 분석할 수 있어요. 다음 주에 무료 분석이 다시 열려요.'}
               </Text>
-              {/* 월 구독 */}
-              <Pressable onPress={() => onPay('basic', '월 구독')} style={{ borderWidth: 1.5, borderColor: c.border, borderRadius: 12, padding: 14, marginBottom: 10, backgroundColor: c.background }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Text style={{ color: c.text, fontWeight: '800', fontSize: 14.5 }}>월 구독</Text>
-                  <Text style={{ color: c.text, fontWeight: '900', fontSize: 17 }}>₩20,000<Text style={{ color: c.textSecondary, fontSize: 11, fontWeight: '600' }}>/월</Text></Text>
-                </View>
-                <Text style={{ color: c.textSecondary, fontSize: 12, marginTop: 4 }}>본인 매장(사업자 인증) 30일 무제한 분석</Text>
-              </Pressable>
-              {/* 프리미엄 — 추천 */}
-              <Pressable onPress={() => onPay('premium', '프리미엄')} style={{ borderWidth: 2, borderColor: c.primary, borderRadius: 12, padding: 14, backgroundColor: c.primarySoft ?? c.background }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                    <Text style={{ color: c.primaryDeep ?? c.primary, fontWeight: '800', fontSize: 14.5 }}>프리미엄</Text>
-                    <Icon name="star" size={14.5} color={c.primaryDeep ?? c.primary} />
-                  </View>
-                  <Text style={{ color: c.text, fontWeight: '900', fontSize: 17 }}>₩50,000<Text style={{ color: c.textSecondary, fontSize: 11, fontWeight: '600' }}>/월</Text></Text>
-                </View>
-                <Text style={{ color: c.textSecondary, fontSize: 12, marginTop: 4 }}>본인 무제한 + 경쟁사 비교·분석 + 1:1 상담 매니지먼트</Text>
-              </Pressable>
+              {/* 유료 구독 — 스토어 정책상 네이티브에선 앱 내 판매 없이 무료 안내만(웹 전문가센터에서 구독) */}
+              {PAY_AVAILABLE && (
+                <>
+                  {/* 월 구독 */}
+                  <Pressable onPress={() => onPay('basic', '월 구독')} style={{ borderWidth: 1.5, borderColor: c.border, borderRadius: 12, padding: 14, marginBottom: 10, backgroundColor: c.background }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Text style={{ color: c.text, fontWeight: '800', fontSize: 14.5 }}>월 구독</Text>
+                      <Text style={{ color: c.text, fontWeight: '900', fontSize: 17 }}>₩20,000<Text style={{ color: c.textSecondary, fontSize: 11, fontWeight: '600' }}>/월</Text></Text>
+                    </View>
+                    <Text style={{ color: c.textSecondary, fontSize: 12, marginTop: 4 }}>본인 매장(사업자 인증) 30일 무제한 분석</Text>
+                  </Pressable>
+                  {/* 프리미엄 — 추천 */}
+                  <Pressable onPress={() => onPay('premium', '프리미엄')} style={{ borderWidth: 2, borderColor: c.primary, borderRadius: 12, padding: 14, backgroundColor: c.primarySoft ?? c.background }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                        <Text style={{ color: c.primaryDeep ?? c.primary, fontWeight: '800', fontSize: 14.5 }}>프리미엄</Text>
+                        <Icon name="star" size={14.5} color={c.primaryDeep ?? c.primary} />
+                      </View>
+                      <Text style={{ color: c.text, fontWeight: '900', fontSize: 17 }}>₩50,000<Text style={{ color: c.textSecondary, fontSize: 11, fontWeight: '600' }}>/월</Text></Text>
+                    </View>
+                    <Text style={{ color: c.textSecondary, fontSize: 12, marginTop: 4 }}>본인 무제한 + 경쟁사 비교·분석 + 1:1 상담 매니지먼트</Text>
+                  </Pressable>
+                </>
+              )}
               <Pressable onPress={() => setPayReason(null)} style={{ marginTop: 12, alignItems: 'center' }}>
                 <Text style={{ color: c.textSecondary, fontSize: 12.5 }}>닫기</Text>
               </Pressable>
@@ -466,7 +475,7 @@ export default function PlaceRankScreen() {
                 <Text style={{ color: c.textSecondary, fontSize: 11.5, marginTop: 8, textAlign: 'center', lineHeight: 16 }}>{hasData ? '자동 수집된 최신 데이터예요. 더 최신으로 갱신하려면 위 버튼 (1~2분)' : '키워드 입력 없이 [분석 시작]만 누르면 노출 키워드를 자동으로 찾아 분석해요. (1~2분)'}</Text>
                 {/* 잔여/유료 상태 (관리자는 지갑 무제한 → 프리미엄과 동일 표시. 런칭빌드에 dev 표식·결제우회 버튼 없음) */}
                 <Text style={{ color: isAdmin || paid ? c.primary : (freeLeft > 0 ? c.textSecondary : '#E5484D'), fontSize: 11.5, marginTop: 6, textAlign: 'center', fontWeight: '700' }}>
-                  {(isAdmin || premium) ? '프리미엄 — 무제한 + 경쟁사 분석' : paid ? '월 구독 — 본인 매장 무제한' : freeLeft > 0 ? '이번 주 무료 분석 1회 남음 (7일 1회)' : '이번 주 무료 분석 소진 — 구독으로 계속하기'}
+                  {(isAdmin || premium) ? '프리미엄 — 무제한 + 경쟁사 분석' : paid ? '월 구독 — 본인 매장 무제한' : freeLeft > 0 ? '이번 주 무료 분석 1회 남음 (7일 1회)' : PAY_AVAILABLE ? '이번 주 무료 분석 소진 — 구독으로 계속하기' : '이번 주 무료 분석 소진 (다음 주 재개)'}
                   {!isAdmin && !paid && freeLeft <= 0 ? <Text onPress={() => setPayReason('weekly')} style={{ color: c.primary }}>  구독 →</Text> : null}
                 </Text>
               </>
@@ -773,13 +782,19 @@ export default function PlaceRankScreen() {
                 </View>
               ) : null}
             </View>
-          ) : (
+          ) : PAY_AVAILABLE ? (
             <Pressable onPress={() => setPayReason('competitor')} style={[styles.card, { backgroundColor: c.backgroundElement ?? c.card, borderColor: c.primary, borderWidth: 1.5, marginTop: 8, alignItems: 'center', paddingVertical: 22 }]}>
               <Icon name="lock" size={26} color={c.textSecondary} />
               <Text style={{ color: c.text, fontWeight: '800', fontSize: 14, marginTop: 8 }}>경쟁사 분석은 프리미엄 기능이에요</Text>
               <Text style={{ color: c.textSecondary, fontSize: 12.5, marginTop: 4, textAlign: 'center', lineHeight: 18 }}>경쟁·관심 매장의 노출 키워드·순위·N지수 비교와{'\n'}1:1 상담은 프리미엄 구독에서 이용할 수 있어요.</Text>
               <Text style={{ color: c.primary, fontWeight: '800', fontSize: 13, marginTop: 10 }}>프리미엄 보기 →</Text>
             </Pressable>
+          ) : (
+            <View style={[styles.card, { backgroundColor: c.backgroundElement ?? c.card, borderColor: c.border, marginTop: 8, alignItems: 'center', paddingVertical: 22 }]}>
+              <Icon name="lock" size={26} color={c.textSecondary} />
+              <Text style={{ color: c.text, fontWeight: '800', fontSize: 14, marginTop: 8 }}>경쟁사 분석은 프리미엄 기능이에요</Text>
+              <Text style={{ color: c.textSecondary, fontSize: 12.5, marginTop: 4, textAlign: 'center', lineHeight: 18 }}>경쟁·관심 매장의 노출 키워드·순위·N지수 비교는{'\n'}프리미엄 전용이에요.</Text>
+            </View>
           )}
         </ScrollView>
       )}

@@ -1,6 +1,9 @@
 // 웹 PortOne 결제 요청 (@portone/browser-sdk). 네이티브는 pay.ts(스텁)가 사용됨.
 import * as PortOne from '@portone/browser-sdk/v2';
 
+// 웹은 결제 가능(스토어 정책 무관). 네이티브(pay.ts)는 false.
+export const PAY_AVAILABLE = true;
+
 const STORE_ID = process.env.EXPO_PUBLIC_PORTONE_STORE_ID || '';
 const CHANNEL_KEY = process.env.EXPO_PUBLIC_PORTONE_CHANNEL_KEY || '';
 // 빌링(정기결제) 채널이 따로 있으면 사용, 없으면 일반 채널키로 시도
