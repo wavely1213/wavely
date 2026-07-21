@@ -22,17 +22,28 @@ export function fromJobPost(r: any): any {
   return { ...r, kind: r.kind === 'seek' ? 'seeking' : 'hiring', pay_type: WAGE_TO_PAYTYPE[r.wage_type ?? ''] ?? 'hourly', pay: r.wage ?? null };
 }
 export function toJobPost(p: any): any {
+  const seek = p.kind === 'seeking';
   return {
-    kind: p.kind === 'seeking' ? 'seek' : 'hire',
+    kind: seek ? 'seek' : 'hire',
     title: p.title, body: p.body ?? null,
     wage: p.pay_type === 'negotiable' ? null : (p.pay ?? null), wage_type: PAYTYPE_TO_WAGE[p.pay_type ?? ''] ?? '시급',
     work_time: p.work_time ?? null, contact: p.contact ?? null, dong: p.dong ?? null,
+    age_range: seek ? (p.age_range || null) : null, gender: seek ? (p.gender || null) : null,   // 익명 구직(나이대·성별)
   };
 }
+// 익명 구직 나이대(웹 JOB_AGEBANDS와 동일).
+export const JOB_AGEBANDS = ['10대', '20대 초반', '20대 중반', '20대 후반', '30대 초반', '30대 중반', '30대 후반', '40대', '50대 이상'];
 // job_posts 목록 select 컬럼(앱 목록용). 웹 JOB_SELECT와 호환.
-export const JOBPOST_LIST_COLS = 'id,kind,title,wage,wage_type,work_time,dong,status,created_at';
+export const JOBPOST_LIST_COLS = 'id,kind,title,wage,wage_type,work_time,dong,status,age_range,gender,boost,created_at';
 
-type Job = { id: string; kind: string; title: string; pay_type: string | null; pay: number | null; work_time: string | null; dong: string | null; status: string; created_at: string };
+type Job = { id: string; kind: string; title: string; pay_type: string | null; pay: number | null; work_time: string | null; dong: string | null; status: string; created_at: string; age_range?: string | null; gender?: string | null };
+
+// 익명 구직 신원 요약(나이대·성별). 둘 다 없으면 null.
+function anonIdentity(j: Job) {
+  if (j.kind !== 'seeking') return null;
+  const parts = [j.age_range, j.gender ? `${j.gender}` : null].filter(Boolean);
+  return parts.length ? `🙈 익명 · ${parts.join(' · ')}` : '🙈 익명';
+}
 
 function ago(iso: string) {
   const d = (Date.now() - new Date(iso).getTime()) / 1000;
@@ -120,6 +131,7 @@ export default function JobsScreen() {
               </View>
               <Text style={[styles.title, { color: c.text }]} numberOfLines={1}>{j.title}</Text>
               <Text style={[styles.pay, { color: c.primaryDeep }]}>💰 {payText(j)}{j.work_time ? ` · ${j.work_time}` : ''}</Text>
+              {anonIdentity(j) ? <Text style={{ color: c.textSecondary, fontSize: 12, fontWeight: '600' }}>{anonIdentity(j)}</Text> : null}
             </Pressable>
           ))}
         </ScrollView>

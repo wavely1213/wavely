@@ -10,7 +10,7 @@ import { Colors } from '@/constants/theme';
 import { useScheme } from '@/lib/theme';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
-import { PAY_TYPES, fromJobPost, toJobPost } from './jobs';
+import { PAY_TYPES, fromJobPost, toJobPost, JOB_AGEBANDS } from './jobs';
 
 export default function JobNewScreen() {
   const scheme = useScheme();
@@ -27,6 +27,8 @@ export default function JobNewScreen() {
   const [pay, setPay] = useState('');
   const [workTime, setWorkTime] = useState('');
   const [contact, setContact] = useState('');
+  const [ageRange, setAgeRange] = useState('');   // 익명 구직 나이대
+  const [gender, setGender] = useState('');       // 익명 구직 성별
   const [dong, setDong] = useState<string | null>(null);
   const [dongOptions, setDongOptions] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
@@ -64,6 +66,7 @@ export default function JobNewScreen() {
       const d = fromJobPost(data);   // 웹 shape → 앱 shape
       setKind(d.kind); setTitle(d.title ?? ''); setBody(d.body ?? ''); setPayType(d.pay_type ?? 'hourly');
       setPay(d.pay ? String(d.pay) : ''); setWorkTime(d.work_time ?? ''); setContact(d.contact ?? ''); setDong(d.dong ?? null);
+      setAgeRange((data as any).age_range ?? ''); setGender((data as any).gender ?? '');
     });
   }, [editId]);
 
@@ -77,6 +80,7 @@ export default function JobNewScreen() {
       kind, title: title.trim(), body: body.trim() || null, pay_type: payType,
       pay: payType === 'negotiable' ? null : Math.max(parseInt(pay.replace(/[^0-9]/g, '') || '0', 10), 0) || null,
       work_time: workTime.trim() || null, contact: contact.trim() || null, dong,
+      age_range: ageRange || null, gender: gender || null,
     });
     const { error } = editId
       ? await supabase.from('job_posts').update(payload).eq('id', editId)
@@ -126,6 +130,29 @@ export default function JobNewScreen() {
         <TextInput style={[styles.input, { backgroundColor: c.card, borderColor: c.border, color: c.text, height: 120, textAlignVertical: 'top' }]} placeholder="상세 내용 (업무·자격·우대사항 등)" placeholderTextColor={c.textSecondary} value={body} onChangeText={setBody} multiline maxLength={5000} />
         <TextInput style={[styles.input, { backgroundColor: c.card, borderColor: c.border, color: c.text }]} placeholder="연락 방법 (선택 · 비우면 앱 채팅으로 받아요)" placeholderTextColor={c.textSecondary} value={contact} onChangeText={setContact} />
 
+        {kind === 'seeking' ? (
+          <View style={[styles.anonBox, { backgroundColor: c.primarySoft, borderColor: c.border }]}>
+            <Text style={{ color: c.primaryDeep, fontWeight: '800', fontSize: 12.5, marginBottom: 2 }}>🙈 익명 구직</Text>
+            <Text style={{ color: c.textSecondary, fontSize: 11.5, marginBottom: 10, lineHeight: 16 }}>이름·연락처는 공개되지 않아요. 사장님이 러브콜을 보내고 내가 수락하면 채팅이 열려요.</Text>
+            <Text style={[styles.label, { color: c.textSecondary }]}>나이대 (선택)</Text>
+            <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+              {JOB_AGEBANDS.map((a) => (
+                <Pressable key={a} onPress={() => setAgeRange((cur) => (cur === a ? '' : a))} style={[styles.chip, { backgroundColor: ageRange === a ? c.primary : c.card, borderColor: ageRange === a ? c.primary : c.border }]}>
+                  <Text style={{ color: ageRange === a ? c.onPrimary : c.text, fontWeight: '700', fontSize: 12.5 }}>{a}</Text>
+                </Pressable>
+              ))}
+            </View>
+            <Text style={[styles.label, { color: c.textSecondary }]}>성별 (선택)</Text>
+            <View style={{ flexDirection: 'row', gap: 6 }}>
+              {['남', '여'].map((g) => (
+                <Pressable key={g} onPress={() => setGender((cur) => (cur === g ? '' : g))} style={[styles.chip, { backgroundColor: gender === g ? c.primary : c.card, borderColor: gender === g ? c.primary : c.border }]}>
+                  <Text style={{ color: gender === g ? c.onPrimary : c.text, fontWeight: '700', fontSize: 12.5 }}>{g}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        ) : null}
+
         <Text style={[styles.label, { color: c.textSecondary }]}>동네 {dong ? '· 📍 자동감지됨' : '(위치 자동 — 직접 선택도 가능)'}</Text>
         <DongPicker value={dong} options={dongOptions} onChange={setDong} allLabel="동네 선택" />
         {msg ? <Text style={{ color: '#E5484D', fontWeight: '700', marginTop: 8 }}>{msg}</Text> : null}
@@ -143,4 +170,5 @@ const styles = StyleSheet.create({
   input: { borderWidth: 1, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15 },
   label: { fontSize: 12.5, fontWeight: '800', marginBottom: 8 },
   chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, borderWidth: 1 },
+  anonBox: { borderWidth: 1, borderRadius: 12, padding: 14 },
 });
