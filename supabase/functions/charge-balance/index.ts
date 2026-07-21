@@ -7,7 +7,8 @@ const SB_ANON = Deno.env.get('SUPABASE_ANON_KEY')!;
 const PORTONE_API_SECRET = Deno.env.get('PORTONE_API_SECRET')!;
 const STORE_ID = Deno.env.get('PORTONE_STORE_ID')!;
 
-const ALLOWED = [10000, 30000, 50000, 100000];
+// 충전 금액: 1만~200만, 1만원 단위 (관리자웹 CHARGE_AMOUNTS 100k~1M 포함)
+function validAmount(a: number) { return Number.isInteger(a) && a >= 10000 && a <= 2000000 && a % 10000 === 0; }
 
 function json(obj: unknown, status = 200) {
   return new Response(JSON.stringify(obj), { status, headers: { 'Content-Type': 'application/json' } });
@@ -22,7 +23,7 @@ Deno.serve(async (req) => {
   if (!uid) return json({ ok: false, reason: '로그인이 필요해요' }, 401);
 
   const { amount } = await req.json().catch(() => ({} as any));
-  if (!ALLOWED.includes(Number(amount))) return json({ ok: false, reason: '충전 금액이 올바르지 않아요' }, 400);
+  if (!validAmount(Number(amount))) return json({ ok: false, reason: '충전 금액이 올바르지 않아요' }, 400);
 
   const admin = createClient(SB_URL, SB_SERVICE, { auth: { persistSession: false, autoRefreshToken: false } });
 

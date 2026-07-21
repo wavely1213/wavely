@@ -60,11 +60,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loadProfile = async (userId: string) => {
     const sel = 'id,nickname,role,biz_verified,company_id,is_admin,friend_code,username,avatar_url,phone,place_pass_until,place_plan';
-    let { data } = await supabase.from('profiles').select(sel).eq('id', userId).maybeSingle();
+    // 본인 전체행은 my_profile() RPC로(ad_balance/is_admin 컬럼 SELECT 잠금 대응). 29 미적용 시 raw 폴백.
+    let data: any = null;
+    const r = await supabase.rpc('my_profile');
+    if (!r.error && r.data) data = r.data;
+    else ({ data } = await supabase.from('profiles').select(sel).eq('id', userId).maybeSingle());
     if (!data) {
       // 프로필이 없으면 자동 생성 후 재조회 (소셜 로그인·구 계정 안전장치 → 1계정=1프로필 보장)
       await supabase.rpc('ensure_profile');
-      ({ data } = await supabase.from('profiles').select(sel).eq('id', userId).maybeSingle());
+      const r2 = await supabase.rpc('my_profile');
+      if (!r2.error && r2.data) data = r2.data;
+      else ({ data } = await supabase.from('profiles').select(sel).eq('id', userId).maybeSingle());
     }
     setProfile((data as Profile) ?? null);
   };
