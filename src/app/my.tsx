@@ -50,7 +50,7 @@ export default function MyScreen() {
       const { data } = await supabase.from('market_items').select('id,title,price,status,images,created_at').eq('seller_id', me).order('created_at', { ascending: false }).limit(100);
       setMarket((data as any[]) ?? []);
     } else if (tab === 'jobs') {
-      const { data } = await supabase.from('jobs').select('id,kind,title,status,created_at').eq('author_id', me).order('created_at', { ascending: false }).limit(100);
+      const { data } = await supabase.from('job_posts').select('id,kind,title,status,created_at').eq('author_id', me).order('created_at', { ascending: false }).limit(100);
       setJobs((data as any[]) ?? []);
     }
     setLoading(false);
@@ -133,7 +133,7 @@ export default function MyScreen() {
             <Pressable key={j.id} onPress={() => router.push(`/jobs/${j.id}`)} style={[styles.row, { borderColor: c.border, opacity: j.status === 'closed' ? 0.55 : 1 }]}>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.rowTitle, { color: c.text }]} numberOfLines={1}>{j.title}</Text>
-                <Text style={[styles.rowSub, { color: c.textSecondary }]}>{j.kind === 'hiring' ? '🙋 구인' : '✋ 구직'}{j.status === 'closed' ? ' · 마감' : ' · 모집중'}</Text>
+                <Text style={[styles.rowSub, { color: c.textSecondary }]}>{j.kind === 'seek' || j.kind === 'seeking' ? '✋ 구직' : '🙋 구인'}{j.status === 'closed' ? ' · 마감' : ' · 모집중'}</Text>
               </View>
               <Text style={{ color: c.textSecondary, fontSize: 18 }}>›</Text>
             </Pressable>

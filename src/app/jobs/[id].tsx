@@ -9,7 +9,7 @@ import { Colors } from '@/constants/theme';
 import { useScheme } from '@/lib/theme';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
-import { PAY_TYPES } from '../jobs';
+import { PAY_TYPES, fromJobPost } from '../jobs';
 
 type Job = {
   id: string; author_id: string; kind: string; title: string; body: string | null; store_id: string | null;
@@ -39,17 +39,17 @@ export default function JobDetail() {
     // 비로그인은 본문·연락처·작성자 정보 열람 불가 → 기본 정보만
     const cols = session
       ? '*,profiles:author_id(nickname,avatar_url)'
-      : 'id,author_id,kind,title,pay_type,pay,work_time,dong,status,created_at';
-    const { data, error } = await supabase.from('jobs').select(cols).eq('id', id).single();
+      : 'id,author_id,kind,title,wage,wage_type,work_time,dong,status,created_at';
+    const { data, error } = await supabase.from('job_posts').select(cols).eq('id', id).single();
     if (error && error.code !== 'PGRST116') { setFailed(true); setLoading(false); return; }
-    setJob((data as unknown as Job) ?? null);
+    setJob((fromJobPost(data) as unknown as Job) ?? null);   // 웹 shape → 앱 shape
     setLoading(false);
   }, [id, session]);
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
   const mine = !!session && job?.author_id === session.user.id;
-  const toggleStatus = async () => { await supabase.from('jobs').update({ status: job!.status === 'open' ? 'closed' : 'open' }).eq('id', id); load(); };
-  const del = async () => { await supabase.from('jobs').delete().eq('id', id); router.back(); };
+  const toggleStatus = async () => { await supabase.from('job_posts').update({ status: job!.status === 'open' ? 'closed' : 'open' }).eq('id', id); load(); };
+  const del = async () => { await supabase.from('job_posts').delete().eq('id', id); router.back(); };
   const chat = async () => {
     if (!session) { router.replace('/login'); return; }
     if (!job || chatBusy) return;

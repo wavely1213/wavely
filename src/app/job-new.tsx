@@ -10,7 +10,7 @@ import { Colors } from '@/constants/theme';
 import { useScheme } from '@/lib/theme';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
-import { PAY_TYPES } from './jobs';
+import { PAY_TYPES, fromJobPost, toJobPost } from './jobs';
 
 export default function JobNewScreen() {
   const scheme = useScheme();
@@ -59,10 +59,11 @@ export default function JobNewScreen() {
 
   useEffect(() => {
     if (!editId) return;
-    supabase.from('jobs').select('*').eq('id', editId).single().then(({ data }) => {
+    supabase.from('job_posts').select('*').eq('id', editId).single().then(({ data }) => {
       if (!data) return;
-      setKind(data.kind); setTitle(data.title ?? ''); setBody(data.body ?? ''); setPayType(data.pay_type ?? 'hourly');
-      setPay(data.pay ? String(data.pay) : ''); setWorkTime(data.work_time ?? ''); setContact(data.contact ?? ''); setDong(data.dong ?? null);
+      const d = fromJobPost(data);   // 웹 shape → 앱 shape
+      setKind(d.kind); setTitle(d.title ?? ''); setBody(d.body ?? ''); setPayType(d.pay_type ?? 'hourly');
+      setPay(d.pay ? String(d.pay) : ''); setWorkTime(d.work_time ?? ''); setContact(d.contact ?? ''); setDong(d.dong ?? null);
     });
   }, [editId]);
 
@@ -71,16 +72,17 @@ export default function JobNewScreen() {
     if (!session) { router.replace('/login'); return; }
     if (!title.trim()) { setMsg('제목을 입력해주세요'); return; }
     setBusy(true);
-    const payload = {
+    // 앱 입력 → 웹 job_posts payload 변환(어댑터). 구인(hire)은 job_posts RLS가 owner/staff만 허용(서버강제).
+    const payload = toJobPost({
       kind, title: title.trim(), body: body.trim() || null, pay_type: payType,
       pay: payType === 'negotiable' ? null : Math.max(parseInt(pay.replace(/[^0-9]/g, '') || '0', 10), 0) || null,
       work_time: workTime.trim() || null, contact: contact.trim() || null, dong,
-    };
+    });
     const { error } = editId
-      ? await supabase.from('jobs').update(payload).eq('id', editId)
-      : await supabase.from('jobs').insert({ author_id: session.user.id, ...payload });
+      ? await supabase.from('job_posts').update(payload).eq('id', editId)
+      : await supabase.from('job_posts').insert({ author_id: session.user.id, ...payload });
     setBusy(false);
-    if (error) { setMsg('등록 실패: ' + error.message); return; }
+    if (error) { setMsg(/policy|row-level|permission/i.test(error.message) ? '구인 공고는 사장님·직장인만 올릴 수 있어요.' : '등록 실패: ' + error.message); return; }
     router.replace('/jobs');
   };
 

@@ -13,6 +13,25 @@ import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 
 export const PAY_TYPES: Record<string, string> = { hourly: '시급', daily: '일급', monthly: '월급', negotiable: '협의' };
 
+// 웹 공유 테이블 job_posts ↔ 앱 내부 shape 어댑터 (앱 UI는 그대로, 데이터만 변환).
+// 웹: kind hire/seek · wage_type '시급'/'일급'/'월급'/'협의' · wage. 앱: kind hiring/seeking · pay_type hourly/… · pay.
+const WAGE_TO_PAYTYPE: Record<string, string> = { 시급: 'hourly', 일급: 'daily', 월급: 'monthly', 협의: 'negotiable' };
+const PAYTYPE_TO_WAGE: Record<string, string> = { hourly: '시급', daily: '일급', monthly: '월급', negotiable: '협의' };
+export function fromJobPost(r: any): any {
+  if (!r) return r;
+  return { ...r, kind: r.kind === 'seek' ? 'seeking' : 'hiring', pay_type: WAGE_TO_PAYTYPE[r.wage_type ?? ''] ?? 'hourly', pay: r.wage ?? null };
+}
+export function toJobPost(p: any): any {
+  return {
+    kind: p.kind === 'seeking' ? 'seek' : 'hire',
+    title: p.title, body: p.body ?? null,
+    wage: p.pay_type === 'negotiable' ? null : (p.pay ?? null), wage_type: PAYTYPE_TO_WAGE[p.pay_type ?? ''] ?? '시급',
+    work_time: p.work_time ?? null, contact: p.contact ?? null, dong: p.dong ?? null,
+  };
+}
+// job_posts 목록 select 컬럼(앱 목록용). 웹 JOB_SELECT와 호환.
+export const JOBPOST_LIST_COLS = 'id,kind,title,wage,wage_type,work_time,dong,status,created_at';
+
 type Job = { id: string; kind: string; title: string; pay_type: string | null; pay: number | null; work_time: string | null; dong: string | null; status: string; created_at: string };
 
 function ago(iso: string) {
@@ -45,12 +64,12 @@ export default function JobsScreen() {
     if (!isSupabaseConfigured) { setLoading(false); return; }
     setLoading(true);
     supabase.rpc('dong_list').then(({ data }) => setDongOptions(mergeDongs(((data as any[]) ?? []).map((d) => d.dong))));
-    let q = supabase.from('jobs').select('id,kind,title,pay_type,pay,work_time,dong,status,created_at').order('created_at', { ascending: false }).limit(60);
-    if (kind !== 'all') q = q.eq('kind', kind);
+    let q = supabase.from('job_posts').select(JOBPOST_LIST_COLS).eq('status', 'open').order('boost', { ascending: false }).order('created_at', { ascending: false }).limit(60);
+    if (kind !== 'all') q = q.eq('kind', kind === 'hiring' ? 'hire' : 'seek');   // 앱 kind → 웹 kind
     if (dong) q = q.eq('dong', dong);
     if (debSearch.trim()) q = q.ilike('title', `%${debSearch.trim()}%`);
     const { data } = await q;
-    setJobs((data as Job[]) ?? []);
+    setJobs(((data as any[]) ?? []).map(fromJobPost) as Job[]);   // 웹 shape → 앱 shape
     setLoading(false);
   }, [kind, dong, debSearch]);
   useFocusEffect(useCallback(() => { load(); }, [load]));
