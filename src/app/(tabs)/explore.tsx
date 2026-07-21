@@ -240,8 +240,8 @@ export default function StoresScreen() {
     if (!isSupabaseConfigured) { setLoading(false); return; }
     setLoading(true);
     const from = (page - 1) * PAGE_SIZE;
-    const mq = supabase.from('stores').select('id,name,category,categories,address,biz_verified,photo,is_ad,ad_weight,rating,review_count,lat,lng').not('owner_id', 'is', null).not('is_probe', 'is', true).limit(50);
-    let pq = supabase.from('places').select('id,name,category,address,main_cat,lat,lng', { count: 'exact' });
+    const mq = supabase.from('stores').select('id,name,category,categories,address,biz_verified,photo,is_ad,ad_weight,rating,review_count,lat,lng,n_score').not('owner_id', 'is', null).not('is_probe', 'is', true).limit(50);
+    let pq = supabase.from('places').select('id,name,category,address,main_cat,lat,lng,n_score', { count: 'exact' });
     if (main) pq = pq.eq('main_cat', main);
     if (sub) pq = pq.ilike('category', `%${sub}%`);
     if (search.trim()) pq = pq.ilike('name', `%${search.trim()}%`);
@@ -251,21 +251,16 @@ export default function StoresScreen() {
       const dLng = radius / (111 * Math.cos((loc.lat * Math.PI) / 180));
       pq = pq.gte('lat', loc.lat - dLat).lte('lat', loc.lat + dLat).gte('lng', loc.lng - dLng).lte('lng', loc.lng + dLng);
     }
-    pq = pq.order('name').range(from, from + PAGE_SIZE - 1);
+    pq = pq.order('n_score', { ascending: false, nullsFirst: false }).order('review_count', { ascending: false, nullsFirst: false }).order('name').range(from, from + PAGE_SIZE - 1);   // N지수 우선(웹 파리티), 없으면 리뷰·이름
     const [{ data: m }, pr] = await Promise.all([mq, pq]);
     const mem = (m as Store[]) ?? [];
     setMembers(mem);
     setPlaces((pr.data as Place[]) ?? []);
     setTotal(pr.count ?? 0);
-    // 등록매장 N지수(최신 n3) 로드 — 상위노출 가중치용
-    const ids = mem.map((s) => s.id);
-    if (ids.length) {
-      const { data: na } = await supabase.from('place_analysis')
-        .select('store_id,n3,analyzed_at').in('store_id', ids).order('analyzed_at', { ascending: false });
-      const nb: Record<string, number> = {};
-      for (const r of (na ?? []) as any[]) { if (!(r.store_id in nb) && r.n3 != null) nb[r.store_id] = r.n3; }
-      setNByStore(nb);
-    }
+    // 등록매장 N지수 = stores.n_score(종합 N지수 캐시, 대량분석/분석이 채움) — 웹과 동일 소스.
+    const nb: Record<string, number> = {};
+    for (const s of mem) { const v = (s as any).n_score; if (v) nb[s.id] = v; }
+    setNByStore(nb);
     // 활성 플레이스/랭크 광고 → store_id→ad_id 매핑 (부스트 매장 클릭 시 CPC 과금 신호용).
     // 공개 RPC(active_ads_public)는 입찰가·소유자 비노출. 실패해도 목록엔 영향 없음.
     try {
