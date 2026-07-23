@@ -170,4 +170,37 @@ drop policy if exists conv_members_visible on public.conversation_members;
 create policy conv_members_visible on public.conversation_members for select to authenticated
   using (public.is_conv_member(conversation_id));
 
+
+-- ========================== [H5] 무료 비즈머니 일일한도 TOCTOU 잠금 ==========
+-- _earn_biz가 read(count/sum)-then-write라 동시호출 시 일일캡 소폭 초과 가능(red-team low).
+-- 유저 단위 advisory 트랜잭션 락으로 직렬화 — 같은 유저의 적립은 한 번에 하나씩만.
+create or replace function public._earn_biz(p_user uuid, p_action text)
+returns int language plpgsql security definer set search_path=public as $$
+declare amt int; per_cap int; cnt int; tot int; daily_cap int := 200; newbal int;
+begin
+  if p_user is null then return 0; end if;
+  if not exists (select 1 from public.stores where owner_id = p_user) then return 0; end if;
+  perform pg_advisory_xact_lock(hashtext('earn:' || p_user::text));   -- ★ 유저 직렬화(TOCTOU 차단)
+  if    p_action='post'       then amt:=50; per_cap:=3;
+  elsif p_action='chat'       then amt:=10; per_cap:=10;
+  elsif p_action='attendance' then amt:=30; per_cap:=1;
+  else return 0; end if;
+  perform public._expire_free(p_user);
+  select count(*) into cnt from public.ad_ledger
+   where user_id=p_user and type='reward' and memo=p_action
+     and (created_at at time zone 'Asia/Seoul')::date = (now() at time zone 'Asia/Seoul')::date;
+  if cnt >= per_cap then return 0; end if;
+  select coalesce(sum(amount),0) into tot from public.ad_ledger
+   where user_id=p_user and type='reward'
+     and (created_at at time zone 'Asia/Seoul')::date = (now() at time zone 'Asia/Seoul')::date;
+  if tot + amt > daily_cap then amt := daily_cap - tot; end if;
+  if amt <= 0 then return 0; end if;
+  update public.profiles
+     set ad_balance = ad_balance + amt, ad_free = ad_free + amt, ad_free_expires_at = now() + interval '365 days'
+   where id = p_user returning ad_balance into newbal;
+  insert into public.ad_ledger(user_id, type, amount, balance_after, ref, memo)
+    values (p_user, 'reward', amt, newbal, p_action, p_action);
+  return amt;
+end; $$;
+
 notify pgrst, 'reload schema';
