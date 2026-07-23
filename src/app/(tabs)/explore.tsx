@@ -93,6 +93,38 @@ function kmBetween(lat1: number, lng1: number, lat2: number, lng2: number): numb
   return 2 * R * Math.asin(Math.sqrt(a));
 }
 
+// 광고 타게팅 뷰어 컨텍스트(성별·나이·집동 + 실위치). 웹 app.jsx viewerCtx 파리티.
+// 앱엔 DONG_COORDS가 없어 집동→좌표 폴백은 생략(home_lat/lng 있으면 사용). 정보 전무=노출(도달 극대화).
+function adViewerCtx(profile: any, myGeo: { lat: number; lng: number } | null) {
+  const p = profile || {};
+  const geo = myGeo ?? (p.home_lat != null && p.home_lng != null ? { lat: p.home_lat, lng: p.home_lng } : null);
+  return { gender: p.gender || null, birthYear: p.birth_year || null, dong: p.home_dong || null, geo };
+}
+// 광고가 이 뷰어에게 노출돼야 하나(클라 타게팅). target_* 필드가 없으면(32 미적용) 전부 통과 → degrade-safe.
+function adMatchesViewer(ad: any, v: any): boolean {
+  if (!ad) return false;
+  v = v || {};
+  if (ad.target_gender && ad.target_gender !== 'all' && v.gender && v.gender !== ad.target_gender) return false;
+  if (v.birthYear) {
+    const age = new Date().getFullYear() - v.birthYear;
+    if (ad.target_age_min != null && age < ad.target_age_min) return false;
+    if (ad.target_age_max != null && age > ad.target_age_max) return false;
+  }
+  const dongs = Array.isArray(ad.target_dongs) ? ad.target_dongs.filter(Boolean) : (ad.target_dong ? [ad.target_dong] : []);
+  const rad = ad.target_radius_km;
+  const hasDong = dongs.length > 0;
+  const hasRad = rad != null && ad.store_lat != null && ad.store_lng != null;
+  if (hasDong || hasRad) {
+    const knowViewer = !!v.dong || (v.geo && v.geo.lat != null);
+    if (!knowViewer) return true;   // 뷰어 위치 미상 = 노출(웹과 동일 정책)
+    let ok = false;
+    if (hasDong && v.dong && dongs.includes(v.dong)) ok = true;
+    if (!ok && hasRad && v.geo && v.geo.lat != null && kmBetween(ad.store_lat, ad.store_lng, v.geo.lat, v.geo.lng) <= rad) ok = true;
+    if (!ok) return false;
+  }
+  return true;
+}
+
 // 현재 위치 (웹: navigator, 네이티브: expo-location). 실패 시 null.
 async function getMyLocation(): Promise<{ lat: number; lng: number } | null> {
   try {
@@ -266,10 +298,11 @@ export default function StoresScreen() {
     // 활성 플레이스/랭크 광고 → store_id→ad_id 매핑 (부스트 매장 클릭 시 CPC 과금 신호용).
     // 공개 RPC(active_ads_public)는 입찰가·소유자 비노출. 실패해도 목록엔 영향 없음.
     try {
+      const viewer = adViewerCtx(profile, myLoc);   // 타게팅 뷰어(성별·나이·동·위치). 웹 파리티 — 타겟밖이면 부스트·과금 제외.
       const { data: ads } = await supabase.rpc('active_ads_public');
       const ab: Record<string, { id: string; keyword: string | null }> = {};
       for (const a of (ads ?? []) as any[]) {
-        if ((a.format === 'place' || a.format === 'rank') && a.store_id && !ab[a.store_id]) ab[a.store_id] = { id: a.id, keyword: null };
+        if ((a.format === 'place' || a.format === 'rank') && a.store_id && !ab[a.store_id] && adMatchesViewer(a, viewer)) ab[a.store_id] = { id: a.id, keyword: null };
       }
       // 키워드 검색 시: 그 키워드를 타게팅한 플레이스 광고를 우선 매핑(키워드별 단가로 과금) + 상위노출
       const kwStores = new Set<string>();
@@ -277,14 +310,14 @@ export default function StoresScreen() {
       if (qq) {
         const { data: kads } = await supabase.rpc('active_ads_public', { p_keyword: qq });
         for (const a of (kads ?? []) as any[]) {
-          if (a.store_id) { ab[a.store_id] = { id: a.id, keyword: a.keyword || qq }; kwStores.add(a.store_id); }
+          if (a.store_id && adMatchesViewer(a, viewer)) { ab[a.store_id] = { id: a.id, keyword: a.keyword || qq }; kwStores.add(a.store_id); }
         }
       }
       setAdByStore(ab);
       setAdKwStores(kwStores);
     } catch {}
     setLoading(false);
-  }, [main, sub, debSearch, page, radius, myLoc]);
+  }, [main, sub, debSearch, page, radius, myLoc, profile]);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
