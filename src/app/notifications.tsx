@@ -8,6 +8,7 @@ import { Colors } from '@/constants/theme';
 import { Icon } from '@/components/Icon';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
+import { resolveNotiRoute } from '@/lib/notiRoute';
 
 function ago(iso: string) {
   const diff = (Date.now() - new Date(iso).getTime()) / 1000;
@@ -38,10 +39,9 @@ export default function NotificationsScreen() {
 
   const goBack = () => (router.canGoBack() ? router.back() : router.replace('/'));
   const open = (n: any) => {
-    // 서버/DB에서 온 링크는 신뢰하지 않고 내부 경로(/로 시작)만 허용 — 잘못된 값으로 인한 크래시 방지
-    if (typeof n?.link === 'string' && n.link.startsWith('/')) {
-      try { router.push(n.link as any); } catch {}
-    }
+    // 서버/DB 링크는 신뢰하지 않고 앱 실존 라우트로만 해석(웹경로 매핑·화이트리스트) — not-found·크래시 방지
+    const route = resolveNotiRoute(n?.link);
+    if (route) { try { router.push(route as any); } catch {} }
   };
   const clearAll = async () => { if (session) { await supabase.from('notifications').delete().eq('user_id', session.user.id); load(); } };
 

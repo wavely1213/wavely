@@ -88,7 +88,7 @@ export default function ChatRoom() {
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${id}` }, (payload) => {
         setMessages((prev) => (prev.some((m) => m.id === (payload.new as any).id) ? prev : [...prev, payload.new as Msg]));
       })
-      .subscribe();
+      .subscribe((status) => { if (status === 'CHANNEL_ERROR' || status === 'CLOSED' || status === 'TIMED_OUT') load(); });   // 구독 끊기면 재조회로 누락 복구
     return () => { supabase.removeChannel(channel); };
   }, [id]);
 
@@ -98,8 +98,10 @@ export default function ChatRoom() {
     const t = text.trim();
     if (!t || !session) return;
     setSending(true); setText(''); setSendErr(false);
-    const { error } = await supabase.from('messages').insert({ conversation_id: id, sender_id: session.user.id, sender_nick: profile?.nickname ?? '회원', body: t });
+    // 삽입행을 즉시 받아 낙관적 표시(실시간 지연/드롭에도 내 메시지가 바로 보임). realtime은 id로 dedup.
+    const { data: row, error } = await supabase.from('messages').insert({ conversation_id: id, sender_id: session.user.id, sender_nick: profile?.nickname ?? '회원', body: t }).select().single();
     if (error) { setText(t); setSendErr(true); setSending(false); return; } // 실패 시 입력 복원 (메시지 유실 방지)
+    if (row) setMessages((prev) => (prev.some((m) => m.id === (row as any).id) ? prev : [...prev, row as Msg]));
     await supabase.from('conversations').update({ last_message: t, last_at: new Date().toISOString() }).eq('id', id);
     supabase.rpc('earn_biz_money', { p_action: 'chat' }).then(() => {}, () => {}); // 사장님 채팅 적립(서버 일일한도). 비사장님/한도초과는 0 반환
     setSending(false);

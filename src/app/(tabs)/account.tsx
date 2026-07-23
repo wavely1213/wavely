@@ -93,7 +93,7 @@ export default function AccountScreen() {
           {profile.is_admin && <Row icon="📄" label="사업자 검토 (관리자)" onPress={() => router.push('/admin-biz')} />}
 
           <Text style={[styles.menuHead, { color: c.textSecondary }]}>설정</Text>
-          <Row icon="settings" label="설정 (알림·약관·문의·탈퇴)" onPress={() => router.push('/settings')} />
+          <Row icon="settings" label="설정 (테마·약관·문의·탈퇴)" onPress={() => router.push('/settings')} />
           <Row icon="🚪" label="로그아웃" onPress={signOut} danger />
         </ScrollView>
       </SafeAreaView>

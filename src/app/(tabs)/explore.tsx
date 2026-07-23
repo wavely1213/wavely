@@ -216,6 +216,8 @@ export default function StoresScreen() {
   const [main, setMain] = useState<string | null>(null);
   const [sub, setSub] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  const [debSearch, setDebSearch] = useState('');   // DB쿼리용 디바운스(입력은 즉시, 쿼리는 350ms 후)
+  useEffect(() => { const t = setTimeout(() => setDebSearch(search), 350); return () => clearTimeout(t); }, [search]);
   const [places, setPlaces] = useState<Place[]>([]);
   const [members, setMembers] = useState<Store[]>([]);
   const [nByStore, setNByStore] = useState<Record<string, number>>({});   // 등록매장 N지수(n3) — 상위노출 가중
@@ -244,7 +246,7 @@ export default function StoresScreen() {
     let pq = supabase.from('places').select('id,name,category,address,main_cat,lat,lng,n_score', { count: 'exact' });
     if (main) pq = pq.eq('main_cat', main);
     if (sub) pq = pq.ilike('category', `%${sub}%`);
-    if (search.trim()) pq = pq.ilike('name', `%${search.trim()}%`);
+    if (debSearch.trim()) pq = pq.ilike('name', `%${debSearch.trim()}%`);
     if (radius) {
       // 반경(km) → 위경도 박스 (일반 장소는 보너스 없이 반경 그대로)
       const dLat = radius / 111;
@@ -271,7 +273,7 @@ export default function StoresScreen() {
       }
       // 키워드 검색 시: 그 키워드를 타게팅한 플레이스 광고를 우선 매핑(키워드별 단가로 과금) + 상위노출
       const kwStores = new Set<string>();
-      const qq = search.trim();
+      const qq = debSearch.trim();
       if (qq) {
         const { data: kads } = await supabase.rpc('active_ads_public', { p_keyword: qq });
         for (const a of (kads ?? []) as any[]) {
@@ -282,7 +284,7 @@ export default function StoresScreen() {
       setAdKwStores(kwStores);
     } catch {}
     setLoading(false);
-  }, [main, sub, search, page, radius, myLoc]);
+  }, [main, sub, debSearch, page, radius, myLoc]);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
 

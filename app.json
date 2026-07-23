@@ -25,7 +25,8 @@
         "POST_NOTIFICATIONS"
       ],
       "blockedPermissions": [
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.CAMERA"
       ],
       "adaptiveIcon": {
         "backgroundColor": "#7A2BC4",

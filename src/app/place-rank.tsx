@@ -476,7 +476,7 @@ export default function PlaceRankScreen() {
                 {/* 잔여/유료 상태 (관리자는 지갑 무제한 → 프리미엄과 동일 표시. 런칭빌드에 dev 표식·결제우회 버튼 없음) */}
                 <Text style={{ color: isAdmin || paid ? c.primary : (freeLeft > 0 ? c.textSecondary : '#E5484D'), fontSize: 11.5, marginTop: 6, textAlign: 'center', fontWeight: '700' }}>
                   {(isAdmin || premium) ? '프리미엄 — 무제한 + 경쟁사 분석' : paid ? '월 구독 — 본인 매장 무제한' : freeLeft > 0 ? '이번 주 무료 분석 1회 남음 (7일 1회)' : PAY_AVAILABLE ? '이번 주 무료 분석 소진 — 구독으로 계속하기' : '이번 주 무료 분석 소진 (다음 주 재개)'}
-                  {!isAdmin && !paid && freeLeft <= 0 ? <Text onPress={() => setPayReason('weekly')} style={{ color: c.primary }}>  구독 →</Text> : null}
+                  {PAY_AVAILABLE && !isAdmin && !paid && freeLeft <= 0 ? <Text onPress={() => setPayReason('weekly')} style={{ color: c.primary }}>  구독 →</Text> : null}
                 </Text>
               </>
             ) : (

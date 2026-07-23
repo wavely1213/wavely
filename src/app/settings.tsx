@@ -88,7 +88,7 @@ export default function SettingsScreen() {
                 · 계정이 비활성화되고 다시 로그인할 수 없어요{'\n'}
                 · 닉네임은 ‘탈퇴회원’으로 바뀌고, 작성한 글·리뷰는 익명으로 남아요{'\n'}
                 · 사업자 인증·소속 정보는 삭제돼요{'\n'}
-                · 보유 중인 광고 잔액·이용권은 환불·이전되지 않고 소멸돼요 (환불은 탈퇴 전 biz@wavely.kr로 신청)
+                · 보유 중인 광고 잔액·이용권은 환불·이전되지 않고 소멸돼요 (환불은 탈퇴 전 wavely1213@mulgyeol.kr로 신청)
               </Text>
               {err ? <Text style={{ color: '#E5484D', fontWeight: '700', fontSize: 12, marginTop: 6 }}>{err}</Text> : null}
               <View style={{ flexDirection: 'row', gap: 8, marginTop: 12 }}>
