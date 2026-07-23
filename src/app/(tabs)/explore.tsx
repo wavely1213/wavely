@@ -250,6 +250,7 @@ export default function StoresScreen() {
   const [search, setSearch] = useState('');
   const [debSearch, setDebSearch] = useState('');   // DB쿼리용 디바운스(입력은 즉시, 쿼리는 350ms 후)
   useEffect(() => { const t = setTimeout(() => setDebSearch(search), 350); return () => clearTimeout(t); }, [search]);
+  const [sortMode, setSortMode] = useState<'reco' | 'near'>('reco');   // 추천순(노출점수) / 가까운순(거리, 유료 상단유지) — 웹 파리티
   const [places, setPlaces] = useState<Place[]>([]);
   const [members, setMembers] = useState<Store[]>([]);
   const [nByStore, setNByStore] = useState<Record<string, number>>({});   // 등록매장 N지수(n3) — 상위노출 가중
@@ -431,6 +432,10 @@ export default function StoresScreen() {
     setRadius(r); setPage(1);
     if (r && !myLoc) getMyLocation().then((p) => { if (p) setMyLoc(p); else setLocDenied(true); });
   };
+  const chooseSort = (m: 'reco' | 'near') => {
+    setSortMode(m); setPage(1);
+    if (m === 'near' && !myLoc) getMyLocation().then((p) => { if (p) setMyLoc(p); else setLocDenied(true); });   // 가까운순엔 내 위치 필요
+  };
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const subList = main ? (SUBS[main] ?? []) : [];
   const canRegister = profile?.role === 'owner';
@@ -456,8 +461,18 @@ export default function StoresScreen() {
         }
         return true;
       })
-      .sort((a, b) => memberScore(b) - memberScore(a)); // N지수 포함 복합 노출점수 순
-  }, [members, nByStore, adKwStores, search, main, sub, onlyVerified, radius, myLoc]);
+      .sort((a, b) => {
+        if (sortMode === 'near') {
+          // 가까운순: 유료(광고) 매장은 상단 유지(웹 정책), 그다음 거리 오름차순. 좌표없으면 뒤로.
+          const pa = (adKwStores.has(a.id) || a.is_ad) ? 1 : 0, pb = (adKwStores.has(b.id) || b.is_ad) ? 1 : 0;
+          if (pa !== pb) return pb - pa;
+          const da = a.lat != null && a.lng != null ? kmBetween(loc.lat, loc.lng, a.lat, a.lng) : Infinity;
+          const db = b.lat != null && b.lng != null ? kmBetween(loc.lat, loc.lng, b.lat, b.lng) : Infinity;
+          return da - db;
+        }
+        return memberScore(b) - memberScore(a); // 추천순: N지수 포함 복합 노출점수
+      });
+  }, [members, nByStore, adKwStores, search, main, sub, onlyVerified, radius, myLoc, sortMode]);
 
   // 네이티브(앱) 지도 마커 데이터 — 웹 지도는 별도 useEffect에서 그림
   const nativeMapItems = useMemo<DongMapItem[]>(() => {
@@ -544,8 +559,14 @@ export default function StoresScreen() {
         {search ? <Pressable onPress={() => onSearch('')} hitSlop={8}><Icon name="x" size={16} color={c.textSecondary} /></Pressable> : null}
       </View>
 
-      {/* 인증 토글 + 반경 필터 한 줄 (칩 스타일 통일) */}
+      {/* 정렬(추천순/가까운순) + 인증 토글 + 반경 필터 한 줄 */}
       <View style={styles.filterBar}>
+        <Pressable onPress={() => chooseSort('reco')} style={[styles.filterChip, { backgroundColor: sortMode === 'reco' ? c.primary : c.background, borderColor: sortMode === 'reco' ? c.primary : c.border }]}>
+          <Text style={[styles.filterTxt, { color: sortMode === 'reco' ? c.onPrimary : c.textSecondary }]}>추천순</Text>
+        </Pressable>
+        <Pressable onPress={() => chooseSort('near')} style={[styles.filterChip, { backgroundColor: sortMode === 'near' ? c.primary : c.background, borderColor: sortMode === 'near' ? c.primary : c.border }]}>
+          <Text style={[styles.filterTxt, { color: sortMode === 'near' ? c.onPrimary : c.textSecondary }]}>가까운순</Text>
+        </Pressable>
         <Pressable onPress={toggleVerified} style={[styles.filterChip, { backgroundColor: onlyVerified ? c.verify : c.background, borderColor: onlyVerified ? c.verify : c.border }]}>
           <Text style={[styles.filterTxt, { color: onlyVerified ? '#fff' : c.textSecondary }]}>{onlyVerified ? '✓ ' : ''}인증매장</Text>
         </Pressable>
