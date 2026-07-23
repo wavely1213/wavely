@@ -32,6 +32,9 @@ export default function SecurityScreen() {
     if (newPw.length < 6) { setPwMsg('새 비밀번호는 6자 이상이에요'); return; }
     if (newPw !== confirmPw) { setPwMsg('새 비밀번호가 일치하지 않아요'); return; }
     if (newPw === curPw) { setPwMsg('현재 비밀번호와 다른 비밀번호를 입력해주세요'); return; }
+    // 소셜 로그인 계정은 비밀번호가 없어 재인증이 항상 실패 → 오해 방지 안내
+    const provider = (session.user as any)?.app_metadata?.provider;
+    if (provider && provider !== 'email') { setPwMsg('소셜 로그인(카카오·네이버·Apple) 계정은 비밀번호가 없어요. 해당 서비스에서 관리해주세요.'); return; }
     setPwBusy(true);
     // 현재 비밀번호 검증 — 재인증 (남이 세션만으로 비번 못 바꾸게)
     const { error: vErr } = await supabase.auth.signInWithPassword({ email: session.user.email ?? '', password: curPw });

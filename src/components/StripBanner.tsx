@@ -27,11 +27,12 @@ export function StripBanner({ scheme, mainCat }: { scheme: 'light' | 'dark'; mai
   useEffect(() => {
     if (!isSupabaseConfigured) return;
     let alive = true;
-    // 공개 RPC: 활성 배너만 (입찰가·결제정보 비노출). 누구나(비로그인 포함) 조회 가능.
-    supabase.rpc('active_banners').then(({ data }) => {
+    // 공개 RPC active_ads_public(웹과 동일 소스): 활성광고 중 배너만 필터. 입찰가·결제정보 비노출, 일정창(starts/ends) 서버 반영.
+    // (구 active_banners는 미버전화라 폐기. 타게팅 뷰어필터는 viewer 컨텍스트 prop이 필요해 후속.)
+    supabase.rpc('active_ads_public').then(({ data }) => {
       if (!alive) return;
-      const rows = ((data as any[]) ?? []).filter((b) => b.banner_image);
-      setBanners(rows.map((b) => ({ id: b.id, banner_image: b.banner_image, headline: b.headline, store_id: b.store_id, stores: { name: b.store_name, category: b.store_category } })));
+      const rows = ((data as any[]) ?? []).filter((b) => b.format === 'banner' && b.banner_image);
+      setBanners(rows.map((b) => ({ id: b.id, banner_image: b.banner_image, headline: b.headline, store_id: b.store_id, stores: { name: b.stores?.name ?? null, category: b.stores?.category ?? null } })));
     });
     return () => { alive = false; };
   }, []);
