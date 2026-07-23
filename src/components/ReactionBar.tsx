@@ -42,25 +42,25 @@ export function ReactionBar({ targetType, targetId, title, sharePath }: Props) {
   const toggleLike = async () => {
     if (!session) { router.push('/login'); return; }
     if (busy) return; setBusy(true);
-    if (liked) {
-      setLiked(false); setLikeCount((n) => Math.max(0, n - 1));
-      await supabase.from('likes').delete().eq('target_type', targetType).eq('target_id', tid).eq('user_id', session.user.id);
-    } else {
-      setLiked(true); setLikeCount((n) => n + 1);
-      await supabase.from('likes').insert({ target_type: targetType, target_id: tid, user_id: session.user.id });
-    }
+    const was = liked;
+    setLiked(!was); setLikeCount((n) => Math.max(0, n + (was ? -1 : 1)));   // 낙관적
+    const { error } = was
+      ? await supabase.from('likes').delete().eq('target_type', targetType).eq('target_id', tid).eq('user_id', session.user.id)
+      : await supabase.from('likes').insert({ target_type: targetType, target_id: tid, user_id: session.user.id });
+    if (error && !/duplicate|23505/i.test(error.message)) { setLiked(was); setLikeCount((n) => Math.max(0, n + (was ? 1 : -1))); }   // 실패 롤백(중복키는 정상 흡수)
     setBusy(false);
   };
 
   const toggleScrap = async () => {
     if (!session) { router.push('/login'); return; }
-    if (scrapped) {
-      setScrapped(false);
-      await supabase.from('scraps').delete().eq('target_type', targetType).eq('target_id', tid).eq('user_id', session.user.id);
-    } else {
-      setScrapped(true);
-      await supabase.from('scraps').insert({ target_type: targetType, target_id: tid, user_id: session.user.id });
-    }
+    if (busy) return; setBusy(true);   // 중복탭 레이스 방지
+    const was = scrapped;
+    setScrapped(!was);
+    const { error } = was
+      ? await supabase.from('scraps').delete().eq('target_type', targetType).eq('target_id', tid).eq('user_id', session.user.id)
+      : await supabase.from('scraps').insert({ target_type: targetType, target_id: tid, user_id: session.user.id });
+    if (error && !/duplicate|23505/i.test(error.message)) setScrapped(was);   // 실패 롤백
+    setBusy(false);
   };
 
   const share = async () => {

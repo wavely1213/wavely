@@ -87,13 +87,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else setLoading(false);
     });
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, newSession) => {
       setSession(newSession);
-      if (newSession) {
-        loadProfile(newSession.user.id);
+      if (!newSession) { setProfile(null); return; }
+      // 초기로드는 위 getSession이 처리. 여기선 실제 로그인/유저변경에만 반응(TOKEN_REFRESHED ~1h마다 반복 방지).
+      if (event === 'SIGNED_IN' || event === 'USER_UPDATED') loadProfile(newSession.user.id);
+      if (event === 'SIGNED_IN') {   // 최초 로그인에만 푸시등록·출석적립
         registerPush(newSession.user.id);
-        supabase.rpc('earn_biz_money', { p_action: 'attendance' }).then(() => {}, () => {}); // 출석 적립(사장님, 1일 1회)
-      } else setProfile(null);
+        supabase.rpc('earn_biz_money', { p_action: 'attendance' }).then(() => {}, () => {});
+      }
     });
 
     return () => sub.subscription.unsubscribe();
