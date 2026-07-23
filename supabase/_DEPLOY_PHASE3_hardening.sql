@@ -107,8 +107,8 @@ begin
      where p.status = 'paid' and p.ad_id is null
        and not exists (select 1 from public.ad_ledger l where l.ref = p.payment_id and l.type = 'charge')
     union all
-    -- (3) 음수 잔액(제약 이전 데이터 등)
-    select 'negative_balance'::text, pr.id::text, pr.id, pr.ad_balance, pr.updated_at
+    -- (3) 음수 잔액(제약 이전 데이터 등). profiles엔 updated_at이 없어 created_at 사용.
+    select 'negative_balance'::text, pr.id::text, pr.id, pr.ad_balance, pr.created_at
       from public.profiles pr where coalesce(pr.ad_balance,0) < 0;
 end $$;
 revoke all on function public.payment_recon() from public, anon;
