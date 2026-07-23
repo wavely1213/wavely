@@ -271,6 +271,7 @@ export default function PlaceRankScreen() {
     const pay = await requestAdPayment({
       paymentId, orderName: `와벨리 플레이스 분석 ${label}`, amount,
       email: session?.user.email ?? undefined, fullName: profile?.nickname, phoneNumber: profile?.phone ?? undefined,
+      uid: session?.user.id, purpose: 'place_pass',
     });
     if (!pay.ok) { setMsg('결제가 취소/실패했어요: ' + pay.reason); return; }
     const { data: v } = await supabase.functions.invoke('verify-place-pass', { body: { plan, payment_id: pay.paymentId } });

@@ -12,6 +12,8 @@ export async function requestAdPayment(_opts: {
   email?: string;
   fullName?: string;
   phoneNumber?: string;
+  uid?: string;
+  purpose?: string;
 }): Promise<PayResult> {
   return { ok: false, reason: '앱 결제는 준비 중이에요 — 웹(브라우저)에서 결제해주세요.' };
 }

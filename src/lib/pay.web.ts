@@ -19,6 +19,8 @@ export async function requestAdPayment(opts: {
   email?: string;
   fullName?: string;
   phoneNumber?: string;
+  uid?: string;        // 결제 소유자 — 서버(verify-*)가 customData.uid로 호출자와 대조(도용 차단)
+  purpose?: string;    // 'ad' | 'place_pass' 등
 }): Promise<PayResult> {
   if (!STORE_ID || !CHANNEL_KEY) return { ok: false, reason: '결제 설정이 없어요(.env)' };
   try {
@@ -30,6 +32,7 @@ export async function requestAdPayment(opts: {
       totalAmount: opts.amount,
       currency: 'CURRENCY_KRW' as any,
       payMethod: 'CARD' as any,
+      customData: JSON.stringify({ uid: opts.uid ?? null, purpose: opts.purpose ?? null }),   // 서버 uid 바인딩용
       customer: {
         ...(opts.fullName ? { fullName: opts.fullName } : {}),
         ...(opts.phoneNumber ? { phoneNumber: opts.phoneNumber } : {}),

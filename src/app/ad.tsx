@@ -136,7 +136,7 @@ export default function AdScreen() {
       const orderName = `${stores.find((s) => s.id === selStore)?.name ?? '매장'} 배너광고`;
       // 주문번호(oid)는 PG 제한(이니시스 40자)이 있어 짧고 유일하게 생성 (ad_id는 verify-payment에 별도 전달)
       const paymentId = `ad-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-      const pay = await requestAdPayment({ paymentId, orderName, amount: bannerTier, email: session!.user.email ?? undefined, fullName: profile?.nickname, phoneNumber: profile?.phone ?? undefined });
+      const pay = await requestAdPayment({ paymentId, orderName, amount: bannerTier, email: session!.user.email ?? undefined, fullName: profile?.nickname, phoneNumber: profile?.phone ?? undefined, uid: session!.user.id, purpose: 'ad' });
       if (!pay.ok) { setBusy(false); setMsg('결제가 완료되지 않았어요: ' + pay.reason); load(); return; }
       const { data: v } = await supabase.functions.invoke('verify-payment', { body: { ad_id: ins.id, payment_id: paymentId, expected_amount: bannerTier } });
       setBusy(false);
