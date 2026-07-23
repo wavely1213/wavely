@@ -32,7 +32,8 @@ Deno.serve(async (req) => {
   } catch (_e) {
     return json({ ok: false, reason: '결제 서버 연결 실패' });
   }
-  if (bk?.status && bk.status !== 'ISSUED') return json({ ok: false, reason: `카드 상태 오류 (${bk.status})` });
+  // 빌링키 성공판정 엄격화: status가 없거나 비어도 실패 처리(falsy-skip 제거) — 반드시 ISSUED만 통과
+  if (bk?.status !== 'ISSUED') return json({ ok: false, reason: `카드 상태 오류 (${bk?.status ?? '알 수 없음'})` });
 
   // 카드 정보 추출 (PortOne V2 응답 구조가 채널별로 달라 방어적으로 파싱)
   const method = bk?.methods?.[0] ?? bk?.method ?? {};

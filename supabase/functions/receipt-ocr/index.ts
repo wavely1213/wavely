@@ -1,6 +1,10 @@
 // 영수증 OCR 자동 인증 (Upstage Document OCR)
 // 입력: { review_id }  → 영수증 사진에서 글자를 읽어 리뷰 매장명과 대조.
 // 일치하면 서버(service role)가 직접 verified=true 처리 → 클라이언트 조작 불가.
+//
+// 보안: 반드시 로그인(JWT) 필요 + 본인 리뷰만 인증 가능.
+//   - Authorization 헤더의 JWT로 uid 강제(없으면 401).
+//   - 리뷰의 author_id !== uid 면 403 (남의 review_id 로 verified 위조 차단).
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const cors = {
@@ -8,7 +12,8 @@ const cors = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
-const json = (b: unknown) => new Response(JSON.stringify(b), { headers: { ...cors, 'Content-Type': 'application/json' } });
+const json = (b: unknown, status = 200) =>
+  new Response(JSON.stringify(b), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
 
 // 공백·특수문자 제거 + 소문자 (한글/영문/숫자만 남김)
 const norm = (s: string) => (s ?? '').toLowerCase().replace(/[^0-9a-z가-힣]/g, '');
@@ -16,17 +21,37 @@ const norm = (s: string) => (s ?? '').toLowerCase().replace(/[^0-9a-z가-힣]/g,
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
   try {
+    // 1) 인증 강제 — Authorization 헤더의 JWT로 로그인 사용자 확인
+    const authHeader = req.headers.get('Authorization') ?? '';
+    const jwt = authHeader.replace('Bearer ', '');
+    const userClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } }, auth: { persistSession: false, autoRefreshToken: false } },
+    );
+    const { data: u } = await userClient.auth.getUser(jwt);
+    const uid = u?.user?.id;
+    if (!uid) return json({ ok: false, reason: '로그인이 필요해요' }, 401);
+
     const { review_id } = await req.json();
-    if (!review_id) return json({ ok: false, reason: 'review_id 누락' });
+    if (!review_id) return json({ ok: false, reason: 'review_id 누락' }, 400);
 
-    const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    const admin = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      { auth: { persistSession: false, autoRefreshToken: false } },
+    );
 
-    // 1) 리뷰 로드
-    const { data: rv } = await admin.from('reviews').select('id, store_id, place_id, receipt_url').eq('id', review_id).single();
-    if (!rv) return json({ ok: false, reason: '리뷰를 찾을 수 없어요' });
+    // 2) 리뷰 로드 — author_id 포함해서 소유권 검증
+    const { data: rv } = await admin.from('reviews').select('id, author_id, store_id, place_id, receipt_url').eq('id', review_id).single();
+    if (!rv) return json({ ok: false, reason: '리뷰를 찾을 수 없어요' }, 404);
+
+    // 3) 소유권 검증 — 본인 리뷰만 인증 가능(남의 리뷰 조작 차단)
+    if (rv.author_id !== uid) return json({ ok: false, reason: '본인 리뷰만 인증할 수 있어요' }, 403);
+
     if (!rv.receipt_url) return json({ ok: false, reason: '영수증 사진이 없어요' });
 
-    // 2) 매장명 확보 (+ 별칭 후보)
+    // 4) 매장명 확보 (+ 별칭 후보)
     let names: string[] = [];
     if (rv.store_id) {
       const { data: st } = await admin.from('stores').select('name').eq('id', rv.store_id).single();
@@ -37,7 +62,7 @@ Deno.serve(async (req) => {
     }
     if (!names.length) return json({ ok: false, reason: '매장 정보를 찾을 수 없어요' });
 
-    // 3) 영수증 이미지 → Upstage OCR
+    // 5) 영수증 이미지 → Upstage OCR
     const imgRes = await fetch(rv.receipt_url);
     if (!imgRes.ok) return json({ ok: false, reason: '영수증 이미지를 불러오지 못했어요' });
     const blob = await imgRes.blob();
@@ -57,7 +82,7 @@ Deno.serve(async (req) => {
     const text: string = ocr?.text ?? (Array.isArray(ocr?.pages) ? ocr.pages.map((p: any) => p?.text ?? '').join('\n') : '');
     const nText = norm(text);
 
-    // 4) 매장명 대조 — 전체명 또는 2글자 이상 토큰 일치
+    // 6) 매장명 대조 — 전체명 또는 2글자 이상 토큰 일치
     let matched = false;
     let hit = '';
     for (const nm of names) {
@@ -69,7 +94,7 @@ Deno.serve(async (req) => {
       if (matched) break;
     }
 
-    // 5) 결과 반영 (서버에서만 verified 변경)
+    // 7) 결과 반영 (서버에서만 verified 변경)
     if (matched) {
       await admin.from('reviews').update({ verified: true, verify_method: 'receipt_ocr' }).eq('id', review_id);
     }
@@ -77,6 +102,6 @@ Deno.serve(async (req) => {
 
     return json({ ok: true, matched, verified: matched, hit, names, text_excerpt: text.slice(0, 300) });
   } catch (e) {
-    return json({ ok: false, reason: String(e) });
+    return json({ ok: false, reason: String(e) }, 500);
   }
 });

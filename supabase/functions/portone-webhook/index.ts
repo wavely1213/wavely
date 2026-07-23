@@ -1,13 +1,18 @@
 // PortOne V2 웹훅 — 가상계좌 입금완료 등 '결제 확정' 시 광고잔액 자동 적립.
-// 보안: 웹훅 본문을 신뢰하지 않고, paymentId로 PortOne API를 재조회해 실제 PAID·금액을 대조(위변조 방지).
-//       payments 테이블로 멱등(같은 결제 중복적립 차단). 서명검증은 시크릿 있으면 추가 방어.
+// 보안: (0) 웹훅 서명(HMAC-SHA256) 검증으로 위조 delivery 자체를 차단한 뒤,
+//       (1) 그래도 본문을 신뢰하지 않고 paymentId로 PortOne API를 재조회해 실제 PAID·금액을 대조(2중 방어).
+//       payments 테이블로 멱등(같은 결제 중복적립 차단).
+// 서명 규격: PortOne V2는 standard-webhooks(Svix 호환) — 헤더 webhook-id / webhook-timestamp / webhook-signature,
+//            서명대상 = `${id}.${timestamp}.${raw본문}`, 시크릿은 'whsec_' 접두(옵션) + base64 키.
 // PortOne 콘솔 → 결제연동 → 웹훅에 이 함수 URL 등록:
 //   https://<project>.functions.supabase.co/portone-webhook
+// 필요 env: PORTONE_WEBHOOK_SECRET (콘솔의 웹훅 시크릿). 미설정 시 서명검증 없이 재조회 폴백(하위호환, 로그 남김).
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const SB_URL = Deno.env.get('SUPABASE_URL')!;
 const SB_SERVICE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const PORTONE_API_SECRET = Deno.env.get('PORTONE_API_SECRET')!;
+const PORTONE_WEBHOOK_SECRET = Deno.env.get('PORTONE_WEBHOOK_SECRET') ?? '';   // 없으면 폴백(하위호환)
 
 function json(obj: unknown, status = 200) {
   return new Response(JSON.stringify(obj), { status, headers: { 'Content-Type': 'application/json' } });
@@ -15,9 +20,78 @@ function json(obj: unknown, status = 200) {
 // charge-balance와 동일 검증(1만~200만, 1만원 단위)
 function validAmount(a: number) { return Number.isInteger(a) && a >= 10000 && a <= 2000000 && a % 10000 === 0; }
 
+// ── 웹훅 서명검증 유틸 (standard-webhooks / Svix 호환, Deno crypto.subtle) ──
+function b64ToBytes(b64: string): Uint8Array {
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+function bytesToB64(buf: ArrayBuffer): string {
+  const b = new Uint8Array(buf);
+  let s = '';
+  for (let i = 0; i < b.length; i++) s += String.fromCharCode(b[i]);
+  return btoa(s);
+}
+// 상수시간 비교(서명 타이밍공격 방지)
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let r = 0;
+  for (let i = 0; i < a.length; i++) r |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return r === 0;
+}
+// raw 본문 기준 HMAC-SHA256 검증. 통과 시 true.
+async function verifyWebhookSignature(secret: string, headers: Headers, rawBody: string): Promise<boolean> {
+  const id = headers.get('webhook-id');
+  const timestamp = headers.get('webhook-timestamp');
+  const sigHeader = headers.get('webhook-signature');
+  if (!id || !timestamp || !sigHeader) return false;
+
+  // 리플레이 방지: 타임스탬프 허용오차 ±5분
+  const ts = Number(timestamp);
+  if (!Number.isFinite(ts)) return false;
+  const now = Math.floor(Date.now() / 1000);
+  if (Math.abs(now - ts) > 5 * 60) return false;
+
+  // 시크릿: 'whsec_' 접두 제거 후 base64 디코드(규격). base64 아니면 원문 바이트로 폴백.
+  const keyRaw = secret.startsWith('whsec_') ? secret.slice(6) : secret;
+  let keyBytes: Uint8Array;
+  try { keyBytes = b64ToBytes(keyRaw); } catch { keyBytes = new TextEncoder().encode(keyRaw); }
+
+  const key = await crypto.subtle.importKey('raw', keyBytes, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const signedContent = `${id}.${timestamp}.${rawBody}`;
+  const sigBuf = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(signedContent));
+  const expected = bytesToB64(sigBuf);
+
+  // 헤더는 공백구분 'v1,<base64sig>' 목록 → 하나라도 일치하면 통과
+  for (const part of sigHeader.split(' ')) {
+    if (!part) continue;
+    const idx = part.indexOf(',');
+    const sig = idx === -1 ? part : part.slice(idx + 1);
+    if (timingSafeEqual(sig, expected)) return true;
+  }
+  return false;
+}
+
 Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ ok: false }, 405);
   const raw = await req.text();
+
+  // 0) 웹훅 서명 검증(위조 delivery 차단). 시크릿 있으면 raw 본문 기준 HMAC-SHA256 검증 후에만 진행.
+  //    실패 → 401 즉시. 미설정 → 하위호환 폴백(재조회로만 방어, 로그 경고).
+  if (PORTONE_WEBHOOK_SECRET) {
+    let verified = false;
+    try {
+      verified = await verifyWebhookSignature(PORTONE_WEBHOOK_SECRET, req.headers, raw);
+    } catch (e) {
+      console.error('[portone-webhook] signature verify error', e);   // 검증 예외는 실패(fail-closed)
+      verified = false;
+    }
+    if (!verified) return json({ ok: false, reason: 'invalid signature' }, 401);
+  } else {
+    console.warn('[portone-webhook] PORTONE_WEBHOOK_SECRET not set — falling back to re-lookup only (no signature verification)');
+  }
+
   let body: any;
   try { body = JSON.parse(raw); } catch { return json({ ok: false, reason: 'bad json' }, 400); }
 

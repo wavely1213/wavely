@@ -47,8 +47,15 @@ Deno.serve(async (req) => {
     return json({ ok: false, reason: '결제 서버 연결 실패' });
   }
 
-  // 2) 검증: 상태 PAID + 금액 = 서버 고정가
+  // 2) 검증: 상태 PAID + 결제 소유자(uid) + 금액 = 서버 고정가
   if (pay?.status !== 'PAID') return json({ ok: false, reason: `결제가 완료되지 않았어요 (${pay?.status ?? '알수없음'})` });
+
+  // 2-1) uid 바인딩 — 결제 생성 시 넣은 customData.uid가 호출자와 다르면 '남의 결제로 이용권 타기'(차단).
+  //      fail-open: customData.uid가 '있으면서' 호출자와 다르면만 차단(도용 방지). uid 누락(레거시 클라)은 통과.
+  //      ※ 클라(place-rank onPay)가 결제 생성 시 customData:{ uid } 를 넣으면 그때부터 완전 강제됨. verify-payment와 동일 정책.
+  let cd: any = {}; try { cd = JSON.parse((pay?.customData ?? pay?.payment?.customData) ?? '{}'); } catch { /* */ }
+  if (cd?.uid && cd.uid !== uid) return json({ ok: false, reason: '결제 소유자가 아니에요' }, 403);
+
   const paidAmount = Number(pay?.amount?.total ?? pay?.amount?.paid ?? 0);
   if (paidAmount !== spec.amount) return json({ ok: false, reason: '결제 금액이 일치하지 않아요' });
 

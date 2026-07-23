@@ -28,6 +28,7 @@ export default function SecurityScreen() {
 
   const changePassword = async () => {
     setPwMsg('');
+    if (!session) { setPwMsg('로그인이 필요해요'); return; }
     if (!curPw) { setPwMsg('현재 비밀번호를 입력해주세요'); return; }
     if (newPw.length < 6) { setPwMsg('새 비밀번호는 6자 이상이에요'); return; }
     if (newPw !== confirmPw) { setPwMsg('새 비밀번호가 일치하지 않아요'); return; }
