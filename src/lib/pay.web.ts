@@ -32,7 +32,7 @@ export async function requestAdPayment(opts: {
       totalAmount: opts.amount,
       currency: 'CURRENCY_KRW' as any,
       payMethod: 'CARD' as any,
-      customData: JSON.stringify({ uid: opts.uid ?? null, purpose: opts.purpose ?? null }),   // 서버 uid 바인딩용
+      customData: JSON.stringify({ uid: opts.uid ?? null, purpose: opts.purpose ?? null }) as any,   // 서버 uid 바인딩용(엣지가 JSON.parse — 관리자웹과 동일 방식)
       customer: {
         ...(opts.fullName ? { fullName: opts.fullName } : {}),
         ...(opts.phoneNumber ? { phoneNumber: opts.phoneNumber } : {}),
