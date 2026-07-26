@@ -41,6 +41,6 @@ const styles = StyleSheet.create({
   logo: { width: 72, height: 72, borderRadius: 20 },
   title: { fontSize: 18, fontWeight: '800', color: '#fff', marginTop: 8 },
   msg: { fontSize: 13, color: '#9aa', textAlign: 'center', lineHeight: 19 },
-  btn: { marginTop: 18, backgroundColor: '#7A2BC4', paddingHorizontal: 24, paddingVertical: 13, borderRadius: 12 },
+  btn: { marginTop: 18, backgroundColor: '#0EA5E9', paddingHorizontal: 24, paddingVertical: 13, borderRadius: 12 },
   btnTxt: { color: '#fff', fontWeight: '800', fontSize: 15 },
 });

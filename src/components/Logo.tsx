@@ -7,7 +7,7 @@ const WAVE_B = 'M2.5 15 c 3 -3 6.5 3 9.5 0 s 6.5 -3 9.5 0';
 
 type Props = { size?: number; color?: string; bg?: string | null; rounded?: number };
 
-export function Logo({ size = 30, color = '#7A2BC4', bg = null, rounded }: Props) {
+export function Logo({ size = 30, color = '#0EA5E9', bg = null, rounded }: Props) {
   const stroke = bg ? '#FFFFFF' : color;
   const sw = { stroke, strokeWidth: 2.2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, fill: 'none' as const };
   const rx = rounded ?? 6;

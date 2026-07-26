@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>와벨리 — 알바 (구인구직)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #0A0C0E; --card: #14171A; --card2: #1B1F23; --chip: #1A1D21;
+    --line: #24282C; --ink: #F1F3F5; --ink2: #9AA1A8; --ink3: #5E646B;
+    --blue: #34A8E1; --blue-deep: #2492CC; --blue-soft: rgba(52,168,225,.14);
+    --green: #17A75C; --amber: #E0912E;
+  }
+  html, body { background: #000; height: 100%; }
+  body {
+    font-family: 'Pretendard Variable', Pretendard, system-ui, sans-serif;
+    letter-spacing: -0.02em; word-break: keep-all;
+    -webkit-font-smoothing: antialiased; display: flex; justify-content: center;
+  }
+  .phone {
+    width: 402px; height: 860px; background: var(--bg); color: var(--ink);
+    position: relative; overflow: hidden; display: flex; flex-direction: column;
+  }
+  .scroll { flex: 1; overflow-y: auto; padding-bottom: 20px; }
+  .scroll::-webkit-scrollbar { display: none; }
+
+  /* ── 상단 검색 헤더 ── */
+  .top { position: sticky; top: 0; z-index: 10; background: var(--bg); padding: 14px 16px 8px; display: flex; align-items: center; gap: 10px; }
+  .search { flex: 1; height: 44px; display: flex; align-items: center; gap: 9px; padding: 0 14px; border-radius: 13px; background: var(--card); color: var(--ink3); font-size: 14px; }
+  .top-ic { width: 40px; height: 40px; border-radius: 11px; display: flex; align-items: center; justify-content: center; color: var(--ink2); flex: none; }
+  .top-logo { width: 40px; height: 40px; border-radius: 12px; background: var(--blue); color: #fff; font-weight: 800; font-size: 17px; display: flex; align-items: center; justify-content: center; flex: none; box-shadow: 0 2px 10px rgba(52,168,225,.35); }
+
+  /* ── 타이틀 ── */
+  .head { padding: 10px 18px 4px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .head h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.04em; }
+  .head-sub { font-size: 12.5px; color: var(--ink2); margin-top: 5px; line-height: 1.5; max-width: 230px; }
+  .post-btn { flex: none; height: 34px; padding: 0 14px; border-radius: 999px; background: var(--blue); color: #fff; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 3px 12px rgba(52,168,225,.28); }
+
+  /* ── 구인/구직 세그먼트 ── */
+  .seg { display: inline-flex; gap: 2px; margin: 12px 18px 0; padding: 3px; background: var(--chip); border-radius: 11px; }
+  .seg button { height: 32px; padding: 0 20px; border-radius: 9px; background: transparent; color: var(--ink2); font-size: 14px; font-weight: 800; letter-spacing: -0.02em; transition: all .15s; }
+  .seg button.on { background: var(--blue); color: #fff; box-shadow: 0 2px 8px rgba(52,168,225,.3); }
+
+  /* ── 정렬 + 카테고리 통합 필터바 ── */
+  .sort { display: flex; gap: 6px; padding: 12px 18px 0; }
+  .sort button { height: 30px; padding: 0 13px; border-radius: 999px; background: var(--chip); color: var(--ink2); font-size: 13px; font-weight: 700; transition: all .15s; }
+  .sort button.on { background: var(--blue); color: #fff; }
+
+  .cats { display: flex; gap: 6px; padding: 10px 18px 4px; overflow-x: auto; scrollbar-width: none; touch-action: pan-x; cursor: grab; }
+  .cats:active { cursor: grabbing; }
+  .cats::-webkit-scrollbar { display: none; }
+  .cat { flex: none; height: 32px; padding: 0 14px; border-radius: 999px; background: var(--chip); color: var(--ink2); font-size: 13px; font-weight: 700; white-space: nowrap; transition: all .13s; display: inline-flex; align-items: center; gap: 5px; user-select: none; }
+  .cat.on { background: var(--blue); color: #fff; }
+  .cat .ck { width: 0; overflow: hidden; display: inline-flex; opacity: 0; margin-left: -5px; transition: all .13s; }
+  .cat.on .ck { width: 13px; opacity: 1; margin-left: 0; }
+
+  /* ── 결과 요약 ── */
+  .rescount { padding: 16px 20px 2px; font-size: 13px; color: var(--ink3); font-weight: 600; display: flex; align-items: center; justify-content: space-between; }
+  .rescount b { color: var(--ink); font-weight: 800; }
+  .loc-btn { display: inline-flex; align-items: center; gap: 4px; color: var(--blue); font-weight: 700; font-size: 13px; }
+  .loc-btn .cv { transition: transform .18s; }
+  .loc-btn.open .cv { transform: rotate(180deg); }
+
+  /* ── 동네 선택 시트 ── */
+  .scrim { position: absolute; inset: 0; background: rgba(0,0,0,.5); opacity: 0; pointer-events: none; transition: opacity .22s; z-index: 90; }
+  .scrim.on { opacity: 1; pointer-events: auto; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 100; background: var(--card); border-radius: 22px 22px 0 0; border-top: 1px solid var(--line); padding: 8px 18px calc(18px + env(safe-area-inset-bottom)); transform: translateY(100%); transition: transform .28s cubic-bezier(.32,.72,.28,1); }
+  .sheet.on { transform: translateY(0); }
+  .sheet-grip { width: 38px; height: 4px; border-radius: 999px; background: var(--line); margin: 6px auto 12px; }
+  .sheet-h { font-size: 16px; font-weight: 800; display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+  .sheet-h span { font-size: 12px; font-weight: 600; color: var(--ink3); }
+  .loc-cur { width: 100%; display: flex; align-items: center; gap: 8px; height: 46px; margin-top: 12px; padding: 0 14px; border-radius: 12px; background: var(--card2); color: var(--ink); font-size: 14px; font-weight: 700; }
+  .loc-cur.on { background: var(--blue-soft); color: var(--blue); box-shadow: inset 0 0 0 1px rgba(52,168,225,.4); }
+  .loc-cur .gps { color: var(--blue); display: flex; }
+  .dong-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .dong { height: 38px; padding: 0 15px; border-radius: 999px; background: var(--chip); color: var(--ink2); font-size: 13.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; user-select: none; transition: all .13s; }
+  .dong.on { background: var(--blue); color: #fff; }
+  .dong .ck { width: 0; overflow: hidden; opacity: 0; margin-left: -5px; display: inline-flex; transition: all .13s; }
+  .dong.on .ck { width: 13px; opacity: 1; margin-left: 0; }
+  .sheet-done { width: 100%; height: 48px; margin-top: 18px; border-radius: 13px; background: var(--blue); color: #fff; font-size: 15px; font-weight: 800; }
+
+  /* ── 공고 리스트 ── */
+  .list { padding: 12px 16px 0; display: flex; flex-direction: column; gap: 12px; }
+  .job { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 15px; position: relative; }
+  .job.ad { border-color: rgba(52,168,225,.4); box-shadow: 0 0 0 1px rgba(52,168,225,.12); }
+  .job-top { display: flex; align-items: center; gap: 10px; }
+  .job-logo { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; flex: none; }
+  .job-store { flex: 1; min-width: 0; }
+  .job-store-nm { font-size: 13.5px; font-weight: 700; color: var(--ink2); display: flex; align-items: center; gap: 5px; }
+  .vf { display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border-radius: 50%; background: var(--green); color: #fff; flex: none; }
+  .job-loc { font-size: 12px; color: var(--ink3); margin-top: 2px; }
+  .job-adchip { position: absolute; top: 15px; right: 15px; font-size: 10px; font-weight: 800; color: var(--blue); background: var(--blue-soft); padding: 3px 8px; border-radius: 999px; }
+  .job-title { font-size: 17px; font-weight: 800; letter-spacing: -0.03em; margin-top: 12px; line-height: 1.35; }
+  .job-pay { display: flex; align-items: baseline; gap: 8px; margin-top: 9px; flex-wrap: wrap; }
+  .job-pay .amt { font-size: 17px; font-weight: 800; color: var(--blue); letter-spacing: -0.02em; }
+  .job-pay .amt .u { font-size: 13px; color: var(--ink2); font-weight: 700; margin-right: 2px; }
+  .job-pay .sched { font-size: 13px; color: var(--ink2); font-weight: 600; }
+  .job-tags { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+  .tag { font-size: 11.5px; font-weight: 700; color: var(--ink2); background: var(--card2); padding: 5px 10px; border-radius: 8px; }
+  .tag.pt { color: var(--blue); background: var(--blue-soft); }
+  .job-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; padding-top: 11px; border-top: 1px solid var(--line); }
+  .job-meta { font-size: 12px; color: var(--ink3); font-weight: 600; }
+  .job-act { display: flex; align-items: center; gap: 6px; }
+  .job-save { width: 32px; height: 32px; border-radius: 9px; background: var(--card2); color: var(--ink2); display: flex; align-items: center; justify-content: center; }
+  .job-chat { height: 32px; padding: 0 13px; border-radius: 9px; background: var(--blue); color: #fff; font-size: 13px; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; }
+
+  /* 구직 카드 변형 */
+  .job.seek .job-logo { border-radius: 50%; }
+  .job.seek .job-pay .amt { color: var(--ink); }
+  .job.seek .job-pay .amt .lb { color: var(--ink3); font-size: 13px; font-weight: 700; margin-right: 4px; }
+  .seek-anon { background: var(--card2) !important; color: var(--ink3); }
+  .seek-av { font-size: 17px; font-weight: 800; }
+  .seek-meta { font-size: 12px; color: var(--ink3); font-weight: 600; }
+  .badge-open { display: inline-flex; align-items: center; gap: 3px; font-size: 10.5px; font-weight: 800; color: #fff; background: var(--green); padding: 2px 7px 2px 5px; border-radius: 999px; margin-left: 6px; }
+  .job-reveal { display: flex; align-items: center; gap: 7px; margin-top: 11px; padding: 9px 12px; background: var(--blue-soft); border-radius: 10px; font-size: 12.5px; color: var(--blue); font-weight: 600; }
+  .job-info { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 11px; padding: 10px 12px; background: var(--card2); border-radius: 10px; font-size: 12.5px; color: var(--ink); }
+  .job-info b { color: var(--ink3); font-weight: 700; margin-right: 5px; }
+  .lovecall { height: 32px; padding: 0 14px; border-radius: 9px; background: var(--blue); color: #fff; font-size: 13px; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; }
+  .lovecall.wait { background: var(--card2); color: var(--ink3); }
+  .job-empty { text-align: center; padding: 48px 20px; color: var(--ink3); font-size: 14px; font-weight: 600; }
+
+  /* ── 하단 탭바 ── */
+  .tabbar { flex: none; height: 66px; background: #0D0F12; border-top: 1px solid var(--line); display: flex; align-items: center; padding: 0 6px 4px; }
+  .tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--ink3); font-size: 11px; font-weight: 600; padding-top: 8px; }
+  .tab.on { color: var(--blue); }
+
+  .hide { display: none !important; }
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="scroll">
+      <!-- 검색 헤더 -->
+      <header class="top">
+        <div class="search">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          알바 검색 (예: 카페, 주말 단기)
+        </div>
+        <button class="top-ic" aria-label="테마"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.4"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8 6 18M18 6l1.8-1.8"/></svg></button>
+        <button class="top-ic" aria-label="알림"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6ZM10 19a2 2 0 0 0 4 0"/></svg></button>
+        <div class="top-logo">와</div>
+      </header>
+
+      <!-- 타이틀 -->
+      <div class="head">
+        <div>
+          <h1>알바</h1>
+          <div class="head-sub">강원 춘천시 · 우리 동네 구인·구직 · 채팅으로 바로 연결</div>
+        </div>
+        <button class="post-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>공고 올리기</button>
+      </div>
+
+      <!-- 구인/구직 -->
+      <div class="seg" id="seg">
+        <button data-seg="hire" class="on">구인</button>
+        <button data-seg="seek">구직</button>
+      </div>
+
+      <!-- 정렬 -->
+      <div class="sort" id="sort">
+        <button data-sort="near">가까운순</button>
+        <button data-sort="pay">시급순</button>
+        <button data-sort="new" class="on">최신순</button>
+      </div>
+
+      <!-- 카테고리 -->
+      <div class="cats" id="cats">
+        <button class="cat on" data-cat="all">전체</button>
+        <button class="cat" data-cat="food"><span class="ck"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>요식·카페</button>
+        <button class="cat" data-cat="retail"><span class="ck"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>매장·판매</button>
+        <button class="cat" data-cat="service"><span class="ck"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>서비스</button>
+        <button class="cat" data-cat="delivery"><span class="ck"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>배달·운송</button>
+        <button class="cat" data-cat="office"><span class="ck"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>사무·기타</button>
+      </div>
+
+      <div class="rescount"><span><b id="rc">6건</b>의 공고</span><button class="loc-btn" id="locBtn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.4"/></svg><span id="locLabel">현재 위치</span><svg class="cv" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button></div>
+
+      <div class="list" id="list"></div>
+    </div>
+
+    <!-- 하단 탭바 -->
+    <nav class="tabbar">
+      <a class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-4 3v-3H4z"/></svg>커뮤니티</a>
+      <a class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.4"/></svg>우리동네</a>
+      <a class="tab on"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7" fill="none" stroke-width="2"/></svg>알바</a>
+      <a class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V6a4 4 0 0 1 4-4h9a4 4 0 0 1 4 4z"/></svg>채팅</a>
+      <a class="tab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>마이페이지</a>
+    </nav>
+
+    <!-- 동네 선택 시트 -->
+    <div class="scrim" id="scrim"></div>
+    <div class="sheet" id="sheet">
+      <div class="sheet-grip"></div>
+      <div class="sheet-h">동네 선택 <span>여러 개 선택 가능</span></div>
+      <button class="loc-cur on" id="locCur"><span class="gps"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></span>현재 위치 기준 (효자동)</button>
+      <div class="dong-grid" id="dongGrid"></div>
+      <button class="sheet-done" id="sheetDone">적용</button>
+    </div>
+  </div>
+
+  <script>
+    const COLOR = { food: '#E0692E', retail: '#2F77F0', service: '#C24FD0', delivery: '#17A75C', office: '#7A2BC4' };
+    const GLY = {
+      food: '<path d="M7 3v7M10 3v7M8.5 10v11M16 3c-1.6 1-2.5 3-2.5 6 0 2 .8 3.2 2 3.5V21"/>',
+      retail: '<path d="M6 8h12l-1 12H7L6 8ZM9 8a3 3 0 0 1 6 0"/>',
+      service: '<path d="M8 7a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM8 22a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM10 8l9 9M10 16l9-9"/>',
+      delivery: '<circle cx="7" cy="18" r="2.5"/><circle cx="17" cy="18" r="2.5"/><path d="M4 6h3l2.5 9.5M9.5 15h5"/>',
+      office: '<path d="M4 20V4M4 20h16M8 16v-4M13 16V9M18 16v-7"/>',
+    };
+    const CATLABEL = { food: '요식·카페', retail: '매장·판매', service: '서비스', delivery: '배달·운송', office: '사무·기타' };
+
+    const HIRE = [
+      { store: '정육식당 미트락', cat: 'food', dong: '효자동', vf: true, ad: true, loc: '효자동 · 200m', title: '홀서빙 주말 단기 알바', pay: 12000, sched: '토·일 11:00~20:00', tags: ['주말', '단기', '식사제공'], time: '30분 전', applied: 3 },
+      { store: '마망 베이커리', cat: 'food', dong: '석사동', vf: true, ad: false, loc: '석사동 · 180m', title: '오픈 제빵 보조 (경력무관)', pay: 11500, sched: '평일 06:00~11:00', tags: ['평일오전', '장기', '4대보험'], time: '1시간 전', applied: 5 },
+      { store: 'GS25 후평중앙점', cat: 'retail', dong: '후평동', vf: true, ad: false, loc: '후평동 · 340m', title: '야간 편의점 근무자 구합니다', pay: 11200, sched: '야간 22:00~08:00', tags: ['야간수당', '주3일', '남녀무관'], time: '2시간 전', applied: 2 },
+      { store: '호반 베이커리 카페', cat: 'food', dong: '온의동', vf: false, ad: false, loc: '온의동 · 90m', title: '카페 마감 파트타이머', pay: 11000, sched: '매일 17:00~22:00', tags: ['평일저녁', '단기가능'], time: '3시간 전', applied: 4 },
+      { store: '춘천 닭갈비 1번가', cat: 'food', dong: '퇴계동', vf: false, ad: false, loc: '퇴계동 · 420m', title: '주말 주방 보조 (설거지·손질)', pay: 12500, sched: '주말 협의', tags: ['주말', '고시급', '식사제공'], time: '5시간 전', applied: 1 },
+      { store: '스타일 헤어 춘천점', cat: 'service', dong: '조운동', vf: true, ad: false, loc: '조운동 · 510m', title: '매장 안내데스크 · 예약관리', pay: 2200000, monthly: true, sched: '평일 풀타임', tags: ['정규직전환', '4대보험'], time: '어제', applied: 6 },
+    ];
+    const SEEK = [
+      { id: 'sk1', cat: 'food', dong: '효자동', loc: '효자·석사 지역', title: '주말 카페/홀 알바 구해요', pay: 12000, sched: '토·일 종일 가능', tags: ['주말', '경력 1년', '바리스타 자격'], time: '20분 전', state: 'open', ageBand: '20대 중반', gender: '여', name: '정하늘', age: 25, contact: '010-2345-6789', career: '투썰 효자점 1년' },
+      { id: 'sk2', cat: 'food', dong: '온의동', loc: '온의동 인근', title: '오픈 파트(베이커리·카페) 구합니다', pay: 11500, sched: '평일 06~11시', tags: ['평일오전', '장기희망'], time: '2시간 전', state: 'accepted', ageBand: '20대 후반', gender: '여', name: '이서연', age: 27, contact: '010-4871-2043', career: '파리바게뜨 2년 · 제빵기능사' },
+      { id: 'sk3', cat: 'delivery', dong: '후평동', loc: '후평·퇴계 지역', title: '평일 오후 배달·포장 단기 가능', pay: 13000, sched: '평일 14~19시', tags: ['단기', '오토바이 보유'], time: '어제', state: 'sent', ageBand: '20대 초반', gender: '남', name: '박도윤', age: 22, contact: '010-9922-1180', career: '배민커넥트 6개월' },
+    ];
+
+    let seg = 'hire', sortBy = 'new';
+    const sel = new Set();      // 카테고리 다중선택
+    const dongs = new Set();    // 동네 다중선택 (비어있으면 현재위치)
+    const won = (n) => n.toLocaleString('ko-KR');
+    const distNum = (loc) => { const m = /([\d.]+)\s*(k?m)/.exec(loc || ''); return m ? (m[2] === 'km' ? +m[1] * 1000 : +m[1]) : 1e9; };
+    const payRank = (j) => j.monthly ? j.pay / 209 : j.pay;
+    const catTags = (j) => [`<span class="tag pt">${CATLABEL[j.cat]}</span>`].concat(j.tags.map((t) => `<span class="tag">${t}</span>`)).join('');
+    const saveBtn = `<button class="job-save"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.5-7 10-7 10Z"/></svg></button>`;
+    const chatIc = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V6a4 4 0 0 1 4-4h9a4 4 0 0 1 4 4z"/></svg>`;
+    const vfBadge = `<span class="vf"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>`;
+
+    function hireCard(j) {
+      const pay = j.monthly
+        ? `<span class="amt"><span class="u">월급</span>${won(j.pay)}원</span>`
+        : `<span class="amt"><span class="u">시급</span>${won(j.pay)}원</span>`;
+      return `<article class="job${j.ad ? ' ad' : ''}">
+        ${j.ad ? '<span class="job-adchip">광고</span>' : ''}
+        <div class="job-top">
+          <div class="job-logo" style="background:${COLOR[j.cat]}"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${GLY[j.cat]}</svg></div>
+          <div class="job-store"><div class="job-store-nm">${j.store}${j.vf ? vfBadge : ''}</div><div class="job-loc">${j.loc}</div></div>
+        </div>
+        <div class="job-title">${j.title}</div>
+        <div class="job-pay">${pay}<span class="sched">· ${j.sched}</span></div>
+        <div class="job-tags">${catTags(j)}</div>
+        <div class="job-foot"><span class="job-meta">${j.time} · 지원 ${j.applied}</span><div class="job-act">${saveBtn}<button class="job-chat">${chatIc}채팅 지원</button></div></div>
+      </article>`;
+    }
+
+    function seekCard(j) {
+      const accepted = j.state === 'accepted', sent = j.state === 'sent';
+      const avatar = accepted
+        ? `<div class="job-logo seek-av" style="background:${COLOR[j.cat]}">${j.name.charAt(0)}</div>`
+        : `<div class="job-logo seek-anon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg></div>`;
+      const idline = accepted
+        ? `<div class="job-store-nm">${j.name} <span class="seek-meta">${j.gender} · ${j.age}세</span><span class="badge-open"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>공개됨</span></div>`
+        : `<div class="job-store-nm">익명 <span class="seek-meta">${j.ageBand} · ${j.gender}</span></div>`;
+      const info = accepted
+        ? `<div class="job-info"><span><b>연락처</b>${j.contact}</span><span><b>경력</b>${j.career}</span></div>`
+        : `<div class="job-reveal"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>러브콜을 수락하면 실명·연락처·경력이 공개돼요</div>`;
+      let action;
+      if (accepted) action = `${saveBtn}<button class="job-chat">${chatIc}채팅하기</button>`;
+      else if (sent) action = `<button class="lovecall wait" disabled><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>수락 대기중</button>`;
+      else action = `<button class="lovecall" data-love="${j.id}"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.5-7 10-7 10Z"/></svg>러브콜 보내기</button>`;
+      return `<article class="job seek">
+        <div class="job-top">${avatar}<div class="job-store">${idline}<div class="job-loc">${j.loc}</div></div></div>
+        <div class="job-title">${j.title}</div>
+        <div class="job-pay"><span class="amt"><span class="lb">희망</span>${won(j.pay)}원~</span><span class="sched">· ${j.sched}</span></div>
+        <div class="job-tags">${catTags(j)}</div>
+        ${info}
+        <div class="job-foot"><span class="job-meta">${j.time} 등록</span><div class="job-act">${action}</div></div>
+      </article>`;
+    }
+
+    function render() {
+      let data = (seg === 'hire' ? HIRE : SEEK).filter((j) => (sel.size === 0 || sel.has(j.cat)) && (dongs.size === 0 || dongs.has(j.dong)));
+      if (sortBy === 'near') data = [...data].sort((a, b) => distNum(a.loc) - distNum(b.loc));
+      else if (sortBy === 'pay') data = [...data].sort((a, b) => payRank(b) - payRank(a));
+      const fn = seg === 'hire' ? hireCard : seekCard;
+      document.getElementById('list').innerHTML = data.length
+        ? data.map(fn).join('')
+        : `<div class="job-empty">해당 조건의 ${seg === 'hire' ? '구인' : '구직'} 글이 없어요</div>`;
+      document.getElementById('rc').textContent = data.length + '건';
+    }
+
+    document.getElementById('seg').addEventListener('click', (e) => {
+      const b = e.target.closest('button'); if (!b) return;
+      seg = b.dataset.seg;
+      document.querySelectorAll('#seg button').forEach((x) => x.classList.toggle('on', x === b));
+      render();
+    });
+    // 정렬 — 탭하면 실제 재정렬
+    document.getElementById('sort').addEventListener('click', (e) => {
+      const b = e.target.closest('button'); if (!b) return;
+      sortBy = b.dataset.sort;
+      document.querySelectorAll('#sort button').forEach((x) => x.classList.toggle('on', x === b));
+      render();
+    });
+    // 러브콜 → 수락 대기 → (당사자 수락) 인적사항 공개
+    document.getElementById('list').addEventListener('click', (e) => {
+      const b = e.target.closest('[data-love]'); if (!b) return;
+      const j = SEEK.find((x) => x.id === b.dataset.love); if (!j) return;
+      j.state = 'sent'; render();
+      setTimeout(() => { j.state = 'accepted'; render(); }, 1500);
+    });
+
+    // 카테고리 — 다중 선택 토글 + 드래그로 여러 개 칠하기
+    const catsEl = document.getElementById('cats');
+    function syncCats() {
+      catsEl.querySelectorAll('.cat').forEach((x) => {
+        const k = x.dataset.cat;
+        x.classList.toggle('on', k === 'all' ? sel.size === 0 : sel.has(k));
+      });
+    }
+    let dragging = false, paint = true;
+    catsEl.addEventListener('pointerdown', (e) => {
+      const b = e.target.closest('.cat'); if (!b) return;
+      const k = b.dataset.cat;
+      if (k === 'all') { sel.clear(); syncCats(); render(); return; }
+      dragging = true; paint = !sel.has(k);
+      if (paint) sel.add(k); else sel.delete(k);
+      catsEl.setPointerCapture(e.pointerId);
+      syncCats(); render();
+    });
+    catsEl.addEventListener('pointermove', (e) => {
+      if (!dragging) return;
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      const b = el && el.closest && el.closest('.cat');
+      if (!b || b.dataset.cat === 'all') return;
+      const k = b.dataset.cat;
+      if (paint) sel.add(k); else sel.delete(k);
+      syncCats(); render();
+    });
+    const endDrag = () => { dragging = false; };
+    catsEl.addEventListener('pointerup', endDrag);
+    catsEl.addEventListener('pointercancel', endDrag);
+
+    // 동네 선택 시트 (현재위치 기본 · 다중 선택)
+    const DONGS = ['효자동', '석사동', '후평동', '퇴계동', '온의동', '조운동', '신사우동', '근화동', '소양동'];
+    const sheet = document.getElementById('sheet'), scrim = document.getElementById('scrim'), locBtn = document.getElementById('locBtn');
+    const dongGrid = document.getElementById('dongGrid');
+    dongGrid.innerHTML = DONGS.map((d) => `<button class="dong" data-dong="${d}"><span class="ck"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>${d}</button>`).join('');
+    function syncDongs() {
+      dongGrid.querySelectorAll('.dong').forEach((x) => x.classList.toggle('on', dongs.has(x.dataset.dong)));
+      document.getElementById('locCur').classList.toggle('on', dongs.size === 0);
+      const arr = [...dongs];
+      document.getElementById('locLabel').textContent = arr.length === 0 ? '현재 위치' : (arr.length === 1 ? arr[0] : arr[0] + ' 외 ' + (arr.length - 1));
+    }
+    const openSheet = () => { syncDongs(); scrim.classList.add('on'); sheet.classList.add('on'); locBtn.classList.add('open'); };
+    const closeSheet = () => { scrim.classList.remove('on'); sheet.classList.remove('on'); locBtn.classList.remove('open'); };
+    locBtn.addEventListener('click', openSheet);
+    scrim.addEventListener('click', closeSheet);
+    document.getElementById('sheetDone').addEventListener('click', closeSheet);
+    document.getElementById('locCur').addEventListener('click', () => { dongs.clear(); syncDongs(); render(); });
+    dongGrid.addEventListener('click', (e) => {
+      const b = e.target.closest('.dong'); if (!b) return;
+      const d = b.dataset.dong;
+      if (dongs.has(d)) dongs.delete(d); else dongs.add(d);
+      syncDongs(); render();
+    });
+
+    render();
+  </script>
+</body>
+</html>

@@ -5,7 +5,7 @@ import { type PropsWithChildren } from 'react';
 
 const BOOT_CSS = `
 #__boot{position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#0C0C0E;transition:opacity .4s ease;font-family:-apple-system,'Noto Sans KR',system-ui,sans-serif}
-#__boot .m{width:60px;height:60px;border-radius:17px;background:#7A2BC4;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 22px rgba(122,43,196,.35)}
+#__boot .m{width:60px;height:60px;border-radius:17px;background:#0EA5E9;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 22px rgba(14, 165, 233,.35)}
 #__boot .n{font-size:18px;font-weight:800;color:#fff;letter-spacing:-.02em}
 #__boot .b{width:120px;height:3px;border-radius:3px;background:rgba(255,255,255,.16);overflow:hidden}
 #__boot .b i{display:block;width:38%;height:100%;border-radius:3px;background:#fff;animation:__bslide 1.1s ease-in-out infinite}
@@ -28,7 +28,7 @@ export default function Root({ children }: PropsWithChildren) {
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <link rel="icon" type="image/svg+xml" href="/wavely-icon.svg" />
-        <meta name="theme-color" content="#7A2BC4" />
+        <meta name="theme-color" content="#0EA5E9" />
         <ScrollViewStyleReset />
         <style dangerouslySetInnerHTML={{ __html: BOOT_CSS }} />
       </head>

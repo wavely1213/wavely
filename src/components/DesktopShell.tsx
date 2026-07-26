@@ -38,7 +38,7 @@ export function DesktopSidebar() {
     <View style={{ width: 232, borderRightWidth: 1, borderColor: c.border, backgroundColor: c.card, paddingHorizontal: 14, paddingVertical: 18, gap: 6 }}>
       {/* 로고 */}
       <Pressable onPress={() => router.navigate('/')} style={{ flexDirection: 'row', alignItems: 'center', gap: 9, paddingHorizontal: 6, marginBottom: 6 }}>
-        <Logo size={30} bg="#7A2BC4" rounded={8} />
+        <Logo size={30} bg="#0EA5E9" rounded={8} />
         <Text style={{ fontSize: 20, fontWeight: '900', color: c.primaryDeep }}>와벨리</Text>
       </Pressable>
 
@@ -66,12 +66,12 @@ export function DesktopSidebar() {
       </Pressable>
 
       {/* 사장님 센터 (다크 카드 → 광고/분석) */}
-      <Pressable onPress={() => router.push(session ? '/place-rank' : '/login')} style={{ marginTop: 10, backgroundColor: '#1E1335', borderRadius: Radius.card, padding: 13 }}>
+      <Pressable onPress={() => router.push(session ? '/place-rank' : '/login')} style={{ marginTop: 10, backgroundColor: '#0C2A3F', borderRadius: Radius.card, padding: 13 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           <Icon name="chart" size={14} color="#fff" strokeWidth={2} />
           <Text style={{ color: '#fff', fontWeight: '900', fontSize: 13.5 }}>사장님 센터</Text>
         </View>
-        <Text style={{ color: '#C2A2F2', fontSize: 11, marginTop: 3, lineHeight: 16 }}>광고 집행 · 플레이스 분석 · N지수</Text>
+        <Text style={{ color: '#7DD3FC', fontSize: 11, marginTop: 3, lineHeight: 16 }}>광고 집행 · 플레이스 분석 · N지수</Text>
       </Pressable>
 
       <View style={{ flex: 1 }} />

@@ -96,8 +96,8 @@ export const MaxContentWidth = 800;
 
 // 다크모드 태그 오버라이드 (대비 보정용 — 필요한 것만, SSOT 외 화면 전용)
 export const TagColorsDark: Partial<Record<keyof typeof TagColors, { fg: string; bg: string }>> = {
-  free: { fg: '#C4B5FD', bg: '#2E2546' },
+  free: { fg: '#7DD3FC', bg: '#0C2A3F' },
   promo: { fg: '#F0A35A', bg: '#3A2A18' },
-  owner: { fg: '#C4B5FD', bg: '#2E2546' },
+  owner: { fg: '#7DD3FC', bg: '#0C2A3F' },
   staff: { fg: '#6EE7B7', bg: '#13352A' },
 };
