@@ -2,6 +2,10 @@
 --  와벨리 동네레벨 시스템 — DB 초안 (DRAFT, 미배포)
 --  설계문서: ../LEVEL_SYSTEM_SPEC.md
 --  ⚠ 검토 후 RUN. 출시/심사·결제방화벽(PHASE3) 이후 배포 권고.
+--  🔒 불변식: xp·lvl·equipped_*·user_unlocks 는 광고 auction score/검색순위 함수의 입력이 되면 안 됨
+--     (코드격리·회귀테스트). cosmetic ↔ W지수 오염 차단 = pay-to-win 방지 (교훈: Swarm '업그레이드=코인2배' 함정).
+--  (v1.1) reviews(인증방문) 트리거엔 cheater-code 4종 필수: GPS 서버게이트·매장당 1일1회·재인증 쿨다운60분·최소체류.
+--         획득 아이템은 계정귀속·판매/양도 불가(위반 제재). 신고확정·비매너 시 XP 감점(레벨다운) 허용.
 --  idempotent: 재실행 안전 (add if not exists / create or replace / drop if exists).
 --  실스키마 기준: likes(user_id,post_id,id) scraps(user_id,post_id,id)
 --                comments(id,post_id,author_id) posts(id,author_id)
