@@ -594,6 +594,16 @@ export default function StoresScreen() {
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 150, paddingHorizontal: 12 }}>
           {/* 노출 배너 광고 (스트립) */}
           {page === 1 && <View style={{ marginHorizontal: -12 }}><StripBanner scheme={scheme} mainCat={main} /></View>}
+          {page === 1 && (
+            <Pressable onPress={() => router.push('/festival' as any)} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#F26D1F', borderRadius: 16, padding: 14, marginTop: 12 }}>
+              <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' }}><Icon name="sparkles" size={20} color="#fff" /></View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ color: '#fff', fontSize: 14.5, fontWeight: '800' }}>2026 춘천막국수닭갈비축제</Text>
+                <Text style={{ color: '#fff', fontSize: 12, opacity: 0.92, marginTop: 2 }}>10.14–18 · 공지천 산책로 일대</Text>
+              </View>
+              <View style={{ backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 7 }}><Text style={{ color: '#fff', fontSize: 12.5, fontWeight: '800' }}>행사 보기</Text></View>
+            </Pressable>
+          )}
 
           <Text style={[styles.sect, { color: c.text }]}>
             {onlyVerified ? `인증매장 ${displayMembers.length}곳` : `검색 결과 ${total.toLocaleString()}곳 · ${page}/${totalPages}페이지`}
