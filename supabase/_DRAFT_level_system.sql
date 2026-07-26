@@ -44,12 +44,12 @@ create table if not exists public.user_unlocks (
 -- 누적XP(Lv L 도달) = 100·(L-1) + 20·(L-1)^2
 create or replace function public.xp_for_level(p_lvl int)
 returns bigint language sql immutable as $$
-  select (100::bigint * (greatest(p_lvl,1)-1)) + (20::bigint * (greatest(p_lvl,1)-1) * (greatest(p_lvl,1)-1));
+  select (100::bigint * (greatest(p_lvl,1)-1)) + (14::bigint * (greatest(p_lvl,1)-1) * (greatest(p_lvl,1)-1));
 $$;
 
 create or replace function public.xp_to_level(p_xp bigint)
 returns int language sql immutable as $$
-  select greatest(1, floor((-100 + sqrt(10000 + 80 * greatest(p_xp,0)::numeric)) / 40)::int + 1);
+  select greatest(1, floor((-100 + sqrt(10000 + 56 * greatest(p_xp,0)::numeric)) / 28)::int + 1);
 $$;
 
 create or replace function public.tier_for_level(p_lvl int)
@@ -99,6 +99,13 @@ begin
                 and (select count(*) from public.likes l where l.post_id=p.id) >= 50) then
     insert into public.user_unlocks(user_id,kind,item_key) values (p_user,'badge','popular') on conflict do nothing;
   end if;
+  -- 업적: 댓글 작성 300 → 수다쟁이 / 받은 좋아요 누적 500 → 사랑받는 글쟁이
+  if (select count(*) from public.comments where author_id=p_user) >= 300 then
+    insert into public.user_unlocks(user_id,kind,item_key) values (p_user,'title','chatterbox') on conflict do nothing;
+  end if;
+  if (select count(*) from public.likes l join public.posts p on p.id=l.post_id where p.author_id=p_user) >= 500 then
+    insert into public.user_unlocks(user_id,kind,item_key) values (p_user,'badge','beloved') on conflict do nothing;
+  end if;
 end; $$;
 
 -- ---------- 5) XP 적립 코어 (내부/트리거 전용) ----------
@@ -119,7 +126,7 @@ begin
     when 'visit_verified' then v_delta:=15; v_src_cap:=3; v_is_recv:=false;
     when 'post_write'    then v_delta:=5;  v_src_cap:=3;  v_is_recv:=false;
     when 'comment_write' then v_delta:=2;  v_src_cap:=10; v_is_recv:=false;
-    when 'attendance'    then v_delta:=5;  v_src_cap:=1;  v_is_recv:=false;
+    when 'attendance'    then v_delta:=10; v_src_cap:=1;  v_is_recv:=false;
     else return 0;
   end case;
 
