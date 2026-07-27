@@ -101,7 +101,15 @@ body {
   color: var(--c-dim);
   text-transform: uppercase;
 }
-.brand .spacer { flex: 1; }
+/* 위험 표지 띠 — 기계화 시대 산업 규격 */
+.hazard {
+  flex: 1;
+  height: 7px;
+  align-self: center;
+  background: repeating-linear-gradient(-45deg,
+    var(--c-signal) 0 6px, transparent 6px 13px);
+  opacity: .55;
+}
 .iconbtn {
   appearance: none;
   border: var(--bezel);
@@ -190,6 +198,19 @@ body {
   border-radius: 50%;
 }
 .bomb.gone { border-color: var(--c-line); }
+
+/* 상태 표시 — 과부하 · 차폐 */
+.chips { display: flex; gap: 5px; margin-bottom: 6px; }
+.chip {
+  font-family: var(--font-num);
+  font-size: 9px;
+  letter-spacing: .1em;
+  padding: 2px 6px;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+}
+.chip.surge { color: var(--c-signal-t); }
+.chip.guard { color: var(--c-drift-t); }
 
 .touchbtn {
   pointer-events: auto;
@@ -345,15 +366,17 @@ p.lead {
 .tab {
   appearance: none;
   flex: 1;
+  min-width: 0;
   border: 0;
   border-bottom: 2px solid transparent;
   background: transparent;
   color: var(--c-dim);
   font: inherit;
-  font-size: 11px;
-  letter-spacing: .18em;
+  font-size: 10.5px;
+  letter-spacing: .08em;
   padding: 9px 0;
   cursor: pointer;
+  white-space: nowrap;
 }
 .tab[aria-selected="true"] { color: var(--c-fg); border-bottom-color: var(--c-signal); }
 .tab:focus-visible { outline: 2px solid var(--c-signal); outline-offset: -2px; }
@@ -407,6 +430,69 @@ p.lead {
   border-radius: 2px;
   flex: none;
 }
+
+/* 탑승자 · 기체 카드 */
+.unit {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px 2px;
+  border-bottom: var(--bezel);
+}
+.unit .art {
+  width: 62px; height: 62px;
+  border: var(--bezel);
+  background: var(--c-ground);
+  flex: none;
+  border-radius: 2px;
+}
+.unit .body { flex: 1; min-width: 0; }
+.unit .desig {
+  font-family: var(--font-num);
+  font-size: 9.5px;
+  letter-spacing: .18em;
+  color: var(--c-dim);
+}
+.unit .nm { font-size: 13.5px; font-weight: 600; letter-spacing: .04em; margin-top: 3px; }
+.unit .nm small { font-weight: 400; font-size: 11px; color: var(--c-dim); margin-left: 6px; letter-spacing: .02em; }
+.unit .bio {
+  font-family: var(--font-story);
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--c-dim);
+  margin-top: 6px;
+}
+.unit .head { display: flex; align-items: flex-start; gap: 10px; }
+.unit .head .buy { margin-left: auto; }
+
+.stats { display: flex; flex-wrap: wrap; gap: 3px 12px; margin-top: 8px; }
+.stat {
+  font-family: var(--font-num);
+  font-size: 10px;
+  color: var(--c-dim);
+  font-variant-numeric: tabular-nums;
+}
+.stat b { font-weight: 600; color: var(--c-fg); }
+.stat.up b { color: var(--c-moss); }
+.stat.dn b { color: var(--c-bad); }
+
+.perk {
+  margin-top: 8px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  border-left: 2px solid var(--c-signal);
+  padding-left: 9px;
+}
+.perk .lbl {
+  font-size: 8.5px;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+  color: var(--c-dim);
+  flex: none;
+}
+.perk .val { font-size: 11.5px; letter-spacing: .03em; }
+.perk .val b { color: var(--c-signal-t); font-weight: 600; }
 
 /* 기록 */
 .log { padding: 12px 2px; border-bottom: var(--bezel); }
@@ -477,7 +563,7 @@ p.lead {
 <div id="app">
   <div class="brand">
     <b>파장</b><span>Wavelength</span>
-    <div class="spacer"></div>
+    <i class="hazard"></i>
     <button class="iconbtn" id="btn-sound" type="button">소리 ON</button>
   </div>
 
@@ -503,6 +589,7 @@ p.lead {
 
       <div class="hud-bottom">
         <div class="hud-col">
+          <div class="chips" id="hud-chips"></div>
           <div class="tag">BOMB</div>
           <div class="bombs" id="hud-bombs"></div>
         </div>
@@ -512,9 +599,9 @@ p.lead {
 
     <!-- 타이틀 -->
     <div class="screen" id="scr-title">
-      <div class="eyebrow">신호 운반선 · 파장-7</div>
+      <div class="eyebrow">정격관제국 · 단독 출격기 파장-7</div>
       <h1>파장<em>Wavelength</em></h1>
-      <p class="lead">주파수 대역이 무너졌다. 잡음이 신호를 먹어치우기 전에, 대역을 거슬러 올라가 근원을 끊어라.</p>
+      <p class="lead">기계화 3세기. 대역을 따라 내려온 군체가 도시를 덮었다. 기체를 입고 대역을 거슬러 올라가, 그들을 움직이는 송신을 끊어라.</p>
 
       <div class="shipstage"><canvas id="title-ship" width="240" height="240"></canvas></div>
 
@@ -553,8 +640,8 @@ p.lead {
 
     <!-- 일시정지 -->
     <div class="screen" id="scr-pause" hidden>
-      <div class="eyebrow">일시 정지</div>
-      <h2>신호 유지 중</h2>
+      <div class="eyebrow">기체 정지 · 관제 회선 유지</div>
+      <h2>대기 상태</h2>
       <div class="grow"></div>
       <div class="btns">
         <button class="btn primary" id="btn-resume" type="button">계속</button>
@@ -564,8 +651,9 @@ p.lead {
 
     <!-- 결과 -->
     <div class="screen" id="scr-result" hidden>
-      <div class="eyebrow" id="result-head">교신 두절</div>
+      <div class="eyebrow" id="result-head">기체 상실 · 회수 보고</div>
       <h2 id="result-title">파장-7 신호 소실</h2>
+      <div class="eyebrow" id="result-crew" style="letter-spacing:.14em"></div>
       <div class="newbest" id="result-best" hidden>NEW RECORD</div>
       <div class="grow"></div>
       <div class="result">
@@ -591,11 +679,15 @@ p.lead {
         </div>
       </div>
       <div class="tabs" role="tablist">
-        <button class="tab" role="tab" id="tab-eq" aria-selected="true" type="button">장비</button>
+        <button class="tab" role="tab" id="tab-pilot" aria-selected="true" type="button">탑승자</button>
+        <button class="tab" role="tab" id="tab-frame" aria-selected="false" type="button">기체</button>
+        <button class="tab" role="tab" id="tab-eq" aria-selected="false" type="button">장비</button>
         <button class="tab" role="tab" id="tab-cos" aria-selected="false" type="button">치장</button>
         <button class="tab" role="tab" id="tab-log" aria-selected="false" type="button">기록</button>
       </div>
-      <div class="panel" id="pn-eq"></div>
+      <div class="panel" id="pn-pilot"></div>
+      <div class="panel" id="pn-frame" hidden></div>
+      <div class="panel" id="pn-eq" hidden></div>
       <div class="panel" id="pn-cos" hidden></div>
       <div class="panel" id="pn-log" hidden></div>
       <div class="grow"></div>
@@ -636,13 +728,15 @@ const SAVE_KEY = "wavelength.save.v1";
 const DEFAULT_SAVE = {
   coins: 0,
   best: 0,
-  cleared: 0,                          // 클리어한 최고 스테이지
+  cleared: 0,                          // 클리어한 최고 구역
   eq: { weapon: 1, engine: 1, shield: 1 },
-  skin: "delta",
+  pilot: "stray",                      // 탑승자
+  frame: "grail",                      // 기체
+  skin: "std",
   trail: "ember",
-  owned: ["delta", "ember"],
+  owned: ["std", "ember", "stray", "grail"],
   seenStory: [],
-  codex: []                            // 조우한 적 id
+  codex: []                            // 조우한 군체 id
 };
 
 let S;
@@ -750,17 +844,89 @@ const EQUIP = [
   { id: "shield", nm: "차폐막",    tbl: SHIELD, line: lv => "내구 " + SHIELD[lv].hp + " · 폭탄 " + SHIELD[lv].bomb }
 ];
 
-function stats() {
-  const w = WEAPON[S.eq.weapon], e = ENGINE[S.eq.engine], s = SHIELD[S.eq.shield];
-  return { w, speed: e.spd, rate: w.rate * e.mul, hp: s.hp, bomb: s.bomb };
+/* 4-1b. 탑승자 — 회피율 · 연사력 · 보급 아이템 종류가 갈린다
+   rate는 사격 간격 배율(작을수록 빠름), 표시는 연사 %로 뒤집어 보여준다. */
+const PILOTS = [
+  { id: "stray",  desig: "P-01", call: "스트레이", nm: "유리 카렌", cost: 0,
+    bio: "정비반에서 올라온 대체 요원. 기체가 부서지는 소리를 남보다 먼저 듣는다.",
+    evade: .06, rate: .89, drop: "repair",
+    dropNm: "정비 부품", dropTx: "내구 1 회복" },
+
+  { id: "hollow", desig: "P-02", call: "할로우",   nm: "진 나오미", cost: 320,
+    bio: "관측 특기. 쏘는 것보다 보는 것이 빠르다는 이유로 배치되었다.",
+    evade: .20, rate: 1.06, drop: "cluster",
+    dropNm: "코어 뭉치", dropTx: "코어 5 즉시 회수" },
+
+  { id: "torch",  desig: "P-03", call: "토치",     nm: "서 도윤",   cost: 440,
+    bio: "돌입 성향. 관제 기록에 '제동 거리 미상'이라고 적혀 있다.",
+    evade: .03, rate: .80, drop: "surge",
+    dropNm: "과부하 셀", dropTx: "8초간 연사 +45%" },
+
+  { id: "anchor", desig: "P-04", call: "앵커",     nm: "문 세라",   cost: 360, need: 2,
+    bio: "포격 관제 출신. 탄도를 먼저 그리고 나서 방아쇠를 생각한다.",
+    evade: .10, rate: 1.00, drop: "ord",
+    dropNm: "예비 탄두", dropTx: "폭탄 1 보급" }
+];
+
+/* 4-1c. 기체 — 공격력 · 이동속도 · 연사력 · 부가효과
+   실루엣도 기체마다 다르다(drawFrame). 도장은 그 위에 얹히는 색. */
+const FRAMES = [
+  { id: "grail",  desig: "TR-04", nm: "그레일", cost: 0, cls: "표준 강습",
+    bio: "제식 채용기. 특출난 곳이 없다는 것이 유일한 특징으로 남았다.",
+    atk: 1.00, spd: 1.00, rate: 1.00, perk: "output",
+    perkNm: "정격 출력", perkTx: "콤보 배율 상한 ×6" },
+
+  { id: "bore",   desig: "HV-09", nm: "보어",   cost: 480, cls: "중장 돌파",
+    bio: "장갑을 두르는 대신 관절을 포기했다. 앞으로만 잘 간다.",
+    atk: 1.34, spd: .82, rate: 1.14, perk: "pierce",
+    perkNm: "천공 탄심", perkTx: "관통 +1" },
+
+  { id: "whim",   desig: "SL-02", nm: "윔지",   cost: 420, cls: "경량 정찰",
+    bio: "장갑판을 전부 떼어낸 시험 사양. 맞으면 끝이지만, 잘 안 맞는다.",
+    atk: .84, spd: 1.28, rate: .86, perk: "magnet",
+    perkNm: "견인장 확대", perkTx: "보급품 회수 범위 ×1.8" },
+
+  { id: "cage",   desig: "XN-11", nm: "케이지", cost: 600, need: 3, cls: "시제 실험기",
+    bio: "육각 차폐 실증기. 관제국은 아직 이 기체의 도면을 공개하지 않았다.",
+    atk: 1.08, spd: .96, rate: 1.00, perk: "guard",
+    perkNm: "육각 차폐", perkTx: "6초마다 피탄 1회 무효" }
+];
+const GUARD_CD = 6;
+
+function loadout() {
+  return {
+    pilot: PILOTS.find(p => p.id === S.pilot) || PILOTS[0],
+    frame: FRAMES.find(f => f.id === S.frame) || FRAMES[0],
+    skin:  SKINS.find(k => k.id === S.skin)   || SKINS[0],
+    trail: TRAILS.find(t => t.id === S.trail) || TRAILS[0]
+  };
 }
 
-/* 4-2. 치장 */
+/* 최종 스펙 = 장비 × 기체 × 탑승자 */
+function stats() {
+  const w = WEAPON[S.eq.weapon], e = ENGINE[S.eq.engine], s = SHIELD[S.eq.shield];
+  const { pilot, frame } = loadout();
+  return {
+    shots:  w.shots,
+    dmg:    Math.round(w.dmg * frame.atk),
+    pierce: (w.pierce || 0) + (frame.perk === "pierce" ? 1 : 0),
+    speed:  Math.round(e.spd * frame.spd),
+    rate:   w.rate * e.mul * frame.rate * pilot.rate,
+    hp: s.hp, bomb: s.bomb,
+    evade:  pilot.evade,
+    drop:   pilot.drop,
+    magnet: frame.perk === "magnet" ? 198 : 110,
+    comboCap: frame.perk === "output" ? 6 : 5,
+    guard:  frame.perk === "guard"
+  };
+}
+
+/* 4-2. 치장 — 도장(색)만 담당. 실루엣은 기체가 정한다. */
 const SKINS = [
-  { id: "delta",  nm: "델타",   sub: "기본 지급형",       cost: 0,   col: () => C.signal },
-  { id: "azure",  nm: "창공",   sub: "고고도 정찰 도장",   cost: 260, col: () => C.drift },
-  { id: "verdant",nm: "초원",   sub: "지상 지원 도장",     cost: 260, col: () => C.moss },
-  { id: "ink",    nm: "흑요",   sub: "3구역 돌파 증표",   cost: 0, need: 3, col: () => C.fg }
+  { id: "std",    nm: "정격 도장", sub: "관제국 제식 배색",   cost: 0,   col: () => C.signal },
+  { id: "azure",  nm: "창공",      sub: "고고도 정찰 배색",   cost: 260, col: () => C.drift },
+  { id: "verdant",nm: "초원",      sub: "지상 지원 배색",     cost: 260, col: () => C.moss },
+  { id: "ink",    nm: "흑요",      sub: "3구역 돌파 증표",    cost: 0, need: 3, col: () => C.fg }
 ];
 const TRAILS = [
   { id: "ember", nm: "잔불", sub: "표준 배기",        cost: 0 },
@@ -780,48 +946,92 @@ const STAGES = [
 ];
 const ENDLESS_NM = "잔향";
 
-const STORY = {
+/* 구역별로 [기록 나레이션, 관제 지시]는 고정, 마지막 한 줄은 탑승자마다 다르다.
+   탑승자 선택이 스토리에서도 실제로 갈리도록. */
+const STORY_FIXED = {
   1: [
-    ["나비", "대역 진입. 여기가 한때 제일 조용한 구간이었어요."],
-    ["관제", "파장-7, 잡음이 신호를 먹고 있다. 위로 올라가면서 길을 뚫어라."],
-    ["나비", "…길이 아니라 벽인데요. 그래도 갑니다."]
+    [null,  "기계화 3세기. 인간은 더 이상 하늘을 걷지 않는다. 기체를 입고 걷는다."],
+    ["관제", "정격관제국 관제다. 파장-7, 1구역 진입 승인. 군체 밀도 낮음 — 몸 풀 시간은 준다."]
   ],
   2: [
-    ["나비", "간섭이 심해요. 잡음이 대형을 짜기 시작했습니다."],
-    ["관제", "학습하고 있는 거다. 같은 패턴으로 두 번 이기지 마라."],
-    [null,  "계기판의 파형이 처음으로 되받아 흔들렸다."]
+    [null,  "군체는 같은 실수를 두 번 하지 않는다. 그것이 기계라는 것의 유일한 예의다."],
+    ["관제", "간섭 수치가 올라간다. 저쪽이 대형을 짜기 시작했어."]
   ],
   3: [
-    ["나비", "…방금 우리 신호가 되돌아왔어요. 1.4초 늦게."],
-    ["관제", "반향이다. 벽이 네 소리를 흉내 내고 있어."],
-    ["나비", "그럼 조용히 갈게요. 총은 계속 쏘면서요."]
+    [null,  "벽은 이쪽이 낸 소리를 1.4초 늦게 되돌려준다."],
+    ["관제", "반향 경보. 네 기체 신호가 복제되고 있다 — 조준을 믿지 마라."]
   ],
   4: [
-    [null,  "여기서부터는 아무 소리도 없다. 전부 다 있어서, 아무것도 들리지 않는다."],
-    ["나비", "백색 소음. 모든 주파수가 동시에 켜진 상태예요."],
-    ["관제", "…통신이 끊긴다. 파장-7, 이제부터는 네 판단이다."]
+    [null,  "모든 주파수가 동시에 켜지면, 아무것도 들리지 않는다."],
+    ["관제", "여기서 통신이 끊긴다. 파장-7 — 이제부터는 네 판단이다."]
   ],
   5: [
-    ["나비", "근원이 보여요. 잡음이 아니라… 신호였어요. 너무 커진."],
-    [null,  "그것은 대답을 기다린 적이 없다. 다만 계속 말하고 있었을 뿐이다."],
-    ["나비", "끊어요. 우리가 조용해질 수 있게."]
-  ]
-};
-const STORY_END = {
-  5: [
-    [null, "근원이 꺼졌다. 대역에 처음으로 여백이 생겼다."],
-    ["나비", "…들려요? 아무것도 안 들려요."],
-    ["관제", "귀환하라, 파장-7. 그리고 잔향은 아직 남아 있다."]
+    [null,  "군체를 움직인 것은 명령이 아니었다. 그저 꺼지지 않은 송신이었다."],
+    ["관제", "…근원이 잡힌다. 끊어라, 파장-7. 그거면 전부 멈춘다."]
   ]
 };
 
+const STORY_PILOT = {
+  stray: {
+    1: "정비 끝났습니다. 어디가 먼저 부러질지는 알고 갑니다.",
+    2: "대형을 짠다는 건 저쪽도 부품을 아끼기 시작했다는 뜻이에요.",
+    3: "제 소리를 흉내 내네요. 볼트 푸는 소리까지 똑같이.",
+    4: "관제 없이도 기체는 돌아갑니다. 그게 정비반이 하는 일이고요.",
+    5: "이건 고쳐 쓸 수 있는 고장이 아니네요. 뜯어야겠어요.",
+    end: "돌아가면 제일 먼저 기체부터 볼게요."
+  },
+  hollow: {
+    1: "밀도 낮음 확인. …낮은 게 아니라, 비켜준 겁니다.",
+    2: "저쪽이 우리를 세고 있어요. 하나, 라고.",
+    3: "둘 중 하나는 접니다. 어느 쪽인지는 나중에 정하죠.",
+    4: "조용하네요. 드디어 제대로 볼 수 있겠습니다.",
+    5: "몇 백 년을 계속 말하고 있었어요. 아무도 안 듣는데.",
+    end: "조용해지니까 오히려 안 들리는 게 무섭네요."
+  },
+  torch: {
+    1: "몸 풀 시간 필요 없습니다. 그냥 뚫죠.",
+    2: "짜라고 하세요. 어차피 가운데부터 뚫습니다.",
+    3: "복제든 뭐든, 맞으면 부서지는 건 똑같습니다.",
+    4: "안 들리면 안 들리는 대로. 방아쇠는 제 손에 있으니까.",
+    5: "길었습니다. 마지막 한 발까지 갑니다.",
+    end: "다음 대역은 언제 엽니까?"
+  },
+  anchor: {
+    1: "탄도 계산 완료. 1구역은 예열로 씁니다.",
+    2: "대형은 좋아합니다. 한 발에 두 대씩 지워지니까요.",
+    3: "표적이 둘로 늘었군요. 탄약도 두 배 씁시다.",
+    4: "좌표 마지막 갱신 확인. 나머지는 눈으로 쏩니다.",
+    5: "최종 탄도 입력. 이걸로 조용해집니다.",
+    end: "탄약 재고 보고 올리겠습니다."
+  }
+};
+
+const STORY_END_FIXED = [
+  [null,  "송신이 끊겼다. 군체는 처음으로, 서 있던 자리에서 그대로 멈췄다."],
+  ["관제", "전 대역 정적 확인. 파장-7, 귀환하라. …잔향은 아직 남아 있다."]
+];
+
+/* 고정 줄 + 현재 탑승자 줄을 합쳐 한 편으로 만든다 */
+function storyFor(stage) {
+  const fixed = STORY_FIXED[stage];
+  if (!fixed) return null;
+  const p = loadout().pilot;
+  const line = (STORY_PILOT[p.id] || {})[stage];
+  return line ? [...fixed, [p.call, line]] : [...fixed];
+}
+function storyEnd() {
+  const p = loadout().pilot;
+  const line = (STORY_PILOT[p.id] || {}).end;
+  return line ? [...STORY_END_FIXED, [p.call, line]] : [...STORY_END_FIXED];
+}
+
 /* 4-4. 도감 */
 const CODEX = [
-  { id: "drone",  nm: "드론 · 표류체", tx: "가장 얇은 잡음. 정해진 파형대로만 흘러내려온다. 생각은 없고 수는 많다." },
-  { id: "weaver", nm: "위버 · 직조체", tx: "좌우로 파형을 짜며 내려온다. 조준해서 쏜다 — 즉 이쪽을 보고 있다." },
-  { id: "turret", nm: "터렛 · 고정체", tx: "멈춰서 대역을 3방향으로 갈라놓는다. 오래 머무르지 않는 게 유일한 자비." },
-  { id: "rusher", nm: "러셔 · 돌입체", tx: "쏘지 않는다. 그냥 온다. 잡음이 가장 정직해지는 형태." },
-  { id: "boss",   nm: "코어 · 증폭체", tx: "구역마다 하나씩 놓인 증폭기. 부수면 그 구간의 잡음이 잠시 숨을 고른다." }
+  { id: "drone",  nm: "MD-1 표류기", tx: "군체의 최소 단위. 조립 라인에서 그대로 떨어져 나온 골격에 추진기 하나를 붙였다. 판단하지 않고, 대신 수가 많다." },
+  { id: "weaver", nm: "MW-3 직조기", tx: "좌우로 궤도를 짜며 내려온다. 조준해서 쏜다 — 즉 광학 계통이 살아 있다는 뜻이다." },
+  { id: "turret", nm: "MT-7 고정포", tx: "공중에서 관절을 잠그고 포대가 된다. 냉각 한계 탓에 오래 머물지 못하는 것이 유일한 자비." },
+  { id: "rusher", nm: "MR-0 돌입기", tx: "무장이 없다. 그냥 온다. 군체가 가장 정직해지는 형태이고, 가장 싸게 찍어낼 수 있는 형태다." },
+  { id: "boss",   nm: "AX 증폭 코어", tx: "구역마다 하나씩 매달린 중계 증폭기. 육각 차폐를 두르고 송신을 되뿌린다. 부수면 그 구간의 군체가 잠시 손을 놓는다." }
 ];
 
 /* ═══════════════════════════════════════════════
@@ -886,7 +1096,14 @@ const G = {
 
 function newPlayer() {
   const st = stats();
-  return { x: W / 2, y: H - 130, r: 11, hp: st.hp, maxHp: st.hp, bomb: st.bomb, cd: 0, inv: 1.2, dead: false };
+  return {
+    x: W / 2, y: H - 130, r: 11,
+    hp: st.hp, maxHp: st.hp, bomb: st.bomb, maxBomb: st.bomb,
+    cd: 0, inv: 1.2, dead: false,
+    surge: 0,                                   // 과부하 셀 잔여(초)
+    guard: st.guard ? GUARD_CD : 0,             // 육각 차폐 충전(GUARD_CD면 준비 완료)
+    dodgeT: 0                                   // 회피 성공 연출 타이머
+  };
 }
 
 /* ═══════════════════════════════════════════════
@@ -964,25 +1181,26 @@ function spawnEnemy(s) {
 }
 
 function shoot() {
-  const w = stats().w, p = G.player, V = 620, out = G.bullets;
-  if (w.shots === 1) {
-    out.push(B(p.x, p.y - 15, 0, -V, w));
-  } else if (w.shots === 2) {
-    out.push(B(p.x - 8, p.y - 12, 0, -V, w), B(p.x + 8, p.y - 12, 0, -V, w));
-  } else if (w.shots === 3) {
-    out.push(B(p.x, p.y - 15, 0, -V, w),
-             B(p.x - 7, p.y - 8, -130, -V * .96, w),
-             B(p.x + 7, p.y - 8,  130, -V * .96, w));
+  const st = stats(), p = G.player, V = 620, out = G.bullets;
+  const d = st.dmg, pc = st.pierce;
+  if (st.shots === 1) {
+    out.push(B(p.x, p.y - 15, 0, -V, d, pc));
+  } else if (st.shots === 2) {
+    out.push(B(p.x - 8, p.y - 12, 0, -V, d, pc), B(p.x + 8, p.y - 12, 0, -V, d, pc));
+  } else if (st.shots === 3) {
+    out.push(B(p.x, p.y - 15, 0, -V, d, pc),
+             B(p.x - 7, p.y - 8, -130, -V * .96, d),
+             B(p.x + 7, p.y - 8,  130, -V * .96, d));
   } else {
-    out.push(B(p.x, p.y - 15, 0, -V, w, w.pierce),
-             B(p.x -  7, p.y - 10, -120, -V * .96, w),
-             B(p.x +  7, p.y - 10,  120, -V * .96, w),
-             B(p.x - 13, p.y -  2, -260, -V * .86, w),
-             B(p.x + 13, p.y -  2,  260, -V * .86, w));
+    out.push(B(p.x, p.y - 15, 0, -V, d, pc),
+             B(p.x -  7, p.y - 10, -120, -V * .96, d),
+             B(p.x +  7, p.y - 10,  120, -V * .96, d),
+             B(p.x - 13, p.y -  2, -260, -V * .86, d),
+             B(p.x + 13, p.y -  2,  260, -V * .86, d));
   }
   Snd.shoot();
 }
-function B(x, y, vx, vy, w, pierce) { return { x, y, vx, vy, dmg: w.dmg, r: pierce ? 6 : 4, pierce: pierce || 0, hit: [] }; }
+function B(x, y, vx, vy, dmg, pierce) { return { x, y, vx, vy, dmg, r: pierce ? 6 : 4, pierce: pierce || 0, hit: [] }; }
 
 function eshot(x, y, vx, vy, r) { G.ebullets.push({ x, y, vx, vy, r: r || 5 }); }
 function aimed(x, y, spd, spread) {
@@ -1002,6 +1220,36 @@ function burst(x, y, col, n, pow) {
 function dropLoot(x, y, n) {
   for (let i = 0; i < n; i++)
     G.drops.push({ x: x + rand(-10, 10), y: y + rand(-8, 8), vx: rand(-40, 40), vy: rand(-70, -20), r: 6, t: 0, kind: "core" });
+}
+
+/* 탑승자마다 떨어지는 보급품이 다르다 — PILOTS[].drop */
+function dropSupply(x, y) {
+  G.drops.push({ x, y, vx: rand(-30, 30), vy: rand(-90, -50), r: 8, t: 0, kind: stats().drop });
+}
+
+const SUPPLY = {
+  cluster: { nm: "코어 뭉치", col: () => C.moss },
+  repair:  { nm: "정비 부품", col: () => C.moss },
+  surge:   { nm: "과부하 셀", col: () => C.signal },
+  ord:     { nm: "예비 탄두", col: () => C.dust }
+};
+
+function collect(d) {
+  const p = G.player;
+  if (d.kind === "core") { G.coins++; Snd.coin(); return; }
+  if (d.kind === "cluster") {
+    G.coins += 5; toast("코어 뭉치 — 코어 5");
+  } else if (d.kind === "repair") {
+    if (p.hp < p.maxHp) { p.hp++; toast("정비 부품 — 내구 회복"); }
+    else { G.coins += 3; toast("정비 부품 — 코어 3 환산"); }
+  } else if (d.kind === "surge") {
+    p.surge = 8; toast("과부하 셀 — 연사 +45%");
+  } else if (d.kind === "ord") {
+    if (p.bomb < p.maxBomb) { p.bomb++; toast("예비 탄두 — 폭탄 보급"); }
+    else { G.coins += 3; toast("예비 탄두 — 코어 3 환산"); }
+  }
+  burst(d.x, d.y, SUPPLY[d.kind].col(), 12, 1);
+  Snd.blip(1560, .09, "triangle", .04);
 }
 
 /* ═══════════════════════════════════════════════
@@ -1030,6 +1278,9 @@ function update(dt) {
   p.x = clamp(p.x, PAD + 10, W - PAD - 10);
   p.y = clamp(p.y, 60, H - 34);
   if (p.inv > 0) p.inv -= dt;
+  if (p.surge > 0) p.surge = Math.max(0, p.surge - dt);
+  if (p.dodgeT > 0) p.dodgeT = Math.max(0, p.dodgeT - dt);
+  if (st.guard && p.guard < GUARD_CD) p.guard = Math.min(GUARD_CD, p.guard + dt);
 
   /* — 잔상 트레일 — */
   if (S.trail === "echo") {
@@ -1047,7 +1298,7 @@ function update(dt) {
 
   /* — 사격 — */
   p.cd -= dt;
-  if (p.cd <= 0 && !p.dead) { shoot(); p.cd = st.rate; }
+  if (p.cd <= 0 && !p.dead) { shoot(); p.cd = st.rate * (p.surge > 0 ? .55 : 1); }
 
   /* — 콤보 감쇠 — */
   if (G.combo > 0) { G.comboT -= dt; if (G.comboT <= 0) G.combo = 0; }
@@ -1132,15 +1383,17 @@ function update(dt) {
   }
 
   /* — 드롭 — */
+  const mag = st.magnet;                       /* 기체 「견인장 확대」가 여기서 갈린다 */
   for (let i = G.drops.length - 1; i >= 0; i--) {
     const d = G.drops[i];
     d.t += dt;
     d.vy += 260 * dt;
-    const dd = Math.hypot(p.x - d.x, p.y - d.y);
-    if (dd < 110) { const k = (1 - dd / 110) * 900; d.vx += (p.x - d.x) / dd * k * dt; d.vy += (p.y - d.y) / dd * k * dt; }
+    const dd = Math.hypot(p.x - d.x, p.y - d.y) || .001;
+    if (dd < mag) { const k = (1 - dd / mag) * 900; d.vx += (p.x - d.x) / dd * k * dt; d.vy += (p.y - d.y) / dd * k * dt; }
     d.x += d.vx * dt; d.y += d.vy * dt;
-    if (dd < 16) {
-      G.drops.splice(i, 1); G.coins++; Snd.coin();
+    if (dd < 18) {
+      G.drops.splice(i, 1);
+      collect(d);
       G.parts.push({ x: d.x, y: d.y, vx: 0, vy: -40, life: .3, max: .3, col: C.moss, sz: 3 });
       continue;
     }
@@ -1219,12 +1472,14 @@ function damageEnemy(e, dmg) {
     G.score += Math.round(e.score * comboMul());
     burst(e.x, e.y, C.drift, 14, 1);
     dropLoot(e.x, e.y, e.kind === "turret" ? 3 : e.kind === "weaver" ? 2 : 1);
+    if (Math.random() < .045) dropSupply(e.x, e.y);   /* 탑승자별 보급품 */
     G.shake = Math.min(1, G.shake + .12);
     Snd.boom();
   }
 }
 
-function comboMul() { return Math.min(5, 1 + Math.floor(G.combo / 5) * .5); }
+/* 기체 「정격 출력」이 상한을 ×5 → ×6으로 올린다 */
+function comboMul() { return Math.min(stats().comboCap, 1 + Math.floor(G.combo / 5) * .5); }
 
 function killBoss() {
   const b = G.boss;
@@ -1234,15 +1489,36 @@ function killBoss() {
   burst(b.x, b.y, C.drift, 60, 2.2);
   burst(b.x, b.y, C.signal, 30, 1.6);
   dropLoot(b.x, b.y, 26);
+  dropSupply(b.x - 16, b.y); dropSupply(b.x + 16, b.y);
   G.ebullets.length = 0;
   G.shake = 1; G.flash = 1;
   Snd.big();
   G.phase = "clear"; G.waveT = 0;
 }
 
+/* 피격 처리 순서: 육각 차폐 → 탑승자 회피 → 실제 피해 */
 function hurt() {
-  const p = G.player;
+  const p = G.player, st = stats();
+
   if (p.inv > 0) return;
+
+  if (st.guard && p.guard >= GUARD_CD) {
+    p.guard = 0; p.inv = .7;
+    burst(p.x, p.y, C.drift, 22, 1.2);
+    G.flash = .35;
+    toast("육각 차폐 전개");
+    Snd.blip(520, .16, "triangle", .05);
+    return;
+  }
+
+  if (Math.random() < st.evade) {
+    p.inv = .55; p.dodgeT = .6;
+    burst(p.x, p.y, C.dust, 10, .8);
+    toast("회피");
+    Snd.blip(760, .07, "triangle", .035);
+    return;
+  }
+
   p.hp--; p.inv = 1.4;
   G.combo = 0;
   G.shake = 1; G.flash = .6;
@@ -1280,15 +1556,39 @@ function draw() {
   ctx.fillRect(-20, -20, W + 40, H + 40);
   drawBackdrop();
 
-  /* 드롭 */
+  /* 회수품 — 종류마다 형태가 다르다 */
   for (const d of G.drops) {
-    ctx.fillStyle = C.moss;
-    ctx.beginPath();
-    ctx.arc(d.x, d.y, 3.4 + Math.sin(d.t * 9) * .7, 0, 6.283);
-    ctx.fill();
-    ctx.strokeStyle = alpha(C.moss, .35);
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.arc(d.x, d.y, 7, 0, 6.283); ctx.stroke();
+    if (d.kind === "core") {
+      ctx.fillStyle = C.moss;
+      ctx.beginPath(); ctx.arc(d.x, d.y, 3.4 + Math.sin(d.t * 9) * .7, 0, 6.283); ctx.fill();
+      ctx.strokeStyle = alpha(C.moss, .35); ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(d.x, d.y, 7, 0, 6.283); ctx.stroke();
+      continue;
+    }
+    const col = SUPPLY[d.kind].col();
+    const pulse = 1 + Math.sin(d.t * 7) * .12;
+    ctx.save();
+    ctx.translate(d.x, d.y); ctx.scale(pulse, pulse);
+    ctx.strokeStyle = col; ctx.lineWidth = 1.6; ctx.fillStyle = col;
+    if (d.kind === "cluster") {
+      for (let i = 0; i < 3; i++) {
+        const a = i / 3 * 6.283 + d.t;
+        ctx.beginPath(); ctx.arc(Math.cos(a) * 4, Math.sin(a) * 4, 2.6, 0, 6.283); ctx.fill();
+      }
+    } else if (d.kind === "repair") {
+      ctx.fillRect(-6, -1.8, 12, 3.6); ctx.fillRect(-1.8, -6, 3.6, 12);
+    } else if (d.kind === "surge") {
+      ctx.beginPath();
+      ctx.moveTo(0, -7); ctx.lineTo(4, -1); ctx.lineTo(1, -1);
+      ctx.lineTo(2, 7); ctx.lineTo(-4, 0); ctx.lineTo(-1, 0);
+      ctx.closePath(); ctx.fill();
+    } else {
+      ctx.beginPath(); ctx.arc(0, 0, 6, 0, 6.283); ctx.stroke();
+      ctx.beginPath(); ctx.arc(0, 0, 2.2, 0, 6.283); ctx.fill();
+    }
+    ctx.restore();
+    ctx.strokeStyle = alpha(col, .3); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(d.x, d.y, 11 + Math.sin(d.t * 5) * 1.5, 0, 6.283); ctx.stroke();
   }
 
   /* 파티클 */
@@ -1331,10 +1631,41 @@ function draw() {
       }
       ctx.globalAlpha = 1;
     }
+    /* 과부하 셀 — 기체가 달아오른다 */
+    if (p.surge > 0) {
+      const a = (.18 + .1 * Math.sin(G.t * 18)) * clamp(p.surge, 0, 1);
+      ctx.strokeStyle = alpha(C.signal, a * 3);
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(p.x, p.y, 21 + Math.sin(G.t * 12) * 2, 0, 6.283); ctx.stroke();
+    }
+
+    /* 회피 성공 — 기체가 지나간 자리만 남는다 */
+    if (p.dodgeT > 0) {
+      ctx.globalAlpha = p.dodgeT / .6 * .5;
+      ctx.strokeStyle = C.dust; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(p.x, p.y, 16 + (1 - p.dodgeT / .6) * 20, 0, 6.283); ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+
     const blink = p.inv > 0 && Math.floor(G.t * 14) % 2 === 0;
     ctx.globalAlpha = blink ? .35 : 1;
     drawShip(ctx, p.x, p.y, 1);
     ctx.globalAlpha = 1;
+
+    /* 육각 차폐 — 충전되면 실선, 충전 중이면 진행도만큼 그린다 */
+    if (stats().guard) {
+      const k = p.guard / GUARD_CD;
+      ctx.strokeStyle = k >= 1 ? alpha(C.drift, .75) : alpha(C.drift, .3);
+      ctx.lineWidth = k >= 1 ? 1.6 : 1;
+      ctx.beginPath();
+      const seg = Math.max(1, Math.round(k * 6));
+      for (let i = 0; i <= seg; i++) {
+        const a = i / 6 * 6.283 - Math.PI / 2;
+        const hx = p.x + Math.cos(a) * 22, hy = p.y + Math.sin(a) * 22;
+        i ? ctx.lineTo(hx, hy) : ctx.moveTo(hx, hy);
+      }
+      ctx.stroke();
+    }
   }
 
   /* 스테이지 클리어 배너 */
@@ -1395,12 +1726,31 @@ function drawBackdrop() {
     ctx.fillRect(m.x, m.y, m.w, 1);
   }
 
+  /* 격벽 이음새 + 리벳 — 기계화 규격 구조물을 통과하는 느낌 */
+  const seam = (t * 34) % 200;
+  ctx.strokeStyle = alpha(C.line, .8);
+  ctx.lineWidth = 1;
+  ctx.fillStyle = alpha(C.dust, .35);
+  for (let y = -200 + seam; y < H + 200; y += 200) {
+    ctx.beginPath(); ctx.moveTo(PAD, y); ctx.lineTo(W - PAD, y); ctx.stroke();
+    for (let x = PAD + 14; x < W - PAD; x += 42) ctx.fillRect(x, y - 1.5, 3, 3);
+  }
+
   /* 좌우 여백 레일 */
   ctx.strokeStyle = alpha(C.line, .9);
   ctx.beginPath();
   ctx.moveTo(PAD, 0); ctx.lineTo(PAD, H);
   ctx.moveTo(W - PAD, 0); ctx.lineTo(W - PAD, H);
   ctx.stroke();
+
+  /* 계기 모서리 표식 */
+  ctx.strokeStyle = alpha(C.dust, .5);
+  ctx.lineWidth = 1.4;
+  for (const [cx, cy, sx, sy] of [[PAD, 8, 1, 1], [W - PAD, 8, -1, 1], [PAD, H - 8, 1, -1], [W - PAD, H - 8, -1, -1]]) {
+    ctx.beginPath();
+    ctx.moveTo(cx + sx * 16, cy); ctx.lineTo(cx, cy); ctx.lineTo(cx, cy + sy * 16);
+    ctx.stroke();
+  }
 }
 
 function skinColor() {
@@ -1408,36 +1758,64 @@ function skinColor() {
   return s.col();
 }
 
-/* 선체는 한 곳에서만 정의한다 — 필드·타이틀·스와치가 같은 실루엣을 쓰도록 */
-function drawShip(g, x, y, sc, col) {
+/* 기체 실루엣 — 형식별로 다르다. 필드·타이틀 프리뷰·격납고 스와치가 전부 이 함수를 공유. */
+const HULL = {
+  grail: [[0,-17],[7,2],[15,11],[5,9],[0,14],[-5,9],[-15,11],[-7,2]],
+  bore:  [[0,-15],[5,-10],[5,-4],[17,-2],[18,10],[10,11],[8,5],[4,6],[2,14],
+          [-2,14],[-4,6],[-8,5],[-10,11],[-18,10],[-17,-2],[-5,-4],[-5,-10]],
+  whim:  [[0,-19],[4,-6],[16,8],[12,10],[3,4],[2,13],[-2,13],[-3,4],[-12,10],[-16,8],[-4,-6]],
+  cage:  [[0,-18],[5,-11],[5,-6],[14,-6],[16,4],[9,4],[9,11],[3,8],[0,13],
+          [-3,8],[-9,11],[-9,4],[-16,4],[-14,-6],[-5,-6],[-5,-11]]
+};
+
+function poly(g, pts) {
+  g.beginPath();
+  for (let i = 0; i < pts.length; i++) { const [x, y] = pts[i]; i ? g.lineTo(x, y) : g.moveTo(x, y); }
+  g.closePath();
+}
+
+function drawFrame(g, id, x, y, sc, col) {
+  const pts = HULL[id] || HULL.grail;
   g.save();
   g.translate(x, y); g.scale(sc, sc);
 
   g.fillStyle = col || skinColor();
-  g.beginPath();
-  g.moveTo(0, -17);
-  g.lineTo(7, 2);
-  g.lineTo(15, 11);
-  g.lineTo(5, 9);
-  g.lineTo(0, 14);
-  g.lineTo(-5, 9);
-  g.lineTo(-15, 11);
-  g.lineTo(-7, 2);
-  g.closePath();
-  g.fill();
+  poly(g, pts); g.fill();
+  g.strokeStyle = C.fg; g.lineWidth = 1.2; g.stroke();
 
-  g.strokeStyle = C.fg;
-  g.lineWidth = 1.2;
+  /* 장갑 이음새 — 기계화 규격 */
+  g.strokeStyle = alpha(C.fg, .55); g.lineWidth = .9;
+  g.beginPath();
+  if (id === "bore") { g.moveTo(-17, 1); g.lineTo(17, 1); g.moveTo(-5, -7); g.lineTo(5, -7); }
+  else if (id === "whim") { g.moveTo(-4, -5); g.lineTo(4, -5); g.moveTo(0, -19); g.lineTo(0, 3); }
+  else if (id === "cage") { g.moveTo(-15, -2); g.lineTo(15, -2); g.moveTo(-5, -9); g.lineTo(5, -9); }
+  else { g.moveTo(-7, 2); g.lineTo(7, 2); }
   g.stroke();
 
+  /* 조종석 */
   g.fillStyle = C.field;
-  g.beginPath(); g.ellipse(0, -3, 2.6, 4.4, 0, 0, 6.283); g.fill();
+  g.beginPath(); g.ellipse(0, id === "whim" ? -6 : -3, 2.6, 4.4, 0, 0, 6.283); g.fill();
+
+  /* 형식별 표식 */
+  if (id === "bore") { g.fillStyle = C.fg; g.fillRect(-13, -6, 3, 7); g.fillRect(10, -6, 3, 7); }
+  if (id === "cage") {
+    g.strokeStyle = C.fg; g.lineWidth = 1;
+    g.beginPath();
+    for (let i = 0; i < 6; i++) {
+      const a = i / 6 * 6.283 - Math.PI / 2, hx = Math.cos(a) * 5, hy = Math.sin(a) * 5 + 4;
+      i ? g.lineTo(hx, hy) : g.moveTo(hx, hy);
+    }
+    g.closePath(); g.stroke();
+  }
+  if (id === "whim") { g.fillStyle = alpha(C.fg, .5); g.fillRect(-14, 7, 5, 1.4); g.fillRect(9, 7, 5, 1.4); }
 
   g.restore();
 }
+function drawShip(g, x, y, sc, col) { drawFrame(g, S.frame, x, y, sc, col); }
 
+/* 군체는 전부 조립품이다 — 장갑판 + 이음새 + 추진기 노즐로 읽히게 그린다 */
 function drawEnemy(e) {
-  const hurt = e.hp < e.maxHp * .45;
+  const wrecked = e.hp < e.maxHp * .45;
   ctx.save();
   ctx.translate(e.x, e.y);
   ctx.fillStyle = C.drift;
@@ -1445,62 +1823,91 @@ function drawEnemy(e) {
   ctx.lineWidth = 1.1;
 
   if (e.kind === "drone") {
-    ctx.beginPath();
-    ctx.moveTo(0, 11); ctx.lineTo(10, -6); ctx.lineTo(0, -2); ctx.lineTo(-10, -6);
-    ctx.closePath(); ctx.fill(); ctx.stroke();
+    poly(ctx, [[0, 12], [6, 4], [11, -5], [4, -3], [0, -7], [-4, -3], [-11, -5], [-6, 4]]);
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = alpha(C.fg, .55);
+    ctx.fillRect(-7, -6, 3, 2.4); ctx.fillRect(4, -6, 3, 2.4);      /* 노즐 */
   } else if (e.kind === "weaver") {
-    ctx.beginPath();
-    ctx.moveTo(0, 13); ctx.lineTo(13, 0); ctx.lineTo(0, -9); ctx.lineTo(-13, 0);
-    ctx.closePath(); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = C.field;
-    ctx.fillRect(-2.2, -1, 4.4, 6);
+    poly(ctx, [[0, 13], [7, 5], [13, 1], [8, -3], [0, -9], [-8, -3], [-13, 1], [-7, 5]]);
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = C.field; ctx.fillRect(-2.4, -2, 4.8, 8);         /* 포신 */
+    ctx.strokeStyle = alpha(C.fg, .5); ctx.lineWidth = .9;
+    ctx.beginPath(); ctx.moveTo(-12, 1); ctx.lineTo(12, 1); ctx.stroke();
+    ctx.fillStyle = C.signal;
+    ctx.beginPath(); ctx.arc(0, -4, 1.8, 0, 6.283); ctx.fill();      /* 광학 계통 */
   } else if (e.kind === "turret") {
-    ctx.beginPath(); ctx.arc(0, 0, 13, 0, 6.283); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = C.field;
-    ctx.fillRect(-9, -2, 18, 4);
-    ctx.fillRect(-2, 2, 4, 11);
-  } else {
     ctx.beginPath();
-    ctx.moveTo(0, 13); ctx.lineTo(8, -10); ctx.lineTo(-8, -10);
+    for (let i = 0; i < 8; i++) {
+      const a = i / 8 * 6.283 + .39, hx = Math.cos(a) * 13, hy = Math.sin(a) * 13;
+      i ? ctx.lineTo(hx, hy) : ctx.moveTo(hx, hy);
+    }
     ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = C.field; ctx.fillRect(-9.5, -2.4, 19, 4.8); ctx.fillRect(-2.4, 2, 4.8, 12);
+    ctx.strokeStyle = alpha(C.fg, .6); ctx.lineWidth = .9;
+    ctx.beginPath(); ctx.arc(0, 0, 7.5, 0, 6.283); ctx.stroke();
+  } else {
+    poly(ctx, [[0, 14], [5, 2], [9, -10], [3, -7], [-3, -7], [-9, -10], [-5, 2]]);
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = alpha(C.fg, .6);
+    ctx.fillRect(-6, -10, 2.6, 3);  ctx.fillRect(3.4, -10, 2.6, 3);
   }
 
-  if (hurt) {
-    ctx.globalAlpha = .5;
+  /* 손상 — 장갑이 벗겨져 안쪽이 보인다 */
+  if (wrecked) {
+    ctx.globalAlpha = .55;
     ctx.fillStyle = C.field;
-    ctx.beginPath(); ctx.arc(0, 0, 4, 0, 6.283); ctx.fill();
+    ctx.beginPath(); ctx.arc(rand(-3, 3), rand(-2, 2), 4, 0, 6.283); ctx.fill();
+    ctx.globalAlpha = 1;
   }
   ctx.restore();
 }
 
+/* AX 증폭 코어 — 육각 차폐를 겹쳐 두르고 송신을 되뿌린다 */
 function drawBoss(b) {
   ctx.save();
   ctx.translate(b.x, b.y);
 
-  ctx.strokeStyle = alpha(C.drift, .4);
+  const hex = (r, rot) => {
+    ctx.beginPath();
+    for (let i = 0; i < 6; i++) {
+      const a = i / 6 * 6.283 - Math.PI / 2 + rot;
+      const hx = Math.cos(a) * r, hy = Math.sin(a) * r;
+      i ? ctx.lineTo(hx, hy) : ctx.moveTo(hx, hy);
+    }
+    ctx.closePath();
+  };
+
+  /* 차폐층 3겹 */
   ctx.lineWidth = 1.5;
   for (let k = 0; k < 3; k++) {
-    const r = b.r + 14 + k * 13 + Math.sin(b.t * 2 + k) * 4;
-    ctx.beginPath(); ctx.arc(0, 0, r, b.spin * (k % 2 ? 1 : -1), b.spin * (k % 2 ? 1 : -1) + 4.4); ctx.stroke();
+    const r = b.r + 16 + k * 15 + Math.sin(b.t * 2 + k) * 4;
+    ctx.strokeStyle = alpha(C.drift, .34 - k * .08);
+    hex(r, b.spin * (k % 2 ? .5 : -.5)); ctx.stroke();
   }
 
-  ctx.rotate(Math.sin(b.t * .5) * .12);
-  ctx.fillStyle = C.drift;
-  ctx.strokeStyle = C.fg;
-  ctx.lineWidth = 1.6;
-  ctx.beginPath();
+  ctx.rotate(Math.sin(b.t * .5) * .1);
+
+  /* 외부 장갑판 */
+  ctx.fillStyle = C.drift; ctx.strokeStyle = C.fg; ctx.lineWidth = 1.6;
+  hex(b.r, 0); ctx.fill(); ctx.stroke();
+
+  /* 방열 슬릿 */
+  ctx.strokeStyle = alpha(C.fg, .5); ctx.lineWidth = 1;
   for (let i = 0; i < 6; i++) {
-    const a = i / 6 * 6.283 - Math.PI / 2;
-    const r = b.r * (i % 2 ? .78 : 1);
-    const x = Math.cos(a) * r, y = Math.sin(a) * r;
-    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    const a = i / 6 * 6.283 - Math.PI / 2 + .52;
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(a) * b.r * .55, Math.sin(a) * b.r * .55);
+    ctx.lineTo(Math.cos(a) * b.r * .92, Math.sin(a) * b.r * .92);
+    ctx.stroke();
   }
-  ctx.closePath(); ctx.fill(); ctx.stroke();
 
-  ctx.fillStyle = C.field;
-  ctx.beginPath(); ctx.arc(0, 0, b.r * .42, 0, 6.283); ctx.fill();
+  /* 송신 코어 */
+  ctx.fillStyle = C.field; hex(b.r * .44, .52); ctx.fill();
+  ctx.strokeStyle = C.fg; ctx.lineWidth = 1.2; ctx.stroke();
   ctx.fillStyle = C.signal;
-  ctx.beginPath(); ctx.arc(0, 0, b.r * .42 * (.5 + .3 * Math.abs(Math.sin(b.t * 3))), 0, 6.283); ctx.fill();
+  ctx.beginPath();
+  ctx.arc(0, 0, b.r * .3 * (.55 + .35 * Math.abs(Math.sin(b.t * 3))), 0, 6.283);
+  ctx.fill();
 
   ctx.restore();
 }
@@ -1590,24 +1997,28 @@ function paintTitle() {
   $("title-best").textContent = S.best ? "최고 기록 " + fmt(S.best) : "최고 기록 —";
 
   const lo = $("title-loadout");
+  const { pilot, frame, skin, trail } = loadout();
+  const st = stats();
   lo.innerHTML = "";
-  for (const it of EQUIP) {
-    const lv = S.eq[it.id];
+
+  const row = (k, v, pips) => {
     const r = document.createElement("div");
     r.className = "lo-row";
-    r.innerHTML = '<span class="k"></span><span class="v"></span><span class="pips">' +
-      Array.from({ length: MAXLV }, (_, i) => '<i class="pip' + (i < lv ? " on" : "") + '"></i>').join("") + '</span>';
-    r.querySelector(".k").textContent = it.nm;
-    r.querySelector(".v").textContent = it.line(lv);
+    r.innerHTML = '<span class="k"></span><span class="v"></span>' +
+      (pips == null ? "" : '<span class="pips">' +
+        Array.from({ length: MAXLV }, (_, i) => '<i class="pip' + (i < pips ? " on" : "") + '"></i>').join("") + '</span>');
+    r.querySelector(".k").textContent = k;
+    r.querySelector(".v").textContent = v;
     lo.appendChild(r);
-  }
-  const sk = SKINS.find(k => k.id === S.skin) || SKINS[0];
-  const tr = TRAILS.find(k => k.id === S.trail) || TRAILS[0];
-  const r = document.createElement("div");
-  r.className = "lo-row";
-  r.innerHTML = '<span class="k">치장</span><span class="v"></span>';
-  r.querySelector(".v").textContent = sk.nm + " 도장 · " + tr.nm + " 궤적";
-  lo.appendChild(r);
+  };
+
+  row("탑승자", pilot.desig + " 「" + pilot.call + "」 · 회피 " + Math.round(pilot.evade * 100) + "% · " + pilot.dropNm);
+  row("기체",   frame.desig + " " + frame.nm + " · " + frame.perkNm);
+  for (const it of EQUIP) row(it.nm, it.line(S.eq[it.id]), S.eq[it.id]);
+  row("종합",   "위력 " + st.dmg + " · 기동 " + st.speed +
+                " · 연사 " + Math.round(WEAPON[1].rate / st.rate * 100) + "%" +
+                (st.pierce ? " · 관통 " + st.pierce : ""));
+  row("도장",   skin.nm + " · " + trail.nm + " 궤적");
 }
 
 /* 매 프레임 호출되므로 값이 실제로 바뀔 때만 DOM을 건드린다 */
@@ -1638,6 +2049,12 @@ function paintHud() {
   [...bb.children].forEach((el, i) => el.classList.toggle("gone", i >= p.bomb));
   $("btn-bomb").disabled = p.bomb <= 0;
 
+  const chips = [];
+  if (p.surge > 0) chips.push('<span class="chip surge">과부하 ' + p.surge.toFixed(1) + 's</span>');
+  if (stats().guard) chips.push('<span class="chip guard">차폐 ' + (p.guard >= GUARD_CD ? "READY" : Math.ceil(GUARD_CD - p.guard) + "s") + '</span>');
+  const key = chips.join("");
+  if (hudCache.chips !== key) { hudCache.chips = key; $("hud-chips").innerHTML = key; }
+
   const cm = $("hud-combo");
   const on = G.combo >= 3;
   cm.classList.toggle("on", on);
@@ -1654,7 +2071,7 @@ function paintHud() {
 let storyThen = null;
 function showStory(stage, lines, then) {
   storyThen = then;
-  $("story-head").textContent = "STAGE " + stage + " · " + stageName(stage);
+  $("story-head").textContent = "STAGE " + stage + " · " + stageName(stage) + " · " + stageEn(stage);
   const box = $("story-lines");
   box.innerHTML = "";
   for (const [who, say] of lines) {
@@ -1681,7 +2098,7 @@ function beginRun(stage) {
 }
 
 function enterStage(stage) {
-  const lines = STORY[stage];
+  const lines = storyFor(stage);
   /* 처음 보는 구역에서만 대사를 세운다 — 재도전 흐름을 끊지 않기 위해.
      지난 대사는 격납고 › 기록에서 다시 읽을 수 있다. */
   if (lines && !S.seenStory.includes(stage)) {
@@ -1700,7 +2117,7 @@ function goPlay() {
 function nextStage() {
   S.cleared = Math.max(S.cleared, G.stage);
   persist();
-  const end = STORY_END[G.stage];
+  const end = G.stage === 5 ? storyEnd() : null;
   const p = G.player;
   p.hp = Math.min(p.maxHp, p.hp + 1);
   p.bomb = stats().bomb;
@@ -1718,8 +2135,10 @@ function endRun() {
   persist();
   G.pickStage = clamp(G.stage, 1, maxStage());   /* 재출격은 쓰러진 구역에서 */
 
-  $("result-head").textContent = "교신 두절";
+  const lo = loadout();
+  $("result-head").textContent = "기체 상실 · 회수 보고";
   $("result-title").textContent = "STAGE " + G.stage + " · " + stageName(G.stage) + " 에서 신호 소실";
+  $("result-crew").textContent = lo.pilot.desig + " 「" + lo.pilot.call + "」 · " + lo.frame.desig + " " + lo.frame.nm;
   $("result-best").hidden = !record;
   $("r-score").textContent = fmt(G.score);
   $("r-coin").textContent = "+" + fmt(G.coins);
@@ -1739,8 +2158,150 @@ function openHangar() {
   setScreen("hangar");
 }
 
+/* 100% 기준 대비 증감을 부호와 색으로 보여준다 */
+function statChip(label, pct, higherIsBetter) {
+  const cls = pct === 100 ? "" : (pct > 100) === higherIsBetter ? " up" : " dn";
+  const s = document.createElement("span");
+  s.className = "stat" + cls;
+  s.innerHTML = label + " <b></b>";
+  s.querySelector("b").textContent = pct + "%";
+  return s;
+}
+
+function unitCard(item, kind) {
+  const isPilot = kind === "pilot";
+  const owned = S.owned.includes(item.id);
+  const equipped = (isPilot ? S.pilot : S.frame) === item.id;
+  const locked = item.need && S.cleared < item.need;
+
+  const row = document.createElement("div");
+  row.className = "unit";
+
+  const art = document.createElement("canvas");
+  art.className = "art";
+  art.width = 124; art.height = 124;
+  (isPilot ? paintPilotArt : paintFrameArt)(art, item);
+
+  const body = document.createElement("div");
+  body.className = "body";
+
+  const head = document.createElement("div");
+  head.className = "head";
+  const idb = document.createElement("div");
+  idb.innerHTML = '<div class="desig"></div><div class="nm"><span></span><small></small></div>';
+  idb.querySelector(".desig").textContent = item.desig + " · " + (isPilot ? "탑승자" : item.cls);
+  idb.querySelector(".nm span").textContent = isPilot ? "「" + item.call + "」" : item.nm;
+  idb.querySelector(".nm small").textContent = isPilot ? item.nm : "";   /* 기체는 형식번호가 위에 이미 있다 */
+  head.appendChild(idb);
+
+  const btn = document.createElement("button");
+  btn.className = "buy";
+  btn.type = "button";
+  if (locked) { btn.textContent = "STAGE " + item.need; btn.disabled = true; }
+  else if (equipped) { btn.textContent = "탑승중"; btn.disabled = true; btn.classList.add("equipped"); }
+  else if (owned) {
+    btn.textContent = "선택"; btn.classList.add("owned");
+    btn.addEventListener("click", () => {
+      if (isPilot) S.pilot = item.id; else S.frame = item.id;
+      persist(); Snd.ui(); toast((isPilot ? "탑승자 " : "기체 ") + (isPilot ? item.call : item.nm)); paintHangar();
+    });
+  } else {
+    btn.textContent = fmt(item.cost);
+    btn.disabled = S.coins < item.cost;
+    btn.addEventListener("click", () => {
+      if (S.coins < item.cost) return;
+      S.coins -= item.cost; S.owned.push(item.id);
+      if (isPilot) S.pilot = item.id; else S.frame = item.id;
+      persist(); Snd.ui(); toast((isPilot ? item.call : item.nm) + " 배치"); paintHangar();
+    });
+  }
+  head.appendChild(btn);
+  body.appendChild(head);
+
+  const bio = document.createElement("div");
+  bio.className = "bio";
+  bio.textContent = locked ? item.need + "구역 돌파 시 기밀 해제." : item.bio;
+  body.appendChild(bio);
+
+  const st = document.createElement("div");
+  st.className = "stats";
+  if (isPilot) {
+    st.appendChild(statChip("회피", Math.round(item.evade * 100), true));
+    st.appendChild(statChip("연사", Math.round(100 / item.rate), true));
+  } else {
+    st.appendChild(statChip("공격", Math.round(item.atk * 100), true));
+    st.appendChild(statChip("기동", Math.round(item.spd * 100), true));
+    st.appendChild(statChip("연사", Math.round(100 / item.rate), true));
+  }
+  body.appendChild(st);
+
+  const perk = document.createElement("div");
+  perk.className = "perk";
+  perk.innerHTML = '<span class="lbl">' + (isPilot ? "보급" : "부가") + '</span><span class="val"><b></b> — <span class="tx"></span></span>';
+  perk.querySelector("b").textContent = isPilot ? item.dropNm : item.perkNm;
+  perk.querySelector(".tx").textContent = isPilot ? item.dropTx : item.perkTx;
+  body.appendChild(perk);
+
+  row.appendChild(art); row.appendChild(body);
+  return row;
+}
+
+/* 탑승자 초상 대신 계기판식 식별 표식 — 얼굴을 그리지 않고 규격으로 구분한다 */
+function paintPilotArt(canvas, p) {
+  const g = canvas.getContext("2d");
+  const N = canvas.width;
+  g.fillStyle = C.ground; g.fillRect(0, 0, N, N);
+
+  g.strokeStyle = alpha(C.line, 1); g.lineWidth = 1;
+  for (let i = 14; i < N; i += 14) {
+    g.beginPath(); g.moveTo(i, 0); g.lineTo(i, N); g.moveTo(0, i); g.lineTo(N, i); g.stroke();
+  }
+
+  const cx = N / 2, cy = N / 2;
+  const col = p.drop === "surge" ? C.signal : p.drop === "ord" ? C.dust : p.drop === "repair" ? C.moss : C.drift;
+
+  /* 회피율만큼 링이 열려 있다 */
+  g.strokeStyle = col; g.lineWidth = 4;
+  g.beginPath(); g.arc(cx, cy, 36, -1.9, -1.9 + 6.283 * (1 - p.evade * 2.6)); g.stroke();
+
+  g.strokeStyle = alpha(C.fg, .8); g.lineWidth = 2;
+  g.beginPath();
+  for (let i = 0; i < 6; i++) {
+    const a = i / 6 * 6.283 - Math.PI / 2;
+    const hx = cx + Math.cos(a) * 22, hy = cy + Math.sin(a) * 22;
+    i ? g.lineTo(hx, hy) : g.moveTo(hx, hy);
+  }
+  g.closePath(); g.stroke();
+
+  g.fillStyle = C.fg;
+  g.font = "600 26px " + getComputedStyle(document.body).fontFamily;
+  g.textAlign = "center"; g.textBaseline = "middle";
+  g.fillText(p.desig.split("-")[1], cx, cy + 1);
+}
+
+function paintFrameArt(canvas, f) {
+  const g = canvas.getContext("2d");
+  const N = canvas.width;
+  g.fillStyle = C.ground; g.fillRect(0, 0, N, N);
+  g.strokeStyle = alpha(C.line, 1); g.lineWidth = 1;
+  for (let i = 14; i < N; i += 14) {
+    g.beginPath(); g.moveTo(i, 0); g.lineTo(i, N); g.moveTo(0, i); g.lineTo(N, i); g.stroke();
+  }
+  drawFrame(g, f.id, N / 2, N / 2 + 4, 2.9, skinColor());
+}
+
 function paintHangar() {
   $("hangar-coin").textContent = fmt(S.coins);
+
+  /* 탑승자 */
+  const pp = $("pn-pilot");
+  pp.innerHTML = "";
+  for (const p of PILOTS) pp.appendChild(unitCard(p, "pilot"));
+
+  /* 기체 */
+  const pf = $("pn-frame");
+  pf.innerHTML = "";
+  for (const f of FRAMES) pf.appendChild(unitCard(f, "frame"));
 
   /* 장비 */
   const eq = $("pn-eq");
@@ -1809,7 +2370,10 @@ function paintHangar() {
     d.className = "log" + (seen ? "" : " locked");
     d.innerHTML = '<div class="nm"></div><div class="tx"></div>';
     d.querySelector(".nm").textContent = "STAGE " + i + " · " + STAGES[i].nm;
-    d.querySelector(".tx").textContent = seen ? STORY[i].map(l => (l[0] ? l[0] + ": " : "") + l[1]).join("  /  ") : "미확인 구역";
+    /* 현재 탑승자의 대사로 다시 읽힌다 — 탑승자를 바꾸면 기록도 바뀐다 */
+    d.querySelector(".tx").textContent = seen
+      ? storyFor(i).map(l => (l[0] ? l[0] + ": " : "") + l[1]).join("  /  ")
+      : "미확인 구역";
     lg.appendChild(d);
   }
   const h2 = document.createElement("div");
@@ -1882,7 +2446,7 @@ function paintSwatch(canvas, item, kind) {
   g.clearRect(0, 0, 80, 80);
   g.fillStyle = C.field; g.fillRect(0, 0, 80, 80);
   if (kind === "skin") {
-    drawShip(g, 40, 42, 1.7, item.col());
+    drawFrame(g, S.frame, 40, 42, 1.7, item.col());   /* 도장은 현재 기체 위에 얹혀 보인다 */
   } else {
     const col = item.id === "ion" ? C.drift : item.id === "bloom" ? C.moss : item.id === "echo" ? C.dust : C.signal;
     for (let i = 0; i < 16; i++) {
@@ -1920,15 +2484,14 @@ $("btn-again").addEventListener("click", () => { Snd.ui(); beginRun(clamp(G.pick
 $("btn-to-hangar").addEventListener("click", () => { Snd.ui(); G._fromResult = true; openHangar(); });
 $("btn-to-title").addEventListener("click", () => { Snd.ui(); paintTitle(); setScreen("title"); });
 
-for (const [tab, pn] of [["tab-eq", "pn-eq"], ["tab-cos", "pn-cos"], ["tab-log", "pn-log"]]) {
-  $(tab).addEventListener("click", () => {
-    for (const [t2, p2] of [["tab-eq", "pn-eq"], ["tab-cos", "pn-cos"], ["tab-log", "pn-log"]]) {
-      $(t2).setAttribute("aria-selected", String(t2 === tab));
-      $(p2).hidden = (p2 !== pn);
-    }
-    Snd.ui();
-  });
+const TABS = ["pilot", "frame", "eq", "cos", "log"];
+function selectTab(name) {
+  for (const t of TABS) {
+    $("tab-" + t).setAttribute("aria-selected", String(t === name));
+    $("pn-" + t).hidden = (t !== name);
+  }
 }
+for (const t of TABS) $("tab-" + t).addEventListener("click", () => { selectTab(t); Snd.ui(); });
 
 $("btn-sound").addEventListener("click", () => {
   Snd.on = !Snd.on;
