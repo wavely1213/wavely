@@ -35,8 +35,6 @@ const PLACE_CAT_OR: Record<string, string> = {
 // 2차 업종('자세히 보기') — 기본 목록엔 숨기고 직접 고르면 조회. 웹 PLACE_CATS_MORE와 동일.
 const MAINS_MORE: { key: string; label: string; emoji: string }[] = [
   { key: 'cvs', label: '편의점', emoji: '🏪' },
-  { key: 'cinema', label: '영화관', emoji: '🎬' },
-  { key: 'pc', label: 'PC방', emoji: '🖥️' },
   { key: 'gas', label: '주유소', emoji: '⛽' },
   { key: 'pharmacy', label: '약국', emoji: '💊' },
   { key: 'academy', label: '학원', emoji: '📚' },
@@ -56,14 +54,20 @@ const PLACE_CAT_MORE_OR: Record<string, string> = {
   hospital: 'category.ilike.*의원*,category.ilike.*병원*,category.ilike.*한의*,category.ilike.*치과*,category.ilike.*내과*,category.ilike.*외과*,category.ilike.*피부과*,category.ilike.*안과*,category.ilike.*이비인후*,category.ilike.*산부인*',
   academy: 'category.ilike.*학원*,category.ilike.*교육*,category.ilike.*태권도*,category.ilike.*피아노*,category.ilike.*독서실*,category.ilike.*어학*',
   lodging: 'category.ilike.*모텔*,category.ilike.*호텔*,category.ilike.*펜션*,category.ilike.*게스트하우스*,category.ilike.*숙소*,category.ilike.*리조트*',
-  gym: 'category.ilike.*헬스*,category.ilike.*피트니스*,category.ilike.*필라테스*,category.ilike.*요가*,category.ilike.*크로스핏*',
+  gym: 'category.ilike.*헬스*,category.ilike.*피트니스*,category.ilike.*필라테스*,category.ilike.*요가*,category.ilike.*크로스핏*,category.ilike.*스포츠*,category.ilike.*수영*',
   realty: 'category.ilike.*부동산*,category.ilike.*중개*',
   mart: 'category.ilike.*마트*,category.ilike.*슈퍼*,category.ilike.*식료품*,category.ilike.*정육*,category.ilike.*반찬*',
   laundry: 'category.ilike.*세탁*,category.ilike.*빨래방*',
   beauty: 'category.ilike.*네일*,category.ilike.*피부*,category.ilike.*왁싱*,category.ilike.*속눈썹*,category.ilike.*반영구*,category.ilike.*타투*,category.ilike.*마사지*,category.ilike.*안마*',
   auto: 'category.ilike.*자동차*,category.ilike.*정비*,category.ilike.*카센터*,category.ilike.*타이어*,category.ilike.*세차*,category.ilike.*렌터카*',
-  leisure: 'category.ilike.*당구*,category.ilike.*볼링*,category.ilike.*골프*,category.ilike.*오락*,category.ilike.*만화*,category.ilike.*방탈출*,category.ilike.*수영*,category.ilike.*스포츠*',
+  // PC방·영화관을 놀거리에 통합
+  leisure: 'category.ilike.*당구*,category.ilike.*볼링*,category.ilike.*골프*,category.ilike.*오락*,category.ilike.*만화*,category.ilike.*방탈출*,category.ilike.*PC방*,category.ilike.*피시방*,category.ilike.*영화*',
 };
+// 도박·사행성 업소는 목록·지도·검색 어디에도 노출하지 않는다(동네 커뮤니티라 미성년자도 본다).
+// 카테고리를 'PC방'으로 위장한 불법 도박장 대응으로 상호명도 함께 본다.
+const PLACE_BLOCK_RE = /성인오락|사행|도박|카지노|홀덤|슬롯|릴게임|바다이야기|경마장|경륜|경정|장외발매|성인pc|성인게임|스크린경마/i;
+export const isBlockedPlace = (s: { category?: string | null; name?: string | null }) =>
+  PLACE_BLOCK_RE.test(`${s.category ?? ''} ${s.name ?? ''}`);
 const FOOD_EXCLUDE = ['카페', '커피', '디저트', '베이커리', '제과', '브런치', '빙수', '아이스크림', '케이크'];
 // 미선택(전체)일 때 = 8업종 아무거나. 음식점 대분류가 식당·카페를 모두 포함한다.
 // 기본 목록(미선택·비검색) = 기본 노출 5업종만(식당·카페·미용실·노래방·병원)
@@ -343,8 +347,8 @@ export default function StoresScreen() {
     pq = pq.order('n_score', { ascending: false, nullsFirst: false }).order('review_count', { ascending: false, nullsFirst: false }).order('name').range(from, from + PAGE_SIZE - 1);   // N지수 우선(웹 파리티), 없으면 리뷰·이름
     const [{ data: m }, pr] = await Promise.all([mq, pq]);
     const mem = (m as Store[]) ?? [];
-    setMembers(mem);
-    setPlaces((pr.data as Place[]) ?? []);
+    setMembers(mem.filter((s) => !isBlockedPlace(s as any)));
+    setPlaces(((pr.data as Place[]) ?? []).filter((p) => !isBlockedPlace(p)));   // 도박·사행성 제외(목록·지도 공통 소스)
     setTotal(pr.count ?? 0);
     // 등록매장 N지수 = stores.n_score(종합 N지수 캐시, 대량분석/분석이 채움) — 웹과 동일 소스.
     const nb: Record<string, number> = {};
