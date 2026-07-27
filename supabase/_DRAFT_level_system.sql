@@ -18,7 +18,8 @@ alter table public.profiles
   add column if not exists xp bigint not null default 0,
   add column if not exists lvl int not null default 1,
   add column if not exists equipped_title text,
-  add column if not exists equipped_border text;
+  add column if not exists equipped_border text,
+  add column if not exists equipped_background text;   -- 배경 v3(핸드오프 '와벨리 동네레벨 v3.html')
 
 -- ---------- 1) 원장 (일일캡·품앗이·소급회수 소스) ----------
 create table if not exists public.xp_ledger (
@@ -38,7 +39,7 @@ create index if not exists xp_ledger_ref on public.xp_ledger(user_id, source, re
 -- ---------- 2) 보유 아이템 (뱃지·칭호·테두리) ----------
 create table if not exists public.user_unlocks (
   user_id   uuid not null references public.profiles(id) on delete cascade,
-  kind      text not null check (kind in ('badge','title','border')),
+  kind      text not null check (kind in ('badge','title','border','background')),
   item_key  text not null,
   earned_at timestamptz not null default now(),
   primary key (user_id, kind, item_key)
@@ -87,6 +88,13 @@ begin
   insert into public.user_unlocks(user_id,kind,item_key) values (p_user,'title','newbie_neighbor') on conflict do nothing;
   if v_lvl >= 10 then insert into public.user_unlocks(user_id,kind,item_key) values (p_user,'title','guardian') on conflict do nothing; end if;
   if v_lvl >= 20 then insert into public.user_unlocks(user_id,kind,item_key) values (p_user,'title','elder') on conflict do nothing; end if;
+
+  -- 배경 해금(v3 §3-4): 레벨 도달 시 자동 지급. plain은 기본 제공이라 시드 불필요.
+  insert into public.user_unlocks(user_id,kind,item_key) values (p_user,'background','wave') on conflict do nothing;
+  if v_lvl >= 5  then insert into public.user_unlocks(user_id,kind,item_key) values (p_user,'background','dots') on conflict do nothing; end if;
+  if v_lvl >= 15 then insert into public.user_unlocks(user_id,kind,item_key) values (p_user,'background','ripple') on conflict do nothing; end if;
+  if v_lvl >= 25 then insert into public.user_unlocks(user_id,kind,item_key) values (p_user,'background','mountain') on conflict do nothing; end if;
+  if v_lvl >= 40 then insert into public.user_unlocks(user_id,kind,item_key) values (p_user,'background','lake') on conflict do nothing; end if;
 
   -- 사실기반 뱃지
   if exists (select 1 from public.stores where owner_id=p_user) then
@@ -261,11 +269,11 @@ create trigger xp_post_ins after insert on public.posts for each row execute fun
 -- ---------- 8) 조회/장착/수여 RPC ----------
 create or replace function public.get_level_card(p_user uuid)
 returns jsonb language plpgsql security definer stable set search_path=public as $$
-declare v_xp bigint; v_lvl int; v_tier text; v_cur bigint; v_next bigint; v_nick text; v_title text; v_border text;
+declare v_xp bigint; v_lvl int; v_tier text; v_cur bigint; v_next bigint; v_nick text; v_title text; v_border text; v_bg text;
 begin
   if p_user is null then return null; end if;
-  select coalesce(xp,0), coalesce(lvl,1), nickname, equipped_title, equipped_border
-    into v_xp, v_lvl, v_nick, v_title, v_border from public.profiles where id=p_user;
+  select coalesce(xp,0), coalesce(lvl,1), nickname, equipped_title, equipped_border, equipped_background
+    into v_xp, v_lvl, v_nick, v_title, v_border, v_bg from public.profiles where id=p_user;
   if not found then return null; end if;
   v_tier := public.tier_for_level(v_lvl);
   v_cur  := public.xp_for_level(v_lvl);
@@ -274,6 +282,7 @@ begin
     'nickname', v_nick, 'xp', v_xp, 'level', v_lvl, 'tier', v_tier,
     'equipped_title', v_title,
     'equipped_border', coalesce(v_border, v_tier),
+    'equipped_background', coalesce(v_bg, 'plain'),
     'xp_into_level', v_xp - v_cur,
     'xp_span', greatest(1, v_next - v_cur),
     'progress_pct', round(100.0 * (v_xp - v_cur) / greatest(1, v_next - v_cur))::int,
@@ -325,6 +334,22 @@ begin
   return jsonb_build_object('ok',true,'equipped_border',p_key);
 end; $$;
 
+create or replace function public.equip_background(p_key text)
+returns jsonb language plpgsql security definer set search_path=public as $$
+declare uid uuid := auth.uid();
+begin
+  if uid is null then return jsonb_build_object('ok',false,'reason','로그인이 필요해요'); end if;
+  if p_key is null or p_key = 'plain' then
+    update public.profiles set equipped_background='plain' where id=uid;
+    return jsonb_build_object('ok',true,'equipped_background','plain');
+  end if;
+  if not exists (select 1 from public.user_unlocks where user_id=uid and kind='background' and item_key=p_key) then
+    return jsonb_build_object('ok',false,'reason','보유하지 않은 배경이에요');
+  end if;
+  update public.profiles set equipped_background=p_key where id=uid;
+  return jsonb_build_object('ok',true,'equipped_background',p_key);
+end; $$;
+
 create or replace function public.admin_grant_item(p_user uuid, p_kind text, p_key text)
 returns jsonb language plpgsql security definer set search_path=public as $$
 begin
@@ -338,7 +363,7 @@ end; $$;
 
 -- ---------- 9) 권한/RLS ----------
 -- 클라 직접 조작 차단(09 하드닝 패턴): xp·lvl·장착은 RPC로만
-revoke update (xp, lvl, equipped_title, equipped_border) on public.profiles from authenticated;
+revoke update (xp, lvl, equipped_title, equipped_border, equipped_background) on public.profiles from authenticated;
 
 alter table public.xp_ledger   enable row level security;
 alter table public.user_unlocks enable row level security;
@@ -364,6 +389,7 @@ grant execute on function public.get_level_card(uuid) to anon, authenticated;
 grant execute on function public.my_level_refresh()   to authenticated;
 grant execute on function public.equip_title(text)    to authenticated;
 grant execute on function public.equip_border(text)   to authenticated;
+grant execute on function public.equip_background(text) to authenticated;
 grant execute on function public.admin_grant_item(uuid,text,text) to authenticated;
 
 notify pgrst, 'reload schema';
