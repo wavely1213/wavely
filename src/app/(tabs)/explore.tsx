@@ -66,8 +66,15 @@ const PLACE_CAT_MORE_OR: Record<string, string> = {
 // 도박·사행성 업소는 목록·지도·검색 어디에도 노출하지 않는다(동네 커뮤니티라 미성년자도 본다).
 // 카테고리를 'PC방'으로 위장한 불법 도박장 대응으로 상호명도 함께 본다.
 const PLACE_BLOCK_RE = /성인오락|사행|도박|카지노|홀덤|슬롯|릴게임|바다이야기|경마장|경륜|경정|장외발매|성인pc|성인게임|스크린경마|유흥주점|단란주점|룸살롱|나이트클럽|가라오케|호스트바|텐프로|풀살롱|성인용품/i;
-export const isBlockedPlace = (s: { category?: string | null; name?: string | null }) =>
-  PLACE_BLOCK_RE.test(`${s.category ?? ''} ${s.name ?? ''}`);
+// 예외: 업종이 '단란주점'이어도 7080·라이브 음악주점은 노출 유지(웹과 동일 기준).
+const PLACE_ALLOW_RE = /7080|라이브/;
+const HARD_BLOCK_RE = /유흥주점|룸살롱|나이트클럽|호스트바|텐프로|풀살롱|성인용품|성인오락|사행|도박|카지노|홀덤|슬롯|릴게임|바다이야기|경마장|장외발매/i;
+export const isBlockedPlace = (s: { category?: string | null; name?: string | null }) => {
+  const t = `${s.category ?? ''} ${s.name ?? ''}`;
+  if (!PLACE_BLOCK_RE.test(t)) return false;
+  if (PLACE_ALLOW_RE.test(t) && !HARD_BLOCK_RE.test(t)) return false;
+  return true;
+};
 const FOOD_EXCLUDE = ['카페', '커피', '디저트', '베이커리', '제과', '브런치', '빙수', '아이스크림', '케이크'];
 // 미선택(전체)일 때 = 8업종 아무거나. 음식점 대분류가 식당·카페를 모두 포함한다.
 // 기본 목록(미선택·비검색) = 기본 노출 5업종만(식당·카페·미용실·노래방·병원)
