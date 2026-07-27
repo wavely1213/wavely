@@ -35,6 +35,35 @@ const PLACE_CAT_OR: Record<string, string> = {
   cvs: 'category.ilike.*편의점*',
   gas: 'category.ilike.*주유소*,category.ilike.*충전소*',
 };
+// 2차 업종('자세히 보기') — 기본 목록엔 숨기고 직접 고르면 조회. 웹 PLACE_CATS_MORE와 동일.
+const MAINS_MORE: { key: string; label: string; emoji: string }[] = [
+  { key: 'hospital', label: '병원', emoji: '🏥' },
+  { key: 'pharmacy', label: '약국', emoji: '💊' },
+  { key: 'academy', label: '학원', emoji: '📚' },
+  { key: 'lodging', label: '숙박', emoji: '🏨' },
+  { key: 'gym', label: '헬스장', emoji: '🏋️' },
+  { key: 'realty', label: '부동산', emoji: '🏠' },
+  { key: 'mart', label: '마트', emoji: '🛒' },
+  { key: 'laundry', label: '세탁', emoji: '🧺' },
+  { key: 'petvet', label: '동물병원', emoji: '🐾' },
+  { key: 'beauty', label: '뷰티', emoji: '💅' },
+  { key: 'auto', label: '자동차', emoji: '🚗' },
+  { key: 'leisure', label: '오락', emoji: '🎯' },
+];
+const PLACE_CAT_MORE_OR: Record<string, string> = {
+  pharmacy: 'category.ilike.*약국*',
+  petvet: 'category.ilike.*동물병원*,category.ilike.*동물의료*',
+  hospital: 'category.ilike.*의원*,category.ilike.*병원*,category.ilike.*한의*,category.ilike.*치과*,category.ilike.*내과*,category.ilike.*외과*,category.ilike.*피부과*,category.ilike.*안과*,category.ilike.*이비인후*,category.ilike.*산부인*',
+  academy: 'category.ilike.*학원*,category.ilike.*교육*,category.ilike.*태권도*,category.ilike.*피아노*,category.ilike.*독서실*,category.ilike.*어학*',
+  lodging: 'category.ilike.*모텔*,category.ilike.*호텔*,category.ilike.*펜션*,category.ilike.*게스트하우스*,category.ilike.*숙소*,category.ilike.*리조트*',
+  gym: 'category.ilike.*헬스*,category.ilike.*피트니스*,category.ilike.*필라테스*,category.ilike.*요가*,category.ilike.*크로스핏*',
+  realty: 'category.ilike.*부동산*,category.ilike.*중개*',
+  mart: 'category.ilike.*마트*,category.ilike.*슈퍼*,category.ilike.*식료품*,category.ilike.*정육*,category.ilike.*반찬*',
+  laundry: 'category.ilike.*세탁*,category.ilike.*빨래방*',
+  beauty: 'category.ilike.*네일*,category.ilike.*피부*,category.ilike.*왁싱*,category.ilike.*속눈썹*,category.ilike.*반영구*,category.ilike.*타투*,category.ilike.*마사지*,category.ilike.*안마*',
+  auto: 'category.ilike.*자동차*,category.ilike.*정비*,category.ilike.*카센터*,category.ilike.*타이어*,category.ilike.*세차*,category.ilike.*렌터카*',
+  leisure: 'category.ilike.*당구*,category.ilike.*볼링*,category.ilike.*골프*,category.ilike.*오락*,category.ilike.*만화*,category.ilike.*방탈출*,category.ilike.*수영*,category.ilike.*스포츠*',
+};
 const FOOD_EXCLUDE = ['카페', '커피', '디저트', '베이커리', '제과', '브런치', '빙수', '아이스크림', '케이크'];
 // 미선택(전체)일 때 = 8업종 아무거나. 음식점 대분류가 식당·카페를 모두 포함한다.
 const PLACE_CAT_ANY = 'main_cat.eq.음식점,' + Object.values(PLACE_CAT_OR).join(',');
@@ -260,6 +289,7 @@ export default function StoresScreen() {
 
   const [main, setMain] = useState<string | null>(null);
   const [sub, setSub] = useState<string | null>(null);
+  const [moreOpen, setMoreOpen] = useState(false);   // '자세히 보기' 2차 업종 펼침
   const [search, setSearch] = useState('');
   const [debSearch, setDebSearch] = useState('');   // DB쿼리용 디바운스(입력은 즉시, 쿼리는 350ms 후)
   useEffect(() => { const t = setTimeout(() => setDebSearch(search), 350); return () => clearTimeout(t); }, [search]);
@@ -296,6 +326,8 @@ export default function StoresScreen() {
       for (const w of FOOD_EXCLUDE) pq = pq.not('category', 'ilike', `%${w}%`);
     } else if (main && PLACE_CAT_OR[main]) {
       pq = pq.or(PLACE_CAT_OR[main]);
+    } else if (main && PLACE_CAT_MORE_OR[main]) {
+      pq = pq.or(PLACE_CAT_MORE_OR[main]);            // 2차 업종
     } else if (!main && !debSearch.trim()) {
       pq = pq.or(PLACE_CAT_ANY);
     }
@@ -737,7 +769,23 @@ export default function StoresScreen() {
             </Pressable>
           );
         })}
+        {/* 2차 업종 펼침 — 병원·약국·학원 등은 기본 목록에서 숨기고 여기서 고른다 */}
+        <Pressable onPress={() => setMoreOpen((v) => !v)} style={[styles.catChip, { backgroundColor: (moreOpen || !!(main && PLACE_CAT_MORE_OR[main])) ? c.primary : c.background, borderColor: (moreOpen || !!(main && PLACE_CAT_MORE_OR[main])) ? c.primary : c.border }]}>
+          <Text style={[styles.catChipTxt, { color: (moreOpen || !!(main && PLACE_CAT_MORE_OR[main])) ? c.onPrimary : c.text }]}>자세히 {(moreOpen || !!(main && PLACE_CAT_MORE_OR[main])) ? '▲' : '▼'}</Text>
+        </Pressable>
       </ScrollView>
+      {(moreOpen || !!(main && PLACE_CAT_MORE_OR[main])) && (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.catChips, { paddingTop: 0 }]}>
+          {MAINS_MORE.map((b) => {
+            const on = main === b.key;
+            return (
+              <Pressable key={b.key} onPress={() => pickMain(on ? null : b.key)} style={[styles.catChip, { backgroundColor: on ? c.primary : c.background, borderColor: on ? c.primary : c.border }]}>
+                <Text style={[styles.catChipTxt, { color: on ? c.onPrimary : c.text }]}>{b.emoji} {b.label}</Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+      )}
       {subList.length > 0 && (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.catChips, { paddingTop: 0 }]}>
           <Pressable onPress={() => chooseSub(null)} style={[styles.subChip, { backgroundColor: !sub ? c.primarySoft : c.background, borderColor: !sub ? c.primary : c.border }]}>
