@@ -11,9 +11,18 @@ import { useScheme } from '@/lib/theme';
 const FEST = {
   site: 'https://mdfestival26.imweb.me',
   tel: '07075761657',
-  route: 'https://map.kakao.com/?from=roughmap&eName=%EA%B0%95%EC%9B%90%ED%8A%B9%EB%B3%84%EC%9E%90%EC%B9%98%EB%8F%84%20%EC%B6%98%EC%B2%9C%EC%8B%9C%20%EC%98%A8%EC%9D%98%EB%8F%99%20586&eX=658844.9999999978&eY=1214497.0000000019',
+  place: '2026 춘천막국수닭갈비축제',   // 길찾기 = 네이버 통일(FESTIVAL_TAB §6)
   insta: 'https://www.instagram.com/mdfestival/',
 };
+const FEST_GEO = { lat: 37.8646, lng: 127.7203 };   // 공지천 산책로 일대(온의동 586)
+// 네이버 길찾기 — 앱 스킴 우선, 실패 시 웹. 카카오 경로는 쓰지 않는다(지도 SDK가 네이버).
+function festRoute() {
+  const { lat, lng } = FEST_GEO;
+  const name = encodeURIComponent(FEST.place);
+  const web = `https://map.naver.com/p/directions/-/${lng},${lat},${name}/-/transit`;
+  const scheme = `nmap://route/public?dlat=${lat}&dlng=${lng}&dname=${name}&appname=kr.mulgyeol.wavely`;
+  Linking.openURL(scheme).catch(() => { Linking.openURL(web).catch(() => {}); });
+}
 const DAYS = [{ k: '10.14', d: '수' }, { k: '10.15', d: '목' }, { k: '10.16', d: '금' }, { k: '10.17', d: '토' }, { k: '10.18', d: '일' }];
 type Ev = { day: string; t: string; title: string; loc?: string; type?: 'show' | 'food' | 'exp'; desc?: string };
 // ▼ 2026 세부 프로그램 공개 시 채우면 타임라인·탭상세 자동 동작.
@@ -43,7 +52,7 @@ export default function Festival() {
 
   const quick: { ic: IconName; l: string; on: () => void }[] = [
     { ic: 'phone', l: '전화문의', on: () => open('tel:' + FEST.tel) },
-    { ic: 'map', l: '길찾기', on: () => open(FEST.route) },
+    { ic: 'map', l: '길찾기', on: festRoute },
     { ic: 'sparkles', l: '인스타', on: () => open(FEST.insta) },
     { ic: 'note', l: '공식사이트', on: () => open(FEST.site) },
   ];
@@ -118,10 +127,10 @@ export default function Festival() {
         </Section>
 
         <Section title="오시는 길">
-          <Pressable onPress={() => open(FEST.route)} style={[s.mapfb, { backgroundColor: soft, borderColor: line }]}>
+          <Pressable onPress={festRoute} style={[s.mapfb, { backgroundColor: soft, borderColor: line }]}>
             <Icon name="pin" size={18} color={O.deep} />
             <Text style={{ flex: 1, marginLeft: 8, color: O.deep, fontWeight: '700', fontSize: 13.5 }}>공지천 산책로 일대 · 춘천 온의동 586</Text>
-            <Text style={{ color: O.deep, fontWeight: '800', fontSize: 12.5 }}>카카오 길찾기 →</Text>
+            <Text style={{ color: O.deep, fontWeight: '800', fontSize: 12.5 }}>네이버 길찾기 →</Text>
           </Pressable>
         </Section>
 
