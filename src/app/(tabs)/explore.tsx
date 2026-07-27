@@ -19,11 +19,8 @@ const MAINS: { key: string | null; label: string; emoji: string }[] = [
   { key: 'food', label: '식당', emoji: '🍴' },
   { key: 'cafe', label: '카페', emoji: '☕' },
   { key: 'hair', label: '미용실', emoji: '💇' },
-  { key: 'cinema', label: '영화관', emoji: '🎬' },
-  { key: 'pc', label: 'PC방', emoji: '🖥️' },
   { key: 'karaoke', label: '노래방', emoji: '🎤' },
-  { key: 'cvs', label: '편의점', emoji: '🏪' },
-  { key: 'gas', label: '주유소', emoji: '⛽' },
+  { key: 'hospital', label: '병원', emoji: '🏥' },
 ];
 // PostgREST or-필터(웹 queries.js applyPlaceCat과 같은 패턴)
 const PLACE_CAT_OR: Record<string, string> = {
@@ -37,7 +34,10 @@ const PLACE_CAT_OR: Record<string, string> = {
 };
 // 2차 업종('자세히 보기') — 기본 목록엔 숨기고 직접 고르면 조회. 웹 PLACE_CATS_MORE와 동일.
 const MAINS_MORE: { key: string; label: string; emoji: string }[] = [
-  { key: 'hospital', label: '병원', emoji: '🏥' },
+  { key: 'cvs', label: '편의점', emoji: '🏪' },
+  { key: 'cinema', label: '영화관', emoji: '🎬' },
+  { key: 'pc', label: 'PC방', emoji: '🖥️' },
+  { key: 'gas', label: '주유소', emoji: '⛽' },
   { key: 'pharmacy', label: '약국', emoji: '💊' },
   { key: 'academy', label: '학원', emoji: '📚' },
   { key: 'lodging', label: '숙박', emoji: '🏨' },
@@ -48,7 +48,7 @@ const MAINS_MORE: { key: string; label: string; emoji: string }[] = [
   { key: 'petvet', label: '동물병원', emoji: '🐾' },
   { key: 'beauty', label: '뷰티', emoji: '💅' },
   { key: 'auto', label: '자동차', emoji: '🚗' },
-  { key: 'leisure', label: '오락', emoji: '🎯' },
+  { key: 'leisure', label: '놀거리', emoji: '🎯' },   // 당구·볼링·스크린골프·만화카페·방탈출·수영 등
 ];
 const PLACE_CAT_MORE_OR: Record<string, string> = {
   pharmacy: 'category.ilike.*약국*',
@@ -66,7 +66,8 @@ const PLACE_CAT_MORE_OR: Record<string, string> = {
 };
 const FOOD_EXCLUDE = ['카페', '커피', '디저트', '베이커리', '제과', '브런치', '빙수', '아이스크림', '케이크'];
 // 미선택(전체)일 때 = 8업종 아무거나. 음식점 대분류가 식당·카페를 모두 포함한다.
-const PLACE_CAT_ANY = 'main_cat.eq.음식점,' + Object.values(PLACE_CAT_OR).join(',');
+// 기본 목록(미선택·비검색) = 기본 노출 5업종만(식당·카페·미용실·노래방·병원)
+const PLACE_CAT_ANY = ['main_cat.eq.음식점', PLACE_CAT_OR.cafe, PLACE_CAT_OR.hair, PLACE_CAT_OR.karaoke, PLACE_CAT_MORE_OR.hospital].join(',');
 const SUBS: Record<string, { label: string; pat: string }[]> = {
   음식점: [{ label: '한식', pat: '한식' }, { label: '카페', pat: '비알코올' }, { label: '술집', pat: '주점' }, { label: '분식', pat: '간이' }, { label: '중식', pat: '중식' }, { label: '일식', pat: '일식' }, { label: '양식', pat: '서양식' }],
   쇼핑: [{ label: '의류', pat: '섬유' }, { label: '종합소매', pat: '종합 소매' }, { label: '식료품', pat: '식료품' }, { label: '가전', pat: '가전' }],
