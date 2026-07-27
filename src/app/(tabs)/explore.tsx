@@ -65,7 +65,7 @@ const PLACE_CAT_MORE_OR: Record<string, string> = {
 };
 // 도박·사행성 업소는 목록·지도·검색 어디에도 노출하지 않는다(동네 커뮤니티라 미성년자도 본다).
 // 카테고리를 'PC방'으로 위장한 불법 도박장 대응으로 상호명도 함께 본다.
-const PLACE_BLOCK_RE = /성인오락|사행|도박|카지노|홀덤|슬롯|릴게임|바다이야기|경마장|경륜|경정|장외발매|성인pc|성인게임|스크린경마/i;
+const PLACE_BLOCK_RE = /성인오락|사행|도박|카지노|홀덤|슬롯|릴게임|바다이야기|경마장|경륜|경정|장외발매|성인pc|성인게임|스크린경마|유흥주점|단란주점|룸살롱|나이트클럽|가라오케|호스트바|텐프로|풀살롱|성인용품/i;
 export const isBlockedPlace = (s: { category?: string | null; name?: string | null }) =>
   PLACE_BLOCK_RE.test(`${s.category ?? ''} ${s.name ?? ''}`);
 const FOOD_EXCLUDE = ['카페', '커피', '디저트', '베이커리', '제과', '브런치', '빙수', '아이스크림', '케이크'];
