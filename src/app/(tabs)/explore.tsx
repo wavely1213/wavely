@@ -13,18 +13,31 @@ import { Colors, Radius, Shadow } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 
+// 우리동네 노출 8업종(웹 PLACE_CATS와 동일 기준). 그 외 업종은 목록·지도에서 숨기고 검색할 때만 노출.
 const MAINS: { key: string | null; label: string; emoji: string }[] = [
   { key: null, label: '전체', emoji: '🏘️' },
-  { key: '음식점', label: '음식점', emoji: '🍴' },
-  { key: '쇼핑', label: '쇼핑', emoji: '🛍️' },
-  { key: '미용·뷰티', label: '미용', emoji: '💇' },
-  { key: '교육', label: '교육', emoji: '📚' },
-  { key: '의료', label: '의료', emoji: '🏥' },
-  { key: '숙박', label: '숙박', emoji: '🏨' },
-  { key: '여가·오락', label: '여가', emoji: '🎯' },
-  { key: '생활서비스', label: '생활', emoji: '🔧' },
-  { key: '기타', label: '기타', emoji: '📦' },
+  { key: 'food', label: '식당', emoji: '🍴' },
+  { key: 'cafe', label: '카페', emoji: '☕' },
+  { key: 'hair', label: '미용실', emoji: '💇' },
+  { key: 'cinema', label: '영화관', emoji: '🎬' },
+  { key: 'pc', label: 'PC방', emoji: '🖥️' },
+  { key: 'karaoke', label: '노래방', emoji: '🎤' },
+  { key: 'cvs', label: '편의점', emoji: '🏪' },
+  { key: 'gas', label: '주유소', emoji: '⛽' },
 ];
+// PostgREST or-필터(웹 queries.js applyPlaceCat과 같은 패턴)
+const PLACE_CAT_OR: Record<string, string> = {
+  cafe: 'category.ilike.*카페*,category.ilike.*커피*,category.ilike.*디저트*,category.ilike.*베이커리*,category.ilike.*제과*,category.ilike.*브런치*,category.ilike.*빙수*,category.ilike.*아이스크림*,category.ilike.*케이크*',
+  hair: 'category.ilike.*미용실*,category.ilike.*헤어*,category.ilike.*이용원*,category.ilike.*바버*',
+  cinema: 'category.ilike.*영화*',
+  pc: 'category.ilike.*PC방*,category.ilike.*피시방*,category.ilike.*인터넷카페*',
+  karaoke: 'category.ilike.*노래방*,category.ilike.*노래연습장*',
+  cvs: 'category.ilike.*편의점*',
+  gas: 'category.ilike.*주유소*,category.ilike.*충전소*',
+};
+const FOOD_EXCLUDE = ['카페', '커피', '디저트', '베이커리', '제과', '브런치', '빙수', '아이스크림', '케이크'];
+// 미선택(전체)일 때 = 8업종 아무거나. 음식점 대분류가 식당·카페를 모두 포함한다.
+const PLACE_CAT_ANY = 'main_cat.eq.음식점,' + Object.values(PLACE_CAT_OR).join(',');
 const SUBS: Record<string, { label: string; pat: string }[]> = {
   음식점: [{ label: '한식', pat: '한식' }, { label: '카페', pat: '비알코올' }, { label: '술집', pat: '주점' }, { label: '분식', pat: '간이' }, { label: '중식', pat: '중식' }, { label: '일식', pat: '일식' }, { label: '양식', pat: '서양식' }],
   쇼핑: [{ label: '의류', pat: '섬유' }, { label: '종합소매', pat: '종합 소매' }, { label: '식료품', pat: '식료품' }, { label: '가전', pat: '가전' }],
@@ -277,7 +290,15 @@ export default function StoresScreen() {
     const from = (page - 1) * PAGE_SIZE;
     const mq = supabase.from('stores').select('id,name,category,categories,address,biz_verified,photo,is_ad,ad_weight,rating,review_count,lat,lng,n_score').not('owner_id', 'is', null).not('is_probe', 'is', true).limit(50);
     let pq = supabase.from('places').select('id,name,category,address,main_cat,lat,lng,n_score', { count: 'exact' });
-    if (main) pq = pq.eq('main_cat', main);
+    // 8업종 필터 — 선택 시 그 업종만 / 미선택+비검색이면 8업종 전체만(그 외 업종 숨김) / 검색 중엔 전 업종 허용
+    if (main === 'food') {
+      pq = pq.eq('main_cat', '음식점');
+      for (const w of FOOD_EXCLUDE) pq = pq.not('category', 'ilike', `%${w}%`);
+    } else if (main && PLACE_CAT_OR[main]) {
+      pq = pq.or(PLACE_CAT_OR[main]);
+    } else if (!main && !debSearch.trim()) {
+      pq = pq.or(PLACE_CAT_ANY);
+    }
     if (sub) pq = pq.ilike('category', `%${sub}%`);
     if (debSearch.trim()) pq = pq.ilike('name', `%${debSearch.trim()}%`);
     if (radius) {
