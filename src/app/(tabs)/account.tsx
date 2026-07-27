@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { APP_NAME, APP_TAGLINE, ROLES } from '@/constants/app';
 import { Colors } from '@/constants/theme';
 import { Icon, type IconName } from '@/components/Icon';
+import { LevelCard } from '@/components/LevelCard';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 
@@ -69,6 +70,9 @@ export default function AccountScreen() {
             )}
             <Text style={[styles.email, { color: c.textSecondary }]}>{session.user.email}</Text>
           </View>
+
+          {/* 동네레벨 — get_level_card RPC 배포 전엔 렌더 안 됨(dormant) */}
+          <LevelCard userId={session.user.id} />
 
           <Text style={[styles.menuHead, { color: c.textSecondary }]}>동네 생활</Text>
           <Row icon="cart" label="중고거래" onPress={() => router.push('/market')} />
