@@ -22,7 +22,8 @@ export const Colors = {
     danger: '#E5484D', warn: '#F0A35A',
   },
 } as const;
-// 다크모드 = OLED 완전검정(page #000 · card #0C0C0E · 그레이프 한 톤 밝게). root에 data-theme='dark' 시 colors.dark 적용.
+// 스카이 전환 완료(2026-07-27). 그레이프(#7A2BC4) 폐기. 예외: 알바 업종색 '사무·기타 #7A2BC4'는 브랜드색이 아니므로 유지(ALBA_JOB_TAB.md §1).
+// 다크모드 = OLED 완전검정(page #000 · card #0C0C0E · 스카이 한 톤 밝게). root에 data-theme='dark' 시 colors.dark 적용.
 
 // 표면 톤: 플랫 — 그림자 대신 얇은 구분선/테두리로 면 구분 (라운드 16~18px 유지)
 export const Radius = { list: 12, card: 16, image: 12, button: 12, chip: 999, pill: 999, tabbar: 30 } as const;

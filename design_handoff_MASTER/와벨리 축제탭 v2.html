@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>와벨리 축제탭 v2 — 상태 디자인</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+--primary:#0EA5E9;--primary-deep:#0E7490;--primary-soft:#EAF7FB;--primary-soft2:#C6E9F7;
+--fest:#F26D1F;--fest-deep:#C7500F;--fest-soft:#FDECE0;--fest-line:#F7C9A8;
+--dak:#E8461E;--mak:#2A9D8F;--show:#0EA5E9;
+--ink:#18181B;--ink2:#82828C;--ink3:#A8A8B0;--line:#EAEAEC;
+--bg:#FFFFFF;--page:#F5F5F6;--field:#F1F1F3;
+--verify:#11B981;--warn:#D9730D;--danger:#E5484D;
+--sh:0 1px 2px rgba(16,24,40,.05);--sh2:0 8px 26px rgba(16,24,40,.10);--sh3:0 24px 64px rgba(16,24,40,.26)}
+html[data-theme=dark]{
+--primary:#38BDF8;--primary-deep:#7DD3FC;--primary-soft:#0C2A3F;--primary-soft2:#123A52;
+--fest:#FF8A45;--fest-deep:#FFA96F;--fest-soft:#2A1710;--fest-line:#4A2818;
+--dak:#FF6B45;--mak:#4FC3AE;--show:#38BDF8;
+--ink:#F3F3F5;--ink2:#9B9BA5;--ink3:#67676F;--line:#232328;
+--bg:#0C0C0E;--page:#000000;--field:#1A1A1F;
+--warn:#F0A35A;
+--sh:0 1px 2px rgba(0,0,0,.5);--sh2:0 8px 26px rgba(0,0,0,.6);--sh3:0 24px 64px rgba(0,0,0,.75)}
+html,body{height:100%}
+body{font-family:Pretendard,'Pretendard Variable','Apple SD Gothic Neo','Noto Sans KR',system-ui,-apple-system,'Malgun Gothic',sans-serif;background:var(--page);color:var(--ink);letter-spacing:-.015em;-webkit-font-smoothing:antialiased;word-break:keep-all;overflow-wrap:break-word}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;transition:transform .11s,background .14s,color .14s,border-color .14s,opacity .14s}
+button:active:not(:disabled){transform:scale(.985)}
+a{color:var(--primary-deep);text-decoration:none}a:hover{color:var(--primary)}
+:focus-visible{outline:2px solid var(--fest);outline-offset:2px;border-radius:9px}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:#D4D4D8;border-radius:999px;border:3px solid var(--page)}
+[data-theme=dark] ::-webkit-scrollbar-thumb{background:#2A2A30}
+
+/* ── review scaffold ── */
+.rv{position:sticky;top:0;z-index:60;background:var(--bg);border-bottom:1px solid var(--line);padding:9px 14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.rv-b{font-size:12px;font-weight:800;color:var(--ink3);letter-spacing:.02em;flex:none}
+.rv-tabs{display:flex;gap:3px;background:var(--field);padding:3px;border-radius:11px;overflow-x:auto;scrollbar-width:none}
+.rv-tabs::-webkit-scrollbar{display:none}
+.rv-tabs button{height:32px;padding:0 13px;border-radius:8px;font-size:13px;font-weight:700;color:var(--ink2);white-space:nowrap}
+.rv-tabs button.on{background:var(--bg);color:var(--ink);box-shadow:var(--sh)}
+.rv-r{margin-left:auto}
+.rv-r button{height:32px;padding:0 12px;border-radius:9px;font-size:12.5px;font-weight:700;color:var(--ink2);border:1px solid var(--line);white-space:nowrap}
+.rv-r button:hover{color:var(--ink);border-color:var(--ink3)}
+.stage{max-width:1100px;margin:0 auto;padding:18px 14px 90px}
+.scr{display:none}.scr.on{display:block}
+.hd{padding:4px 2px 16px}
+.hd h1{font-size:22px;font-weight:800;letter-spacing:-.03em}
+.hd p{font-size:13.5px;color:var(--ink2);margin-top:6px;line-height:1.6;max-width:62ch}
+.row{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:9px;flex:none}
+.cap{font-size:12px;font-weight:800;color:var(--ink3);letter-spacing:.02em;display:flex;align-items:center;gap:7px}
+.cap b{color:var(--ink);font-weight:800}
+.cap .n{width:19px;height:19px;border-radius:6px;background:var(--fest);color:#fff;display:grid;place-items:center;font-size:11px;flex:none}
+.note{display:flex;gap:9px;align-items:flex-start;margin-top:16px;padding:12px 14px;background:var(--field);border-radius:12px;font-size:12.5px;color:var(--ink2);line-height:1.65;font-weight:600;max-width:78ch}
+.note svg{flex:none;margin-top:2px;color:var(--ink3)}
+.note b{color:var(--ink);font-weight:800}
+.seg2{display:inline-flex;gap:3px;background:var(--field);padding:3px;border-radius:10px;margin-bottom:14px}
+.seg2 button{height:30px;padding:0 13px;border-radius:7px;font-size:12.5px;font-weight:800;color:var(--ink2)}
+.seg2 button.on{background:var(--bg);color:var(--ink);box-shadow:var(--sh)}
+
+/* ── phone ── */
+.ph{width:402px;flex:none;border-radius:26px;overflow:hidden;background:var(--bg);border:1px solid var(--line);box-shadow:var(--sh2);display:flex;flex-direction:column;position:relative}
+.ph.h1{height:720px}
+.ph.h2{height:620px}
+.ph-st{height:28px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font-size:10.5px;font-weight:800;color:var(--ink3);flex:none;font-variant-numeric:tabular-nums}
+.sc{flex:1;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none}
+.sc::-webkit-scrollbar{display:none}
+.top{position:sticky;top:0;z-index:12;background:var(--bg);display:flex;align-items:center;gap:8px;padding:6px 10px 10px}
+.top .ic{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;color:var(--ink);flex:none}
+.top .ic.q{color:var(--ink2)}
+.top-t{flex:1;font-size:16px;font-weight:800;letter-spacing:-.02em}
+.tabbar{flex:none;height:60px;border-top:1px solid var(--line);display:flex;padding:0 4px;background:var(--bg)}
+.tabbar a{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--ink3);font-size:10px;font-weight:700;padding-top:8px}
+.tabbar a.on{color:var(--primary)}
+
+/* ── 진입 배너 ── */
+.fbar{display:flex;align-items:center;gap:10px;height:56px;margin:0 14px;padding:0 12px 0 14px;border-radius:14px;background:var(--fest);color:#fff}
+.fbar .k{font-size:10.5px;font-weight:800;opacity:.9;letter-spacing:.03em}
+.fbar .t{font-size:14px;font-weight:800;letter-spacing:-.02em;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fbar .dd{flex:none;height:26px;padding:0 10px;border-radius:8px;background:rgba(255,255,255,.22);display:grid;place-items:center;font-size:12.5px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.fbar .x{flex:none;width:26px;height:26px;border-radius:7px;display:grid;place-items:center;color:rgba(255,255,255,.75)}
+.fbar .b{min-width:0;flex:1}
+.fcard{position:relative;height:88px;margin:0 14px;border-radius:16px;overflow:hidden;background:var(--fest);color:#fff;display:flex;align-items:center;gap:12px;padding:0 14px}
+.fcard::after{content:'';position:absolute;right:-26px;top:-30px;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.13)}
+.fcard .ico{width:44px;height:44px;border-radius:13px;background:rgba(255,255,255,.2);display:grid;place-items:center;flex:none;position:relative}
+.fcard .b{flex:1;min-width:0;position:relative}
+.fcard .k{font-size:10.5px;font-weight:800;opacity:.92;letter-spacing:.03em}
+.fcard .t{font-size:16.5px;font-weight:800;letter-spacing:-.03em;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fcard .s{font-size:11.5px;font-weight:700;opacity:.9;margin-top:3px}
+.fcard .go{position:relative;flex:none;height:32px;padding:0 13px;border-radius:9px;background:#fff;color:var(--fest-deep);font-size:12.5px;font-weight:800;display:grid;place-items:center}
+
+/* 주변 피드(밀도 판단용) */
+.fd{border-top:1px solid var(--line);padding:13px 16px;display:flex;gap:11px}
+.fd:first-of-type{border-top:none}
+.fd .av{width:34px;height:34px;border-radius:50%;background:var(--field);flex:none}
+.fd .b{flex:1;min-width:0}
+.fd .h{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:800;color:var(--ink2)}
+.fd .h .tm{margin-left:auto;color:var(--ink3);font-weight:700}
+.fd .t{font-size:14.5px;font-weight:700;margin-top:5px;line-height:1.45}
+.fd .f{display:flex;gap:12px;margin-top:7px;font-size:11.5px;color:var(--ink3);font-weight:700;white-space:nowrap}
+.sechd{padding:16px 16px 8px;font-size:15px;font-weight:800;letter-spacing:-.02em;display:flex;align-items:baseline;gap:7px}
+.sechd span{font-size:11.5px;color:var(--ink3);font-weight:700}
+
+/* ── 축제 홈 ── */
+.hero{margin:0 14px;border-radius:18px;padding:18px;background:var(--fest);color:#fff;position:relative;overflow:hidden}
+.hero::after{content:'';position:absolute;right:-40px;top:-46px;width:170px;height:170px;border-radius:50%;background:rgba(255,255,255,.12)}
+.hero>*{position:relative}
+.hero .bd{display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 9px;border-radius:999px;background:rgba(255,255,255,.22);font-size:10.5px;font-weight:800;letter-spacing:.03em}
+.hero h2{font-size:24px;font-weight:800;letter-spacing:-.04em;margin-top:11px;line-height:1.18}
+.hero .mt{display:flex;flex-wrap:wrap;gap:5px 14px;margin-top:11px;font-size:12.5px;font-weight:700;opacity:.94}
+.hero .mt span{display:inline-flex;align-items:center;gap:5px}
+.hero .dd{position:absolute;right:16px;bottom:16px;height:30px;padding:0 12px;border-radius:9px;background:rgba(0,0,0,.22);display:grid;place-items:center;font-size:13px;font-weight:800;font-variant-numeric:tabular-nums}
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:14px 14px 4px}
+.quick button{height:64px;border-radius:14px;border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;font-size:11.5px;font-weight:800;color:var(--ink2)}
+.quick button svg{color:var(--fest)}
+.quick button:hover{border-color:var(--fest-line);color:var(--ink)}
+.glance{margin:12px 14px 0;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.gr{display:flex;gap:10px;padding:11px 14px;border-top:1px solid var(--line);font-size:13px}
+.gr:first-child{border-top:none}
+.gr .k{width:62px;flex:none;color:var(--ink3);font-weight:700}
+.gr .v{font-weight:700;flex:1}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 14px}
+.tile{border:1px solid var(--line);border-radius:14px;padding:13px 10px;display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center}
+.tile svg{color:var(--fest)}
+.tile .n{font-size:12px;font-weight:800}
+.tile .d{font-size:10.5px;color:var(--ink3);font-weight:700;line-height:1.4}
+.ftr{margin:18px 14px 0;padding:14px;border-radius:14px;background:var(--field);font-size:11.5px;color:var(--ink3);font-weight:700;line-height:1.7}
+
+/* ── 타임테이블 ── */
+.days{display:flex;gap:7px;padding:12px 14px 2px;overflow-x:auto;scrollbar-width:none}
+.days::-webkit-scrollbar{display:none}
+.dchip{flex:none;width:58px;height:60px;border-radius:14px;border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.dchip .n{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums}
+.dchip .w{font-size:10.5px;font-weight:800;color:var(--ink3)}
+.dchip.on{background:var(--fest);border-color:var(--fest);color:#fff}
+.dchip.on .w{color:rgba(255,255,255,.85)}
+.dchip.soon{border-style:dashed}
+.dchip.soon .n{color:var(--ink3)}
+.tl{padding:16px 14px 8px;position:relative}
+.tlr{position:relative;padding-left:22px;padding-bottom:16px}
+.tlr::before{content:'';position:absolute;left:3px;top:16px;bottom:-4px;width:2px;background:var(--line)}
+.tlr:last-child::before{display:none}
+.tlr::after{content:'';position:absolute;left:0;top:5px;width:8px;height:8px;border-radius:50%;background:var(--show);box-shadow:0 0 0 3px var(--bg)}
+.tlr.food::after{background:var(--dak)}
+.tlr.exp::after{background:var(--verify)}
+.tlr.big::after{width:11px;height:11px;left:-1.5px;box-shadow:0 0 0 3px var(--bg),0 0 0 6px color-mix(in srgb,var(--fest) 20%,transparent)}
+.tlt{font-size:12.5px;font-weight:800;color:var(--fest);font-variant-numeric:tabular-nums}
+.tlc{margin-top:5px;width:100%;text-align:left;border:1px solid var(--line);border-radius:14px;padding:12px 13px;background:var(--bg)}
+.tlc:hover{border-color:var(--fest-line)}
+.tlc .tg{display:inline-flex;height:19px;padding:0 8px;border-radius:999px;font-size:10.5px;font-weight:800;align-items:center}
+.tg-show{color:var(--primary-deep);background:var(--primary-soft)}
+.tg-food{color:var(--dak);background:color-mix(in srgb,var(--dak) 13%,var(--bg))}
+.tg-exp{color:var(--verify);background:color-mix(in srgb,var(--verify) 13%,var(--bg))}
+.tlc .t{font-size:14.5px;font-weight:800;letter-spacing:-.02em;margin-top:7px}
+.tlc .l{font-size:12px;color:var(--ink2);font-weight:700;margin-top:5px;display:flex;align-items:center;gap:4px}
+.tlc .l em{font-style:normal;color:var(--primary-deep)}
+
+/* 빈 상태 */
+.ghost{padding:4px 14px 0;display:flex;flex-direction:column;gap:12px;opacity:.55}
+.gh{display:flex;gap:12px;align-items:flex-start}
+.gh i{width:8px;height:8px;border-radius:50%;background:var(--line);flex:none;margin-top:6px}
+.gh .b{flex:1;border:1px solid var(--line);border-radius:14px;padding:14px 13px;display:flex;flex-direction:column;gap:8px}
+.gh .l1{height:11px;width:34%;border-radius:99px;background:var(--field)}
+.gh .l2{height:14px;width:72%;border-radius:99px;background:var(--field)}
+.gh .l3{height:10px;width:44%;border-radius:99px;background:var(--field)}
+.empty{margin:14px;padding:22px 18px;border:1px dashed var(--fest-line);border-radius:18px;background:var(--fest-soft);text-align:center}
+.empty .ic{width:48px;height:48px;margin:0 auto;border-radius:15px;background:var(--fest);color:#fff;display:grid;place-items:center}
+.empty h3{font-size:16px;font-weight:800;letter-spacing:-.02em;margin-top:13px}
+.empty p{font-size:13px;color:var(--ink2);font-weight:600;line-height:1.6;margin-top:7px}
+.empty .when{display:inline-flex;align-items:center;gap:6px;height:27px;padding:0 12px;border-radius:999px;background:var(--bg);border:1px solid var(--fest-line);color:var(--fest-deep);font-size:12px;font-weight:800;margin-top:13px}
+.empty .cta{display:flex;gap:8px;margin-top:16px}
+.btn{height:44px;border-radius:12px;font-size:14px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 16px;flex:1}
+.btn.f{background:var(--fest);color:#fff}
+.btn.f:hover{background:var(--fest-deep)}
+.btn.gh2{border:1.5px solid var(--line);color:var(--ink);background:var(--bg)}
+.btn.gh2:hover{border-color:var(--ink3)}
+.btn.sk{background:var(--primary);color:#fff}
+.subln{font-size:11.5px;color:var(--ink3);font-weight:700;margin-top:12px}
+
+/* ── 시트 ── */
+.scrim{position:absolute;inset:0;background:rgba(24,24,27,.5);backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity .22s;z-index:40}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:50;background:var(--bg);border-radius:22px 22px 0 0;border-top:1px solid var(--line);padding:8px 18px 20px;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,.28,1);max-height:78%;overflow-y:auto;scrollbar-width:none;box-shadow:var(--sh3)}
+.sheet::-webkit-scrollbar{display:none}
+.sheet.on{transform:translateY(0)}
+.grip{width:38px;height:4px;border-radius:99px;background:var(--line);margin:6px auto 15px}
+.sh-tg{display:flex;align-items:center;gap:7px}
+.sh-t{font-size:19px;font-weight:800;letter-spacing:-.03em;margin-top:11px;line-height:1.3}
+.sh-when{display:flex;align-items:center;gap:7px;margin-top:11px;font-size:13px;font-weight:800;color:var(--fest)}
+.sh-meta{margin-top:14px;border-top:1px solid var(--line)}
+.sh-r{display:flex;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);font-size:13px}
+.sh-r .k{width:52px;flex:none;color:var(--ink3);font-weight:700}
+.sh-r .v{font-weight:700;flex:1;line-height:1.5}
+.sh-r .v em{font-style:normal;color:var(--primary-deep);font-weight:800}
+.sh-d{font-size:13.5px;color:var(--ink2);font-weight:600;line-height:1.7;margin-top:14px}
+.sh-cta{display:flex;gap:8px;margin-top:18px}
+
+/* ── 지도 / 폴백 ── */
+.map{position:relative;height:200px;margin:0 14px;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:var(--field)}
+.map svg.base{position:absolute;inset:0;width:100%;height:100%}
+.mpin{position:absolute;left:50%;top:52%;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;gap:5px}
+.mpin .p{width:30px;height:30px;border-radius:50% 50% 50% 2px;transform:rotate(45deg);background:var(--fest);border:2px solid #fff;box-shadow:0 3px 8px rgba(0,0,0,.3);display:grid;place-items:center}
+.mpin .p svg{transform:rotate(-45deg)}
+.mpin .lb{font-size:10.5px;font-weight:800;background:var(--bg);color:var(--ink);padding:2px 7px;border-radius:6px;box-shadow:var(--sh)}
+.mfb{height:200px;margin:0 14px;border-radius:16px;border:1px dashed var(--line);background:var(--field);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:18px}
+.mfb .ic{width:42px;height:42px;border-radius:13px;background:var(--bg);border:1px solid var(--line);color:var(--ink3);display:grid;place-items:center}
+.mfb .t{font-size:13.5px;font-weight:800}
+.mfb .d{font-size:12px;color:var(--ink2);font-weight:700;line-height:1.55;max-width:26ch}
+.vfilter{flex:none;display:inline-flex;flex-direction:row;align-items:center;gap:5px;height:32px;padding:0 15px;border-radius:999px;border:1px solid var(--line);font-size:13px;font-weight:800;color:var(--ink2);white-space:nowrap}
+.vfilter.on{background:var(--fest);border-color:var(--fest);color:#fff}
+.vfilter i{font-style:normal;font-variant-numeric:tabular-nums;opacity:.72}
+.addr{margin:10px 14px 0;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.ar{display:flex;align-items:center;gap:10px;padding:12px 13px;border-top:1px solid var(--line)}
+.ar:first-child{border-top:none}
+.ar .ai{width:30px;height:30px;border-radius:9px;background:var(--field);color:var(--ink2);display:grid;place-items:center;flex:none}
+.ar .b{flex:1;min-width:0}
+.ar .k{font-size:10.5px;font-weight:800;color:var(--ink3);letter-spacing:.02em}
+.ar .v{font-size:13px;font-weight:700;margin-top:2px;line-height:1.45}
+.ar .cp{flex:none;height:28px;padding:0 10px;border-radius:8px;border:1px solid var(--line);font-size:11.5px;font-weight:800;color:var(--ink2)}
+.naver{display:flex;align-items:center;justify-content:center;gap:8px;width:calc(100% - 28px);margin:10px 14px 0;height:46px;border-radius:13px;background:#03C75A;color:#fff;font-size:14px;font-weight:800}
+.naver:hover{background:#02B152}
+.transit{margin:12px 14px 0;padding:13px 14px;background:var(--field);border-radius:14px;font-size:12.5px;font-weight:700;color:var(--ink2);line-height:1.75}
+.transit b{color:var(--ink);font-weight:800}
+
+/* ── 참여업체 ── */
+.rec{margin:14px;padding:20px 18px;border:1px solid var(--line);border-radius:18px;text-align:center}
+.rec .ic{width:48px;height:48px;margin:0 auto;border-radius:15px;background:var(--fest-soft);color:var(--fest);display:grid;place-items:center;border:1px solid var(--fest-line)}
+.rec h3{font-size:16px;font-weight:800;letter-spacing:-.02em;margin-top:13px}
+.rec p{font-size:13px;color:var(--ink2);font-weight:600;line-height:1.6;margin-top:7px}
+.steps{display:flex;gap:0;margin-top:18px;text-align:left}
+.stp{flex:1;position:relative;padding-top:20px}
+.stp::before{content:'';position:absolute;top:5px;left:0;right:0;height:2px;background:var(--line)}
+.stp::after{content:'';position:absolute;top:1px;left:0;width:10px;height:10px;border-radius:50%;background:var(--line);border:2px solid var(--bg)}
+.stp.on::after{background:var(--fest)}
+.stp.on::before{background:var(--fest)}
+.stp .k{font-size:10.5px;font-weight:800;color:var(--ink3);font-variant-numeric:tabular-nums}
+.stp .v{font-size:12px;font-weight:800;margin-top:2px}
+.stp.on .v{color:var(--fest)}
+.vgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;padding:4px 14px 0}
+.vc{border:1px solid var(--line);border-radius:15px;overflow:hidden}
+.vc-ph{position:relative;width:100%;aspect-ratio:16/11;background:var(--field)}
+.vc-ph .lg{position:absolute;left:8px;bottom:8px;width:26px;height:26px;border-radius:9px;display:grid;place-items:center;color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.3);z-index:2}
+.vc-b{padding:10px 11px 12px;text-align:left}
+.vc .n{font-size:13.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vc .m{font-size:11.5px;color:var(--ink2);font-weight:700;margin-top:4px}
+.vc .bd{display:inline-flex;height:19px;padding:0 8px;border-radius:999px;font-size:10.5px;font-weight:800;align-items:center;margin-top:8px}
+.owner{margin:12px 14px 0;display:flex;align-items:center;gap:11px;padding:13px 14px;border-radius:15px;background:var(--fest-soft);border:1px solid var(--fest-line)}
+.owner .b{flex:1;min-width:0}
+.owner .t{font-size:13px;font-weight:800;color:var(--ink)}
+.owner .s{font-size:11.5px;color:var(--ink2);font-weight:700;margin-top:3px}
+.owner button{flex:none;height:34px;padding:0 13px;border-radius:10px;background:var(--fest);color:#fff;font-size:12.5px;font-weight:800}
+</style>
+</head>
+<body>
+<div class="rv">
+  <span class="rv-b">와벨리 · 축제탭 v2</span>
+  <div class="rv-tabs" id="tabs">
+    <button data-s="a" class="on">A 진입 배너</button><button data-s="b">B 축제 홈</button><button data-s="c">C 타임테이블</button><button data-s="d">D 상세 시트</button><button data-s="e">E 오시는 길</button><button data-s="f">F 참여업체</button>
+  </div>
+  <div class="rv-r"><button id="themeBtn">라이트</button></div>
+</div>
+
+<main class="stage">
+<!-- ══ A ══ -->
+<section class="scr on" id="scr-a" data-screen-label="A 진입 배너">
+  <div class="hd"><h1>축제 진입 배너</h1><p>커뮤니티·우리동네 상단에서 축제 탭으로 보내는 유일한 입구. 그라데이션을 걷어내고 <b>솔리드 오렌지</b>로 고정했습니다 — 앱의 스카이 톤 안에서 축제만 다른 색을 쓰는 게 이미 충분한 신호라서, 질감까지 얹으면 광고처럼 보입니다.</p></div>
+  <div class="row">
+    <div class="col">
+      <div class="cap"><span class="n">1</span><b>커뮤니티 상단</b> · 얇은 바 56px</div>
+      <div class="ph h2">
+        <div class="ph-st"><span>9:41</span><span>●●● ◉</span></div>
+        <div class="sc">
+          <div class="top"><div class="top-t" style="padding-left:6px">커뮤니티</div><button class="ic q"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></svg></button><button class="ic q"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 1 0 6 8c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10.3 20a2 2 0 0 0 3.4 0"/></svg></button></div>
+          <div class="fbar"><span class="ico" style="display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:rgba(255,255,255,.2);flex:none"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 6.8H21l-5.3 4 2 6.9L12 15.8 6.3 19.7l2-6.9L3 8.8h6.6z"/></svg></span><div class="b"><div class="k">우리동네 축제</div><div class="t">춘천닭갈비·막국수축제</div></div><span class="dd">D-79</span><button class="x"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+          <div class="sechd">인기 글<span>효자동</span></div>
+          <div class="fd"><span class="av"></span><div class="b"><div class="h"><span>효자동단골러</span><span class="tm">12분</span></div><div class="t">퇴계동 24시 카페 콘센트 자리 정리해봤어요</div><div class="f"><span>좋아요 84</span><span>댓글 23</span></div></div></div>
+          <div class="fd"><span class="av"></span><div class="b"><div class="h"><span>석사동미식가</span><span class="tm">40분</span></div><div class="t">석사동 손국밥 웨이팅 없는 시간대 정리</div><div class="f"><span>좋아요 156</span><span>댓글 41</span></div></div></div>
+          <div class="fd"><span class="av"></span><div class="b"><div class="h"><span>후평동주민</span><span class="tm">2시간</span></div><div class="t">점심시간 딱 1시간, 다들 어떻게 쓰세요?</div><div class="f"><span>좋아요 312</span><span>댓글 205</span></div></div></div>
+        </div>
+        <nav class="tabbar"><a class="on"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-4 3v-3H4z"/></svg>커뮤니티</a><a><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.4"/></svg>우리동네</a><a><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7"/></svg>알바</a><a><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V6a4 4 0 0 1 4-4h9a4 4 0 0 1 4 4z"/></svg>채팅</a><a><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>마이</a></nav>
+      </div>
+    </div>
+    <div class="col">
+      <div class="cap"><span class="n">2</span><b>우리동네 상단</b> · 카드 88px</div>
+      <div class="ph h2">
+        <div class="ph-st"><span>9:41</span><span>●●● ◉</span></div>
+        <div class="sc">
+          <div class="top"><div class="top-t" style="padding-left:6px">우리동네 <span style="font-size:12.5px;color:var(--ink3)">효자동</span></div><button class="ic q"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></svg></button></div>
+          <div class="fcard"><span class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 6.8H21l-5.3 4 2 6.9L12 15.8 6.3 19.7l2-6.9L3 8.8h6.6z"/></svg></span><div class="b"><div class="k">D-79 · 10.14(수)~10.18(일)</div><div class="t">춘천닭갈비·막국수축제</div><div class="s">공지천 축제장 · 명동 일대</div></div><span class="go">보기</span></div>
+          <div class="sechd">우리동네 소식<span>효자동</span></div>
+          <div class="fd"><span class="av"></span><div class="b"><div class="h"><span>정육식당 미트락</span><span class="tm">3시간</span></div><div class="t">런치 특선 9,900원 · 이번 주 예약 열렸습니다</div><div class="f"><span>좋아요 89</span><span>댓글 22</span></div></div></div>
+          <div class="fd"><span class="av"></span><div class="b"><div class="h"><span>효자동 반장</span><span class="tm">5시간</span></div><div class="t">이번 주 재활용 수거 요일이 바뀌었어요</div><div class="f"><span>좋아요 45</span><span>댓글 11</span></div></div></div>
+        </div>
+        <nav class="tabbar"><a><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-4 3v-3H4z"/></svg>커뮤니티</a><a class="on"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.4"/></svg>우리동네</a><a><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7"/></svg>알바</a><a><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V6a4 4 0 0 1 4-4h9a4 4 0 0 1 4 4z"/></svg>채팅</a><a><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>마이</a></nav>
+      </div>
+    </div>
+  </div>
+  <div class="note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg><span><b>규칙.</b> 배너는 앱 전체에서 <b>동시에 한 곳만</b> — 커뮤니티는 얇은 바, 우리동네는 카드. 둘을 같이 띄우지 않습니다. ×로 닫으면 <b>7일간 재노출 없음</b>(축제 D-3부터는 닫아도 다시 1회 노출). 축제 종료 다음날 자동 소멸.</span></div>
+</section>
+
+<!-- ══ B ══ -->
+<section class="scr" id="scr-b" data-screen-label="B 축제 홈">
+  <div class="hd"><h1>축제 홈 — 확정 구성</h1><p>개발에 이미 올라간 순서를 그대로 정본화했습니다. 히어로 → 퀵버튼 4 → 축제 한눈에 → 오시는 길 → 프로그램 → 관람안내 6 → 참여업체 → 푸터.</p></div>
+  <div class="row">
+    <div class="col">
+      <div class="cap"><b>단일 스크롤</b> · 서브탭 없음</div>
+      <div class="ph h1">
+        <div class="ph-st"><span>9:41</span><span>●●● ◉</span></div>
+        <div class="sc">
+          <div class="top"><button class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5L8 12l6.5 7"/></svg></button><div class="top-t">축제 이벤트</div><button class="ic q"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.5-7 10-7 10Z"/></svg></button><button class="ic q"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.5 13.4l7 4M15.5 6.6l-7 4"/></svg></button></div>
+          <div class="hero"><span class="bd"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 6.8H21l-5.3 4 2 6.9L12 15.8 6.3 19.7l2-6.9L3 8.8h6.6z"/></svg>2026 로컬 축제</span><h2>춘천닭갈비·막국수축제</h2><div class="mt"><span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>10.14(수)~10.18(일)</span><span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.4"/></svg>공지천 축제장</span></div><span class="dd">D-79</span></div>
+          <div class="quick">
+            <button><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1Z"/></svg>전화</button>
+            <button><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-8-8 18-2-8z"/></svg>길찾기</button>
+            <button><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5v.01"/></svg>인스타</button>
+            <button><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18"/></svg>공식홈</button>
+          </div>
+          <div class="sechd">축제 한눈에</div>
+          <div class="glance">
+            <div class="gr"><span class="k">기간</span><span class="v">10.14(수) ~ 10.18(일) · 5일간</span></div>
+            <div class="gr"><span class="k">장소</span><span class="v">공지천 축제장 · 명동 일대</span></div>
+            <div class="gr"><span class="k">입장료</span><span class="v">무료 <span style="color:var(--ink3);font-weight:700">(체험 프로그램 일부 유료)</span></span></div>
+            <div class="gr"><span class="k">주최</span><span class="v">춘천시 · 축제조직위원회</span></div>
+          </div>
+          <div class="sechd">오시는 길</div>
+          <div class="map"><svg class="base" viewBox="0 0 100 100" preserveAspectRatio="none"><rect width="100" height="100" fill="var(--field)"/><ellipse cx="50" cy="40" rx="44" ry="28" fill="color-mix(in srgb,var(--primary) 8%,var(--field))"/><path d="M-2,84 Q26,76 52,82 Q78,88 102,80 L102,102 L-2,102Z" fill="color-mix(in srgb,var(--primary) 18%,var(--field))"/><g stroke="var(--line)" fill="none"><path d="M50,-2 L50,86" stroke-width="7"/><path d="M2,50 Q50,44 98,52" stroke-width="5"/></g></svg><div class="mpin"><span class="p"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M12 2l2.4 6.8H21l-5.3 4 2 6.9L12 15.8 6.3 19.7l2-6.9L3 8.8h6.6z"/></svg></span><span class="lb">공지천 축제장</span></div></div>
+          <div class="sechd">프로그램<span>10.14~18</span></div>
+          <div class="days"><button class="dchip on"><span class="n">14</span><span class="w">수</span></button><button class="dchip"><span class="n">15</span><span class="w">목</span></button><button class="dchip"><span class="n">16</span><span class="w">금</span></button><button class="dchip"><span class="n">17</span><span class="w">토</span></button><button class="dchip"><span class="n">18</span><span class="w">일</span></button></div>
+          <div class="tl">
+            <div class="tlr show"><div class="tlt">15:00</div><button class="tlc"><span class="tg tg-show">공연</span><div class="t">개막 퍼레이드</div><div class="l"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/></svg><em>명동 거리</em></div></button></div>
+            <div class="tlr food"><div class="tlt">17:00</div><button class="tlc"><span class="tg tg-food">먹거리</span><div class="t">닭갈비 대동제 · 1,000인분 시식</div><div class="l"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/></svg><em>먹거리존</em></div></button></div>
+            <div class="tlr show big"><div class="tlt">19:00</div><button class="tlc"><span class="tg tg-show">공연</span><div class="t">드론 라이트쇼</div><div class="l"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/></svg><em>메인무대</em></div></button></div>
+          </div>
+          <div class="sechd">관람 안내</div>
+          <div class="tiles">
+            <div class="tile"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M9 17V7h3.5a3 3 0 0 1 0 6H9"/></svg><span class="n">주차</span><span class="d">공지천 3곳<br />1,200면</span></div>
+            <div class="tile"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2.5"/><path d="M3 10h18M7 20v-2M17 20v-2"/></svg><span class="n">셔틀버스</span><span class="d">역·터미널<br />15분 간격</span></div>
+            <div class="tile"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="5" r="2"/><path d="M8 8v12M5 12h6M16 5v14M13.5 9h5"/></svg><span class="n">화장실</span><span class="d">구역별 6곳</span></div>
+            <div class="tile"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8.4v.1"/></svg><span class="n">안내소</span><span class="d">입구 · 유실물</span></div>
+            <div class="tile"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.5" cy="9" r="2"/><circle cx="17.5" cy="9" r="2"/><circle cx="9.5" cy="5" r="2"/><circle cx="14.5" cy="5" r="2"/><path d="M12 12c3 0 5 2 5 4.5S15 20 12 20s-5-1-5-3.5S9 12 12 12z"/></svg><span class="n">반려동물</span><span class="d">목줄 착용 시<br />동반 가능</span></div>
+            <div class="tile"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15a4 4 0 0 1 .6-8 5.5 5.5 0 0 1 10.6 1.4A3.5 3.5 0 0 1 17 15z"/><path d="M8 19l-.8 2M12 19l-.8 2M16 19l-.8 2"/></svg><span class="n">우천 시</span><span class="d">실내 무대<br />일부 순연</span></div>
+          </div>
+          <div class="sechd">참여 업체<span>모집중</span></div>
+          <div class="owner"><div class="b"><div class="t">참여 업체를 모집하고 있어요</div><div class="s">선정 결과는 9월 중 공개</div></div><button>공고 보기</button></div>
+          <div class="ftr">주최 춘천시 · 주관 축제조직위원회<br />문의 033-250-0000 · 프로그램은 우천·현장 사정에 따라 변경될 수 있습니다.</div>
+        </div>
+      </div>
+    </div>
+    <div class="col" style="max-width:420px">
+      <div class="cap"><b>구성 규칙</b></div>
+      <div class="note" style="margin-top:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg><span><b>서브탭을 없앴습니다.</b> 축제는 1년에 며칠뿐이라 탐색보다 <b>한 번에 훑기</b>가 맞습니다. 세로 한 줄로 흐르게 두고, 프로그램만 날짜칩으로 접습니다.</span></div>
+      <div class="note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg><span><b>오렌지는 축제 탭 안에서만.</b> 히어로·퀵버튼 아이콘·타임라인 시각·D-day까지. 앱 나머지(탭바·링크·버튼)는 <b>스카이 유지</b>. 닭갈비 #E8461E / 막국수 #2A9D8F는 업체 구분에만 씁니다.</span></div>
+      <div class="note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg><span><b>섹션은 실데이터가 있을 때만 렌더.</b> 프로그램 미공개 → C의 빈 상태, 업체 미선정 → F의 모집 상태로 대체합니다. 빈 섹션 헤더만 남기지 마세요.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ C ══ -->
+<section class="scr" id="scr-c" data-screen-label="C 타임테이블">
+  <div class="hd"><h1>타임테이블 — 빈 상태</h1><p>날짜(10.14~18)는 확정됐지만 일정은 미공개인 구간이 실제로 가장 깁니다. 날짜칩은 <b>그대로 두고</b>(축제가 언제인지가 핵심 정보), 그 아래를 "공개 예정"으로 채웁니다.</p></div>
+  <div class="row">
+    <div class="col">
+      <div class="cap"><span class="n">1</span><b>일정 미공개</b> · 기본 상태</div>
+      <div class="ph h2">
+        <div class="ph-st"><span>9:41</span><span>●●● ◉</span></div>
+        <div class="sc">
+          <div class="top"><button class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5L8 12l6.5 7"/></svg></button><div class="top-t">프로그램</div></div>
+          <div class="days"><button class="dchip soon"><span class="n">14</span><span class="w">수</span></button><button class="dchip soon"><span class="n">15</span><span class="w">목</span></button><button class="dchip soon"><span class="n">16</span><span class="w">금</span></button><button class="dchip soon"><span class="n">17</span><span class="w">토</span></button><button class="dchip soon"><span class="n">18</span><span class="w">일</span></button></div>
+          <div class="empty">
+            <span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2.5"/><path d="M3 9.5h18M8 2v4M16 2v4"/><path d="M12 15.5v.01"/></svg></span>
+            <h3>프로그램 준비 중이에요</h3>
+            <p>공연·먹거리·체험 일정이 확정되는 대로<br />여기에 시간표로 올려드릴게요.</p>
+            <span class="when"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>9월 중 공개 예정</span>
+            <div class="cta"><button class="btn gh2">작년 프로그램</button><button class="btn f"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 1 0 6 8c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10.3 20a2 2 0 0 0 3.4 0"/></svg>공개 알림 받기</button></div>
+          </div>
+          <div class="ghost">
+            <div class="gh"><i></i><div class="b"><div class="l1"></div><div class="l2"></div><div class="l3"></div></div></div>
+            <div class="gh"><i></i><div class="b"><div class="l1"></div><div class="l2"></div><div class="l3"></div></div></div>
+            <div class="gh"><i></i><div class="b"><div class="l1"></div><div class="l2"></div><div class="l3"></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="cap"><span class="n">2</span><b>일정 공개 후</b> · 같은 자리</div>
+      <div class="ph h2">
+        <div class="ph-st"><span>9:41</span><span>●●● ◉</span></div>
+        <div class="sc">
+          <div class="top"><button class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5L8 12l6.5 7"/></svg></button><div class="top-t">프로그램</div></div>
+          <div class="days"><button class="dchip"><span class="n">14</span><span class="w">수</span></button><button class="dchip"><span class="n">15</span><span class="w">목</span></button><button class="dchip"><span class="n">16</span><span class="w">금</span></button><button class="dchip on"><span class="n">17</span><span class="w">토</span></button><button class="dchip"><span class="n">18</span><span class="w">일</span></button></div>
+          <div class="tl" id="tlDemo">
+            <div class="tlr exp"><div class="tlt">11:00</div><button class="tlc" data-evt="0"><span class="tg tg-exp">체험</span><div class="t">막국수 만들기 체험</div><div class="l"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/></svg><em>체험존</em></div></button></div>
+            <div class="tlr food"><div class="tlt">13:00</div><button class="tlc" data-evt="1"><span class="tg tg-food">먹거리</span><div class="t">닭갈비 요리 경연대회</div><div class="l"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/></svg><em>이벤트존</em></div></button></div>
+            <div class="tlr show"><div class="tlt">15:00</div><button class="tlc" data-evt="2"><span class="tg tg-show">공연</span><div class="t">동네 버스킹 무대</div><div class="l"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/></svg><em>플리마켓</em></div></button></div>
+            <div class="tlr show big"><div class="tlt">18:00</div><button class="tlc" data-evt="3"><span class="tg tg-show">공연</span><div class="t">트로트 콘서트</div><div class="l"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/></svg><em>메인무대</em></div></button></div>
+            <div class="tlr show big"><div class="tlt">20:30</div><button class="tlc" data-evt="4"><span class="tg tg-show">공연</span><div class="t">강변 불꽃놀이</div><div class="l"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/></svg><em>공지천 강변</em></div></button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col" style="max-width:380px">
+      <div class="cap"><b>빈 상태 규칙</b></div>
+      <div class="note" style="margin-top:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg><span><b>날짜칩은 남깁니다</b> — 점선 테두리 + 숫자 회색으로 "확정된 날짜, 미확정 내용"을 구분. 탭은 되지만 아래 내용은 바뀌지 않습니다(선택 표시도 없음).</span></div>
+      <div class="note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg><span><b>유령 슬롯 3개</b>를 55% 투명도로 깔아 "여기에 시간표가 들어온다"를 형태로 알립니다. 스켈레톤 로딩 애니메이션은 넣지 않습니다 — 로딩이 아니라 <b>미공개</b>라서요.</span></div>
+      <div class="note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg><span><b>공개 시점은 반드시 문구로.</b> "곧 공개"는 금지 — "9월 중 공개 예정"처럼 월 단위로 적습니다. 값은 <code>festival.programPublishAt</code>. 미정이면 알림 버튼만 남기고 이 칩을 숨깁니다.</span></div>
+      <div class="note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg><span>"작년 프로그램"은 <b>전년도 데이터가 있을 때만</b> 노출. 없으면 알림 버튼 1개를 폭 100%로.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ D ══ -->
+<section class="scr" id="scr-d" data-screen-label="D 상세 시트">
+  <div class="hd"><h1>타임슬롯 → 상세 바텀시트</h1><p>슬롯을 누르면 열립니다. 페이지 이동이 아니라 <b>시트</b>인 이유는 하나 보고 바로 다음 슬롯으로 돌아가는 게 기본 동작이라서요.</p></div>
+  <div class="row">
+    <div class="col">
+      <div class="cap"><span class="n">2</span><b>상세 시트</b> · 슬롯을 누르면 열림</div>
+      <div class="ph h2" id="phD">
+        <div class="ph-st"><span>9:41</span><span>●●● ◉</span></div>
+        <div class="sc">
+          <div class="top"><button class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5L8 12l6.5 7"/></svg></button><div class="top-t">프로그램</div></div>
+          <div class="days"><button class="dchip"><span class="n">14</span><span class="w">수</span></button><button class="dchip"><span class="n">15</span><span class="w">목</span></button><button class="dchip"><span class="n">16</span><span class="w">금</span></button><button class="dchip on"><span class="n">17</span><span class="w">토</span></button><button class="dchip"><span class="n">18</span><span class="w">일</span></button></div>
+          <div class="tl" id="tlD"></div>
+        </div>
+        <div class="scrim" id="scrimD"></div>
+        <div class="sheet on" id="sheetD"><div class="grip"></div><div id="sheetBodyD"></div></div>
+      </div>
+      <div class="subln">슬롯을 눌러 시트 내용을 바꿔보세요 · 스크림 탭으로 닫힘</div>
+    </div>
+    <div class="col" style="max-width:400px">
+      <div class="cap"><b>시트 스펙</b></div>
+      <div class="note" style="margin-top:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg><span><b>순서 고정.</b> 유형칩 → 제목 → 시간(오렌지) → 메타(장소·구역·소요·요금) → 설명 → CTA 2개. 시간을 제목 위가 아니라 <b>아래</b> 두는 건 목록에서 이미 시간을 보고 눌렀기 때문입니다.</span></div>
+      <div class="note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg><span><b>CTA는 2개까지.</b> [지도에서 보기](구역 핀으로 이동) + [내 일정에 담기](담으면 시작 30분 전 알림). 유료 프로그램은 두 번째를 [예약하기]로 교체.</span></div>
+      <div class="note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg><span><b>빈 필드는 행 자체를 지웁니다.</b> "요금 —", "소요 미정" 같은 껍데기 행을 남기지 마세요. 설명(<code>desc</code>)이 없으면 설명 블록도 통째로 생략.</span></div>
+      <div class="note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg><span>높이는 내용에 따라 자동, <b>최대 78%</b>. 그립은 장식이 아니라 드래그 핸들 — 아래로 끌어 닫힘. 축제 기간 중 <b>진행중</b>인 슬롯은 시간 옆에 점 + "지금 진행중".</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ E ══ -->
+<section class="scr" id="scr-e" data-screen-label="E 오시는 길">
+  <div class="hd"><h1>오시는 길 — 지도 폴백</h1><p>지도 SDK 미인증·쿼터 초과·오프라인일 때 화면이 비지 않도록. <b>주소와 길찾기는 지도 없이도 되는 일</b>이라 폴백에서도 끝까지 갈 수 있게 만듭니다.</p></div>
+  <div class="row">
+    <div class="col">
+      <div class="cap"><span class="n">3</span><b>정상</b> · 지도 로드 성공</div>
+      <div class="ph h2">
+        <div class="ph-st"><span>9:41</span><span>●●● ◉</span></div>
+        <div class="sc">
+          <div class="top"><button class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5L8 12l6.5 7"/></svg></button><div class="top-t">오시는 길</div></div>
+          <div class="map"><svg class="base" viewBox="0 0 100 100" preserveAspectRatio="none"><rect width="100" height="100" fill="var(--field)"/><ellipse cx="50" cy="40" rx="44" ry="28" fill="color-mix(in srgb,var(--primary) 8%,var(--field))"/><path d="M-2,84 Q26,76 52,82 Q78,88 102,80 L102,102 L-2,102Z" fill="color-mix(in srgb,var(--primary) 18%,var(--field))"/><g stroke="var(--line)" fill="none"><path d="M50,-2 L50,86" stroke-width="7"/><path d="M2,50 Q50,44 98,52" stroke-width="5"/><path d="M20,80 Q50,70 82,76" stroke-width="4"/></g></svg><div class="mpin"><span class="p"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M12 2l2.4 6.8H21l-5.3 4 2 6.9L12 15.8 6.3 19.7l2-6.9L3 8.8h6.6z"/></svg></span><span class="lb">공지천 축제장</span></div></div>
+          <div class="addr">
+            <div class="ar"><span class="ai"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.4"/></svg></span><div class="b"><div class="k">주소</div><div class="v">강원 춘천시 스포츠타운길 245<br />공지천 축제장</div></div><button class="cp">복사</button></div>
+          </div>
+          <button class="naver"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-8-8 18-2-8z"/></svg>네이버 지도로 길찾기</button>
+          <div class="transit"><b>지하철</b> 경춘선 춘천역 → 셔틀 10분<br /><b>버스</b> 12·64·67번 공지천 하차 도보 3분<br /><b>주차</b> 공지천 제1~3주차장 1,200면 (혼잡)</div>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="cap"><span class="n">3</span><b>폴백</b> · 지도 실패 / 미인증</div>
+      <div class="ph h2">
+        <div class="ph-st"><span>9:41</span><span>●●● ◉</span></div>
+        <div class="sc">
+          <div class="top"><button class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5L8 12l6.5 7"/></svg></button><div class="top-t">오시는 길</div></div>
+          <div class="mfb">
+            <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l5.5-2 5 2 5.5-2v14l-5.5 2-5-2L4 20z"/><path d="M9.5 4v14M14.5 6v14"/><path d="M3 3l18 18"/></svg></span>
+            <span class="t">지도를 불러올 수 없어요</span>
+            <span class="d">잠시 후 다시 시도해 주세요.<br />아래 주소로 길찾기는 바로 가능해요.</span>
+          </div>
+          <div class="addr">
+            <div class="ar"><span class="ai"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.4"/></svg></span><div class="b"><div class="k">주소</div><div class="v">강원 춘천시 스포츠타운길 245<br />공지천 축제장</div></div><button class="cp">복사</button></div>
+            <div class="ar"><span class="ai"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1Z"/></svg></span><div class="b"><div class="k">문의</div><div class="v">033-250-0000</div></div><button class="cp">전화</button></div>
+          </div>
+          <button class="naver"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-8-8 18-2-8z"/></svg>네이버 지도로 길찾기</button>
+          <div class="transit"><b>지하철</b> 경춘선 춘천역 → 셔틀 10분<br /><b>버스</b> 12·64·67번 공지천 하차 도보 3분<br /><b>주차</b> 공지천 제1~3주차장 1,200면 (혼잡)</div>
+        </div>
+      </div>
+    </div>
+    <div class="col" style="max-width:360px">
+      <div class="cap"><b>폴백 규칙</b></div>
+      <div class="note" style="margin-top:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg><span><b>높이를 지도와 똑같이(200px) 잡습니다.</b> 폴백이 더 납작해지면 아래 콘텐츠가 튀어 올라 "무언가 사라졌다"로 읽힙니다. 점선 테두리 + 회색으로 <b>자리는 있으나 비었음</b>을 표현.</span></div>
+      <div class="note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg><span><b>주소·길찾기·대중교통은 항상 렌더</b> — 지도 성공/실패와 무관한 정적 데이터입니다. 폴백에서만 <b>문의 전화 행</b>을 추가로 노출합니다.</span></div>
+      <div class="note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg><span><b>길찾기는 네이버 지도로 통일합니다.</b> 앱 스킴 <code>nmap://route/public?dlat=&amp;dlng=&amp;dname=&amp;appname=kr.wavely</code> → 미설치 시 <code>map.naver.com/p/directions</code> 웹으로. 버튼색 <b>#03C75A / 글자 #FFF</b>는 네이버 가이드값이라 오렌지로 바꿀 수 없습니다. 지도 SDK도 네이버로 맞춥니다(NAVER_MAPS.md).</span></div>
+      <div class="note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg><span><b>재시도 버튼은 넣지 않습니다.</b> 탭 재진입 시 자동 재시도로 충분하고, 실패 화면에 버튼을 두면 눌러도 안 되는 경험이 반복됩니다.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ F ══ -->
+<section class="scr" id="scr-f" data-screen-label="F 참여업체">
+  <div class="hd"><h1>참여 업체 — 미정 상태</h1><p>업체 선정 전 구간. 빈 목록을 숨기는 대신 <b>모집 중이라는 사실을 콘텐츠로</b> 씁니다 — 사장님 유입 경로가 되기도 하니까요.</p></div>
+  <div class="row">
+    <div class="col">
+      <div class="cap"><span class="n">4</span><b>업체 미정</b> · 모집 공고</div>
+      <div class="ph h2">
+        <div class="ph-st"><span>9:41</span><span>●●● ◉</span></div>
+        <div class="sc">
+          <div class="top"><button class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5L8 12l6.5 7"/></svg></button><div class="top-t">참여 업체</div></div>
+          <div class="rec">
+            <span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V9l8-5 8 5v11"/><path d="M9 20v-6h6v6"/></svg></span>
+            <h3>참여 업체를 모집하고 있어요</h3>
+            <p>닭갈비·막국수 업체 60곳을 모집합니다.<br />선정 결과가 나오면 여기에 지도와 함께 올려드릴게요.</p>
+            <div class="steps">
+              <div class="stp on"><div class="k">8.1~8.20</div><div class="v">모집</div></div>
+              <div class="stp"><div class="k">8월 말</div><div class="v">선정</div></div>
+              <div class="stp"><div class="k">9월 중</div><div class="v">공개</div></div>
+            </div>
+            <div class="cta" style="display:flex;gap:8px;margin-top:20px"><button class="btn gh2">공개 알림</button><button class="btn f">모집 공고 보기</button></div>
+          </div>
+          <div class="owner"><span class="ico" style="width:36px;height:36px;border-radius:11px;background:var(--fest);color:#fff;display:grid;place-items:center;flex:none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h16l-1.2 10.2a1.6 1.6 0 0 1-1.6 1.4H6.8a1.6 1.6 0 0 1-1.6-1.4z"/><path d="M8.4 9V6.6a3.6 3.6 0 0 1 7.2 0V9"/></svg></span><div class="b"><div class="t">사장님이신가요?</div><div class="s">축제 부스 참여 신청 · 8.20 마감</div></div><button>신청</button></div>
+          <div class="transit" style="margin-top:16px"><b>모집 대상</b> 춘천시 소재 닭갈비·막국수 업체<br /><b>선정 기준</b> 위생 등급 · 축제 기간 운영 가능 여부<br /><b>문의</b> 축제조직위 033-250-0000</div>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="cap"><span class="n">4</span><b>업체 확정 후</b> · 같은 자리</div>
+      <div class="ph h2">
+        <div class="ph-st"><span>9:41</span><span>●●● ◉</span></div>
+        <div class="sc">
+          <div class="top"><button class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5L8 12l6.5 7"/></svg></button><div class="top-t">참여 업체 <span style="font-size:12.5px;color:var(--ink3);font-weight:700">58</span></div></div>
+          <div class="days" style="padding:10px 14px 12px"><button class="vfilter on">전체 <i>58</i></button><button class="vfilter">닭갈비 <i>34</i></button><button class="vfilter">막국수 <i>24</i></button></div>
+          <div class="vgrid">
+            <div class="vc"><div class="vc-ph"><image-slot id="fest-v1" shape="rect" placeholder="대표사진 — 1번지 명동 닭갈비"></image-slot><span class="lg" style="background:var(--dak)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v18M11 3v7M7 10h4M17 3c-1.2 1-1.8 3-1.8 6.5h3.4"/></svg></span></div><div class="vc-b"><div class="n">1번지 명동 닭갈비</div><div class="m">★ 4.8 · 축제장 120m</div><span class="bd" style="color:var(--dak);background:color-mix(in srgb,var(--dak) 13%,var(--bg))">닭갈비</span></div></div>
+            <div class="vc"><div class="vc-ph"><image-slot id="fest-v2" shape="rect" placeholder="대표사진 — 부안 막국수"></image-slot><span class="lg" style="background:var(--mak)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h16M5 8c0 6 3 11 7 11s7-5 7-11"/></svg></span></div><div class="vc-b"><div class="n">부안 막국수</div><div class="m">★ 4.9 · 축제장 300m</div><span class="bd" style="color:var(--mak);background:color-mix(in srgb,var(--mak) 13%,var(--bg))">막국수</span></div></div>
+            <div class="vc"><div class="vc-ph"><image-slot id="fest-v3" shape="rect" placeholder="대표사진 — 우성 닭갈비"></image-slot><span class="lg" style="background:var(--dak)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v18M11 3v7M7 10h4M17 3c-1.2 1-1.8 3-1.8 6.5h3.4"/></svg></span></div><div class="vc-b"><div class="n">우성 닭갈비</div><div class="m">★ 4.6 · 축제장 260m</div><span class="bd" style="color:var(--dak);background:color-mix(in srgb,var(--dak) 13%,var(--bg))">닭갈비</span></div></div>
+            <div class="vc"><div class="vc-ph"><image-slot id="fest-v4" shape="rect" placeholder="대표사진 — 유포리 막국수"></image-slot><span class="lg" style="background:var(--mak)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h16M5 8c0 6 3 11 7 11s7-5 7-11"/></svg></span></div><div class="vc-b"><div class="n">유포리 막국수</div><div class="m">★ 4.7 · 축제장 350m</div><span class="bd" style="color:var(--mak);background:color-mix(in srgb,var(--mak) 13%,var(--bg))">막국수</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col" style="max-width:360px">
+      <div class="cap"><b>미정 상태 규칙</b></div>
+      <div class="note" style="margin-top:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg><span><b>3단 진행 표시</b>(모집 → 선정 → 공개)로 "언제 알 수 있는지"를 먼저 답합니다. 현재 단계만 오렌지. 날짜가 미정인 단계는 "9월 중"처럼 월 단위로.</span></div>
+      <div class="note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg><span><b>사장님 신청 줄은 미정 상태에서만.</b> 업체가 확정되면 사라집니다 — 마감 후에도 남아 있으면 신청할 수 없는 버튼이 됩니다.</span></div>
+      <div class="note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg><span><b>지도는 미정 상태에서 렌더하지 않습니다.</b> 핀 없는 빈 지도는 정보가 0인데 화면의 40%를 씁니다. 업체 확정 후 지도 + 핀이 이 자리에 들어옵니다.</span></div>
+      <div class="note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg><span>업체 카드는 <b>기존 매장 레코드 재사용</b>(<code>storeId</code> 조인) — 축제용 정보를 따로 입력하지 않습니다. 탭하면 우리동네 매장 상세로.</span></div>
+      <div class="note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg><span><b>매장 대표사진이 카드의 주인공입니다.</b> 16:11 크롭, 상단 전체 폭. 업종색 로고는 사진 좌하단 26px 배지로 내려갑니다 — 사진이 있으면 업종은 보조 정보라서요. 사진이 없는 업체는 <b>업종색 단색 + 흰 글리프</b>로 폴백(회색 빈 박스 금지). 소스는 매장 레코드의 <code>photos[0]</code>이고, 축제용으로 따로 올리지 않습니다.</span></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<script src="image-slot.js"></script>
+<script>
+const EV=[
+{tg:'exp',tgl:'체험',t:'막국수 만들기 체험',time:'11:00 ~ 12:30',loc:'체험존',zone:'3번 구역',dur:'90분',fee:'5,000원 (현장 접수)',desc:'메밀 반죽부터 면 뽑기까지 직접 해보는 체험이에요. 완성한 막국수는 그 자리에서 드실 수 있어요. 회차당 30명, 시작 20분 전부터 체험존 접수대에서 받습니다.',cta:'예약하기'},
+{tg:'food',tgl:'먹거리',t:'닭갈비 요리 경연대회',time:'13:00 ~ 15:00',loc:'이벤트존',zone:'4번 구역',dur:'120분',fee:'관람 무료',desc:'춘천 닭갈비 명인 12팀이 겨루는 경연이에요. 심사 후 남은 요리는 관람객 시식으로 나갑니다.',cta:'내 일정에 담기'},
+{tg:'show',tgl:'공연',t:'동네 버스킹 무대',time:'15:00 ~ 17:00',loc:'플리마켓',zone:'5번 구역',dur:'',fee:'무료',desc:'춘천에서 활동하는 버스킹 팀 8팀이 번갈아 무대에 올라요. 자유롭게 오가며 보세요.',cta:'내 일정에 담기'},
+{tg:'show',tgl:'공연',t:'트로트 콘서트',time:'18:00 ~ 19:30',loc:'메인무대',zone:'1번 구역',dur:'90분',fee:'무료 (선착순 입장)',desc:'초청가수 5팀 무대. 좌석은 1,200석이고 17시부터 입장을 시작해요. 서서 보는 구역은 제한이 없습니다.',cta:'내 일정에 담기'},
+{tg:'show',tgl:'공연',t:'강변 불꽃놀이',time:'20:30 ~ 20:50',loc:'공지천 강변',zone:'1번 구역',dur:'20분',fee:'무료',desc:'축제의 마지막 순서예요. 공지천 강변 전 구간에서 보이고, 의암호 방향 산책로가 가장 잘 보입니다.',cta:'내 일정에 담기'}];
+const PIN='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/></svg>';
+const BIG=[3,4];
+document.getElementById('tlD').innerHTML=EV.map((e,i)=>
+'<div class="tlr '+e.tg+(BIG.includes(i)?' big':'')+'"><div class="tlt">'+e.time.split(' ')[0]+'</div>'
++'<button class="tlc" data-evt="'+i+'"><span class="tg tg-'+e.tg+'">'+e.tgl+'</span><div class="t">'+e.t+'</div>'
++'<div class="l">'+PIN+'<em>'+e.loc+'</em></div></button></div>').join('');
+
+function sheetHTML(e){
+  const rows=[['장소','<em>'+e.loc+'</em> · '+e.zone],e.dur?['소요',e.dur]:null,e.fee?['요금',e.fee]:null].filter(Boolean);
+  return '<div class="sh-tg"><span class="tg tg-'+e.tg+'">'+e.tgl+'</span></div>'
+  +'<div class="sh-t">'+e.t+'</div>'
+  +'<div class="sh-when"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>10.17(토) '+e.time+'</div>'
+  +'<div class="sh-meta">'+rows.map(r=>'<div class="sh-r"><span class="k">'+r[0]+'</span><span class="v">'+r[1]+'</span></div>').join('')+'</div>'
+  +(e.desc?'<div class="sh-d">'+e.desc+'</div>':'')
+  +'<div class="sh-cta"><button class="btn gh2"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.4"/></svg>지도에서 보기</button><button class="btn f">'+e.cta+'</button></div>';
+}
+const sheetD=document.getElementById('sheetD'),scrimD=document.getElementById('scrimD');
+function openD(i){document.getElementById('sheetBodyD').innerHTML=sheetHTML(EV[i]);sheetD.classList.add('on');scrimD.classList.add('on');
+  document.querySelectorAll('#tlD .tlc').forEach(b=>b.style.borderColor=(+b.dataset.evt===i)?'var(--fest)':'');}
+scrimD.addEventListener('click',()=>{sheetD.classList.remove('on');scrimD.classList.remove('on');document.querySelectorAll('#tlD .tlc').forEach(b=>b.style.borderColor='');});
+document.addEventListener('click',e=>{const b=e.target.closest('#tlD .tlc');if(b)openD(+b.dataset.evt);});
+openD(3);
+
+document.getElementById('tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  document.querySelectorAll('.scr').forEach(x=>x.classList.toggle('on',x.id==='scr-'+b.dataset.s));
+  document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));window.scrollTo(0,0);});
+
+const themeBtn=document.getElementById('themeBtn');
+function setTheme(d){document.documentElement.dataset.theme=d?'dark':'light';themeBtn.textContent=d?'다크':'라이트';try{localStorage.setItem('wv_fest_theme',d?'dark':'light')}catch(e){}}
+try{setTheme(localStorage.getItem('wv_fest_theme')==='dark')}catch(e){setTheme(false)}
+themeBtn.addEventListener('click',()=>setTheme(document.documentElement.dataset.theme!=='dark'));
+</script>
+</body>
+</html>

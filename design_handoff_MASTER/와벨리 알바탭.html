@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>와벨리 — 알바 (구인구직)</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+<!-- ※ CDN 사용 지점 — 이십 시 이 한 줄을 지우면 로컬 폴백 스택으로 동작합니다 -->
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   :root {
@@ -15,7 +16,7 @@
   }
   html, body { background: #000; height: 100%; }
   body {
-    font-family: 'Pretendard Variable', Pretendard, system-ui, sans-serif;
+    font-family: 'Pretendard Variable', Pretendard, 'Apple SD Gothic Neo', 'Noto Sans KR', system-ui, -apple-system, 'Malgun Gothic', sans-serif;
     letter-spacing: -0.02em; word-break: keep-all;
     -webkit-font-smoothing: antialiased; display: flex; justify-content: center;
   }
@@ -48,13 +49,15 @@
   .sort button { height: 30px; padding: 0 13px; border-radius: 999px; background: var(--chip); color: var(--ink2); font-size: 13px; font-weight: 700; transition: all .15s; }
   .sort button.on { background: var(--blue); color: #fff; }
 
-  .cats { display: flex; gap: 6px; padding: 10px 18px 4px; overflow-x: auto; scrollbar-width: none; touch-action: pan-x; cursor: grab; }
-  .cats:active { cursor: grabbing; }
+  .cats { display: flex; gap: 6px; padding: 10px 18px 4px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
   .cats::-webkit-scrollbar { display: none; }
-  .cat { flex: none; height: 32px; padding: 0 14px; border-radius: 999px; background: var(--chip); color: var(--ink2); font-size: 13px; font-weight: 700; white-space: nowrap; transition: all .13s; display: inline-flex; align-items: center; gap: 5px; user-select: none; }
+  .cat { flex: none; height: 32px; padding: 0 14px; border-radius: 999px; background: var(--chip); color: var(--ink2); font-size: 13px; font-weight: 700; white-space: nowrap; transition: all .13s; display: inline-flex; align-items: center; gap: 5px; user-select: none; -webkit-tap-highlight-color: transparent; }
   .cat.on { background: var(--blue); color: #fff; }
+  .cat[data-cat="all"].has-sel { background: var(--card2); color: var(--ink2); }
   .cat .ck { width: 0; overflow: hidden; display: inline-flex; opacity: 0; margin-left: -5px; transition: all .13s; }
   .cat.on .ck { width: 13px; opacity: 1; margin-left: 0; }
+  .cat .rs { width: 0; overflow: hidden; display: inline-flex; opacity: 0; margin-left: -5px; transition: all .13s; }
+  .cat[data-cat="all"].has-sel .rs { width: 13px; opacity: .8; margin-left: 0; }
 
   /* ── 결과 요약 ── */
   .rescount { padding: 16px 20px 2px; font-size: 13px; color: var(--ink3); font-weight: 600; display: flex; align-items: center; justify-content: space-between; }
@@ -167,7 +170,7 @@
 
       <!-- 카테고리 -->
       <div class="cats" id="cats">
-        <button class="cat on" data-cat="all">전체</button>
+        <button class="cat on" data-cat="all"><span class="rs"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span>전체</button>
         <button class="cat" data-cat="food"><span class="ck"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>요식·카페</button>
         <button class="cat" data-cat="retail"><span class="ck"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>매장·판매</button>
         <button class="cat" data-cat="service"><span class="ck"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>서비스</button>
@@ -175,7 +178,7 @@
         <button class="cat" data-cat="office"><span class="ck"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>사무·기타</button>
       </div>
 
-      <div class="rescount"><span><b id="rc">6건</b>의 공고</span><button class="loc-btn" id="locBtn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.4"/></svg><span id="locLabel">현재 위치</span><svg class="cv" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button></div>
+      <div class="rescount"><span><b id="rc">6건</b>의 공고<span id="rcf"></span></span><button class="loc-btn" id="locBtn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.4"/></svg><span id="locLabel">현재 위치</span><svg class="cv" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button></div>
 
       <div class="list" id="list"></div>
     </div>
@@ -231,7 +234,7 @@
     const won = (n) => n.toLocaleString('ko-KR');
     const distNum = (loc) => { const m = /([\d.]+)\s*(k?m)/.exec(loc || ''); return m ? (m[2] === 'km' ? +m[1] * 1000 : +m[1]) : 1e9; };
     const payRank = (j) => j.monthly ? j.pay / 209 : j.pay;
-    const catTags = (j) => [`<span class="tag pt">${CATLABEL[j.cat]}</span>`].concat(j.tags.map((t) => `<span class="tag">${t}</span>`)).join('');
+    const catTags = (j) => [`<span class="tag pt" style="color:${COLOR[j.cat]};background:${COLOR[j.cat]}22">${CATLABEL[j.cat]}</span>`].concat(j.tags.map((t) => `<span class="tag">${t}</span>`)).join('');
     const saveBtn = `<button class="job-save"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.5-7 10-7 10Z"/></svg></button>`;
     const chatIc = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V6a4 4 0 0 1 4-4h9a4 4 0 0 1 4 4z"/></svg>`;
     const vfBadge = `<span class="vf"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span>`;
@@ -287,6 +290,9 @@
         ? data.map(fn).join('')
         : `<div class="job-empty">해당 조건의 ${seg === 'hire' ? '구인' : '구직'} 글이 없어요</div>`;
       document.getElementById('rc').textContent = data.length + '건';
+      const picked = [...sel].map((k) => CATLABEL[k]);
+      document.getElementById('rcf').textContent = picked.length === 0 ? ''
+        : ' · ' + (picked.length === 1 ? picked[0] : picked[0] + ' 외 ' + (picked.length - 1));
     }
 
     document.getElementById('seg').addEventListener('click', (e) => {
@@ -310,36 +316,25 @@
       setTimeout(() => { j.state = 'accepted'; render(); }, 1500);
     });
 
-    // 카테고리 — 다중 선택 토글 + 드래그로 여러 개 칠하기
+    // 카테고리 — 칩 탭 토글 다중선택 + '전체' 리셋 칩 (드래그 페인팅 폐기: 가로스크롤과 충돌)
     const catsEl = document.getElementById('cats');
     function syncCats() {
       catsEl.querySelectorAll('.cat').forEach((x) => {
         const k = x.dataset.cat;
-        x.classList.toggle('on', k === 'all' ? sel.size === 0 : sel.has(k));
+        if (k === 'all') {
+          x.classList.toggle('on', sel.size === 0);
+          x.classList.toggle('has-sel', sel.size > 0);
+        } else x.classList.toggle('on', sel.has(k));
       });
     }
-    let dragging = false, paint = true;
-    catsEl.addEventListener('pointerdown', (e) => {
+    catsEl.addEventListener('click', (e) => {
       const b = e.target.closest('.cat'); if (!b) return;
       const k = b.dataset.cat;
-      if (k === 'all') { sel.clear(); syncCats(); render(); return; }
-      dragging = true; paint = !sel.has(k);
-      if (paint) sel.add(k); else sel.delete(k);
-      catsEl.setPointerCapture(e.pointerId);
+      if (k === 'all') sel.clear();
+      else if (sel.has(k)) sel.delete(k);
+      else sel.add(k);
       syncCats(); render();
     });
-    catsEl.addEventListener('pointermove', (e) => {
-      if (!dragging) return;
-      const el = document.elementFromPoint(e.clientX, e.clientY);
-      const b = el && el.closest && el.closest('.cat');
-      if (!b || b.dataset.cat === 'all') return;
-      const k = b.dataset.cat;
-      if (paint) sel.add(k); else sel.delete(k);
-      syncCats(); render();
-    });
-    const endDrag = () => { dragging = false; };
-    catsEl.addEventListener('pointerup', endDrag);
-    catsEl.addEventListener('pointercancel', endDrag);
 
     // 동네 선택 시트 (현재위치 기본 · 다중 선택)
     const DONGS = ['효자동', '석사동', '후평동', '퇴계동', '온의동', '조운동', '신사우동', '근화동', '소양동'];

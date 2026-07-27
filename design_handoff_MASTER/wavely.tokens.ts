@@ -1,3 +1,5 @@
+// 와벨리 디자인 토큰 — 스카이 전환 완료(2026-07-27). 그레이프(#7A2BC4) 폐기.
+// 예외: 알바 업종색 `사무·기타 #7A2BC4`는 브랜드색이 아니므로 유지 (ALBA_JOB_TAB.md §1).
 // wavely.tokens.ts — 와벨리 디자인 단일 진실 소스 (Single Source of Truth)
 // 4개 surface(앱·소비자웹·관리자웹·마케팅) 모두 이 값을 그대로 사용. 임의 변경 금지.
 // 현재 repo의 src/constants/theme.ts 와 100% 일치 — 새 값 발명 금지, 이 파일을 import 해서 쓸 것.
@@ -6,23 +8,23 @@ export const Colors = {
   light: {
     text: '#18181B', textSecondary: '#82828C',
     background: '#F5F5F6', card: '#FFFFFF',
-    backgroundElement: '#F3EAFB', backgroundSelected: '#E0E1E6',
+    backgroundElement: '#EAF7FB', backgroundSelected: '#E0E1E6',
     border: '#EAEAEC',
-    primary: '#7A2BC4', primarySoft: '#F3EAFB', primaryDeep: '#641FA6', primarySoft2: '#E6D3F6',
+    primary: '#0EA5E9', primarySoft: '#EAF7FB', primaryDeep: '#0E7490', primarySoft2: '#C6E9F7',
     verify: '#11B981', onPrimary: '#FFFFFF',
     danger: '#E5484D', warn: '#D9730D',
   },
   dark: {
     text: '#F3F3F5', textSecondary: '#9B9BA5',
     background: '#000000', card: '#0C0C0E',
-    backgroundElement: '#1E1335', backgroundSelected: '#1A1A1F',
+    backgroundElement: '#0C2A3F', backgroundSelected: '#1A1A1F',
     border: '#232328',
-    primary: '#9D5FE6', primarySoft: '#1E1335', primaryDeep: '#C2A2F2', primarySoft2: '#2C1E46',
+    primary: '#38BDF8', primarySoft: '#0C2A3F', primaryDeep: '#7DD3FC', primarySoft2: '#123A52',
     verify: '#11B981', onPrimary: '#FFFFFF',
     danger: '#E5484D', warn: '#F0A35A',
   },
 } as const;
-// 다크모드 = OLED 완전검정(page #000 · card #0C0C0E · 그레이프 한 톤 밝게). root에 data-theme='dark' 시 colors.dark 적용.
+// 다크모드 = OLED 완전검정(page #000 · card #0C0C0E · 스카이 한 톤 밝게). root에 data-theme='dark' 시 colors.dark 적용.
 // 토글 위치: 앱=Tweaks, 웹·관리자=헤더 해/달, 랜딩=내비. (localStorage 지속)
 
 // 표면 톤: 플랫 — 그림자 대신 얇은 구분선/테두리로 면 구분 (라운드 16~18px 유지)
@@ -38,12 +40,12 @@ export const Spacing = { half: 2, one: 4, two: 8, three: 16, four: 24, five: 32,
 
 // 게시판/매장 배지 — 흩어진 인라인 색 통일
 export const TagColors = {
-  free:   { label: '자유',    fg: '#641FA6', bg: '#F3EAFB' },
+  free:   { label: '자유',    fg: '#0E7490', bg: '#EAF7FB' },
   promo:  { label: '홍보', fg: '#D9730D', bg: '#FFE7CC' },
-  owner:  { label: '사장님',  fg: '#7A2BC4', bg: '#F3EAFB' },
+  owner:  { label: '사장님',  fg: '#0EA5E9', bg: '#EAF7FB' },
   staff:  { label: '직장인',  fg: '#0E8C6A', bg: '#DDF3EC' },
   verify: { label: '✓ 인증', fg: '#FFFFFF', bg: '#11B981' },
-  ad:     { label: '광고',    fg: '#FFFFFF', bg: '#7A2BC4' },
+  ad:     { label: '광고',    fg: '#FFFFFF', bg: '#0EA5E9' },
 } as const;
 
 // 광고 3종 — 4개 surface 공통 모델
