@@ -42,7 +42,7 @@ type Job = { id: string; kind: string; title: string; pay_type: string | null; p
 function anonIdentity(j: Job) {
   if (j.kind !== 'seeking') return null;
   const parts = [j.age_range, j.gender ? `${j.gender}` : null].filter(Boolean);
-  return parts.length ? `🙈 익명 · ${parts.join(' · ')}` : '🙈 익명';
+  return parts.length ? `익명 · ${parts.join(' · ')}` : '익명';
 }
 
 function ago(iso: string) {
@@ -70,6 +70,7 @@ export default function JobsScreen() {
   const [debSearch, setDebSearch] = useState('');
   // 검색어는 입력 즉시가 아니라 350ms 디바운스 후에만 쿼리(키 입력마다 DB 호출 방지)
   useEffect(() => { const t = setTimeout(() => setDebSearch(search), 350); return () => clearTimeout(t); }, [search]);
+  const [sort, setSort] = useState<'recent' | 'wage'>('recent');
 
   const load = useCallback(async () => {
     if (!isSupabaseConfigured) { setLoading(false); return; }
@@ -87,20 +88,31 @@ export default function JobsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const onRefresh = useCallback(async () => { setRefreshing(true); await load(); setRefreshing(false); }, [load]);
 
-  const TABS: { k: typeof kind; l: string }[] = [{ k: 'all', l: '전체' }, { k: 'hiring', l: '🙋 구인(알바)' }, { k: 'seeking', l: '✋ 구직' }];
+  const TABS: { k: typeof kind; l: string }[] = [{ k: 'all', l: '전체' }, { k: 'hiring', l: '구인' }, { k: 'seeking', l: '구직' }];
+  const SORTS: { k: 'recent' | 'wage'; l: string }[] = [{ k: 'recent', l: '최신순' }, { k: 'wage', l: '시급순' }];
+  const wageHourly = (j: Job) => (j.pay == null ? -1 : j.pay_type === 'monthly' ? j.pay / 209 : j.pay_type === 'daily' ? j.pay / 8 : j.pay);
+  const view = sort === 'wage'
+    ? [...jobs].sort((a, b) => (((b as any).boost || 0) - ((a as any).boost || 0)) || (wageHourly(b) - wageHourly(a)))
+    : jobs;
 
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: c.background }]} edges={['top']}>
       <View style={[styles.header, { borderColor: c.border, backgroundColor: c.card }]}>
         <Pressable onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} hitSlop={8}><Text style={[styles.back, { color: c.text }]}>‹ 뒤로</Text></Pressable>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Icon name="briefcase" size={16} color={c.text} /><Text style={[styles.hTitle, { color: c.text }]}>구인구직</Text></View>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Icon name="briefcase" size={16} color={c.text} /><Text style={[styles.hTitle, { color: c.text }]}>알바</Text></View>
         <View style={{ width: 40 }} />
       </View>
 
       <View style={[styles.tabBar, { backgroundColor: c.card, borderColor: c.border }]}>
         {TABS.map((t) => (
           <Pressable key={t.k} onPress={() => setKind(t.k)} style={[styles.tab, { backgroundColor: kind === t.k ? c.primary : c.background }]}>
-            <Text style={{ color: kind === t.k ? c.onPrimary : c.textSecondary, fontWeight: '700', fontSize: 12.5 }}>{t.l}</Text>
+            <Text style={{ color: kind === t.k ? c.onPrimary : c.textSecondary, fontWeight: '700', fontSize: 13 }}>{t.l}</Text>
+          </Pressable>
+        ))}
+        <View style={{ flex: 1 }} />
+        {SORTS.map((so) => (
+          <Pressable key={so.k} onPress={() => setSort(so.k)} style={styles.sortChip}>
+            <Text style={{ color: sort === so.k ? c.primary : c.textSecondary, fontWeight: sort === so.k ? '800' : '600', fontSize: 12.5 }}>{so.l}</Text>
           </Pressable>
         ))}
       </View>
@@ -108,32 +120,46 @@ export default function JobsScreen() {
         <DongPicker value={dong} options={dongOptions} onChange={setDong} allLabel="춘천시 전체" />
         <View style={[styles.searchBox, { backgroundColor: c.background, borderColor: c.border }]}>
           <Icon name="search" size={13} color={c.textSecondary} />
-          <TextInput style={[styles.searchInput, { color: c.text }]} placeholder="검색" placeholderTextColor={c.textSecondary} value={search} onChangeText={setSearch} returnKeyType="search" />
+          <TextInput style={[styles.searchInput, { color: c.text }]} placeholder="검색 (예: 카페, 주말 단기)" placeholderTextColor={c.textSecondary} value={search} onChangeText={setSearch} returnKeyType="search" />
         </View>
       </View>
 
       {loading && !refreshing ? (
         <ActivityIndicator color={c.primary} style={{ marginTop: 30 }} />
-      ) : jobs.length === 0 ? (
+      ) : view.length === 0 ? (
         <ScrollView contentContainerStyle={{ flexGrow: 1 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} colors={[c.primary]} />}>
-          <View style={styles.center}><View style={{ marginBottom: 6 }}><Icon name="briefcase" size={40} color={c.textSecondary} /></View><Text style={{ color: c.textSecondary }}>아직 공고가 없어요. 첫 글을 올려보세요!</Text></View>
+          <View style={styles.center}><View style={{ marginBottom: 8 }}><Icon name="briefcase" size={40} color={c.textSecondary} /></View><Text style={{ color: c.textSecondary }}>{dong || debSearch ? '해당 조건의 공고가 없어요' : '아직 공고가 없어요. 첫 글을 올려보세요!'}</Text></View>
         </ScrollView>
       ) : (
-        <ScrollView contentContainerStyle={{ paddingBottom: 110 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} colors={[c.primary]} />}>
-          {jobs.map((j) => (
-            <Pressable key={j.id} onPress={() => router.push(`/jobs/${j.id}`)} style={[styles.row, { borderColor: c.border, opacity: j.status === 'closed' ? 0.55 : 1 }]}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
-                <View style={[styles.kindBadge, { backgroundColor: j.kind === 'hiring' ? c.primarySoft : '#FFE7CC' }]}>
-                  <Text style={{ color: j.kind === 'hiring' ? c.primaryDeep : '#D9730D', fontSize: 11, fontWeight: '800' }}>{j.kind === 'hiring' ? '구인' : '구직'}</Text>
+        <ScrollView contentContainerStyle={{ paddingBottom: 110, paddingTop: 10 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} colors={[c.primary]} />}>
+          {view.map((j) => {
+            const boosted = !!(j as any).boost;
+            const seek = j.kind === 'seeking';
+            return (
+              <Pressable key={j.id} onPress={() => router.push(`/jobs/${j.id}`)} style={[styles.card, { backgroundColor: c.card, borderColor: boosted ? c.primary : c.border, opacity: j.status === 'closed' ? 0.55 : 1 }]}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <View style={[styles.kindBadge, { backgroundColor: seek ? '#FFE7CC' : c.primarySoft }]}>
+                    <Text style={{ color: seek ? '#D9730D' : c.primaryDeep, fontSize: 11, fontWeight: '800' }}>{seek ? '구직' : '구인'}</Text>
+                  </View>
+                  {boosted ? <View style={[styles.kindBadge, { backgroundColor: c.primary }]}><Text style={{ color: c.onPrimary, fontSize: 10.5, fontWeight: '800' }}>광고</Text></View> : null}
+                  {j.status === 'closed' ? <View style={[styles.kindBadge, { backgroundColor: c.backgroundElement }]}><Text style={{ color: c.textSecondary, fontSize: 11, fontWeight: '800' }}>마감</Text></View> : null}
+                  <View style={{ flex: 1 }} />
+                  <Text style={{ color: c.textSecondary, fontSize: 11.5 }}>{j.dong ? `${j.dong} · ` : ''}{ago(j.created_at)}</Text>
                 </View>
-                {j.status === 'closed' ? <View style={[styles.kindBadge, { backgroundColor: c.backgroundElement }]}><Text style={{ color: c.textSecondary, fontSize: 11, fontWeight: '800' }}>마감</Text></View> : null}
-                <Text style={{ color: c.textSecondary, fontSize: 11.5, marginLeft: 'auto' }}>{j.dong ? `📍${j.dong} · ` : ''}{ago(j.created_at)}</Text>
-              </View>
-              <Text style={[styles.title, { color: c.text }]} numberOfLines={1}>{j.title}</Text>
-              <Text style={[styles.pay, { color: c.primaryDeep }]}>💰 {payText(j)}{j.work_time ? ` · ${j.work_time}` : ''}</Text>
-              {anonIdentity(j) ? <Text style={{ color: c.textSecondary, fontSize: 12, fontWeight: '600' }}>{anonIdentity(j)}</Text> : null}
-            </Pressable>
-          ))}
+                <Text style={[styles.title, { color: c.text }]} numberOfLines={1}>{j.title}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                  <Icon name="wallet" size={14} color={c.primaryDeep} />
+                  <Text style={[styles.pay, { color: c.primaryDeep }]}>{payText(j)}{j.work_time ? ` · ${j.work_time}` : ''}</Text>
+                </View>
+                {seek && anonIdentity(j) ? (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                    <Icon name="lock" size={12} color={c.textSecondary} />
+                    <Text style={{ color: c.textSecondary, fontSize: 12, fontWeight: '600' }}>{anonIdentity(j)}</Text>
+                  </View>
+                ) : null}
+              </Pressable>
+            );
+          })}
         </ScrollView>
       )}
 
@@ -155,7 +181,8 @@ const styles = StyleSheet.create({
   searchBox: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, borderWidth: 1 },
   searchInput: { flex: 1, fontSize: 13.5 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 30 },
-  row: { paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1, gap: 6 },
+  card: { marginHorizontal: 12, marginBottom: 10, paddingHorizontal: 14, paddingVertical: 13, borderRadius: 14, borderWidth: 1, gap: 6 },
+  sortChip: { paddingHorizontal: 8, paddingVertical: 6 },
   kindBadge: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 },
   title: { fontSize: 15.5, fontWeight: '700' },
   pay: { fontSize: 13.5, fontWeight: '700' },
