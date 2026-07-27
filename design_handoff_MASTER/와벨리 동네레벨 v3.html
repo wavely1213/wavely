@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>와벨리 동네레벨 v3</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+--primary:#0EA5E9;--primary-deep:#0E7490;--primary-soft:#EAF7FB;--primary-soft2:#C6E9F7;
+--ink:#18181B;--ink2:#82828C;--ink3:#A8A8B0;--line:#EAEAEC;
+--bg:#FFFFFF;--page:#F5F5F6;--field:#F1F1F3;
+--verify:#11B981;--verify-soft:#DDF3EC;--warn:#D9730D;--warn-soft:#FFE7CC;--danger:#E5484D;
+--g1:#C08D12;--g2:#F2DA85;--sk1:#DB6E97;--sk2:#FBD5E3;--onlight:#18181B;
+--r-card:16px;--r-list:12px;--r-chip:999px;
+--sh:0 1px 2px rgba(16,24,40,.05);--sh2:0 8px 26px rgba(16,24,40,.10);--sh3:0 24px 64px rgba(16,24,40,.26);
+--patop:.16;--patsz:128px 44px}
+html[data-theme=dark],[data-theme=dark]{
+--primary:#38BDF8;--primary-deep:#7DD3FC;--primary-soft:#0C2A3F;--primary-soft2:#123A52;
+--ink:#F3F3F5;--ink2:#9B9BA5;--ink3:#67676F;--line:#232328;
+--bg:#0C0C0E;--page:#000000;--field:#1A1A1F;
+--verify:#11B981;--verify-soft:color-mix(in srgb,#11B981 17%,#0C0C0E);--warn:#F0A35A;--warn-soft:color-mix(in srgb,#D9730D 24%,#0C0C0E);--danger:#E5484D;
+--sh:0 1px 2px rgba(0,0,0,.5);--sh2:0 8px 26px rgba(0,0,0,.6);--sh3:0 24px 64px rgba(0,0,0,.75);
+--patop:.24}
+html,body{height:100%}
+body{font-family:Pretendard,'Pretendard Variable','Apple SD Gothic Neo','Noto Sans KR',system-ui,-apple-system,'Malgun Gothic',sans-serif;background:var(--page);color:var(--ink);letter-spacing:-.01em;-webkit-font-smoothing:antialiased;word-break:keep-all;overflow-wrap:break-word}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;transition:transform .11s,background .14s,color .14s,border-color .14s,box-shadow .14s}
+button:active:not(:disabled){transform:scale(.985)}
+a{color:var(--primary-deep);text-decoration:none}a:hover{color:var(--primary)}
+:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:10px}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:#D4D4D8;border-radius:999px;border:3px solid var(--page)}
+[data-theme=dark] ::-webkit-scrollbar-thumb{background:#2A2A30}
+
+/* ── review scaffold ── */
+.rv{position:sticky;top:0;z-index:50;background:var(--bg);border-bottom:1px solid var(--line);padding:9px 14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.rv-b{font-size:12px;font-weight:800;color:var(--ink3);letter-spacing:.02em;flex:none}
+.rv-tabs{display:flex;gap:3px;background:var(--field);padding:3px;border-radius:11px;overflow-x:auto;scrollbar-width:none}
+.rv-tabs::-webkit-scrollbar{display:none}
+.rv-tabs button{height:32px;padding:0 13px;border-radius:8px;font-size:13px;font-weight:700;color:var(--ink2);white-space:nowrap}
+.rv-tabs button.on{background:var(--bg);color:var(--ink);box-shadow:var(--sh)}
+.rv-r{margin-left:auto;display:flex;gap:6px}
+.rv-r button{height:32px;padding:0 12px;border-radius:9px;font-size:12.5px;font-weight:700;color:var(--ink2);border:1px solid var(--line);white-space:nowrap;flex:none}
+.rv-r button:hover{color:var(--ink);border-color:var(--ink3)}
+.stage{max-width:520px;margin:0 auto;padding:16px 14px 96px}
+.stage.wide{max-width:1080px}
+.scr{display:none}.scr.on{display:block}
+.hd{padding:6px 2px 14px}
+.hd h1{font-size:22px;font-weight:800;letter-spacing:-.03em;text-wrap:balance}
+.hd p{font-size:13.5px;color:var(--ink2);margin-top:5px;line-height:1.55}
+
+/* ══ RING — 메탈릭 등급 테두리 ══ */
+.ring{--s:44px;--rw:3px;--gap:2px;--rw2:0px;--gap2:0px;--rg:var(--ink3);--rg2:transparent;--tc:var(--ink3);
+position:relative;width:calc(var(--s) + 22px);height:calc(var(--s) + 22px);display:grid;place-items:center;flex:none}
+.ring::after{content:'';position:absolute;z-index:0;border-radius:50%;
+width:calc(var(--s) + (var(--gap) + var(--rw) + var(--gap2) + var(--rw2))*2);height:calc(var(--s) + (var(--gap) + var(--rw) + var(--gap2) + var(--rw2))*2);background:var(--rg2)}
+.ring::before{content:'';position:absolute;z-index:1;border-radius:50%;
+width:calc(var(--s) + (var(--gap) + var(--rw))*2);height:calc(var(--s) + (var(--gap) + var(--rw))*2);
+background:var(--rg);box-shadow:0 0 0 var(--gap2) var(--bg)}
+.ring .face{position:relative;z-index:2;width:var(--s);height:var(--s);border-radius:50%;display:grid;place-items:center;
+background:linear-gradient(150deg,var(--primary-soft2),var(--primary-soft));color:var(--primary-deep);
+font-weight:800;font-size:calc(var(--s)*.4);box-shadow:0 0 0 var(--gap) var(--bg)}
+.ring.anon{--rw:2px;--gap:0px;--rg:var(--line)}
+.ring.anon .face{background:var(--field);color:var(--ink2)}
+.t-bronze{--tc:#B0764A;--rw:3.5px;--rg:conic-gradient(from 200deg,#8A5330,#D9A273,#B0764A,#F0C9A3,#9C6238,#C98F5E,#8A5330)}
+.t-silver{--tc:#8E9CB0;--rw:3.5px;--rg:conic-gradient(from 200deg,#6E7A8C,#DCE5EF,#8E9CB0,#F5F8FB,#7A8698,#C6D0DC,#6E7A8C)}
+.t-gold{--tc:#C8991F;--rw:3.5px;--rw2:1.5px;--gap2:1.5px;--rg:conic-gradient(from 210deg,#9A7518,#F2DA85,#C8991F,#FFF6CE,#A87F1C,#E8C463,#9A7518);--rg2:#E8C463}
+.t-platinum{--tc:#6FA5B4;--rw:4px;--rw2:1.5px;--gap2:2px;--rg:conic-gradient(from 190deg,#47818F,#D4EAF0,#6FA5B4,#F4FCFE,#5A8F9E,#AFD4DE,#47818F);--rg2:#AFD4DE}
+.t-diamond{--tc:#38BDF8;--rw:4px;--rw2:1.5px;--gap2:2px;--rg2:#BAE6FD;
+--rg:conic-gradient(from 0deg,#7DD3FC,#F5D0FE,#A7F3D0,#FDE68A,#93C5FD,#F0ABFC,#67E8F9,#7DD3FC)}
+.t-diamond::before{animation:lv-spin 10s linear infinite}
+.t-founder{--tc:#D9A527;--rw:3.5px;--rw2:2px;--gap2:2px;
+--rg:conic-gradient(from 220deg,#12263F,#3E6FA8,#1E3A5F,#5D8FC7,#12263F);
+--rg2:conic-gradient(from 30deg,#9A7518,#F2DA85,#D9A527,#FFF6CE,#9A7518)}
+.t-sakura{--tc:#E88BAE;--rw:3.5px;--rw2:1.5px;--gap2:1.5px;--rg2:#FBD5E3;
+--rg:conic-gradient(from 180deg,#DB6E97,#FCE1EB,#F0A6C0,#FFF5F8,#E88BAE,#F7C4D6,#DB6E97)}
+.t-streak{--tc:#E8752F;--rw:3.5px;--rg:conic-gradient(from 210deg,#B3350A,#FBBF24,#E8752F,#FDE9A8,#D2551A,#F59E0B,#B3350A)}
+.t-sponsor{--tc:#0EA5E9;--rw:3.5px;--rw2:1.5px;--gap2:1.5px;--rg2:var(--primary-soft2);
+--rg:conic-gradient(from 200deg,#0369A1,#A5E3FC,#0EA5E9,#EAF8FE,#0284C7,#7DD3FC,#0369A1)}
+@keyframes lv-spin{to{transform:rotate(360deg)}}
+.ring .med{position:absolute;z-index:4;right:-1px;bottom:-1px;width:calc(var(--s)*.44);height:calc(var(--s)*.44);min-width:17px;min-height:17px;border-radius:50%;display:grid;place-items:center;color:#fff;border:2px solid var(--bg);box-shadow:0 2px 6px rgba(0,0,0,.24)}
+.med.m-founder{background:linear-gradient(145deg,var(--g2),var(--g1))}
+.med.m-sakura{background:linear-gradient(145deg,#F7B3CB,var(--sk1))}
+.med.m-streak{background:linear-gradient(145deg,#FBBF24,#D2551A)}
+.med.m-sponsor{background:linear-gradient(145deg,#7DD3FC,#0284C7)}
+.spk{position:absolute;z-index:3;width:5px;height:5px;border-radius:50%;background:#fff;box-shadow:0 0 6px 1px rgba(186,230,253,.7);animation:twk 3.2s ease-in-out infinite}
+.spk.s2{width:4px;height:4px;animation-delay:1.6s}
+@keyframes twk{0%,100%{opacity:0;transform:scale(.4)}45%{opacity:.72;transform:scale(1)}}
+.ring:hover::before{animation:lv-spin 5s linear infinite}
+@media(prefers-reduced-motion:reduce){.t-diamond::before,.ring:hover::before,.spk{animation:none}.spk{opacity:.9}}
+
+/* ══ 배경 아이템 v3 — 3레이어 (① 워시 ② 패턴 ③ 하이라이트) ══ */
+.bgfx{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;border-radius:inherit}
+.bgfx>i{position:absolute;inset:0;display:block}
+.bgfx .l1{background:var(--wash,transparent)}
+.bgfx .l2{background:var(--patc,var(--primary));opacity:var(--patop);-webkit-mask-image:var(--pat);mask-image:var(--pat);-webkit-mask-size:var(--patsz);mask-size:var(--patsz);-webkit-mask-repeat:repeat;mask-repeat:repeat}
+.bgfx .l3{background:var(--hi,transparent);background-repeat:no-repeat;background-size:cover;opacity:var(--hiop,0);mix-blend-mode:var(--himode,normal)}
+.bgfx .sp{position:absolute;z-index:2;width:5px;height:5px;border-radius:50%;background:#FFFDF2;box-shadow:0 0 9px 2px color-mix(in srgb,var(--g2) 78%,transparent);opacity:0}
+
+/* ① 타일 — stroke 위주 → 면(fill)·볼륨 혼합 */
+.bp-plain{--patop:0;--hiop:0}
+.bp-wave{--patsz:128px 44px;--pat:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='44'%3E%3Cpath d='M0 15 Q16 3 32 15 T64 15 T96 15 T128 15' fill='none' stroke='%23000' stroke-width='4.6' stroke-linecap='round'/%3E%3Cpath d='M0 31 Q16 19 32 31 T64 31 T96 31 T128 31' fill='none' stroke='%23000' stroke-width='1.7' opacity='.55'/%3E%3C/svg%3E")}
+.bp-dots{--patsz:26px 26px;--pat:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26'%3E%3Cg fill='%23000'%3E%3Ccircle cx='6' cy='6.5' r='2.6'/%3E%3Ccircle cx='18.5' cy='14' r='1.8' opacity='.72'/%3E%3Ccircle cx='9.5' cy='21' r='1.2' opacity='.5'/%3E%3C/g%3E%3Ccircle cx='20.5' cy='4' r='2.8' fill='none' stroke='%23000' stroke-width='1' opacity='.5'/%3E%3C/svg%3E")}
+.bp-ripple{--patsz:72px 72px;--pat:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72'%3E%3Ccircle cx='36' cy='36' r='3.4' fill='%23000'/%3E%3Cg fill='none' stroke='%23000'%3E%3Ccircle cx='36' cy='36' r='10' stroke-width='3.4'/%3E%3Ccircle cx='36' cy='36' r='20' stroke-width='2.2' opacity='.66'/%3E%3Ccircle cx='36' cy='36' r='30.5' stroke-width='1.4' opacity='.4'/%3E%3C/g%3E%3C/svg%3E")}
+.bp-mountain{--patsz:180px 64px;--pat:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='64'%3E%3Cpath d='M0 50 L28 26 L48 40 L78 12 L106 38 L130 22 L156 42 L180 30 L180 64 L0 64Z' fill='%23000' opacity='.5'/%3E%3Cpath d='M0 58 L34 40 L58 51 L90 28 L118 49 L144 38 L180 52 L180 64 L0 64Z' fill='%23000' opacity='.92'/%3E%3Cg fill='none' stroke='%23000' stroke-width='1.6' opacity='.45'%3E%3Cpath d='M78 12 L106 38'/%3E%3Cpath d='M90 28 L118 49'/%3E%3C/g%3E%3C/svg%3E")}
+.bp-lake{--patsz:104px 44px;--pat:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='104' height='44'%3E%3Cg fill='%23000'%3E%3Crect x='4' y='6' width='26' height='3.4' rx='1.7'/%3E%3Crect x='36' y='15' width='38' height='3' rx='1.5' opacity='.72'/%3E%3Crect x='78' y='5' width='18' height='2.6' rx='1.3' opacity='.56'/%3E%3Crect x='12' y='26' width='30' height='2.8' rx='1.4' opacity='.5'/%3E%3Crect x='52' y='34' width='42' height='2.4' rx='1.2' opacity='.36'/%3E%3Crect x='84' y='25' width='14' height='2.2' rx='1.1' opacity='.3'/%3E%3C/g%3E%3C/svg%3E")}
+.bp-sakura{--patsz:78px 78px;--pat:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='78' height='78'%3E%3Cg fill='%23000'%3E%3Cg transform='translate(17,19)'%3E%3Cellipse cx='0' cy='-5' rx='2.7' ry='4.6'/%3E%3Cellipse cx='0' cy='-5' rx='2.7' ry='4.6' transform='rotate(72)'/%3E%3Cellipse cx='0' cy='-5' rx='2.7' ry='4.6' transform='rotate(144)'/%3E%3Cellipse cx='0' cy='-5' rx='2.7' ry='4.6' transform='rotate(216)'/%3E%3Cellipse cx='0' cy='-5' rx='2.7' ry='4.6' transform='rotate(288)'/%3E%3C/g%3E%3Cg transform='translate(55,52) scale(.82)' opacity='.8'%3E%3Cellipse cx='0' cy='-5' rx='2.7' ry='4.6'/%3E%3Cellipse cx='0' cy='-5' rx='2.7' ry='4.6' transform='rotate(72)'/%3E%3Cellipse cx='0' cy='-5' rx='2.7' ry='4.6' transform='rotate(144)'/%3E%3Cellipse cx='0' cy='-5' rx='2.7' ry='4.6' transform='rotate(216)'/%3E%3Cellipse cx='0' cy='-5' rx='2.7' ry='4.6' transform='rotate(288)'/%3E%3C/g%3E%3Cellipse cx='66' cy='17' rx='1.9' ry='3.2' transform='rotate(26 66 17)' opacity='.6'/%3E%3Cellipse cx='31' cy='62' rx='1.7' ry='3' transform='rotate(-32 31 62)' opacity='.5'/%3E%3Cellipse cx='45' cy='9' rx='1.4' ry='2.4' transform='rotate(14 45 9)' opacity='.38'/%3E%3C/g%3E%3C/svg%3E")}
+.bp-firework{--patsz:88px 88px;--pat:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='88' height='88'%3E%3Cg stroke='%23000' stroke-width='2.1' stroke-linecap='round'%3E%3Cpath d='M44 44V20M44 44l17-14M44 44h24M44 44l17 14M44 44v24M44 44l-17 14M44 44H20M44 44L27 30'/%3E%3Cg stroke-width='1.4' opacity='.6'%3E%3Cpath d='M44 44l9-22M44 44l22-9M44 44l9 22M44 44l-9 22M44 44l-22 9M44 44l-9-22'/%3E%3C/g%3E%3C/g%3E%3Cg fill='%23000'%3E%3Ccircle cx='44' cy='44' r='3.6'/%3E%3Ccircle cx='44' cy='17' r='2'/%3E%3Ccircle cx='71' cy='44' r='2'/%3E%3Ccircle cx='44' cy='71' r='2'/%3E%3Ccircle cx='17' cy='44' r='2'/%3E%3Ccircle cx='63' cy='25' r='1.5' opacity='.7'/%3E%3Ccircle cx='25' cy='63' r='1.5' opacity='.7'/%3E%3C/g%3E%3C/svg%3E")}
+.bp-founder{--patsz:56px 56px;--pat:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Cpath d='M0 24 L14 11 L28 24 L42 11 L56 24 L56 31 L42 18 L28 31 L14 18 L0 31Z' fill='%23000'/%3E%3Cpath d='M0 44 L14 31 L28 44 L42 31 L56 44 L56 49 L42 36 L28 49 L14 36 L0 49Z' fill='%23000' opacity='.55'/%3E%3C/svg%3E")}
+
+/* ② 틴트 — 색은 SVG 밖(--patc/--patc2)에 두어 다크모드 자동 대응 */
+.bp-wave{--patc:var(--primary);--patc2:var(--primary-deep)}
+.bp-dots{--patc:#38BDF8;--patc2:#0284C7}
+.bp-ripple{--patc:#0EA5E9;--patc2:#075985}
+.bp-mountain{--patc:#3F8F6B;--patc2:#1F5E48}
+.bp-lake{--patc:#2C7DA0;--patc2:#14526E}
+.bp-sakura{--patc:#DB6E97;--patc2:#B84B78}
+.bp-firework{--patc:#F26D1F;--patc2:#B3350A}
+.bp-founder{--patc:#C08D12;--patc2:#7A5806}
+[data-theme=dark] .bp-mountain{--patc:#5FBE92;--patc2:#2F7A5C}
+[data-theme=dark] .bp-lake{--patc:#5AB0D4;--patc2:#1D6A8C}
+[data-theme=dark] .bp-sakura{--patc:#F5A3C0;--patc2:#C25C8B}
+[data-theme=dark] .bp-firework{--patc:#FF9A5A;--patc2:#D9481A}
+[data-theme=dark] .bp-founder{--patc:#F2DA85;--patc2:#A8790E}
+
+/* ③ 티어별 레이어 — 하위는 절제, 상위로 갈수록 층이 쌓임 */
+.bp-wave{--patop:.18}
+[data-theme=dark] .bp-wave{--patop:.24}
+.bp-dots{--patop:.2;--wash:linear-gradient(166deg,color-mix(in srgb,var(--patc) 20%,var(--bg)),color-mix(in srgb,var(--patc) 7%,var(--bg)) 56%,var(--bg))}
+[data-theme=dark] .bp-dots{--patop:.28}
+.bp-ripple{--patop:.22;--wash:radial-gradient(120% 90% at 22% 18%,color-mix(in srgb,var(--patc) 22%,var(--bg)),color-mix(in srgb,var(--patc) 8%,var(--bg)) 46%,var(--bg) 78%)}
+[data-theme=dark] .bp-ripple{--patop:.3}
+.bp-mountain{--patop:.26;--wash:linear-gradient(178deg,color-mix(in srgb,var(--patc2) 24%,var(--bg)),color-mix(in srgb,var(--patc) 14%,var(--bg)) 46%,var(--bg));--hi:radial-gradient(122% 104% at 50% 16%,transparent 44%,rgba(6,20,15,.62));--hiop:.2}
+[data-theme=dark] .bp-mountain{--patop:.32;--hiop:.3}
+.bp-lake{--patop:.26;--wash:linear-gradient(200deg,color-mix(in srgb,var(--patc2) 26%,var(--bg)),color-mix(in srgb,var(--patc) 10%,var(--bg)) 52%,var(--bg));--hi:linear-gradient(102deg,transparent 32%,color-mix(in srgb,#fff 76%,var(--patc)) 50%,transparent 68%);--hiop:.3;--himode:overlay}
+[data-theme=dark] .bp-lake{--patop:.32;--hiop:.34}
+.bp-sakura{--patop:.3;--wash:linear-gradient(140deg,color-mix(in srgb,var(--patc) 26%,var(--bg)),color-mix(in srgb,var(--patc2) 12%,var(--bg)) 56%,var(--bg));--hi:radial-gradient(80% 66% at 76% 10%,color-mix(in srgb,#FFF0F6 88%,transparent),transparent 70%);--hiop:.4}
+[data-theme=dark] .bp-sakura{--patop:.36;--hiop:.28}
+.bp-firework{--patop:.32;--wash:radial-gradient(72% 82% at 22% 108%,color-mix(in srgb,var(--patc) 30%,var(--bg)),transparent 66%),radial-gradient(58% 70% at 84% 6%,color-mix(in srgb,var(--patc2) 22%,var(--bg)),transparent 62%),linear-gradient(180deg,color-mix(in srgb,var(--patc2) 10%,var(--bg)),var(--bg));--hi:radial-gradient(52% 52% at 50% 60%,color-mix(in srgb,#FFD3A1 78%,transparent),transparent 68%);--hiop:.45;--himode:screen}
+[data-theme=dark] .bp-firework{--patop:.4;--hiop:.72}
+.bp-founder{--patop:.3;--wash:linear-gradient(120deg,color-mix(in srgb,var(--patc) 30%,var(--bg)),color-mix(in srgb,var(--patc2) 14%,var(--bg)) 48%,var(--bg));--hi:linear-gradient(100deg,transparent 30%,rgba(255,246,206,.92) 46%,rgba(255,255,255,.55) 54%,transparent 70%);--hiop:.4;--himode:overlay}
+[data-theme=dark] .bp-founder{--patop:.36;--hiop:.5}
+
+/* ④ 모션 — 시즌·희소 3종만 */
+.bp-sakura .l2{animation:bgfall 15s linear infinite}
+@keyframes bgfall{to{-webkit-mask-position:26px 78px;mask-position:26px 78px}}
+.bp-firework .l2{animation:bgfw 6.5s ease-in-out infinite}
+@keyframes bgfw{0%,100%{opacity:calc(var(--patop)*.5)}50%{opacity:var(--patop)}}
+.bp-firework .l3{animation:bgglow 6.5s ease-in-out infinite}
+@keyframes bgglow{0%,100%{opacity:calc(var(--hiop)*.45);transform:scale(.9)}50%{opacity:var(--hiop);transform:scale(1.08)}}
+.bp-founder .l3{background-size:230% 100%;animation:bgsheen 7s linear infinite}
+@keyframes bgsheen{0%{background-position:150% 0}100%{background-position:-70% 0}}
+.bp-founder .sp{animation:bgsp 3.4s ease-in-out infinite}
+@keyframes bgsp{0%,100%{opacity:0;transform:scale(.4)}45%{opacity:.95;transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.bgfx>i,.bgfx .sp{animation:none!important}.bp-founder .sp{opacity:.8}}
+
+.bgsw{position:relative;width:100%;height:62px;border-radius:11px;overflow:hidden;border:1px solid var(--line);background:var(--bg)}
+.bgsw.none::after{content:'기본';position:absolute;z-index:3;inset:0;display:grid;place-items:center;font-size:11px;font-weight:800;color:var(--ink3)}
+.it-bg{--tc:var(--patc,var(--primary));padding:30px 12px 13px}
+.it-bg .it-n{margin-top:2px}
+
+/* ── H. 배경 비교 뷰 ── */
+.pvw{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(292px,1fr))}
+.pvc{border:1px solid var(--line);border-radius:var(--r-card);background:var(--bg);box-shadow:var(--sh);overflow:hidden}
+.pvh{display:flex;align-items:center;gap:7px;padding:10px 12px}
+.pvh b{font-size:13.5px;font-weight:800}
+.pvh .k{font-size:11px;color:var(--ink3);font-weight:700;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.pvh .lay{margin-left:auto;display:flex;gap:3px}
+.pvh .lay span{font-size:10px;font-weight:800;height:18px;line-height:18px;padding:0 6px;border-radius:5px;background:var(--field);color:var(--ink3)}
+.pvh .lay span.a{background:var(--primary-soft);color:var(--primary-deep)}
+.pvh .lay span.mo{background:linear-gradient(135deg,var(--g2),var(--g1));color:var(--onlight)}
+.pvp{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line)}
+.pv{position:relative;padding:13px;min-height:104px;display:flex;flex-direction:column;justify-content:flex-end;background:var(--bg);overflow:hidden}
+.pv>*{position:relative;z-index:1}
+.pv .bgfx{z-index:0}
+.pv .tag{position:absolute;top:9px;left:13px;font-size:9.5px;font-weight:800;letter-spacing:.06em;color:var(--ink3)}
+.pv .nm{font-size:14.5px;font-weight:800;letter-spacing:-.02em}
+.pv .sub{display:block;font-size:11.5px;color:var(--ink2);font-weight:700;margin-top:3px}
+.pv .bar{height:7px;margin-top:8px}
+.pvm{display:flex;gap:6px;flex-wrap:wrap;padding:10px 12px;font-size:11.5px;color:var(--ink2);font-weight:700;border-top:1px solid var(--line)}
+.pvm em{font-style:normal;color:var(--ink3)}
+.bgpick{display:flex;flex-wrap:wrap;gap:6px}
+.bgp{display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 12px 0 8px;border:1px solid var(--line);border-radius:var(--r-chip);font-size:12.5px;font-weight:800;color:var(--ink2);background:var(--bg)}
+.bgp .dot{position:relative;width:17px;height:17px;border-radius:5px;overflow:hidden;flex:none;background:var(--bg);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 12%,transparent)}
+.bgp:hover{color:var(--ink)}
+.bgp.on{color:var(--ink);border-color:var(--patc,var(--primary));box-shadow:0 0 0 2px color-mix(in srgb,var(--patc,var(--primary)) 20%,transparent)}
+.pvap{display:grid;gap:10px;margin-top:12px}
+@media(min-width:860px){.pvap{grid-template-columns:1fr 1fr;align-items:start}.pvap>.pf{grid-row:span 2}}
+
+/* ══ 특수 테두리 이펙트 — 등급=재질, 특수=움직임 ══ */
+.fxp{position:absolute;z-index:5;top:-3px;width:8px;height:8px;color:var(--sk1);opacity:0;pointer-events:none;animation:petal 4.2s linear infinite}
+.fxp svg{width:100%;height:100%;display:block}
+@keyframes petal{0%{opacity:0;transform:translate(0,0) rotate(0)}12%{opacity:.66}86%{opacity:.5}100%{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(320deg)}}
+.fxe{position:absolute;z-index:5;bottom:7px;width:4px;height:4px;border-radius:50%;background:var(--tc);opacity:0;pointer-events:none;box-shadow:0 0 7px 1px color-mix(in srgb,var(--tc) 60%,transparent);animation:ember 3.2s ease-out infinite}
+@keyframes ember{0%{opacity:0;transform:translate(0,0) scale(.5)}20%{opacity:.66}100%{opacity:0;transform:translate(var(--dx),-32px) scale(.25)}}
+.fxo{position:absolute;z-index:5;inset:1px;pointer-events:none;animation:lv-spin 7.5s linear infinite}
+.fxo::before{content:'';position:absolute;top:-1px;left:50%;margin-left:-2.5px;width:5px;height:5px;border-radius:50%;background:var(--g2);box-shadow:0 0 8px 2px color-mix(in srgb,var(--g2) 46%,transparent)}
+.fxo.b{inset:5px;animation-duration:11s;animation-direction:reverse}
+.fxo.b::before{width:4px;height:4px;margin-left:-2px}
+.fxs{position:absolute;z-index:0;inset:2px;border-radius:50%;border:2px solid var(--tc);opacity:0;pointer-events:none;animation:sig 3.6s ease-out infinite}
+.fxs.b{animation-delay:1.8s}
+@keyframes sig{0%{opacity:.35;transform:scale(1)}100%{opacity:0;transform:scale(1.8)}}
+.it.is-lock .fxp,.it.is-lock .fxe,.it.is-lock .fxo,.it.is-lock .fxs{animation:none;opacity:0}
+@media(prefers-reduced-motion:reduce){.fxp,.fxe,.fxo,.fxs{animation:none;opacity:0}}
+
+/* ── chips ── */
+.tchip{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 10px;border-radius:var(--r-chip);background:var(--primary-soft);color:var(--primary-deep);font-size:12px;font-weight:800;white-space:nowrap;max-width:100%}
+.tchip::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;flex:none;opacity:.75}
+.tchip.sm{height:19px;padding:0 8px;font-size:11px;gap:4px}
+.tchip.sm::before{width:4px;height:4px}
+.tchip.none{background:var(--field);color:var(--ink3)}
+.tchip.rare{color:#9A7518;border:1.4px solid transparent;background:linear-gradient(var(--bg),var(--bg)) padding-box,linear-gradient(100deg,var(--g1),var(--g2),var(--g1)) border-box}
+[data-theme=dark] .tchip.rare{color:var(--g2)}
+.tchip.rare::before{background:linear-gradient(145deg,var(--g2),var(--g1));opacity:1}
+.lvchip{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 10px;border-radius:7px;font-size:12px;font-weight:800;background:var(--field);color:var(--ink2);white-space:nowrap}
+.lvchip .sw{width:9px;height:9px;border-radius:50%;background:var(--rg,var(--ink3));flex:none}
+.pill{display:inline-flex;align-items:center;gap:4px;height:21px;padding:0 8px;border-radius:6px;font-size:11px;font-weight:800;white-space:nowrap}
+.pill.own{background:var(--primary-soft);color:var(--primary-deep)}
+.pill.on{background:linear-gradient(135deg,var(--primary),var(--primary-deep));color:#fff;box-shadow:0 2px 8px rgba(14,165,233,.35)}
+.pill.lock{background:var(--field);color:var(--ink3)}
+.pill.rare{background:linear-gradient(135deg,var(--g2),var(--g1));color:var(--onlight)}
+.pill.season{background:linear-gradient(135deg,var(--sk2),var(--sk1));color:var(--onlight)}
+.pill.store{background:var(--warn-soft);color:var(--warn)}
+
+/* ── cards ── */
+.card{background:var(--bg);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--sh)}
+.sect{margin-top:22px}
+.sect-h{display:flex;align-items:baseline;gap:8px;padding:0 2px 10px}
+.sect-h h2{font-size:16px;font-weight:800;letter-spacing:-.02em;white-space:nowrap}
+.sect-h span{font-size:12.5px;color:var(--ink3);font-weight:700;white-space:nowrap}
+.sect-h .cnt{margin-left:auto;font-size:12.5px;color:var(--ink3);font-weight:700;font-variant-numeric:tabular-nums}
+
+/* ── A. 도감 ── */
+.eq{position:relative;display:flex;align-items:center;gap:14px;padding:18px;border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--sh2);overflow:hidden;
+background:linear-gradient(135deg,color-mix(in srgb,var(--tc,var(--primary)) 13%,var(--bg)),var(--bg) 62%)}
+.eq>*{position:relative;z-index:1}
+.eq-b{min-width:0;flex:1}
+.eq-n{font-size:17px;font-weight:800;letter-spacing:-.02em}
+.eq-m{display:flex;align-items:center;gap:6px;margin-top:8px;flex-wrap:wrap}
+.eq-hint{font-size:12px;color:var(--ink3);margin-top:9px;font-weight:600}
+.gauge{position:relative;width:52px;height:52px;flex:none;border-radius:50%;display:grid;place-items:center;
+background:conic-gradient(var(--primary) calc(var(--p)*1%),var(--field) 0)}
+.gauge::before{content:'';position:absolute;inset:5px;border-radius:50%;background:var(--bg)}
+.gauge b{position:relative;font-size:12px;font-weight:800;font-variant-numeric:tabular-nums}
+.gauge i{position:relative;font-style:normal;font-size:9px;color:var(--ink3);font-weight:800;display:block;text-align:center;margin-top:-2px}
+
+.grid{display:grid;gap:10px;grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(min-width:760px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}.grid.t3{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.it{position:relative;display:flex;flex-direction:column;align-items:center;gap:7px;padding:30px 11px 13px;border:1px solid var(--line);border-radius:var(--r-card);text-align:center;box-shadow:var(--sh);overflow:hidden;
+background:linear-gradient(180deg,color-mix(in srgb,var(--tc,var(--ink3)) 7%,var(--bg)),var(--bg) 58%);
+transition:border-color .14s,box-shadow .14s,transform .12s}
+.it:hover{border-color:color-mix(in srgb,var(--tc,var(--primary)) 45%,var(--line));box-shadow:var(--sh2);transform:translateY(-2px)}
+.it.is-on{border-color:var(--tc,var(--primary));box-shadow:0 0 0 2px color-mix(in srgb,var(--tc,var(--primary)) 22%,transparent),var(--sh2)}
+.it.is-lock{cursor:default;background:var(--bg)}
+.it.is-lock:hover{transform:none;border-color:var(--line);box-shadow:var(--sh)}
+.it.is-lock .ring,.it.is-lock .it-n,.it.is-lock .tchip{opacity:.38;filter:grayscale(.8)}
+.it.is-lock .bgsw{opacity:.5;filter:grayscale(.55)}
+.it.is-lock .ring::before{animation:none}
+.it-n{font-size:13.5px;font-weight:800;letter-spacing:-.01em;white-space:nowrap}
+.it-c{font-size:11.5px;color:var(--ink3);font-weight:600;line-height:1.45;min-height:2.9em;display:flex;align-items:center;justify-content:center;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.it-lock{position:absolute;top:8px;left:8px;width:19px;height:19px;border-radius:6px;background:var(--field);color:var(--ink3);display:grid;place-items:center}
+.it-tag{position:absolute;top:8px;right:8px;max-width:calc(100% - 36px);overflow:hidden}
+.it-bar{width:100%;height:4px;border-radius:99px;background:var(--field);overflow:hidden;margin-top:1px}
+.it-bar i{display:block;height:100%;border-radius:99px;background:var(--ink3)}
+.it-title{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:8px;padding:30px 14px 14px}
+.it-title .it-n{white-space:normal}
+.it-title .it-c{white-space:normal;justify-content:flex-start;min-height:0;overflow:visible}
+.legend{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px 14px;padding:14px;background:var(--bg);border:1px solid var(--line);border-radius:var(--r-card)}
+.legend div{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink2);font-weight:600}
+.note{display:flex;gap:9px;align-items:flex-start;margin-top:12px;padding:12px 14px;background:var(--field);border-radius:var(--r-list);font-size:12.5px;color:var(--ink2);line-height:1.6;font-weight:600}
+.note svg{flex:none;margin-top:1px;color:var(--ink3)}
+.note b{color:var(--ink);font-weight:800}
+
+/* ── B. 프로필 ── */
+.pf{overflow:hidden;padding:0}
+.pf-hero{position:relative;padding:20px 18px 18px;overflow:hidden;
+background:linear-gradient(160deg,color-mix(in srgb,var(--tc,var(--primary)) 20%,var(--bg)),var(--bg) 78%)}
+.pf-hero>*{position:relative;z-index:1}
+.pf-top{display:flex;align-items:center;gap:14px}
+.pf-n{font-size:20px;font-weight:800;letter-spacing:-.025em}
+.pf-sub{display:flex;align-items:center;gap:6px;margin-top:8px;flex-wrap:wrap}
+.pf-lv{margin-top:18px}
+.pf-lvrow{display:flex;align-items:baseline;justify-content:space-between;gap:10px;font-size:13px;font-weight:700;color:var(--ink2)}
+.pf-lvrow b{font-size:15px;color:var(--ink);font-weight:800}
+.pf-lvrow .xp{font-variant-numeric:tabular-nums;font-size:12.5px;color:var(--ink3)}
+.bar{position:relative;height:9px;border-radius:99px;background:color-mix(in srgb,var(--ink3) 22%,transparent);overflow:hidden;margin-top:8px}
+.bar i{position:relative;display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--primary),color-mix(in srgb,var(--primary) 55%,#fff));box-shadow:0 0 12px color-mix(in srgb,var(--primary) 55%,transparent);transition:width .9s cubic-bezier(.4,0,.2,1)}
+.bar i::after{content:'';position:absolute;inset:0;border-radius:99px;background:linear-gradient(100deg,transparent 20%,rgba(255,255,255,.55) 50%,transparent 80%);background-size:200% 100%;animation:sheen 2.6s linear infinite}
+@keyframes sheen{to{background-position:-200% 0}}
+@media(prefers-reduced-motion:reduce){.bar i::after{animation:none}}
+.pf-next{font-size:12px;color:var(--ink3);font-weight:600;margin-top:7px}
+.pf-body{padding:16px 18px 18px}
+.zone+.zone{margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+.zone-h{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:800;color:var(--ink3);letter-spacing:.02em}
+.zone-h .dot{width:6px;height:6px;border-radius:50%;flex:none}
+.zone-h .why{margin-left:auto;font-size:11.5px;font-weight:600;color:var(--ink3)}
+.bdgs{display:flex;flex-direction:column;gap:7px;margin-top:11px}
+.bdg{display:flex;align-items:center;gap:9px;padding:9px 11px;border:1px solid var(--line);border-radius:var(--r-list);background:var(--bg)}
+.bdg-ic{width:27px;height:27px;border-radius:9px;display:grid;place-items:center;flex:none;background:var(--verify-soft);color:var(--verify)}
+.bdg-n{font-size:13px;font-weight:800}
+.bdg-e{font-size:11.5px;color:var(--ink2);font-weight:600;margin-top:2px}
+.bdg-ck{margin-left:auto;color:var(--verify);flex:none}
+.acts{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}
+.act{display:inline-flex;align-items:center;gap:6px;height:31px;padding:0 12px;border-radius:var(--r-chip);background:var(--primary-soft);color:var(--primary-deep);font-size:12.5px;font-weight:800}
+.act b{font-variant-numeric:tabular-nums}
+.pf-cta{display:flex;gap:8px;margin-top:16px}
+.btn{height:44px;border-radius:var(--r-list);font-size:14px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 18px}
+.btn.pri{background:linear-gradient(135deg,var(--primary),var(--primary-deep));color:#fff;flex:1;box-shadow:0 4px 14px color-mix(in srgb,var(--primary) 34%,transparent)}
+.btn.pri:hover{filter:brightness(1.07)}
+.btn.gh{border:1.5px solid var(--line);color:var(--ink);flex:1}
+.btn.gh:hover{border-color:var(--ink3)}
+
+/* ── C. 인라인 ── */
+.feed{overflow:hidden}
+.pst{display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line);cursor:pointer}
+.pst:last-child{border-bottom:none}
+.pst:hover{background:var(--page)}
+.pst-b{flex:1;min-width:0}
+.pst-h{display:flex;align-items:center;gap:6px;min-width:0}
+.pst-nk{font-size:12.5px;font-weight:800;white-space:nowrap;flex:none}
+.pst-tm{font-size:11.5px;color:var(--ink3);font-weight:600;white-space:nowrap;flex:none;margin-left:auto}
+.pst-t{font-size:15px;font-weight:700;line-height:1.42;margin-top:6px;text-wrap:pretty}
+.pst-f{display:flex;gap:13px;margin-top:8px;font-size:12px;color:var(--ink3);font-weight:600}
+.cmt{display:flex;gap:10px;padding:13px 16px;border-top:1px solid var(--line)}
+.cmt.re{padding-left:44px;background:var(--page)}
+.cmt-tx{font-size:13.5px;line-height:1.6;margin-top:5px}
+.cmp{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.cmp>div{flex:1;min-width:180px;padding:13px 14px;border:1px dashed var(--line);border-radius:var(--r-list)}
+.cmp h3{font-size:12px;font-weight:800;color:var(--ink3);margin-bottom:9px}
+
+/* ── D. 레벨업 ── */
+.demo{padding:18px;background:var(--page);border:1px solid var(--line);border-radius:var(--r-card)}
+.toast{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--bg);border:1px solid var(--line);border-radius:14px;box-shadow:var(--sh2)}
+.toast-b{flex:1;min-width:0}
+.toast-t{font-size:13.5px;font-weight:800}
+.toast-s{font-size:12px;color:var(--ink2);font-weight:600;margin-top:2px}
+.toast-x{flex:none;color:var(--ink3);width:26px;height:26px;border-radius:8px;display:grid;place-items:center}
+.lvup{position:relative;width:100%;max-width:344px;margin:0 auto;background:var(--bg);border:1px solid var(--line);border-radius:24px;box-shadow:var(--sh2);padding:30px 22px 20px;text-align:center;overflow:hidden}
+.lvup>*{position:relative;z-index:1}
+.lvup-rays{position:absolute;z-index:0;top:-104px;left:50%;transform:translateX(-50%);width:320px;height:320px;border-radius:50%;
+background:conic-gradient(from 0deg,transparent 0 5deg,color-mix(in srgb,var(--tc,var(--primary)) 19%,transparent) 5deg 11deg,transparent 11deg 18deg);
+-webkit-mask:radial-gradient(circle,#000 26%,transparent 66%);mask:radial-gradient(circle,#000 26%,transparent 66%);animation:lv-spin 34s linear infinite}
+.lvup-glow{position:absolute;z-index:0;top:-56px;left:50%;transform:translateX(-50%);width:210px;height:210px;border-radius:50%;
+background:radial-gradient(circle,color-mix(in srgb,var(--tc,var(--primary)) 32%,transparent),transparent 66%)}
+.cft{position:absolute;z-index:0;top:-8px;width:6px;height:9px;border-radius:2px;opacity:0;animation:fall 3.4s ease-in infinite}
+@keyframes fall{0%{opacity:0;transform:translateY(-10px) rotate(0)}12%{opacity:.7}100%{opacity:0;transform:translateY(210px) rotate(420deg)}}
+.lvup .ring{margin:0 auto}
+.lvup-k{font-size:11.5px;font-weight:800;color:var(--tc,var(--primary));letter-spacing:.14em;margin-top:14px}
+.lvup-t{font-size:21px;font-weight:800;letter-spacing:-.03em;margin-top:7px;text-wrap:balance}
+.lvup-s{font-size:13px;color:var(--ink2);font-weight:600;margin-top:8px;line-height:1.55}
+.lvup-get{display:flex;gap:8px;margin-top:18px;text-align:left}
+.lvup-get>div{flex:1;display:flex;align-items:center;gap:9px;padding:10px;border:1px solid var(--line);border-radius:var(--r-list);background:var(--bg)}
+.lvup-get .k{font-size:10.5px;font-weight:800;color:var(--ink3)}
+.lvup-get .v{font-size:12.5px;font-weight:800;margin-top:2px}
+.lvup-cta{display:flex;gap:8px;margin-top:18px}
+.ov{position:fixed;inset:0;z-index:80;background:rgba(24,24,27,.52);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:24px}
+.ov.on{display:flex;animation:fade .2s}
+.ov .lvup{animation:pop .4s cubic-bezier(.2,1.15,.4,1);box-shadow:var(--sh3)}
+@keyframes fade{from{opacity:0}}
+@keyframes pop{from{opacity:0;transform:translateY(18px) scale(.92)}}
+@media(prefers-reduced-motion:reduce){.lvup-rays,.cft{animation:none}.cft{opacity:0}}
+.tnote{font-size:11.5px;color:var(--ink3);font-weight:700;padding:0 2px 8px}
+
+/* ── E. 리그 ── */
+.lg-h{position:relative;display:flex;align-items:center;gap:12px;padding:16px;border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--sh2);overflow:hidden;
+background:linear-gradient(135deg,color-mix(in srgb,var(--tc,var(--primary)) 16%,var(--bg)),var(--bg) 66%)}
+.lg-h>*{position:relative;z-index:1}
+.lg-n{font-size:16px;font-weight:800}
+.lg-s{font-size:12px;color:var(--ink2);font-weight:600;margin-top:3px}
+.lg-t{margin-left:auto;text-align:right;flex:none}
+.lg-t b{display:block;font-size:15px;font-weight:800;font-variant-numeric:tabular-nums}
+.lg-t span{font-size:11px;color:var(--ink3);font-weight:700}
+.lgz{display:flex;align-items:center;gap:8px;padding:14px 4px 7px;font-size:11.5px;font-weight:800;letter-spacing:.02em}
+.lgz::after{content:'';flex:1;height:1px;background:var(--line)}
+.lgz.up{color:var(--verify)}.lgz.down{color:var(--warn)}
+.lgrow{display:flex;align-items:center;gap:11px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.lgrow:last-child{border-bottom:none}
+.lgrow.me{background:linear-gradient(120deg,var(--primary-soft),var(--bg));border-radius:var(--r-list);border-bottom-color:transparent;box-shadow:inset 0 0 0 1.5px var(--primary-soft2)}
+.lg-rk{width:28px;text-align:center;font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--ink3);flex:none}
+.lg-rk.md{color:#fff;border-radius:8px;height:24px;line-height:24px;font-size:12.5px;box-shadow:0 2px 6px rgba(0,0,0,.18)}
+.lg-rk.md1{background:linear-gradient(145deg,var(--g2),var(--g1))}
+.lg-rk.md2{background:linear-gradient(145deg,#DCE5EF,#8E9CB0)}
+.lg-rk.md3{background:linear-gradient(145deg,#D9A273,#8A5330)}
+.lgrow.me .lg-rk{color:var(--primary-deep)}
+.lg-b{flex:1;min-width:0}
+.lg-nk{font-size:13.5px;font-weight:800;display:flex;align-items:center;gap:6px;min-width:0}
+.lg-nk em{font-style:normal;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lg-sub{font-size:11.5px;color:var(--ink3);font-weight:600;margin-top:2px}
+.lg-xp{font-size:13.5px;font-weight:800;font-variant-numeric:tabular-nums;flex:none}
+.lg-xp span{font-size:11px;color:var(--ink3);font-weight:700;margin-left:2px}
+
+/* ── F. 앱(RN) 링 ── */
+.aring{position:relative;width:calc(var(--s) + 22px);height:calc(var(--s) + 22px);display:grid;place-items:center;flex:none}
+.aring svg{position:absolute;inset:0;margin:auto}
+.aring.spin svg{animation:lv-spin 10s linear infinite}
+@media(prefers-reduced-motion:reduce){.aring.spin svg{animation:none}}
+.aring .face{position:relative;z-index:2;width:var(--s);height:var(--s);border-radius:50%;display:grid;place-items:center;background:linear-gradient(150deg,var(--primary-soft2),var(--primary-soft));color:var(--primary-deep);font-weight:800;font-size:calc(var(--s)*.4)}
+.aring .med{position:absolute;z-index:4;right:-1px;bottom:-1px;width:calc(var(--s)*.44);height:calc(var(--s)*.44);min-width:17px;min-height:17px;border-radius:50%;display:grid;place-items:center;color:#fff;border:2px solid var(--bg);box-shadow:0 2px 6px rgba(0,0,0,.24)}
+.cmpg{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(158px,1fr))}
+.cmpc{border:1px solid var(--line);border-radius:var(--r-card);background:var(--bg);padding:15px 12px 13px;text-align:center;box-shadow:var(--sh)}
+.duo{display:flex;justify-content:center;align-items:center;gap:4px}
+.duo>div{display:flex;flex-direction:column;align-items:center;gap:3px}
+.duo .lbl{font-size:9.5px;font-weight:800;color:var(--ink3);letter-spacing:.03em}
+.duo .sep{width:1px;align-self:stretch;background:var(--line);margin:0 6px}
+.cmpc .nm{font-size:13.5px;font-weight:800;margin-top:10px}
+.stops{display:flex;gap:3px;justify-content:center;margin-top:8px}
+.stops i{width:100%;max-width:26px;height:13px;border-radius:4px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.1)}
+.hexs{font-size:9.5px;color:var(--ink3);font-weight:700;margin-top:5px;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.tblw{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r-card);background:var(--bg)}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{text-align:left;padding:9px 11px;background:var(--field);font-weight:800;color:var(--ink2);font-size:11px;white-space:nowrap}
+.tbl td{padding:9px 11px;border-top:1px solid var(--line);font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+.tbl td.d{color:var(--ink2);font-weight:600;white-space:normal;font-variant-numeric:normal}
+.tbl td .sw2{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px;margin-right:5px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.yn{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:6px;font-size:11px;font-weight:800}
+.yn.y{background:var(--verify-soft);color:var(--verify)}
+.yn.n{background:var(--field);color:var(--ink3)}
+
+/* ── G. 앱 도감 ── */
+.ph{width:360px;max-width:100%;margin:0 auto;border:1px solid var(--line);border-radius:26px;overflow:hidden;background:var(--bg);box-shadow:var(--sh2)}
+.ph-st{height:28px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;font-size:10.5px;font-weight:800;color:var(--ink3);font-variant-numeric:tabular-nums}
+.ph-nav{display:flex;align-items:center;gap:8px;padding:6px 10px 10px}
+.ph-nav .bk{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;color:var(--ink);flex:none}
+.ph-nav h3{font-size:16.5px;font-weight:800;letter-spacing:-.02em}
+.ph-nav .cnt2{margin-left:auto;font-size:11.5px;font-weight:800;color:var(--ink3);font-variant-numeric:tabular-nums}
+.ph-eq{display:flex;align-items:center;gap:11px;margin:0 12px;padding:12px;border-radius:14px;position:relative;overflow:hidden;border:1px solid var(--line);background:linear-gradient(135deg,color-mix(in srgb,var(--tc,var(--primary)) 15%,var(--bg)),var(--bg) 68%)}
+.ph-eq>*{position:relative;z-index:1}
+.ph-eq .nm2{font-size:14px;font-weight:800}
+.ph-eq .mt{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap}
+.seg{display:flex;gap:3px;margin:12px;padding:3px;background:var(--field);border-radius:11px}
+.seg button{flex:1;height:34px;border-radius:8px;font-size:12.5px;font-weight:800;color:var(--ink2);display:flex;align-items:center;justify-content:center;gap:5px}
+.seg button.on{background:var(--bg);color:var(--ink);box-shadow:var(--sh)}
+.seg button i{font-style:normal;font-size:10.5px;color:var(--ink3);font-variant-numeric:tabular-nums}
+.seg button.on i{color:var(--primary)}
+.ph-body{padding:0 12px 14px;max-height:456px;overflow-y:auto;overscroll-behavior:contain}
+.pgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.pit{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:22px 5px 9px;border:1px solid var(--line);border-radius:14px;text-align:center;overflow:hidden;min-height:112px;justify-content:flex-start;
+background:linear-gradient(180deg,color-mix(in srgb,var(--tc,var(--ink3)) 7%,var(--bg)),var(--bg) 60%)}
+.pit.is-on{border-color:var(--tc,var(--primary));box-shadow:0 0 0 2px color-mix(in srgb,var(--tc,var(--primary)) 22%,transparent)}
+.pit.is-lock{background:var(--bg)}
+.pit.is-lock .aring,.pit.is-lock .pit-n,.pit.is-lock .tchip,.pit.is-lock .bgsw{opacity:.4;filter:grayscale(.8)}
+.pit-n{font-size:11.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.pit-c{font-size:10px;color:var(--ink3);font-weight:700;font-variant-numeric:tabular-nums}
+.pit-l{position:absolute;top:6px;left:6px;width:17px;height:17px;border-radius:5px;background:var(--field);color:var(--ink3);display:grid;place-items:center}
+.pit-t{position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%}
+.pit-t.rare{background:linear-gradient(145deg,var(--g2),var(--g1))}
+.pit-t.season{background:linear-gradient(145deg,var(--sk2),var(--sk1))}
+.pit-t.store{background:var(--warn)}
+.pit-t.own{background:var(--primary)}
+.pit .bgsw{height:44px}
+.pit-ttl{padding-top:14px;justify-content:center;gap:7px}
+.ph-bar{display:flex;gap:9px;align-items:center;padding:11px 12px;border-top:1px solid var(--line);background:var(--bg);position:sticky;bottom:0}
+.ph-bar .txt{flex:1;min-width:0}
+.ph-bar .k2{font-size:10px;font-weight:800;color:var(--ink3);letter-spacing:.03em}
+.ph-bar .v2{font-size:12.5px;font-weight:800;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ph-bar button{height:40px;padding:0 18px;border-radius:12px;font-size:13.5px;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--primary-deep));color:#fff;flex:none;box-shadow:0 4px 14px color-mix(in srgb,var(--primary) 32%,transparent)}
+.fxlist{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}
+.fxlist span{display:inline-flex;align-items:center;gap:6px;height:29px;padding:0 11px;border-radius:var(--r-chip);border:1px solid var(--line);font-size:12px;font-weight:700;color:var(--ink2)}
+.fxlist span b{color:var(--ink);font-weight:800}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.92em;background:var(--field);padding:1px 5px;border-radius:5px;color:var(--ink)}
+</style>
+</head>
+<body>
+<div id="root">
+<div class="rv">
+  <span class="rv-b">와벨리 · 동네레벨 v3</span>
+  <div class="rv-tabs" id="tabs">
+    <button data-s="a" class="on">A 도감</button><button data-s="b">B 프로필</button><button data-s="c">C 인라인</button><button data-s="d">D 레벨업</button><button data-s="e">E 리그</button><button data-s="f">F 앱 링</button><button data-s="g">G 앱 도감</button><button data-s="h">H 배경 v3</button>
+  </div>
+  <div class="rv-r"><button id="themeBtn">라이트</button></div>
+</div>
+
+<main class="stage" id="stage">
+  <!-- ══ A ══ -->
+  <section class="scr on" id="scr-a" data-screen-label="A 도감">
+    <div class="hd"><h1>아이템 도감</h1><p>활동으로 모은 테두리와 칭호를 골라 착용하세요.</p></div>
+    <div class="eq" id="eqCard">
+      <span class="bgfx"><i class="l1"></i><i class="l2"></i><i class="l3"></i><span class="sp" style="left:13%;top:26%"></span><span class="sp" style="left:61%;top:58%;animation-delay:1.15s"></span><span class="sp" style="left:86%;top:19%;animation-delay:2.3s"></span></span>
+      <span class="ring" id="eqRing" style="--s:58px"><span class="face">효</span></span>
+      <div class="eq-b">
+        <div class="eq-n">효자동단골러</div>
+        <div class="eq-m"><span class="tchip" id="eqTitle">동네 지킴이</span><span class="lvchip" id="eqTier"><span class="sw"></span>실버 · Lv 17</span></div>
+        <div class="eq-hint">카드를 눌러 착용을 바꿀 수 있어요</div>
+      </div>
+      <div class="gauge" id="eqGauge" style="--p:44"><b id="eqGaugeN">7</b><i>수집</i></div>
+    </div>
+    <div class="sect">
+      <div class="sect-h"><h2>테두리</h2><span>아바타 링</span><span class="cnt" id="cntB"></span></div>
+      <div class="grid t3" id="gridB"></div>
+    </div>
+    <div class="sect">
+      <div class="sect-h"><h2>배경</h2><span>3레이어 · 모션 3종</span><span class="cnt" id="cntG"></span></div>
+      <div class="grid" id="gridG"></div>
+    </div>
+    <div class="sect">
+      <div class="sect-h"><h2>칭호</h2><span>1개 착용</span><span class="cnt" id="cntT"></span></div>
+      <div class="grid" id="gridT"></div>
+    </div>
+    <div class="legend">
+      <div><span class="pill on">착용중</span></div><div><span class="pill own">보유</span></div><div><span class="pill lock">잠김</span></div>
+      <div><span class="pill rare">재획득 불가</span></div><div><span class="pill season">기간 한정</span></div><div><span class="pill store">매장 한정</span></div>
+    </div>
+    <div class="note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg><span><b>꾸미기 전용이에요.</b> 레벨·테두리·칭호는 검색 순위, 광고 노출, 매장 추천에 어떤 영향도 주지 않아요.</span></div>
+  </section>
+
+  <!-- ══ B ══ -->
+  <section class="scr" id="scr-b" data-screen-label="B 프로필">
+    <div class="hd"><h1>프로필 레벨 카드</h1><p>마이페이지 상단. 활동 신호와 신뢰 신호를 나눠서 보여줍니다.</p></div>
+    <div class="card pf">
+      <div class="pf-hero" id="pfHero"><span class="bgfx"><i class="l1"></i><i class="l2"></i><i class="l3"></i><span class="sp" style="left:13%;top:26%"></span><span class="sp" style="left:61%;top:58%;animation-delay:1.15s"></span><span class="sp" style="left:86%;top:19%;animation-delay:2.3s"></span></span>
+        <div class="pf-top">
+          <span class="ring" id="pfRing" style="--s:66px"><span class="face">효</span></span>
+          <div style="min-width:0">
+            <div class="pf-n">효자동단골러</div>
+            <div class="pf-sub"><span class="tchip" id="pfTitle">동네 지킴이</span><span class="lvchip">효자동 · 3년차</span></div>
+          </div>
+        </div>
+        <div class="pf-lv">
+          <div class="pf-lvrow"><b id="pfTier">실버 · Lv 17</b><span class="xp">320 / 500 XP</span></div>
+          <div class="bar"><i style="width:64%"></i></div>
+          <div class="pf-next">다음 레벨까지 180 XP · Lv 20에 골드 테두리 해금</div>
+        </div>
+      </div>
+      <div class="pf-body">
+        <div class="zone">
+          <div class="zone-h"><span class="dot" style="background:var(--primary)"></span>활동 신호<span class="why">모으는 재미 · 꾸미기 전용</span></div>
+          <div class="acts"><span class="act">글 <b>68</b></span><span class="act">댓글 <b>412</b></span><span class="act">받은 좋아요 <b>312</b></span><span class="act">인증방문 <b>24</b>곳</span><span class="act">연속출석 <b>38</b>일</span></div>
+        </div>
+        <div class="zone">
+          <div class="zone-h"><span class="dot" style="background:var(--verify)"></span>신뢰 신호<span class="why">와벨리가 확인한 사실</span></div>
+          <div class="bdgs">
+            <div class="bdg"><span class="bdg-ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5.5c0 4.3-3 8-7 9.5-4-1.5-7-5.2-7-9.5V6z"/><path d="M9.2 12.2l2 2 3.6-3.9"/></svg></span><div><div class="bdg-n">인증이웃</div><div class="bdg-e">휴대폰 · 동네 GPS 인증 완료</div></div><span class="bdg-ck"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg></span></div>
+            <div class="bdg"><span class="bdg-ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h16l-1.2 10.2a1.6 1.6 0 0 1-1.6 1.4H6.8a1.6 1.6 0 0 1-1.6-1.4z"/><path d="M8.4 9V6.6a3.6 3.6 0 0 1 7.2 0V9"/></svg></span><div><div class="bdg-n">단골</div><div class="bdg-e">검증방문 24곳 · 미트락 외 2곳 30일 연속</div></div><span class="bdg-ck"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg></span></div>
+            <div class="bdg"><span class="bdg-ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></svg></span><div><div class="bdg-n">오래된주민</div><div class="bdg-e">효자동 3년차 · 2023.04 가입</div></div><span class="bdg-ck"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg></span></div>
+            <div class="bdg"><span class="bdg-ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.5l2.3 4.7 5.2.8-3.8 3.6.9 5.1-4.6-2.4-4.6 2.4.9-5.1L4.5 10l5.2-.8z"/></svg></span><div><div class="bdg-n">인기글러</div><div class="bdg-e">받은 좋아요 312 · 인기글 4회</div></div><span class="bdg-ck"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg></span></div>
+          </div>
+        </div>
+        <div class="pf-cta"><button class="btn pri" data-go="a">도감 열기</button><button class="btn gh" data-go="e">동네 리그</button></div>
+      </div>
+    </div>
+    <div class="note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg><span>레벨은 <b>얼마나 활동했는지</b>, 뱃지는 <b>무엇이 확인됐는지</b>를 뜻해요. 높은 레벨이 신뢰를 보장하지는 않아요.</span></div>
+  </section>
+
+  <!-- ══ C ══ -->
+  <section class="scr" id="scr-c" data-screen-label="C 인라인">
+    <div class="hd"><h1>인라인 표시</h1><p>피드·댓글 헤더. 밀도를 해치지 않는 최소 단위로.</p></div>
+    <div class="tnote">게시글 목록</div>
+    <div class="card feed">
+      <article class="pst"><span class="ring t-silver" style="--s:34px"><span class="face">효</span></span>
+        <div class="pst-b"><div class="pst-h"><span class="pst-nk">효자동단골러</span><span class="tchip sm" id="inTitle">동네 지킴이</span><span class="pst-tm">12분</span></div>
+        <div class="pst-t">퇴계동 24시 카페 콘센트 자리 정리해봤어요</div>
+        <div class="pst-f"><span>좋아요 84</span><span>댓글 23</span><span>효자동</span></div></div></article>
+      <article class="pst"><span class="ring t-gold" style="--s:34px"><span class="face">석</span></span>
+        <div class="pst-b"><div class="pst-h"><span class="pst-nk">석사동미식가</span><span class="tchip sm rare">맛집 헌터</span><span class="pst-tm">40분</span></div>
+        <div class="pst-t">석사동 손국밥 웨이팅 없는 시간대 정리</div>
+        <div class="pst-f"><span>좋아요 156</span><span>댓글 41</span><span>석사동</span></div></div></article>
+      <article class="pst"><span class="ring anon" style="--s:34px"><span class="face">익</span></span>
+        <div class="pst-b"><div class="pst-h"><span class="pst-nk">익명</span><span class="pst-tm">2시간</span></div>
+        <div class="pst-t">점심시간 딱 1시간, 다들 어떻게 쓰세요?</div>
+        <div class="pst-f"><span>좋아요 312</span><span>댓글 205</span><span>후평동</span></div></div></article>
+      <article class="pst"><span class="ring t-founder" style="--s:34px"><span class="face">미</span><span class="med m-founder"><svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l2.6 5.6 6 .8-4.4 4.2 1.1 6-5.3-2.9-5.3 2.9 1.1-6L3.4 9.4l6-.8z"/></svg></span></span>
+        <div class="pst-b"><div class="pst-h"><span class="pst-nk">정육식당 미트락</span><span class="tchip sm rare">창단 멤버</span><span class="pst-tm">3시간</span></div>
+        <div class="pst-t">런치 특선 9,900원 · 이번 주 예약 열렸습니다</div>
+        <div class="pst-f"><span>좋아요 89</span><span>댓글 22</span><span>효자동</span></div></div></article>
+    </div>
+    <div class="tnote" style="padding-top:18px">댓글</div>
+    <div class="card feed">
+      <div class="cmt"><span class="ring t-bronze" style="--s:30px"><span class="face">후</span></span>
+        <div class="pst-b"><div class="pst-h"><span class="pst-nk">후평동주민</span><span class="tchip sm">새내기 이웃</span><span class="pst-tm">8분</span></div>
+        <div class="cmt-tx">이거 진짜 공감돼요. 저도 콘센트 자리 못 찾아서 매번 헤맸어요.</div></div></div>
+      <div class="cmt re"><span class="ring t-silver" style="--s:30px"><span class="face">효</span></span>
+        <div class="pst-b"><div class="pst-h"><span class="pst-nk">효자동단골러</span><span class="tchip sm">동네 지킴이</span><span class="pst-tm">5분</span></div>
+        <div class="cmt-tx">2층 창가 쪽이 제일 넉넉해요. 주말엔 일찍 가야 자리 있어요.</div></div></div>
+      <div class="cmt"><span class="ring t-diamond" style="--s:30px"><span class="face">온</span><span class="spk" style="top:2px;right:3px"></span></span>
+        <div class="pst-b"><div class="pst-h"><span class="pst-nk">온의동터줏대감</span><span class="tchip sm rare">온의동 터줏대감</span><span class="pst-tm">22분</span></div>
+        <div class="cmt-tx">여기 사장님이 콘센트 더 놔주신다고 했어요. 다음 달쯤 될 듯.</div></div></div>
+    </div>
+    <div class="cmp">
+      <div><h3>착용 칭호 없음</h3><div class="pst-h"><span class="ring t-bronze" style="--s:30px"><span class="face">퇴</span></span><span class="pst-nk">퇴계동러너</span></div></div>
+      <div><h3>긴 칭호 · 1줄 유지</h3><div class="pst-h" style="min-width:0"><span class="ring t-gold" style="--s:30px"><span class="face">신</span></span><span class="pst-nk" style="overflow:hidden;text-overflow:ellipsis">신사우동생활</span><span class="tchip sm rare" style="overflow:hidden">사랑받는 글쟁이</span></div></div>
+    </div>
+    <div class="note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg><span>익명 글에는 테두리·칭호가 붙지 않아요. 상위 칭호만 <b>금색 테두리</b>로 구분되고, 행 높이는 링이 없을 때와 동일합니다.</span></div>
+  </section>
+
+  <!-- ══ D ══ -->
+  <section class="scr" id="scr-d" data-screen-label="D 레벨업">
+    <div class="hd"><h1>레벨업 순간</h1><p>가벼운 토스트가 기본. 등급이 바뀔 때만 축하 모달을 띄웁니다.</p></div>
+    <div class="tnote">1 · 일반 레벨업 — 토스트 (3초 후 자동 사라짐)</div>
+    <div class="demo">
+      <div class="toast"><span class="ring t-silver" style="--s:34px"><span class="face">효</span></span>
+        <div class="toast-b"><div class="toast-t">Lv 18 달성</div><div class="toast-s">다음 등급 골드까지 2레벨 남았어요</div></div>
+        <span class="toast-x"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span></div>
+    </div>
+    <div class="tnote" style="padding-top:18px">2 · 등급 승급 — 축하 모달</div>
+    <div class="demo">
+      <div class="lvup t-gold" id="lvupDemo">
+        <div class="lvup-rays"></div><div class="lvup-glow"></div>
+        <span class="cft" style="left:18%;background:var(--g2);animation-delay:.1s"></span><span class="cft" style="left:32%;background:#7DD3FC;animation-delay:.7s"></span><span class="cft" style="left:48%;background:var(--g1);animation-delay:1.3s"></span><span class="cft" style="left:66%;background:var(--g2);animation-delay:.4s"></span><span class="cft" style="left:82%;background:var(--primary-soft2);animation-delay:1s"></span>
+        <span class="ring t-gold" style="--s:76px"><span class="face">효</span></span>
+        <div class="lvup-k">LEVEL UP</div>
+        <div class="lvup-t">Lv 20 달성 — 골드 테두리 획득!</div>
+        <div class="lvup-s">효자동에서 20레벨을 넘긴 이웃이에요.<br />새 테두리와 칭호를 도감에서 착용해 보세요.</div>
+        <div class="lvup-get">
+          <div><span class="ring t-gold" style="--s:30px"><span class="face">효</span></span><div><div class="k">테두리</div><div class="v">골드</div></div></div>
+          <div><span style="width:30px;height:30px;border-radius:50%;background:linear-gradient(145deg,var(--g2),var(--g1));color:var(--onlight);display:grid;place-items:center;flex:none"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h10M4 17h7"/></svg></span><div><div class="k">칭호</div><div class="v">동네 반장</div></div></div>
+        </div>
+        <div class="lvup-cta"><button class="btn gh" style="height:42px">나중에</button><button class="btn pri" style="height:42px" data-go="a">도감에서 착용</button></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:14px"><button class="btn gh" id="playToast">토스트 재생</button><button class="btn pri" id="playModal">모달 재생</button></div>
+    <div class="note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg><span>모달은 <b>등급 변경 시에만</b> — 브론즈→실버, 실버→골드처럼 5번뿐이에요. 나머지 레벨업은 토스트로 조용히.</span></div>
+  </section>
+
+  <!-- ══ E ══ -->
+  <section class="scr" id="scr-e" data-screen-label="E 리그">
+    <div class="hd"><h1>동네 리그 <span style="font-size:12px;font-weight:800;color:var(--ink3);vertical-align:middle">v2</span></h1><p>효자동 이웃 24명과 이번 주 활동량을 겨뤄요.</p></div>
+    <div class="lg-h t-silver bp-wave" id="lgHead"><span class="bgfx"><i class="l1"></i><i class="l2"></i><i class="l3"></i><span class="sp" style="left:13%;top:26%"></span><span class="sp" style="left:61%;top:58%;animation-delay:1.15s"></span><span class="sp" style="left:86%;top:19%;animation-delay:2.3s"></span></span>
+      <span class="ring t-silver" style="--s:42px"><span class="face">효</span></span>
+      <div><div class="lg-n">효자동 실버 리그</div><div class="lg-s">24명 중 7위 · 승격까지 240 XP</div></div>
+      <div class="lg-t"><b>2일 14시간</b><span>종료까지</span></div>
+    </div>
+    <div class="lgz up">승격존 · 상위 5명</div>
+    <div class="card" style="overflow:hidden" id="lgTop"></div>
+    <div class="lgz" style="color:var(--ink3)">유지</div>
+    <div class="card" style="overflow:hidden" id="lgMid"></div>
+    <div class="lgz down">강등존 · 하위 4명</div>
+    <div class="card" style="overflow:hidden" id="lgBot"></div>
+    <div class="note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg><span>리그는 <b>순수한 재미</b>예요. 순위는 글 노출이나 매장 추천에 반영되지 않고, 매주 월요일 0시에 초기화됩니다.</span></div>
+  </section>
+
+  <!-- ══ F ══ -->
+  <section class="scr" id="scr-f" data-screen-label="F 앱 링">
+    <div class="hd"><h1>앱(RN) 등급 링 — 선형 3스톱 정본</h1><p>React Native는 conic-gradient를 렌더링하지 못해요. 아래 3스톱 값이 앱의 유일한 근거입니다 — conic에서 임의 발췌하지 마세요.</p></div>
+    <div class="note" style="margin-top:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg><span>축은 <b>135° 대각</b>(좌상단 → 우하단). SVG 기준 <code>x1=0 y1=0 x2=1 y2=1</code>, 스톱 오프셋 <b>0 / 0.5 / 1</b>, stroke-width <b>3.5</b>, 링↔얼굴 간격 <b>2px</b>.</span></div>
+    <div class="sect">
+      <div class="sect-h"><h2>웹 ↔ 앱 대조</h2><span>같은 크기 44px</span></div>
+      <div class="cmpg" id="cmpGrid"></div>
+    </div>
+    <div class="sect">
+      <div class="sect-h"><h2>스톱 테이블</h2><span>그대로 주입</span></div>
+      <div class="tblw"><table class="tbl" id="stopTbl"></table></div>
+    </div>
+    <div class="sect">
+      <div class="sect-h"><h2>앱 이펙트 범위</h2><span>성능 예산 기준</span></div>
+      <div class="tblw"><table class="tbl">
+        <tr><th>항목</th><th>웹</th><th>앱(RN)</th><th>사유</th></tr>
+        <tr><td>등급 링 재질</td><td><span class="yn y">conic 7스톱</span></td><td><span class="yn y">선형 3스톱</span></td><td class="d">RN conic 미지원 — 대각 근사로 금속감 유지</td></tr>
+        <tr><td>다이아 회전</td><td><span class="yn y">10s</span></td><td><span class="yn y">10s</span></td><td class="d">단일 Animated.loop · 유일하게 살리는 모션</td></tr>
+        <tr><td>특수 파티클</td><td><span class="yn y">4종</span></td><td><span class="yn n">미적용</span></td><td class="d">리스트 재사용 셀에서 누적 비용이 큼 — 메달로 대체</td></tr>
+        <tr><td>특수 메달</td><td><span class="yn y">적용</span></td><td><span class="yn y">적용</span></td><td class="d">정적 이미지 · 비용 0</td></tr>
+        <tr><td>배경 패턴</td><td><span class="yn y">CSS mask</span></td><td><span class="yn y">SVG 타일</span></td><td class="d">react-native-svg <code>&lt;Pattern&gt;</code> · 불꽃만 정지 렌더</td></tr>
+        <tr><td>레벨업 모달 광선</td><td><span class="yn y">conic 레이</span></td><td><span class="yn n">미적용</span></td><td class="d">방사형 PNG 스프라이트 1장으로 대체</td></tr>
+      </table></div>
+      <div class="fxlist"><span>링 크기 <b>36px 미만</b> → 모든 모션·메달 생략</span><span>이펙트 강도 <b>70%</b> 기준 반영됨</span><span>reduce-motion 시 <b>전부 정지</b></span></div>
+    </div>
+    <div class="note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg><span>앱 링은 웹보다 <b>평평해 보이는 게 정상</b>이에요. 둘을 강제로 같게 맞추려 스톱을 늘리지 마세요 — 등급 구분만 되면 충분합니다.</span></div>
+  </section>
+
+  <!-- ══ G ══ -->
+  <section class="scr" id="scr-g" data-screen-label="G 앱 도감">
+    <div class="hd"><h1>앱 아이템 도감</h1><p>마이페이지 → 전체화면 푸시. 섹션은 상단 세그먼트로 나누고, 하단 바에서 확정합니다.</p></div>
+    <div class="ph">
+      <div class="ph-st"><span>9:41</span><span>●●● ◉</span></div>
+      <div class="ph-nav"><span class="bk"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5L8 12l6.5 7"/></svg></span><h3>아이템 도감</h3><span class="cnt2" id="phCnt"></span></div>
+      <div class="ph-eq" id="phEq"></div>
+      <div class="seg" id="phSeg"><button data-k="border" class="on">테두리 <i id="segB"></i></button><button data-k="bg">배경 <i id="segG"></i></button><button data-k="title">칭호 <i id="segT"></i></button></div>
+      <div class="ph-body"><div class="pgrid" id="phGrid"></div></div>
+      <div class="ph-bar"><div class="txt"><div class="k2">변경한 착용</div><div class="v2" id="phSel">실버 · 물결 · 동네 지킴이</div></div><button>저장</button></div>
+    </div>
+    <div class="note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg><span>웹 도감과 <b>동일한 데이터·동일한 해금 조건</b>을 씩니다. 다른 점은 레이아웃뿐(3열 · 세그먼트 · 하단 확정 바). 잠긴 카드는 탭 시 해금 조건 토스트만 띄웁니다.</span></div>
+    <div class="note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg><span><b>꾸미기 전용이에요.</b> 레벨·테두리·칭호는 검색 순위, 광고 노출, 매장 추천에 어떤 영향도 주지 않아요.</span></div>
+  </section>
+
+  <!-- ══ H ══ -->
+  <section class="scr" id="scr-h" data-screen-label="H 배경 v3">
+    <div class="hd"><h1>배경 아이템 v3 — 레이어 구조</h1><p>모든 배경이 <b>① 베이스 워시 · ② 패턴 · ③ 하이라이트</b> 3층으로 재설계됐어요. 등급이 올라갈수록 층이 쌓이고, 시즌·희소 3종에만 모션이 붙습니다.</p></div>
+    <div class="note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg><span>하위가 절제돼야 상위가 빛나요. <b>plain·wave는 1층 그대로</b>, dots·ripple 2층, mountain·lake 3층, sakura·firework·founder는 3층 + 모션.</span></div>
+    <div class="sect">
+      <div class="sect-h"><h2>등급 스케일링</h2><span>plain → founder</span><span class="cnt">라이트 / 다크</span></div>
+      <div class="pvw" id="pvGrid"></div>
+    </div>
+    <div class="sect">
+      <div class="sect-h"><h2>적용 지점 3</h2><span>프로필 히어로 · 도감 장착 카드 · 리그 헤더</span></div>
+      <div class="bgpick" id="bgPick"></div>
+      <div class="pvap">
+        <div class="card pf">
+          <div class="pf-hero" id="pvHero" style="padding:18px 16px 16px"><span class="bgfx"><i class="l1"></i><i class="l2"></i><i class="l3"></i><span class="sp" style="left:13%;top:26%"></span><span class="sp" style="left:61%;top:58%;animation-delay:1.15s"></span><span class="sp" style="left:86%;top:19%;animation-delay:2.3s"></span></span>
+            <div class="pf-top"><span class="ring t-silver" style="--s:52px"><span class="face">효</span></span>
+              <div style="min-width:0"><div class="pf-n">효자동단골러</div><div class="pf-sub"><span class="tchip">동네 지킴이</span><span class="lvchip">효자동 · 3년차</span></div></div>
+            </div>
+            <div class="pf-lv">
+              <div class="pf-lvrow"><b>실버 · Lv 17</b><span class="xp">320 / 500 XP</span></div>
+              <div class="bar"><i style="width:64%"></i></div>
+              <div class="pf-next">다음 레벨까지 180 XP · Lv 20에 골드 테두리 해금</div>
+            </div>
+          </div>
+          <div class="pf-body" style="padding:14px 16px 16px"><div class="zone-h"><span class="dot" style="background:var(--primary)"></span>프로필 히어로<span class="why">가장 크게 보이는 자리</span></div>
+            <div class="acts" style="margin-top:10px"><span class="act">글 <b>68</b></span><span class="act">댓글 <b>412</b></span><span class="act">인증방문 <b>24</b>곳</span></div></div>
+        </div>
+        <div class="eq t-silver" id="pvEq"><span class="bgfx"><i class="l1"></i><i class="l2"></i><i class="l3"></i><span class="sp" style="left:13%;top:26%"></span><span class="sp" style="left:61%;top:58%;animation-delay:1.15s"></span><span class="sp" style="left:86%;top:19%;animation-delay:2.3s"></span></span>
+          <span class="ring t-silver" style="--s:52px"><span class="face">효</span></span>
+          <div class="eq-b"><div class="eq-n">효자동단골러</div><div class="eq-m"><span class="tchip">동네 지킴이</span><span class="lvchip"><span class="sw"></span>실버 · Lv 17</span></div><div class="eq-hint">도감 장착 카드</div></div>
+        </div>
+        <div class="lg-h t-silver" id="pvLg"><span class="bgfx"><i class="l1"></i><i class="l2"></i><i class="l3"></i><span class="sp" style="left:13%;top:26%"></span><span class="sp" style="left:61%;top:58%;animation-delay:1.15s"></span><span class="sp" style="left:86%;top:19%;animation-delay:2.3s"></span></span>
+          <span class="ring t-silver" style="--s:42px"><span class="face">효</span></span>
+          <div><div class="lg-n">효자동 실버 리그</div><div class="lg-s">24명 중 7위 · 승격까지 240 XP</div></div>
+          <div class="lg-t"><b>2일 14시간</b><span>종료까지</span></div>
+        </div>
+      </div>
+      <div class="note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg><span>세 자리 모두 <b>같은 3레이어 스택</b>을 씁니다. 배경 위 텍스트는 기존 대비를 그대로 유지해요 — 워시 마지막 스톱이 항상 <code>var(--bg)</code>라 글자 뒤쪽이 밝기를 잃지 않습니다.</span></div>
+    </div>
+    <div class="sect">
+      <div class="sect-h"><h2>정확한 값</h2><span>웹 CSS · 라이트 / 다크</span></div>
+      <div class="tblw"><table class="tbl" id="bgTbl"></table></div>
+    </div>
+    <div class="sect">
+      <div class="sect-h"><h2>앱(RN) 대체안</h2><span>정적 2레이어 상한</span></div>
+      <div class="tblw"><table class="tbl" id="bgRnTbl"></table></div>
+      <div class="fxlist"><span>앱 상한 <b>정적 2레이어</b></span><span>그라디언트는 <b>react-native-svg</b> &lt;LinearGradient&gt;/&lt;RadialGradient&gt;</span><span>expo-linear-gradient <b>미사용</b></span><span>모션 <b>웹 전용</b></span><span>reduce-motion <b>전부 정지</b></span></div>
+    </div>
+    <div class="note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg><span><b>적용 범위는 그대로예요.</b> 배경은 프로필 히어로 · 도감 장착 카드 · 리그 헤더 <b>3곳에만</b>. 피드 행·댓글에는 절대 들어가지 않습니다.</span></div>
+    <div class="note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6v.1"/></svg><span><b>꾸미기 전용이에요.</b> 화려해져도 검색 순위, 광고 노출, 매장 추천에 어떤 영향도 주지 않아요. 데이터 계약(키 9개 · <code>equip_background(key)</code>)도 그대로입니다.</span></div>
+  </section>
+</main>
+<div class="ov" id="ov"></div>
+</div>
+
+<script>
+const S={level:17,tier:'silver',border:'silver',title:'guardian',bg:'wave'};
+const TIER={bronze:'브론즈',silver:'실버',gold:'골드',platinum:'플래티넘',diamond:'다이아'};
+const MED={founder:'<svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l2.6 5.6 6 .8-4.4 4.2 1.1 6-5.3-2.9-5.3 2.9 1.1-6L3.4 9.4l6-.8z"/></svg>',
+sakura:'<svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c1.6 2 2.4 3.7 2.4 5.2 1.4-.7 3.1-.9 5.4-.4-.8 2.4-2 3.8-3.3 4.6 1.3.8 2.5 2.2 3.3 4.6-2.3.5-4 .3-5.4-.4 0 1.5-.8 3.2-2.4 5.2-1.6-2-2.4-3.7-2.4-5.2-1.4.7-3.1.9-5.4.4.8-2.4 2-3.8 3.3-4.6C6.2 10.6 5 9.2 4.2 6.8c2.3-.5 4-.3 5.4.4C9.6 5.7 10.4 4 12 2z"/></svg>',
+streak:'<svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2c.5 3.4-1.2 5-2.8 6.6C8.4 10.4 7 12 7 14.6A6.2 6.2 0 0 0 13.2 21c3.6 0 6.3-2.7 6.3-6.4 0-4.4-3.4-6.6-3.4-6.6.3 2-1 3.2-1.8 3.2-1.2 0-1.7-1-1.7-2.6 0-2.2.9-4 .4-6.6z"/></svg>',
+sponsor:'<svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16l1 5a3 3 0 0 1-5.7 1.4A3 3 0 0 1 12 12a3 3 0 0 1-3.3-1.6A3 3 0 0 1 3 9zM5 13v7h14v-7"/></svg>'};
+
+const BORDERS=[
+{k:'bronze',n:'브론즈',c:'Lv 1 달성',own:1},
+{k:'silver',n:'실버',c:'Lv 10 달성',own:1},
+{k:'gold',n:'골드',c:'Lv 20 달성',p:'3레벨 남음',pct:85},
+{k:'platinum',n:'플래티넘',c:'Lv 35 달성',p:'18레벨 남음',pct:49},
+{k:'diamond',n:'다이아',c:'Lv 50 달성',p:'33레벨 남음',pct:34,spk:1},
+{k:'founder',n:'창단 멤버',c:'출시 첫 달 가입',own:1,med:'founder',fx:'founder',tag:'rare',tagL:'재획득 불가'},
+{k:'streak',n:'개근 이웃',c:'연속 출석 30일',own:1,med:'streak',fx:'streak',tag:'own',tagL:'스트릭'},
+{k:'sakura',n:'벚꽃 시즌',c:'2026 봄 시즌 획득',own:1,med:'sakura',fx:'sakura',tag:'season',tagL:'기간 한정'},
+{k:'sponsor',n:'미트락 단골',c:'미트락 3회 방문 인증',p:'1 / 3회 방문',pct:33,med:'sponsor',fx:'sponsor',tag:'store',tagL:'매장 한정'}];
+
+const BGS=[
+{k:'plain',n:'단색',c:'기본 제공',own:1},
+{k:'wave',n:'물결',c:'Lv 1 달성',own:1},
+{k:'dots',n:'물방울',c:'Lv 5 달성',own:1},
+{k:'ripple',n:'파문',c:'Lv 15 달성',own:1},
+{k:'mountain',n:'봉의산 능선',c:'Lv 25 달성',p:'8레벨 남음',pct:68},
+{k:'lake',n:'의암호 윤슬',c:'Lv 40 달성',p:'23레벨 남음',pct:42},
+{k:'sakura',n:'벚꽃 흙날림',c:'봄 시즌(4–5월) 한정',p:'다음 봄 시즌 오픈',pct:0,tag:'season',tagL:'기간 한정'},
+{k:'firework',n:'축제 불꽃',c:'춘천 마임축제 참여 인증',p:'미참여',pct:0,tag:'store',tagL:'이벤트 한정'},
+{k:'founder',n:'창단 물결',c:'출시 첫 달 가입',own:1,tag:'rare',tagL:'재획득 불가'}];
+
+const TITLES=[
+{k:'rookie',n:'새내기 이웃',c:'Lv 1 달성',own:1},
+{k:'guardian',n:'동네 지킴이',c:'Lv 10 달성',own:1},
+{k:'chatter',n:'수다쟁이',c:'댓글 300개 작성',own:1,sub:'현재 412개'},
+{k:'localboss',n:'효자동 터줏대감',c:'효자동 활동 상위 3명',p:'현재 12위',pct:25,rare:1},
+{k:'hunter',n:'맛집 헌터',c:'인증 리뷰 30개',p:'18 / 30개',pct:60,rare:1},
+{k:'beloved',n:'사랑받는 글쟁이',c:'좋아요 500회 받기',p:'312 / 500회',pct:62,rare:1},
+{k:'evangelist',n:'전도사',c:'친구 10명 초대',p:'4 / 10명',pct:40},
+{k:'captain',n:'동네 반장',c:'Lv 20 + 활동 조건',p:'3레벨 남음',pct:85,rare:1},
+{k:'regular',n:'이달의 단골',c:'매장 30일 방문 1위',p:'미트락 2위',pct:50,rare:1,tag:'store',tagL:'매장별 · 제로섬'}];
+
+const PETAL='<svg viewBox="0 0 12 12" fill="currentColor"><path d="M6 0c2.5 2.1 3.5 4.5 2.7 7C8 9.4 6 11.2 6 12c0-.8-2-2.6-2.7-5C2.5 4.5 3.5 2.1 6 0z"/></svg>';
+const FX={
+ sakura:[[10,44,14,0],[-9,50,42,1.05],[13,40,66,2.1],[-12,46,30,3.1]].map(p=>'<span class="fxp" style="--dx:'+p[0]+'px;--dy:'+p[1]+'px;left:'+p[2]+'%;animation-delay:'+p[3]+'s">'+PETAL+'</span>').join(''),
+ streak:[[-6,26,0],[5,50,.8],[-2,70,1.6]].map(p=>'<span class="fxe" style="--dx:'+p[0]+'px;left:'+p[1]+'%;animation-delay:'+p[2]+'s"></span>').join(''),
+ founder:'<span class="fxo"></span><span class="fxo b"></span>',
+ sponsor:'<span class="fxs"></span><span class="fxs b"></span>'};
+
+const ringHTML=(k,s,ch)=>{const b=BORDERS.find(x=>x.k===k)||{};
+return '<span class="ring '+(k?'t-'+k:'')+'" style="--s:'+s+'px"><span class="face">'+ch+'</span>'
++(b.med?'<span class="med m-'+b.med+'">'+MED[b.med]+'</span>':'')
++(b.spk?'<span class="spk" style="top:1px;right:4px"></span><span class="spk s2" style="bottom:6px;left:2px"></span>':'')
++(b.fx&&s>=36?FX[b.fx]:'')+'</span>';};
+const lockIco=c=>'<span class="'+(c||'it-lock')+'"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><rect x="5" y="10.5" width="14" height="10" rx="2.4"/><path d="M8.2 10.5V7.4a3.8 3.8 0 0 1 7.6 0v3.1"/></svg></span>';
+
+function renderGrids(){
+  document.getElementById('gridB').innerHTML=BORDERS.map(b=>{
+    const on=S.border===b.k,lock=!b.own;
+    return '<button class="it t-'+b.k+(on?' is-on':'')+(lock?' is-lock':'')+'" data-kind="border" data-key="'+b.k+'"'+(lock?' aria-disabled="true"':'')+'>'
+      +(lock?lockIco():'')+(b.tag?'<span class="it-tag pill '+b.tag+'">'+b.tagL+'</span>':'')
+      +ringHTML(b.k,38,'효')+'<span class="it-n">'+b.n+'</span><span class="it-c">'+(lock?b.p:b.c)+'</span>'
+      +(lock?'<span class="it-bar"><i style="width:'+b.pct+'%"></i></span>':'<span class="pill '+(on?'on':'own')+'">'+(on?'착용중':'보유')+'</span>')+'</button>';
+  }).join('');
+  document.getElementById('gridT').innerHTML=TITLES.map(t=>{
+    const on=S.title===t.k,lock=!t.own;
+    return '<button class="it it-title'+(on?' is-on':'')+(lock?' is-lock':'')+'" data-kind="title" data-key="'+t.k+'"'+(lock?' aria-disabled="true"':'')+'>'
+      +(t.tag?'<span class="it-tag pill '+t.tag+'">'+t.tagL+'</span>':'')
+      +'<span class="tchip'+(t.rare?' rare':'')+'">'+t.n+'</span>'
+      +'<span class="it-c">'+(lock?'<span style="display:inline-flex;align-items:center;gap:5px">'+lockIco('x')+t.c+'</span>':(t.sub||t.c))+'</span>'
+      +(lock?'<span class="it-bar"><i style="width:'+t.pct+'%"></i></span><span class="pill lock">'+t.p+'</span>':'<span class="pill '+(on?'on':'own')+'">'+(on?'착용중':'보유')+'</span>')+'</button>';
+  }).join('');
+  document.getElementById('gridG').innerHTML=BGS.map(g=>{
+    const on=S.bg===g.k,lock=!g.own;
+    return '<button class="it it-bg bp-'+g.k+(on?' is-on':'')+(lock?' is-lock':'')+'" data-kind="bg" data-key="'+g.k+'"'+(lock?' aria-disabled="true"':'')+'>'
+      +(lock?lockIco():'')+(g.tag?'<span class="it-tag pill '+g.tag+'">'+g.tagL+'</span>':'')
+      +'<span class="bgsw'+(g.k==='plain'?' none':'')+'">'+BGFX+'</span>'
+      +'<span class="it-n">'+g.n+'</span><span class="it-c">'+(lock?g.p:g.c)+'</span>'
+      +(lock?'<span class="it-bar"><i style="width:'+g.pct+'%"></i></span>':'<span class="pill '+(on?'on':'own')+'">'+(on?'착용중':'보유')+'</span>')+'</button>';
+  }).join('');
+  const ob=BORDERS.filter(b=>b.own).length,ot=TITLES.filter(t=>t.own).length,og=BGS.filter(g=>g.own).length;
+  document.getElementById('cntB').textContent=ob+' / '+BORDERS.length;
+  document.getElementById('cntT').textContent=ot+' / '+TITLES.length;
+  document.getElementById('cntG').textContent=og+' / '+BGS.length;
+  const tot=BORDERS.length+TITLES.length+BGS.length,own=ob+ot+og;
+  document.getElementById('eqGauge').style.setProperty('--p',Math.round(own/tot*100));
+  document.getElementById('eqGaugeN').textContent=own;
+}
+
+function syncEquipped(){
+  const b=BORDERS.find(x=>x.k===S.border)||{},t=TITLES.find(x=>x.k===S.title);
+  ['eqRing','pfRing'].forEach(id=>{const el=document.getElementById(id);if(!el)return;
+    el.className='ring t-'+S.border;
+    el.innerHTML='<span class="face">효</span>'+(b.med?'<span class="med m-'+b.med+'">'+MED[b.med]+'</span>':'')
+      +(b.spk?'<span class="spk" style="top:2px;right:6px"></span><span class="spk s2" style="bottom:8px;left:4px"></span>':'')
+      +(b.fx?FX[b.fx]:'');});
+  [['eqCard','eq'],['pfHero','pf-hero'],['lgHead','lg-h'],['pvHero','pf-hero'],['pvEq','eq'],['pvLg','lg-h']].forEach(p=>{const el=document.getElementById(p[0]);
+    if(el)el.className=p[1]+' t-'+S.border+' bp-'+S.bg;});
+  const tn=t?t.n:'칭호 없음';
+  ['eqTitle','pfTitle','inTitle'].forEach(id=>{const el=document.getElementById(id);if(!el)return;
+    el.textContent=tn;el.className='tchip'+(id==='inTitle'?' sm':'')+(t?(t.rare?' rare':''):' none');});
+  const nm=(TIER[S.border]||TIER[S.tier])+' · Lv '+S.level;
+  document.getElementById('eqTier').innerHTML='<span class="sw"></span>'+nm;
+  document.getElementById('pfTier').textContent=nm;
+}
+
+document.addEventListener('click',e=>{
+  const pit=e.target.closest('.pit');
+  if(pit){if(!pit.classList.contains('is-lock')){
+    const k=pit.dataset.key,kd=pit.dataset.pkind;
+    if(kd==='border')S.border=k;else if(kd==='bg')S.bg=k;else S.title=(S.title===k?null:k);
+    refresh();}
+    return;}
+  const bp=e.target.closest('.bgp');
+  if(bp){S.bg=bp.dataset.key;refresh();return;}
+  const it=e.target.closest('.it');
+  if(it){if(!it.classList.contains('is-lock')){
+    const k=it.dataset.key,kd=it.dataset.kind;
+    if(kd==='border')S.border=k;else if(kd==='bg')S.bg=k;else S.title=(S.title===k?null:k);
+    refresh();}
+    return;}
+  const go=e.target.closest('[data-go]');
+  if(go){showScreen(go.dataset.go);document.getElementById('ov').classList.remove('on');}
+});
+
+function showScreen(s){
+  document.querySelectorAll('.scr').forEach(x=>x.classList.toggle('on',x.id==='scr-'+s));
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.s===s));
+  document.getElementById('stage').classList.toggle('wide',s==='a'||s==='f'||s==='h');
+  window.scrollTo(0,0);
+}
+document.getElementById('tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(b)showScreen(b.dataset.s);});
+
+const themeBtn=document.getElementById('themeBtn');
+function setTheme(d){document.documentElement.dataset.theme=d?'dark':'light';themeBtn.textContent=d?'다크':'라이트';try{localStorage.setItem('wv_lv_theme',d?'dark':'light')}catch(e){}}
+try{setTheme(localStorage.getItem('wv_lv_theme')==='dark')}catch(e){setTheme(false)}
+themeBtn.addEventListener('click',()=>setTheme(document.documentElement.dataset.theme!=='dark'));
+
+const ov=document.getElementById('ov');
+ov.addEventListener('click',e=>{if(e.target===ov)ov.classList.remove('on')});
+document.getElementById('playModal').addEventListener('click',()=>{ov.innerHTML=document.getElementById('lvupDemo').outerHTML;ov.classList.add('on');});
+document.getElementById('playToast').addEventListener('click',()=>{
+  const t=document.querySelector('#scr-d .toast').cloneNode(true);
+  t.style.cssText='position:fixed;left:50%;top:18px;transform:translateX(-50%);z-index:90;width:min(360px,calc(100vw - 32px));box-shadow:var(--sh3);animation:pop .32s cubic-bezier(.2,1.15,.4,1)';
+  document.body.appendChild(t);setTimeout(()=>{t.style.transition='opacity .3s,transform .3s';t.style.opacity='0';t.style.transform='translateX(-50%) translateY(-8px)';setTimeout(()=>t.remove(),320)},2600);});
+
+const LG=[[1,'석사동미식가','gold','맛집 헌터',1,2840],[2,'후평러너','gold','동네 반장',1,2610],[3,'온의동터줏대감','diamond','온의동 터줏대감',1,2480],[4,'퇴계동새댁','silver','수다쟁이',0,2190],[5,'신사우생활','silver','사랑받는 글쟁이',1,2050],[6,'조운동카페','silver','맛집 헌터',1,1890],[7,'효자동단골러','silver','동네 지킴이',0,1810],[8,'약사동주민','silver','새내기 이웃',0,1720],[9,'퇴계동러너','bronze','전도사',0,1580],[10,'효자맘','bronze','수다쟁이',0,1440],[21,'근화동새내기','bronze','새내기 이웃',0,380],[22,'소양강산책','bronze','새내기 이웃',0,260],[23,'동내면이웃','bronze','',0,140],[24,'칠전동주민','bronze','',0,60]];
+const row=r=>{const me=r[1]==='효자동단골러';
+ return '<div class="lgrow'+(me?' me':'')+'"><span class="lg-rk'+(r[0]<4?' md md'+r[0]:'')+'">'+r[0]+'</span>'+ringHTML(r[2],30,r[1][0])
+ +'<div class="lg-b"><div class="lg-nk"><em>'+r[1]+'</em>'+(r[3]?'<span class="tchip sm'+(r[4]?' rare':'')+'">'+r[3]+'</span>':'')+'</div><div class="lg-sub">'+(me?'나 · 승격까지 240 XP':'효자동')+'</div></div>'
+ +'<span class="lg-xp">'+r[5].toLocaleString()+'<span>XP</span></span></div>';};
+document.getElementById('lgTop').innerHTML=LG.slice(0,5).map(row).join('');
+document.getElementById('lgMid').innerHTML=LG.slice(5,10).map(row).join('');
+document.getElementById('lgBot').innerHTML=LG.slice(10).map(row).join('');
+
+/* ══ 앱(RN) 링 — 선형 3스톱 정본 (135° 대각 · offset 0/.5/1) ══ */
+const APPRING={
+bronze:['#F0C9A3','#B0764A','#8A5330'],silver:['#F5F8FB','#8E9CB0','#6E7A8C'],
+gold:['#FFF6CE','#C8991F','#9A7518'],platinum:['#F4FCFE','#6FA5B4','#47818F'],
+diamond:['#7DD3FC','#F5D0FE','#A7F3D0'],founder:['#F2DA85','#1E3A5F','#5D8FC7'],
+sakura:['#FFF5F8','#F0A6C0','#DB6E97'],streak:['#FDE9A8','#E8752F','#B3350A'],
+sponsor:['#EAF8FE','#0EA5E9','#0369A1']};
+let _gid=0;
+function aringHTML(k,s,ch,med){const g=APPRING[k]||['#EAEAEC','#A8A8B0','#82828C'],b=BORDERS.find(x=>x.k===k)||{},
+ d=s+11,r=(d-3.5)/2,id='ag'+(++_gid);
+ return '<span class="aring'+(k==='diamond'?' spin':'')+'" style="--s:'+s+'px">'
+ +'<svg width="'+d+'" height="'+d+'" viewBox="0 0 '+d+' '+d+'"><defs><linearGradient id="'+id+'" x1="0" y1="0" x2="1" y2="1">'
+ +'<stop offset="0" stop-color="'+g[0]+'"/><stop offset=".5" stop-color="'+g[1]+'"/><stop offset="1" stop-color="'+g[2]+'"/></linearGradient></defs>'
+ +'<circle cx="'+(d/2)+'" cy="'+(d/2)+'" r="'+r+'" fill="none" stroke="url(#'+id+')" stroke-width="3.5"/></svg>'
+ +'<span class="face">'+ch+'</span>'+(med!==0&&b.med&&s>=36?'<span class="med m-'+b.med+'">'+MED[b.med]+'</span>':'')+'</span>';}
+
+document.getElementById('cmpGrid').innerHTML=BORDERS.map(b=>{const g=APPRING[b.k];
+ return '<div class="cmpc t-'+b.k+'"><div class="duo">'
+ +'<div><span class="lbl">웹</span>'+ringHTML(b.k,44,'효')+'</div><span class="sep"></span>'
+ +'<div><span class="lbl">앱</span>'+aringHTML(b.k,44,'효')+'</div></div>'
+ +'<div class="nm">'+b.n+'</div>'
+ +'<div class="stops"><i style="background:'+g[0]+'"></i><i style="background:'+g[1]+'"></i><i style="background:'+g[2]+'"></i></div>'
+ +'<div class="hexs">'+g.join(' · ')+'</div></div>';}).join('');
+
+document.getElementById('stopTbl').innerHTML='<tr><th>등급 / 키</th><th>시작 0</th><th>중간 .5</th><th>끝 1</th><th>비고</th></tr>'
+ +BORDERS.map(b=>{const g=APPRING[b.k];const c=h=>'<span class="sw2" style="background:'+h+'"></span>'+h;
+  return '<tr><td>'+b.n+' <span style="color:var(--ink3);font-weight:600">'+b.k+'</span></td><td>'+c(g[0])+'</td><td>'+c(g[1])+'</td><td>'+c(g[2])+'</td><td class="d">'
+  +(b.k==='diamond'?'유일하게 회전 적용 · 무지개색이라 중간값 고정 필수':b.k==='founder'?'웹은 2중 링 → 앱은 단일 링 + 금 메달로 대체':b.med?'메달 병기 · 파티클 없음':'기본 등급 · 모션 없음')+'</td></tr>';}).join('');
+
+/* ══ 앱 도감 ══ */
+const PS={seg:'border'};
+function renderPhone(){
+  const seg=PS.seg;let html='';
+  if(seg==='border')html=BORDERS.map(b=>{const on=S.border===b.k,lock=!b.own;
+    return '<button class="pit t-'+b.k+(on?' is-on':'')+(lock?' is-lock':'')+'" data-pkind="border" data-key="'+b.k+'">'
+    +(lock?lockIco('pit-l'):'')+(b.tag?'<span class="pit-t '+b.tag+'"></span>':'')
+    +aringHTML(b.k,34,'효')+'<span class="pit-n">'+b.n+'</span><span class="pit-c">'+(lock?b.pct+'%':(on?'착용중':'보유'))+'</span></button>';}).join('');
+  else if(seg==='bg')html=BGS.map(g=>{const on=S.bg===g.k,lock=!g.own;
+    return '<button class="pit it-bg bp-'+g.k+(on?' is-on':'')+(lock?' is-lock':'')+'" data-pkind="bg" data-key="'+g.k+'" style="padding:10px 7px 9px">'
+    +(lock?lockIco('pit-l'):'')+(g.tag?'<span class="pit-t '+g.tag+'"></span>':'')
+    +'<span class="bgsw'+(g.k==='plain'?' none':'')+'">'+BGFX+'</span>'
+    +'<span class="pit-n">'+g.n+'</span><span class="pit-c">'+(lock?g.pct+'%':(on?'착용중':'보유'))+'</span></button>';}).join('');
+  else html=TITLES.map(t=>{const on=S.title===t.k,lock=!t.own;
+    return '<button class="pit pit-ttl'+(on?' is-on':'')+(lock?' is-lock':'')+'" data-pkind="title" data-key="'+t.k+'">'
+    +(lock?lockIco('pit-l'):'')+(t.tag?'<span class="pit-t '+t.tag+'"></span>':'')
+    +'<span class="tchip sm'+(t.rare?' rare':'')+'" style="max-width:100%;overflow:hidden">'+t.n+'</span>'
+    +'<span class="pit-c">'+(lock?t.pct+'%':(on?'착용중':'보유'))+'</span></button>';}).join('');
+  document.getElementById('phGrid').innerHTML=html;
+  const ob=BORDERS.filter(b=>b.own).length,ot=TITLES.filter(t=>t.own).length,og=BGS.filter(g=>g.own).length;
+  document.getElementById('segB').textContent=ob+'/'+BORDERS.length;
+  document.getElementById('segG').textContent=og+'/'+BGS.length;
+  document.getElementById('segT').textContent=ot+'/'+TITLES.length;
+  document.getElementById('phCnt').textContent='수집 '+(ob+ot+og)+' / '+(BORDERS.length+TITLES.length+BGS.length);
+  const b=BORDERS.find(x=>x.k===S.border)||{},t=TITLES.find(x=>x.k===S.title),g=BGS.find(x=>x.k===S.bg)||{};
+  document.getElementById('phEq').className='ph-eq t-'+S.border+' bp-'+S.bg;
+  document.getElementById('phEq').innerHTML=BGFX+aringHTML(S.border,44,'효')
+   +'<div style="min-width:0"><div class="nm2">효자동단골러</div><div class="mt"><span class="tchip sm'+(t&&t.rare?' rare':(t?'':' none'))+'">'+(t?t.n:'칭호 없음')+'</span><span class="lvchip" style="height:19px;font-size:11px;padding:0 8px">'+(TIER[S.border]||TIER[S.tier])+' · Lv '+S.level+'</span></div></div>';
+  document.getElementById('phSel').textContent=[b.n,g.n,t?t.n:'칭호 없음'].join(' · ');
+}
+document.getElementById('phSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  PS.seg=b.dataset.k;document.querySelectorAll('#phSeg button').forEach(x=>x.classList.toggle('on',x===b));renderPhone();});
+
+
+/* ══ 배경 v3 — 레이어 스펙 · 비교 뷰 ══ */
+const BGFX='<span class="bgfx"><i class="l1"></i><i class="l2"></i><i class="l3"></i><span class="sp" style="left:13%;top:26%"></span><span class="sp" style="left:61%;top:58%;animation-delay:1.15s"></span><span class="sp" style="left:86%;top:19%;animation-delay:2.3s"></span></span>';
+const BGSPEC={
+plain:{L:0,mo:0,wash:'—',pat:'—',hi:'—',mot:'—',rn:'단색 var(--bg) — 레이어 0'},
+wave:{L:1,mo:0,wash:'—',pat:'.18 / .24 · 128×44 · stroke 4.6 + 1.7',hi:'—',mot:'—',rn:'&lt;Pattern&gt; 타일 1장(정적) · 그라디언트 없음'},
+dots:{L:2,mo:0,wash:'linear 166° · patc 20% → 7% @56% → bg',pat:'.20 / .28 · 26×26 · 면 3 + 링 1',hi:'—',mot:'—',rn:'&lt;LinearGradient x1=.12 y1=0 x2=.88 y2=1&gt; 3스톱 + &lt;Pattern&gt;'},
+ripple:{L:2,mo:0,wash:'radial 120%×90% at 22% 18% · 22% → 8% @46% → bg @78%',pat:'.22 / .30 · 72×72 · stroke 3.4/2.2/1.4 + 코어 r3.4',hi:'—',mot:'—',rn:'&lt;RadialGradient cx=.22 cy=.18 r=.95&gt; 3스톱 + &lt;Pattern&gt;'},
+mountain:{L:3,mo:0,wash:'linear 178° · patc2 24% → patc 14% @46% → bg',pat:'.26 / .32 · 180×64 · 능선 면 2겹 + 하이라이트 선',hi:'비네트 · radial 122%×104% at 50% 16% · transparent 44% → rgba(6,20,15,.62) · op .20 / .30',mot:'없음(선택: 없음)',rn:'2레이어 — &lt;LinearGradient&gt; + &lt;Pattern&gt; · 비네트 생략(경계 대비 손실 미미)'},
+lake:{L:3,mo:0,wash:'linear 200° · patc2 26% → patc 10% @52% → bg',pat:'.26 / .32 · 104×44 · 윤슬 면 6줄',hi:'광택 · linear 102° 흰 76% 스트라이프 · overlay · op .30 / .34',mot:'없음(선택: 없음)',rn:'2레이어 + 정적 광택 &lt;Rect&gt; 1장(opacity .18) 허용'},
+sakura:{L:3,mo:1,wash:'linear 140° · patc 26% → patc2 12% @56% → bg',pat:'.30 / .36 · 78×78 · 꽃잎 5장 면(ellipse ×5 rotate 72°)',hi:'블룸 · radial 80%×66% at 76% 10% · #FFF0F6 88% → transparent 70% · op .40 / .28',mot:'낙하 15s linear · mask-position 0 0 → 26px 78px',rn:'2레이어 정적(그라디언트 + 꽃잎 Pattern) · 낙하 모션 생략'},
+firework:{L:3,mo:1,wash:'메시 3장 — radial 72%×82% at 22% 108% (patc 30%) + radial 58%×70% at 84% 6% (patc2 22%) + linear 180° patc2 10% → bg',pat:'.32 / .40 · 88×88 · 광선 14 + 불티 7',hi:'글로우 · radial 52%×52% at 50% 60% · #FFD3A1 78% · screen · op .45 / .72',mot:'호흡 6.5s — 패턴 op ×.5↔1 · 글로우 scale .90↔1.08',rn:'2레이어 — &lt;RadialGradient&gt; 글로우 + &lt;Pattern&gt; 정지 렌더 · 다크에서 글로우 opacity .72'},
+founder:{L:3,mo:1,wash:'linear 120° · patc 30% → patc2 14% @48% → bg',pat:'.30 / .36 · 56×56 · 셰브론 물결 면 2겹',hi:'금색 광택 스윕 + 스파클 3 · linear 100° #FFF6CE .92 → #FFF .55 · overlay · op .40 / .50',mot:'스윕 7s linear(background-position 150% → -70%) · 스파클 3.4s',rn:'2레이어 — 금색 &lt;LinearGradient&gt; 3스톱 + 셰브론 &lt;Pattern&gt; · 스윕·스파클 생략'}};
+const RNSTOP={plain:['—','—','—'],wave:['—','—','—'],
+dots:['#E6F6FE / #0F2E42','#F5FCFF / #0B1C28','#FFFFFF / #0C0C0E'],
+ripple:['#E2F4FC / #0E2C3E','#F4FBFE / #0A1A24','#FFFFFF / #0C0C0E'],
+mountain:['#DDEAE5 / #14332A','#E9F3EF / #0F241E','#FFFFFF / #0C0C0E'],
+lake:['#DBE9F0 / #10303E','#E9F2F6 / #0D2230','#FFFFFF / #0C0C0E'],
+sakura:['#F8DDE7 / #33161F','#F7E7EE / #1E1015','#FFFFFF / #0C0C0E'],
+firework:['#FBE2D2 / #3A1A0C','#F6E5DC / #1D1210','#FFFFFF / #0C0C0E'],
+founder:['#F2E7C8 / #3A2F14','#EFE7D6 / #201B10','#FFFFFF / #0C0C0E']};
+
+function layChips(s){let o='';for(let i=1;i<=3;i++)o+='<span class="'+(i<=s.L?'a':'')+'">L'+i+'</span>';if(s.mo)o+='<span class="mo">모션</span>';return o;}
+function pvOne(g,lbl){return '<div class="pv bp-'+g.k+'">'+BGFX+'<span class="tag">'+lbl+'</span><span class="nm">효자동단골러</span><span class="sub">실버 · Lv 17 · 320 / 500 XP</span><span class="bar"><i style="width:64%"></i></span></div>';}
+function renderBgCompare(){
+  document.getElementById('pvGrid').innerHTML=BGS.map(g=>{const s=BGSPEC[g.k];
+    return '<div class="pvc"><div class="pvh"><b>'+g.n+'</b><span class="k">'+g.k+'</span><span class="lay">'+layChips(s)+'</span></div>'
+     +'<div class="pvp"><div>'+pvOne(g,'LIGHT')+'</div><div data-theme="dark">'+pvOne(g,'DARK')+'</div></div>'
+     +'<div class="pvm"><em>해금</em> '+g.c+'<em style="margin-left:auto">모션</em> '+(s.mo?s.mot.split(' · ')[0]:'없음')+'</div></div>';}).join('');
+  document.getElementById('bgTbl').innerHTML='<tr><th>키</th><th>층</th><th>① 워시</th><th>② 패턴 (라이트 / 다크 · 타일)</th><th>③ 하이라이트</th><th>모션</th></tr>'
+   +BGS.map(g=>{const s=BGSPEC[g.k];
+    return '<tr><td><span class="sw2" style="background:'+BGDOT[g.k]+'"></span>'+g.k+'</td><td>'+s.L+(s.mo?' + 모션':'')+'</td><td class="d">'+s.wash+'</td><td class="d">'+s.pat+'</td><td class="d">'+s.hi+'</td><td class="d">'+s.mot+'</td></tr>';}).join('');
+  document.getElementById('bgRnTbl').innerHTML='<tr><th>키</th><th>앱 레이어</th><th>RN 대체 표현</th><th>워시 3스톱 (라이트 / 다크)</th></tr>'
+   +BGS.map(g=>{const s=BGSPEC[g.k],r=RNSTOP[g.k];
+    return '<tr><td><span class="sw2" style="background:'+BGDOT[g.k]+'"></span>'+g.k+'</td><td>'+Math.min(s.L,2)+'<span style="color:var(--ink3);font-weight:600"> / '+s.L+(s.mo?'+모션':'')+'</span></td><td class="d">'+s.rn+'</td><td class="d">'+(r[0]==='—'?'—':r.join('  ·  '))+'</td></tr>';}).join('');
+  const pick=document.getElementById('bgPick');
+  pick.innerHTML=BGS.map(g=>'<button class="bgp bp-'+g.k+(S.bg===g.k?' on':'')+'" data-key="'+g.k+'"><span class="dot">'+BGFX+'</span>'+g.n+'</button>').join('');
+}
+const BGDOT={plain:'#A8A8B0',wave:'#0EA5E9',dots:'#38BDF8',ripple:'#0EA5E9',mountain:'#3F8F6B',lake:'#2C7DA0',sakura:'#DB6E97',firework:'#F26D1F',founder:'#C08D12'};
+
+function refresh(){renderGrids();syncEquipped();renderPhone();renderBgCompare();}
+refresh();showScreen('a');
+</script>
+</body>
+</html>

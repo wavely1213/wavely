@@ -1,6 +1,7 @@
 # 와벨리 — 동네레벨(레벨·테두리·칭호·뱃지·배경) 스펙 → Claude Code / 개발 그룹
 
-> 시각·상호작용 단일 근거: **`와벨리 동네레벨 v2.html`** (라이트/다크, 모바일 우선, 자체완결 — 외부 CDN 없음).
+> 시각·상호작용 단일 근거: **`와벨리 동네레벨 v3.html`** (라이트/다크, 모바일 우선, 자체완결 — 외부 CDN 없음).
+> 배경 아이템은 **v3에서 3레이어로 전면 재설계**됐습니다(§3-4). 링·칭호·뱃지·화면 A~G는 v2와 동일합니다.
 > 이 문서는 그 목업을 앱(`wavely-frontend/app`)·웹(`wavely-frontend/web`)에 옮기기 위한 명세입니다.
 > **최상위 원칙: cosmetic-only.** 레벨·테두리·칭호·배경은 검색 순위·광고 노출·매장 추천에 **어떤 가중치도 주지 않습니다.** 그렇게 "보여서도" 안 됩니다.
 
@@ -18,8 +19,10 @@
 | F | 앱(RN) 링 정본 | — (스펙 참조 화면) | 확정 |
 | G | 앱 아이템 도감 | 앱 마이페이지 → 전체화면 푸시 | 확정 |
 | — | 배경(프로필 패턴) | 도감 3번째 섹션 | **확정 — 9종 전량 채택** |
+| H | 배경 레이어 대조표 | — (스펙 참조 화면) | 확정 |
 
-> **배경 아이템 채택(2026-07-27).** 보류를 해제하고 9종 전량(정적 8 + 애니 1)을 정본에 포함합니다 → §3-4. `unlocks[].kind`에 `background` 추가, `equip_background(key)` 활성화(§1·§11).
+> **배경 아이템 채택(2026-07-27).** 보류를 해제하고 9종 전량을 정본에 포함합니다 → §3-4. `unlocks[].kind`에 `background` 추가, `equip_background(key)` 활성화(§1·§11).
+> **배경 v3 재설계(2026-07-27).** 단일 마스크 → **3레이어(워시·패턴·하이라이트)**, 등급 비례 화려도, 모션 3종. 키 9개·API·DB 계약은 **불변**.
 
 ---
 
@@ -167,37 +170,105 @@ React Native는 `conic-gradient`를 렌더하지 못합니다. **아래 값이 �
 
 > 앱 링이 웹보다 평평해 보이는 것은 **정상**입니다. 억지로 맞추려 스톱을 늘리지 마세요 — 등급 구분만 되면 충분합니다.
 
-### 3-4. 배경 (프로필 패턴) — 9종 전량 ★
+### 3-4. 배경 (프로필 패턴) — 9종 전량 · **v3 3레이어** ★
 
-착용 배경은 **마스크 1장 + 틴트 1색**입니다. SVG 타일을 `mask-image`로 깔고 그 위를 `--patc`로 칠합니다(색을 SVG 안에 넣지 않습니다 — 다크 대응이 자동으로 됩니다).
+v2의 "마스크 1장 + 틴트 1색" 공식은 폐기합니다. 9종 전부 **① 베이스 워시 · ② 패턴 · ③ 하이라이트** 3층 구조 위에 올리고, **등급이 올라갈수록 층과 모션을 더합니다**(하위는 절제 — 그래야 상위가 빛납니다). 키 9개·API·DB는 그대로입니다(§1·§11).
 
+#### DOM · CSS 계약
+
+배경을 까는 컨테이너에 `bp-{key}` 클래스를 붙이고, 그 안 **첫 자식으로** 레이어 노드를 넣습니다. 컨테이너는 `position:relative;overflow:hidden`, 실제 콘텐츠는 `position:relative;z-index:1`.
+
+```html
+<span class="bgfx"><i class="l1"></i><i class="l2"></i><i class="l3"></i>
+  <span class="sp" style="left:13%;top:26%"></span>
+  <span class="sp" style="left:61%;top:58%;animation-delay:1.15s"></span>
+  <span class="sp" style="left:86%;top:19%;animation-delay:2.3s"></span></span>
 ```
-.pat { background: var(--patc, var(--primary)); opacity: var(--patop);
-       mask-image: var(--pat); mask-size: var(--patsz); mask-repeat: repeat; }
---patop: .16 (light) / .24 (dark)
-```
-
-| key | 이름 | 조건 | 타일 | 틴트(light / dark) | 모션 |
-|---|---|---|---|---|---|
-| `plain` | 단색 | 기본 제공 | — (`--patop:0`) | — | — |
-| `wave` | 물결 | Lv 1 | 128×44 | `--primary` | — |
-| `dots` | 물방울 | Lv 5 | 26×26 | #38BDF8 / #38BDF8 | — |
-| `ripple` | 파문 | Lv 15 | 72×72 | #0EA5E9 / #0EA5E9 | — |
-| `mountain` | 봉의산 능선 | Lv 25 | 180×64 | #3F8F6B / #5FBE92 | — |
-| `lake` | 의암호 윤슬 | Lv 40 | 104×44 | #2C7DA0 / #5AB0D4 | — |
-| `sakura` | 벚꽃 흩날림 | 봄 시즌(4–5월) 한정 | 78×78 | #DB6E97 / #F5A3C0 | — |
-| `firework` | 축제 불꽃 | 춘천 마임축제 참여 인증 | 88×88 | #F26D1F / #FF9A5A | **애니 1종** |
-| `founder` | 창단 물결 | 출시 첫 달 가입 | 56×56 | #C08D12 / #F2DA85 | — |
-
-**애니는 `firework` 하나뿐입니다.** 6.5s ease-in-out 무한 루프로 *투명도만* 호흡시키고(`--patop × .42 → --patop`), 마스크 좌표를 `0 0 → 7px -7px`로 미세 드리프트합니다. 스케일·리페인트 금지.
 ```css
-@keyframes fwk{0%,100%{opacity:calc(var(--patop)*.42);mask-position:0 0}
-               50%{opacity:var(--patop);mask-position:7px -7px}}
+.bgfx{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;border-radius:inherit}
+.bgfx>i{position:absolute;inset:0;display:block}
+.bgfx .l1{background:var(--wash,transparent)}                       /* ① 워시 */
+.bgfx .l2{background:var(--patc,var(--primary));opacity:var(--patop);
+          mask-image:var(--pat);mask-size:var(--patsz);mask-repeat:repeat}  /* ② 패턴 */
+.bgfx .l3{background:var(--hi,transparent);background-repeat:no-repeat;background-size:cover;
+          opacity:var(--hiop,0);mix-blend-mode:var(--himode,normal)}        /* ③ 하이라이트 */
+.bgfx .sp{position:absolute;z-index:2;width:5px;height:5px;border-radius:50%;background:#FFFDF2;
+          box-shadow:0 0 9px 2px color-mix(in srgb,var(--g2) 78%,transparent);opacity:0} /* founder 스파클 */
 ```
 
-**적용 지점** — 착용 배경은 세 곳에 동시 반영됩니다: 도감 장착 카드(`.eq`), 프로필 히어로(`.pf-hero::before`), 리그 헤더(`.lg-h::before`). 도감 카드에는 `bp-*` 클래스를 **버튼 자신에게** 붙여 `--patc`가 스와치까지 상속되게 합니다.
-**밀도 보호** — 배경은 히어로/카드 컨테이너에서만. 리스트 행·댓글에는 절대 깔지 않습니다. `prefers-reduced-motion` 시 `firework` 정지.
-**틴트 원칙** — 틴트는 *장소의 색*입니다(봉의산=녹, 의암호=청, 벚꽃=분홍, 축제=오렌지 #F26D1F로 축제 탭과 동일, 창단=금). 브랜드 스카이 일색으로 칠하지 마세요.
+- 색은 **SVG 밖**(`--patc` 주색 / `--patc2` 심색)에 둡니다 → 다크모드 자동 대응. SVG 안에는 `%23000`만.
+- 워시·하이라이트는 `color-mix(... , var(--bg))`로 배경색에 섞습니다 → 라이트/다크에서 스톱을 따로 쓰지 않아도 톤이 맞습니다.
+- `-webkit-mask-*` 프리픽스 병기 필수(사파리).
+
+#### 등급 비례 스케일
+
+| 티어 | 키 | 레이어 | 모션 | 패턴 α (light / dark) |
+|---|---|---|---|---|
+| 기본 | `plain` | 0 | — | `--patop:0` |
+| Lv 1 | `wave` | 1 (패턴만) | — | .18 / .24 |
+| Lv 5·15 | `dots` `ripple` | 2 (워시+패턴) | — | .20/.28 · .22/.30 |
+| Lv 25·40 | `mountain` `lake` | 3 | 없음(선택 없음) | .26 / .32 |
+| 시즌·희소 | `sakura` `firework` `founder` | 3 | **있음** | .30/.36 · .32/.40 · .30/.36 |
+
+#### 배경 9종 정본
+
+| key | 이름 / 조건 | 틴트 `--patc` · `--patc2` (light → dark) | ① 워시 | ② 패턴 타일 | ③ 하이라이트 |
+|---|---|---|---|---|---|
+| `plain` | 단색 · 기본 | — | — | — | — |
+| `wave` | 물결 · Lv 1 | `--primary` · `--primary-deep` | — | 128×44 · stroke 4.6 + 1.7(α.55) | — |
+| `dots` | 물방울 · Lv 5 | #38BDF8·#0284C7 (동일) | `linear 166°` patc 20% → patc 7% @56% → bg | 26×26 · **면 3 + 링 1** | — |
+| `ripple` | 파문 · Lv 15 | #0EA5E9·#075985 (동일) | `radial 120%×90% at 22% 18%` patc 22% → 8% @46% → bg @78% | 72×72 · 코어 r3.4 + 링 3.4/2.2/1.4 | — |
+| `mountain` | 봉의산 능선 · Lv 25 | #3F8F6B·#1F5E48 → #5FBE92·#2F7A5C | `linear 178°` patc2 24% → patc 14% @46% → bg | 180×64 · **능선 면 2겹** + 마루선 1.6 | 비네트 `radial 122%×104% at 50% 16%` transparent 44% → `rgba(6,20,15,.62)` · α .20 / .30 |
+| `lake` | 의암호 윤슬 · Lv 40 | #2C7DA0·#14526E → #5AB0D4·#1D6A8C | `linear 200°` patc2 26% → patc 10% @52% → bg | 104×44 · **윤슬 면 6줄** | 광택 `linear 102°` 흰 76% 스트라이프 · `overlay` · α .30 / .34 |
+| `sakura` | 벚꽃 흩날림 · 봄 시즌(4–5월) | #DB6E97·#B84B78 → #F5A3C0·#C25C8B | `linear 140°` patc 26% → patc2 12% @56% → bg | 78×78 · **꽃잎 5장 면**(ellipse 2.7×4.6 ×5 rotate 72°) | 블룸 `radial 80%×66% at 76% 10%` #FFF0F6 88% → transparent 70% · α .40 / .28 |
+| `firework` | 축제 불꽃 · 마임축제 인증 | #F26D1F·#B3350A → #FF9A5A·#D9481A | **메시 3장** — `radial 72%×82% at 22% 108%` patc 30% + `radial 58%×70% at 84% 6%` patc2 22% + `linear 180°` patc2 10% → bg | 88×88 · 광선 14 + 불티 7 | 글로우 `radial 52%×52% at 50% 60%` #FFD3A1 78% · **`screen`** · α .45 / **.72** |
+| `founder` | 창단 물결 · 출시 첫 달 | #C08D12·#7A5806 → #F2DA85·#A8790E | `linear 120°` patc 30% → patc2 14% @48% → bg | 56×56 · **셰브론 면 2겹**(α 1 / .55) | 금 광택 스윕 `linear 100°` #FFF6CE .92 → #FFF .55 · `overlay` · α .40 / .50 **+ 스파클 3** |
+
+> `firework`의 글로우는 **어두울수록 강해집니다**(α .45 → .72). 다크에서 약해 보이면 워시가 아니라 `--hiop`를 조정하세요.
+
+#### 모션 (시즌·희소 3종만)
+
+| key | 대상 | 주기 · 이징 | 값 |
+|---|---|---|---|
+| `sakura` | ② 패턴 | 15s linear infinite | `mask-position: 0 0 → 26px 78px` (타일 정수배 = 이음매 없음) |
+| `firework` | ② 패턴 | 6.5s ease-in-out | `opacity: --patop×.5 ↔ --patop` |
+| `firework` | ③ 글로우 | 6.5s ease-in-out (동기) | `opacity: --hiop×.45 ↔ --hiop` · `scale .90 ↔ 1.08` |
+| `founder` | ③ 광택 | 7s linear | `background-size:230% 100%` · `background-position 150% → -70%` |
+| `founder` | 스파클 3 | 3.4s ease-in-out (delay 0 / 1.15 / 2.3s) | `opacity 0 → .95 @45% → 0` · `scale .4 → 1` |
+
+```css
+@media(prefers-reduced-motion:reduce){.bgfx>i,.bgfx .sp{animation:none!important}.bp-founder .sp{opacity:.8}}
+```
+**정지 상태에서도 완성형이어야 합니다** — reduced-motion에서 스파클은 정적 α .8로 남기고, 나머지는 각 레이어의 기본 α로 멈춥니다.
+
+#### 앱(RN) 대체안 — **정적 2레이어 상한**
+
+`react-native-svg <Pattern>` + 다중 레이어는 비쌉니다. 앱은 **워시 1장 + 패턴 1장**까지, 하이라이트·모션은 웹 전용입니다. ⚠️ `expo-linear-gradient` 미설치 → 그라디언트는 **`react-native-svg`의 `<LinearGradient>`/`<RadialGradient>`**로만 구현합니다(신규 네이티브 의존성 추가 금지).
+
+| key | 앱 / 웹 레이어 | RN 대체 표현 | 워시 3스톱 (light / dark) |
+|---|---|---|---|
+| `plain` | 0 / 0 | 단색 `var(--bg)` | — |
+| `wave` | 1 / 1 | `<Pattern>` 타일 1장(정적) · 그라디언트 없음 | — |
+| `dots` | 2 / 2 | `<LinearGradient x1=.12 y1=0 x2=.88 y2=1>` 3스톱 + `<Pattern>` | #E6F6FE / #0F2E42 · #F5FCFF / #0B1C28 · #FFFFFF / #0C0C0E |
+| `ripple` | 2 / 2 | `<RadialGradient cx=.22 cy=.18 r=.95>` 3스톱 + `<Pattern>` | #E2F4FC / #0E2C3E · #F4FBFE / #0A1A24 · #FFFFFF / #0C0C0E |
+| `mountain` | 2 / 3 | Linear + Pattern · **비네트 생략** | #DDEAE5 / #14332A · #E9F3EF / #0F241E · #FFFFFF / #0C0C0E |
+| `lake` | 2 / 3 | Linear + Pattern · 정적 광택 `<Rect opacity=.18>` 1장 허용 | #DBE9F0 / #10303E · #E9F2F6 / #0D2230 · #FFFFFF / #0C0C0E |
+| `sakura` | 2 / 3 + 모션 | Linear + 꽃잎 Pattern · **낙하 생략** | #F8DDE7 / #33161F · #F7E7EE / #1E1015 · #FFFFFF / #0C0C0E |
+| `firework` | 2 / 3 + 모션 | `<RadialGradient>` 글로우 + Pattern **정지 렌더** · 다크 글로우 opacity .72 | #FBE2D2 / #3A1A0C · #F6E5DC / #1D1210 · #FFFFFF / #0C0C0E |
+| `founder` | 2 / 3 + 모션 | 금 `<LinearGradient>` 3스톱 + 셰브론 Pattern · **스윕·스파클 생략** | #F2E7C8 / #3A2F14 · #EFE7D6 / #201B10 · #FFFFFF / #0C0C0E |
+
+> 앱이 웹보다 얌전한 것은 **정상**입니다(링과 같은 원칙 — §3-3). 억지로 맞추려 레이어를 늘리지 마세요.
+
+#### 가드레일 (v3에서도 불변)
+
+> 값 조정·신규 배경 추가·롤백 절차는 **`NEIGHBORHOOD_LEVEL_BG_DEVNOTE.md`**(개발노트)를 먼저 보세요.
+
+1. **가독성** — 워시·하이라이트는 전부 `--bg`에 섞인 값이라 히어로·카드 위 본문 대비는 WCAG AA를 유지합니다. 새 배경을 만들 때도 **콘텐츠가 놓이는 영역의 실효 대비 4.5:1**을 먼저 확인하세요.
+2. **적용 범위** — 도감 장착 카드(`.eq`) · 프로필 히어로(`.pf-hero`) · 리그 헤더(`.lg-h`) **세 곳만**. 피드 행·댓글에는 절대 금지.
+3. **모션 정지 경로** — 위 `prefers-reduced-motion` 블록 필수. 잠금 카드(`.is-lock`)에서도 모션 정지.
+4. **cosmetic-only** — 화려해져도 검색순위·광고노출·매장추천 영향 0(§8 고정 문구 유지).
+5. **틴트 원칙** — 틴트는 *장소의 색*(봉의산=녹, 의암호=청, 벚꽃=분홍, 축제=오렌지 #F26D1F로 축제 탭과 동일, 창단=금). 브랜드 스카이 일색 금지.
+6. **도감 스와치** — `bp-*`를 **버튼 자신에게** 붙여 `--patc`가 스와치·보더까지 상속되게 합니다. 스와치는 62px 높이 미니 프리뷰(3레이어 그대로).
 
 ---
 
@@ -406,6 +477,8 @@ end; $$;
 8. **동네 리그**(E) — v2.
 9. **앱 배경 타일** — `react-native-svg <Pattern>` 실측 성능 확인 필요(리스트 아닌 히어로 1개소라 문제 없을 전망).
 10. **불꽃 배경 해금 판정** — "춘천 마임축제 참여 인증"의 인증 주체·방법 미정(축제 탭 QR? 매장 방문?).
+11. **`sponsor_*` 배경** — 매장 스폰서 배경 신설 여부. 만든다면 **기존 키 재사용 금지**(`sponsor_store` 등 신규 키), 매장색 주입은 `--patc` 1색만 받고 워시·하이라이트는 시스템 고정값으로 계산하는 팔레트 규칙 필요.
+12. **도감 배경 미리보기 크기** — 62px 스와치만으로는 화려도 판단이 어렵습니다. 탭 시 **히어로 실사이즈 프리뷰**(바텀시트)로 확대할지 결정 필요.
 
 ---
 
@@ -413,9 +486,20 @@ end; $$;
 
 | 파일 | 용도 |
 |---|---|
-| `와벨리 동네레벨 v2.html` | **시각 SSOT.** 링 CSS·이펙트·배경 패턴·앱 링/도감을 여기서 그대로 복사 |
+| `와벨리 동네레벨 v3.html` | **시각 SSOT.** 링 CSS·이펙트·**배경 3레이어**·앱 링/도감을 여기서 그대로 복사 |
+| `NEIGHBORHOOD_LEVEL_BG_DEVNOTE.md` | **배경 v3 개발노트** — 다이얼 6개·신규 배경 추가 절차·모션 규칙·QA·롤백. 수정할 때 여기부터 |
+| `와벨리 동네레벨 v2.html` | 이전 정본 — 배경 단일 마스크 시기. 구현 대상 아님 |
 | `와벨리 동네레벨.html` | v1 릴리스본 — 배경 보류·그레이프 잔재 시기. 참고용 |
 | `와벨리 동네레벨 v1.html` | 최초 안(플랫 링) — 참고용, 구현 대상 아님 |
+
+### v3 변경 요약 (2026-07-27)
+1. 배경 9종 **3레이어 재설계**(워시·패턴·하이라이트) — 등급 비례 화려도 (§3-4)
+2. 패턴 타일 stroke 위주 → **면(fill)·볼륨 혼합** 재드로잉 (dots·mountain·lake·sakura·founder)
+3. 모션 1종(firework) → **3종**(sakura 낙하 · firework 호흡+글로우 · founder 스윕+스파클)
+4. 패턴 α 상한 .16/.24 → **.30~.32 / .36~.40**(상위 등급만) · 하위는 v2 수준 유지
+5. 앱(RN) **정적 2레이어 상한** + `react-native-svg` 그라디언트 3스톱 정본 추가 (§3-4 앱 대체안)
+6. 화면 H(배경 레이어 대조표) 신설 — 9종 라이트/다크 병렬 + 히어로·도감카드·리그헤더 3개소 적용 예시
+7. **데이터 계약·키 9개·DB 스키마 변경 없음**
 
 ### v2 변경 요약 (2026-07-27)
 1. 배경 아이템 9종 채택 — 틴트 토큰 `--patc` 도입, 불꽃 1종만 애니 (§3-4)
