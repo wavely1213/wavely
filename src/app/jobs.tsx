@@ -1,6 +1,6 @@
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DongPicker } from '@/components/DongPicker';
@@ -34,9 +34,35 @@ export function toJobPost(p: any): any {
 // 익명 구직 나이대(웹 JOB_AGEBANDS와 동일).
 export const JOB_AGEBANDS = ['10대', '20대 초반', '20대 중반', '20대 후반', '30대 초반', '30대 중반', '30대 후반', '40대', '50대 이상'];
 // job_posts 목록 select 컬럼(앱 목록용). 웹 JOB_SELECT와 호환.
-export const JOBPOST_LIST_COLS = 'id,kind,title,wage,wage_type,work_time,dong,status,age_range,gender,boost,created_at';
+export const JOBPOST_LIST_COLS = 'id,kind,title,category,wage,wage_type,work_time,dong,lat,lng,status,age_range,gender,boost,created_at';
+// 알바 카테고리 5종 — 웹 JOB_CATS와 동일(핸드오프 스펙).
+export const JOB_CATS = ['요식·카페', '매장·판매', '서비스', '배달·운송', '사무·기타'];
 
-type Job = { id: string; kind: string; title: string; pay_type: string | null; pay: number | null; work_time: string | null; dong: string | null; status: string; created_at: string; age_range?: string | null; gender?: string | null };
+// 현재 위치 (웹: navigator, 네이티브: expo-location). 실패 시 null. explore.tsx와 동일 패턴.
+async function getMyLocation(): Promise<{ lat: number; lng: number } | null> {
+  try {
+    if (Platform.OS === 'web') {
+      return await new Promise((res) => {
+        const g = (globalThis as any).navigator?.geolocation;
+        if (!g) return res(null);
+        g.getCurrentPosition((p: any) => res({ lat: p.coords.latitude, lng: p.coords.longitude }), () => res(null), { timeout: 8000, maximumAge: 300000 });
+      });
+    }
+    const Location = await import('expo-location');
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') return null;
+    const pos = await Location.getCurrentPositionAsync({});
+    return { lat: pos.coords.latitude, lng: pos.coords.longitude };
+  } catch { return null; }
+}
+function kmBetween(aLat: number, aLng: number, bLat: number, bLng: number) {
+  const R = 6371, toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(bLat - aLat), dLng = toRad(bLng - aLng);
+  const s = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(aLat)) * Math.cos(toRad(bLat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.min(1, Math.sqrt(s)));
+}
+
+type Job = { id: string; kind: string; title: string; category?: string | null; pay_type: string | null; pay: number | null; work_time: string | null; dong: string | null; lat?: number | null; lng?: number | null; status: string; created_at: string; age_range?: string | null; gender?: string | null };
 
 // 익명 구직 신원 요약(나이대·성별). 둘 다 없으면 null.
 function anonIdentity(j: Job) {
@@ -70,7 +96,16 @@ export default function JobsScreen() {
   const [debSearch, setDebSearch] = useState('');
   // 검색어는 입력 즉시가 아니라 350ms 디바운스 후에만 쿼리(키 입력마다 DB 호출 방지)
   useEffect(() => { const t = setTimeout(() => setDebSearch(search), 350); return () => clearTimeout(t); }, [search]);
-  const [sort, setSort] = useState<'recent' | 'wage'>('recent');
+  const [sort, setSort] = useState<'recent' | 'wage' | 'near'>('recent');
+  const [cats, setCats] = useState<string[]>([]);              // 카테고리 다중선택(빈=전체)
+  const [myGeo, setMyGeo] = useState<{ lat: number; lng: number } | null>(null);
+  const geoAsked = useRef(false);
+  // GPS는 '가까운순'을 실제로 쓸 때만 1회 요청(불필요한 권한 팝업 방지). 웹 JobBoard와 동일 정책.
+  const requestGeo = useCallback(() => {
+    if (geoAsked.current || myGeo) return;
+    geoAsked.current = true;
+    getMyLocation().then((g) => { if (g) setMyGeo(g); });
+  }, [myGeo]);
 
   const load = useCallback(async () => {
     if (!isSupabaseConfigured) { setLoading(false); return; }
@@ -89,11 +124,20 @@ export default function JobsScreen() {
   const onRefresh = useCallback(async () => { setRefreshing(true); await load(); setRefreshing(false); }, [load]);
 
   const TABS: { k: typeof kind; l: string }[] = [{ k: 'all', l: '전체' }, { k: 'hiring', l: '구인' }, { k: 'seeking', l: '구직' }];
-  const SORTS: { k: 'recent' | 'wage'; l: string }[] = [{ k: 'recent', l: '최신순' }, { k: 'wage', l: '시급순' }];
+  const SORTS: { k: 'recent' | 'wage' | 'near'; l: string }[] = [{ k: 'near', l: '가까운순' }, { k: 'wage', l: '시급순' }, { k: 'recent', l: '최신순' }];
   const wageHourly = (j: Job) => (j.pay == null ? -1 : j.pay_type === 'monthly' ? j.pay / 209 : j.pay_type === 'daily' ? j.pay / 8 : j.pay);
-  const view = sort === 'wage'
-    ? [...jobs].sort((a, b) => (((b as any).boost || 0) - ((a as any).boost || 0)) || (wageHourly(b) - wageHourly(a)))
-    : jobs;
+  const distOf = (j: Job) => (myGeo && j.lat != null && j.lng != null ? kmBetween(myGeo.lat, myGeo.lng, j.lat, j.lng) : null);
+  const effSort = sort === 'near' && !myGeo ? 'recent' : sort;   // 위치 없으면 최신순 폴백
+  const toggleCat = (cat: string) => setCats((cs) => (cs.includes(cat) ? cs.filter((x) => x !== cat) : [...cs, cat]));
+  let view = cats.length ? jobs.filter((j) => cats.includes(j.category || '')) : jobs;   // 카테고리 다중선택 필터
+  if (effSort !== 'recent') {
+    view = [...view].sort((a, b) => {
+      const ab = (((b as any).boost || 0) - ((a as any).boost || 0)); if (ab) return ab;   // 광고 최상단 유지
+      if (effSort === 'wage') return wageHourly(b) - wageHourly(a);
+      const da = distOf(a), db = distOf(b);
+      return (da == null ? 1e9 : da) - (db == null ? 1e9 : db);
+    });
+  }
 
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: c.background }]} edges={['top']}>
@@ -111,10 +155,25 @@ export default function JobsScreen() {
         ))}
         <View style={{ flex: 1 }} />
         {SORTS.map((so) => (
-          <Pressable key={so.k} onPress={() => setSort(so.k)} style={styles.sortChip}>
-            <Text style={{ color: sort === so.k ? c.primary : c.textSecondary, fontWeight: sort === so.k ? '800' : '600', fontSize: 12.5 }}>{so.l}</Text>
+          <Pressable key={so.k} onPress={() => { if (so.k === 'near') requestGeo(); setSort(so.k); }} style={styles.sortChip}>
+            <Text style={{ color: effSort === so.k ? c.primary : c.textSecondary, fontWeight: effSort === so.k ? '800' : '600', fontSize: 12.5 }}>{so.l}</Text>
           </Pressable>
         ))}
+      </View>
+      <View style={[styles.catBar, { backgroundColor: c.card, borderColor: c.border }]}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingHorizontal: 12 }}>
+          <Pressable onPress={() => setCats([])} style={[styles.catChip, { backgroundColor: cats.length === 0 ? c.primary : c.background, borderColor: cats.length === 0 ? c.primary : c.border }]}>
+            <Text style={{ color: cats.length === 0 ? c.onPrimary : c.textSecondary, fontSize: 12.5, fontWeight: '700' }}>전체</Text>
+          </Pressable>
+          {JOB_CATS.map((cat) => {
+            const on = cats.includes(cat);
+            return (
+              <Pressable key={cat} onPress={() => toggleCat(cat)} style={[styles.catChip, { backgroundColor: on ? c.primary : c.background, borderColor: on ? c.primary : c.border }]}>
+                <Text style={{ color: on ? c.onPrimary : c.textSecondary, fontSize: 12.5, fontWeight: '700' }}>{on ? '✓ ' : ''}{cat}</Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
       </View>
       <View style={[styles.dongBar, { backgroundColor: c.card, borderColor: c.border }]}>
         <DongPicker value={dong} options={dongOptions} onChange={setDong} allLabel="춘천시 전체" />
@@ -128,7 +187,7 @@ export default function JobsScreen() {
         <ActivityIndicator color={c.primary} style={{ marginTop: 30 }} />
       ) : view.length === 0 ? (
         <ScrollView contentContainerStyle={{ flexGrow: 1 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} colors={[c.primary]} />}>
-          <View style={styles.center}><View style={{ marginBottom: 8 }}><Icon name="briefcase" size={40} color={c.textSecondary} /></View><Text style={{ color: c.textSecondary }}>{dong || debSearch ? '해당 조건의 공고가 없어요' : '아직 공고가 없어요. 첫 글을 올려보세요!'}</Text></View>
+          <View style={styles.center}><View style={{ marginBottom: 8 }}><Icon name="briefcase" size={40} color={c.textSecondary} /></View><Text style={{ color: c.textSecondary }}>{dong || debSearch || cats.length ? '해당 조건의 공고가 없어요' : '아직 공고가 없어요. 첫 글을 올려보세요!'}</Text></View>
         </ScrollView>
       ) : (
         <ScrollView contentContainerStyle={{ paddingBottom: 110, paddingTop: 10 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} colors={[c.primary]} />}>
@@ -144,7 +203,7 @@ export default function JobsScreen() {
                   {boosted ? <View style={[styles.kindBadge, { backgroundColor: c.primary }]}><Text style={{ color: c.onPrimary, fontSize: 10.5, fontWeight: '800' }}>광고</Text></View> : null}
                   {j.status === 'closed' ? <View style={[styles.kindBadge, { backgroundColor: c.backgroundElement }]}><Text style={{ color: c.textSecondary, fontSize: 11, fontWeight: '800' }}>마감</Text></View> : null}
                   <View style={{ flex: 1 }} />
-                  <Text style={{ color: c.textSecondary, fontSize: 11.5 }}>{j.dong ? `${j.dong} · ` : ''}{ago(j.created_at)}</Text>
+                  <Text style={{ color: c.textSecondary, fontSize: 11.5 }}>{j.dong ? `${j.dong} · ` : ''}{(() => { const d = distOf(j); return d == null ? '' : (d < 1 ? `${Math.round(d * 1000)}m · ` : `${d.toFixed(1)}km · `); })()}{ago(j.created_at)}</Text>
                 </View>
                 <Text style={[styles.title, { color: c.text }]} numberOfLines={1}>{j.title}</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
@@ -183,6 +242,8 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 30 },
   card: { marginHorizontal: 12, marginBottom: 10, paddingHorizontal: 14, paddingVertical: 13, borderRadius: 14, borderWidth: 1, gap: 6 },
   sortChip: { paddingHorizontal: 8, paddingVertical: 6 },
+  catBar: { paddingVertical: 8, borderBottomWidth: 1 },
+  catChip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, borderWidth: 1 },
   kindBadge: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 },
   title: { fontSize: 15.5, fontWeight: '700' },
   pay: { fontSize: 13.5, fontWeight: '700' },
