@@ -748,11 +748,26 @@ function loadSave() {
   } catch (e) {
     S = structuredClone(DEFAULT_SAVE);
   }
+  /* localStorage는 사용자가 고칠 수 있다. 범위를 벗어난 값이 들어오면
+     WEAPON[99] 같은 참조가 undefined가 되어 게임이 통째로 죽고, 새로고침해도 복구되지 않는다. */
+  const lv = v => clamp(Math.round(Number(v)) || 1, 1, MAXLV);
+  S.eq = { weapon: lv(S.eq.weapon), engine: lv(S.eq.engine), shield: lv(S.eq.shield) };
+  S.cleared = clamp(Math.round(Number(S.cleared)) || 0, 0, 99);
+  S.coins = Math.max(0, Math.round(Number(S.coins)) || 0);
+  S.best = Math.max(0, Math.round(Number(S.best)) || 0);
+  if (!Array.isArray(S.owned)) S.owned = [...DEFAULT_SAVE.owned];
+  if (!Array.isArray(S.seenStory)) S.seenStory = [];
+  if (!Array.isArray(S.codex)) S.codex = [];
+  /* 존재하지 않는 탑승자·기체·치장을 가리키면 기본값으로 되돌린다 */
+  if (!PILOTS.some(p => p.id === S.pilot)) S.pilot = DEFAULT_SAVE.pilot;
+  if (!FRAMES.some(f => f.id === S.frame)) S.frame = DEFAULT_SAVE.frame;
+  if (!SKINS.some(k => k.id === S.skin))   S.skin  = DEFAULT_SAVE.skin;
+  if (!TRAILS.some(t => t.id === S.trail)) S.trail = DEFAULT_SAVE.trail;
 }
 function persist() {
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) { /* 저장 불가 환경 무시 */ }
 }
-loadSave();
+/* loadSave() 호출은 4장(게임 데이터) 뒤 — MAXLV·PILOTS·FRAMES·SKINS·TRAILS를 참조하므로 */
 
 /* ═══════════════════════════════════════════════
    2. 색 (CSS 변수 → 캔버스)
@@ -941,6 +956,9 @@ const TRAILS = [
   { id: "bloom", nm: "개화", sub: "유기 촉매",        cost: 320 }
 ];
 
+/* 저장 데이터 검증은 위 목록(MAXLV·PILOTS·FRAMES·SKINS·TRAILS)에 의존한다 */
+loadSave();
+
 /* 4-3. 스테이지 · 스토리 */
 const STAGES = [
   null,
@@ -1093,7 +1111,7 @@ addEventListener("blur", () => { keys.clear(); P.active = false; if (G.screen ==
 const G = {
   screen: "title",
   stage: 1, pickStage: 1, wave: 0,
-  t: 0, shake: 0, flash: 0,
+  t: 0, dt: 1 / 60, shake: 0, flash: 0, over: false,
   score: 0, coins: 0, kills: 0, combo: 0, maxCombo: 0, comboT: 0,
   player: null, bullets: [], ebullets: [], enemies: [], parts: [], drops: [],
   queue: [], waveT: 0, phase: "idle", boss: null, bossIn: 0,
@@ -1535,6 +1553,9 @@ function hurt() {
 
 function useBomb() {
   const p = G.player;
+  /* 화면 상태를 함수 안에서 다시 확인한다 — inert·오버레이는 입력 경로를 막을 뿐,
+     불변식 자체는 아니다. */
+  if (G.screen !== "play" || G.over) return;
   if (p.bomb <= 0 || p.dead) return;
   p.bomb--;
   G.ebullets.length = 0;
@@ -1727,7 +1748,7 @@ function drawBackdrop() {
 
   ctx.fillStyle = alpha(C.dust, .3);
   for (const m of motes) {
-    m.y += m.s * (1 / 60);
+    m.y += m.s * G.dt;                    /* 고정 1/60이면 120Hz에서 배경만 절반 속도로 흐른다 */
     if (m.y > H + 10) { m.y = -10; m.x = rand(0, W); }
     ctx.fillRect(m.x, m.y, m.w, 1);
   }
@@ -2102,6 +2123,7 @@ let last = performance.now();
 function frame(now) {
   const dt = Math.min(.05, (now - last) / 1000);
   last = now;
+  G.dt = dt;                              /* 배경 등 update() 밖에서 그리는 것들이 참조한다 */
   if (G.screen === "play") update(dt);
   else if (G.player) { G.t += dt; for (const q of G.parts) q.life -= dt * .2; }
   draw();
@@ -2118,7 +2140,10 @@ const SCREENS = ["title", "story", "pause", "result", "hangar"];
 function setScreen(name) {
   G.screen = name;
   for (const s of SCREENS) $("scr-" + s).hidden = (s !== name);
+  /* 정지 화면에서는 HUD를 계속 보여주되(상태 확인용) 조작은 막는다.
+     오버레이가 마우스는 가리지만 키보드 포커스는 그대로 통과하므로 inert가 필요하다. */
   $("hud").classList.toggle("off", name !== "play" && name !== "pause");
+  $("hud").inert = (name !== "play") || G.over;
 }
 
 function toast(msg) {
@@ -2238,6 +2263,8 @@ function beginRun(stage) {
   G.bullets.length = 0; G.ebullets.length = 0; G.enemies.length = 0;
   G.parts.length = 0; G.drops.length = 0; G.echo.length = 0;
   G.boss = null; G.t = 0; G.shake = 0; G.flash = 0;
+  G.over = false;
+  $("hud").inert = false;
   G.player = newPlayer();
   P.tx = W / 2; P.ty = H - 130; P.active = false;
   enterStage(stage);
@@ -2275,6 +2302,12 @@ function nextStage() {
 }
 
 function endRun() {
+  /* 중단 버튼 연타나 사망 직후 조작으로 두 번 들어올 수 있다 —
+     그대로 두면 그 횟수만큼 코어가 중복 적립된다. */
+  if (G.over) return;
+  G.over = true;
+  $("hud").inert = true;                  /* 결과 화면이 뜨기 전 700ms 동안 HUD 조작 차단 */
+
   S.coins += G.coins;
   const record = G.score > S.best;
   if (record) S.best = G.score;
