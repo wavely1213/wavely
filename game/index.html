@@ -553,6 +553,47 @@ p.lead {
 .result .v { font-family: var(--font-num); font-size: 21px; margin-top: 5px; font-variant-numeric: tabular-nums; }
 .newbest { color: var(--c-signal-t); font-size: 10px; letter-spacing: .22em; }
 
+/* 최고 기록 대비 위치 — 숫자 격자만으로는 한 판을 끝낸 감정을 받아주지 못한다 */
+.best { display: flex; flex-direction: column; gap: 7px; margin-top: 14px; }
+.best-row { display: flex; align-items: baseline; justify-content: space-between; }
+.best-row .k { font-size: 10px; letter-spacing: .16em; color: var(--c-dim); }
+.best-row .v {
+  font-family: var(--font-num);
+  font-size: 15px;
+  color: var(--c-signal-t);
+  font-variant-numeric: tabular-nums;
+}
+.best .bar {
+  position: relative;
+  height: 4px;
+  background: var(--c-line);
+  border-radius: 2px;
+  overflow: visible;
+}
+.best .bar i {
+  display: block; height: 100%;
+  background: var(--c-signal);
+  border-radius: 2px;
+  transition: width .5s cubic-bezier(.2,.8,.2,1);
+}
+.best .bar b {                        /* 이전 최고 기록 눈금 */
+  position: absolute; top: -4px;
+  width: 2px; height: 12px;
+  background: var(--c-dim);
+}
+
+/* 좁은 화면에서 결과가 세로로 넘쳤다(390px에서 76px).
+   스코프 높이는 폭에 묶여 있으므로 폭 기준으로 결과 화면만 압축한다. */
+@media (max-width: 470px) {
+  #scr-result { padding: 16px 16px; gap: 9px; }
+  #scr-result h2 { font-size: 13.5px; }
+  #scr-result .result div { padding: 9px; }
+  #scr-result .result .v { font-size: 18px; margin-top: 3px; }
+  #scr-result .best { margin-top: 8px; gap: 5px; }
+  #scr-result .btn { padding: 11px; font-size: 12px; }
+  #scr-result .btns { gap: 6px; }
+}
+
 .wallet {
   display: flex;
   align-items: baseline;
@@ -701,6 +742,12 @@ p.lead {
         <div><div class="k">Core</div><div class="v" id="r-coin" style="color:var(--c-moss)">0</div></div>
         <div><div class="k">Kills</div><div class="v" id="r-kill">0</div></div>
         <div><div class="k">Max Combo</div><div class="v" id="r-combo">0</div></div>
+      </div>
+      <!-- 이번 판이 최고 기록 대비 어디쯤인지 -->
+      <div class="best">
+        <div class="best-row"><span class="k">최고 기록 대비</span><span class="v" id="r-pct">—</span></div>
+        <div class="bar"><i id="r-bar"></i><b id="r-mark"></b></div>
+        <div class="best-row"><span class="tag" id="r-bestlbl">BEST —</span><span class="tag" id="r-depth"></span></div>
       </div>
       <div class="grow"></div>
       <div class="btns">
@@ -2733,6 +2780,7 @@ function endRun() {
   $("hud").inert = true;                  /* 결과 화면이 뜨기 전 700ms 동안 HUD 조작 차단 */
 
   S.coins += G.coins;
+  const prevBest = S.best;                /* 갱신 전 값 — 눈금 위치에 쓴다 */
   const record = G.score > S.best;
   if (record) S.best = G.score;
   persist();
@@ -2747,6 +2795,20 @@ function endRun() {
   $("r-coin").textContent = "+" + fmt(G.coins);
   $("r-kill").textContent = fmt(G.kills);
   $("r-combo").textContent = fmt(G.maxCombo);
+
+  /* 최고 기록 대비 위치 — 첫 판이면 비교 대상이 없으니 눈금을 숨긴다 */
+  const scale = Math.max(prevBest, G.score, 1);
+  const pct = prevBest > 0 ? Math.round(G.score / prevBest * 100) : null;
+  $("r-pct").textContent = record ? "경신" : pct === null ? "첫 기록" : pct + "%";
+  $("r-bestlbl").textContent = prevBest ? "BEST " + fmt(prevBest) : "BEST —";
+  $("r-depth").textContent = "STAGE " + G.stage + " 도달";
+  const mark = $("r-mark");
+  mark.style.display = prevBest > 0 && !record ? "block" : "none";
+  mark.style.left = (prevBest / scale * 100) + "%";
+  const bar = $("r-bar");
+  bar.style.width = "0%";
+  requestAnimationFrame(() => { bar.style.width = (G.score / scale * 100) + "%"; });
+
   setTimeout(() => setScreen("result"), 700);
 }
 
