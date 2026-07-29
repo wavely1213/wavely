@@ -365,9 +365,24 @@ p.lead {
   letter-spacing: .3em;
   text-transform: uppercase;
   color: var(--c-signal-t);
+  display: flex;
+  align-items: center;
+  gap: 7px;
 }
 .line.b .who { color: var(--c-drift-t); }
 .line.n .who { color: var(--c-dim); }
+/* 화자 식별 표식 — 관제는 계기 프레임, 탑승자는 식별번호 */
+.line .bdg {
+  font-family: var(--font-num);
+  font-style: normal;
+  font-size: 8.5px;
+  letter-spacing: .1em;
+  border: 1px solid currentColor;
+  padding: 1px 4px;
+  border-radius: 2px;
+}
+.line.p { border-left: 2px solid var(--c-signal); padding-left: 10px; }
+.line.b { border-left: 2px solid var(--c-drift); padding-left: 10px; }
 .line .say {
   font-family: var(--font-story);
   font-size: 15px;
@@ -496,6 +511,10 @@ p.lead {
 .stat b { font-weight: 600; color: var(--c-fg); }
 .stat.up b { color: var(--c-moss-t); }
 .stat.dn b { color: var(--c-bad); }
+/* 장착 중인 것 대비 증감 */
+.stat .d { font-style: normal; font-size: 9px; letter-spacing: 0; }
+.stat .d.good { color: var(--c-moss-t); }
+.stat .d.bad { color: var(--c-bad); }
 
 .perk {
   margin-top: 8px;
@@ -1870,16 +1889,39 @@ function draw() {
     ctx.globalAlpha = 1;
   }
 
-  /* 스테이지 클리어 배너 */
+  /* 구역 전환 — 계기판이 다음 구역으로 갱신되는 것처럼 보여준다.
+     입력은 잠그지 않는다(이동·폭탄 유지). */
   if (G.phase === "clear") {
-    ctx.globalAlpha = clamp(G.waveT * 2, 0, 1) * clamp((2.4 - G.waveT) * 2, 0, 1);
-    ctx.fillStyle = C.fg;
-    ctx.font = "600 22px " + getComputedStyle(document.body).fontFamily;
+    const t = G.waveT;
+    const fam = getComputedStyle(document.body).fontFamily;
+    const a = clamp(t * 2, 0, 1) * clamp((2.4 - t) * 2, 0, 1);
     ctx.textAlign = "center";
-    ctx.fillText("구역 정리 완료", W / 2, H / 2 - 6);
-    ctx.font = "11px " + getComputedStyle(document.body).fontFamily;
+
+    ctx.globalAlpha = a * .1;
+    ctx.fillStyle = C.fg;
+    ctx.fillRect(PAD, H / 2 - 56, W - 2 * PAD, 112);
+
+    ctx.globalAlpha = a;
+    ctx.fillStyle = C.fg;
+    ctx.font = "600 22px " + fam;
+    ctx.fillText("구역 정리 완료", W / 2, H / 2 - 16);
+    ctx.font = "10px " + fam;
     ctx.fillStyle = C.dim;
-    ctx.fillText("SECTOR CLEAR", W / 2, H / 2 + 16);
+    ctx.fillText("SECTOR CLEAR", W / 2, H / 2 + 4);
+
+    /* 1초 뒤부터 다음 구역 표기가 올라온다 */
+    if (t > 1) {
+      const nx = G.stage + 1;
+      ctx.globalAlpha = clamp((t - 1) * 3, 0, 1) * a;
+      ctx.strokeStyle = alpha(C.dust, .5); ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(W / 2 - 70, H / 2 + 16); ctx.lineTo(W / 2 + 70, H / 2 + 16); ctx.stroke();
+      ctx.fillStyle = C.signal;
+      ctx.font = "600 14px " + fam;
+      ctx.fillText("STAGE " + nx + " · " + stageName(nx), W / 2, H / 2 + 38);
+      ctx.fillStyle = C.dim;
+      ctx.font = "9px " + fam;
+      ctx.fillText(stageEn(nx), W / 2, H / 2 + 52);
+    }
     ctx.globalAlpha = 1;
     ctx.textAlign = "left";
   }
@@ -2580,9 +2622,17 @@ function showStory(stage, lines, then) {
   const box = $("story-lines");
   box.innerHTML = "";
   for (const [who, say] of lines) {
+    const isOps = who === "관제", isLog = who === null;
     const d = document.createElement("div");
-    d.className = "line" + (who === null ? " n" : who === "관제" ? " b" : "");
-    d.innerHTML = '<div class="who">' + (who === null ? "기록" : who) + '</div><div class="say"></div>';
+    d.className = "line" + (isLog ? " n" : isOps ? " b" : " p");
+    /* 화자를 색만으로 구분하면 탑승자가 바뀐 게 화면에서 안 읽힌다.
+       관제는 계기 프레임, 탑승자는 본인 식별번호, 기록은 표식 없음. */
+    const badge = isLog ? "" : isOps ? "OPS" : loadout().pilot.desig;
+    d.innerHTML =
+      '<div class="who">' + (badge ? '<i class="bdg"></i>' : "") + "<span></span></div>" +
+      '<div class="say"></div>';
+    if (badge) d.querySelector(".bdg").textContent = badge;
+    d.querySelector(".who span").textContent = isLog ? "기록" : who;
     d.querySelector(".say").textContent = say;
     box.appendChild(d);
   }
@@ -2672,13 +2722,20 @@ function openHangar() {
   setScreen("hangar");
 }
 
-/* 100% 기준 대비 증감을 부호와 색으로 보여준다 */
-function statChip(label, pct, higherIsBetter) {
+/* 절대 수치만 보여주면 지금 장착한 것보다 나은지 알 수 없다.
+   base를 주면 그 대비 증감을 함께 띄운다(장착 중인 카드에는 표시하지 않는다). */
+function statChip(label, pct, higherIsBetter, base) {
   const cls = pct === 100 ? "" : (pct > 100) === higherIsBetter ? " up" : " dn";
   const s = document.createElement("span");
   s.className = "stat" + cls;
-  s.innerHTML = label + " <b></b>";
+  s.innerHTML = label + ' <b></b><i class="d"></i>';
   s.querySelector("b").textContent = pct + "%";
+  const dEl = s.querySelector(".d");
+  if (base != null && base !== pct) {
+    const diff = pct - base;
+    dEl.textContent = (diff > 0 ? " +" : " ") + diff;
+    dEl.className = "d " + ((diff > 0) === higherIsBetter ? "good" : "bad");
+  }
   return s;
 }
 
@@ -2739,13 +2796,15 @@ function unitCard(item, kind) {
 
   const st = document.createElement("div");
   st.className = "stats";
+  const cur = loadout();
+  const ref = equipped ? null : (isPilot ? cur.pilot : cur.frame);   /* 장착 중인 것과 비교 */
   if (isPilot) {
-    st.appendChild(statChip("회피", Math.round(item.evade * 100), true));
-    st.appendChild(statChip("연사", Math.round(100 / item.rate), true));
+    st.appendChild(statChip("회피", Math.round(item.evade * 100), true, ref && Math.round(ref.evade * 100)));
+    st.appendChild(statChip("연사", Math.round(100 / item.rate), true, ref && Math.round(100 / ref.rate)));
   } else {
-    st.appendChild(statChip("공격", Math.round(item.atk * 100), true));
-    st.appendChild(statChip("기동", Math.round(item.spd * 100), true));
-    st.appendChild(statChip("연사", Math.round(100 / item.rate), true));
+    st.appendChild(statChip("공격", Math.round(item.atk * 100), true, ref && Math.round(ref.atk * 100)));
+    st.appendChild(statChip("기동", Math.round(item.spd * 100), true, ref && Math.round(ref.spd * 100)));
+    st.appendChild(statChip("연사", Math.round(100 / item.rate), true, ref && Math.round(100 / ref.rate)));
   }
   body.appendChild(st);
 
