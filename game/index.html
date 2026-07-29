@@ -816,6 +816,7 @@ p.lead {
     <div class="screen" id="scr-pause" hidden>
       <div class="eyebrow">기체 정지 · 관제 회선 유지</div>
       <h2>대기 상태</h2>
+      <div class="loadout" id="pause-info"></div>
       <div class="grow"></div>
       <div class="btns">
         <button class="btn primary" id="btn-resume" type="button">계속</button>
@@ -917,7 +918,8 @@ const DEFAULT_SAVE = {
   owned: ["std", "ember", "stray", "grail"],
   seenStory: [],
   codex: [],                           // 조우한 군체 id
-  sound: true                          // 소리 설정도 저장한다 — 껐는데 새로고침마다 켜지면 안 된다
+  sound: true,                         // 소리 설정도 저장한다 — 껐는데 새로고침마다 켜지면 안 된다
+  tips: []                             // 이미 보여준 첫 안내 id
 };
 
 let S;
@@ -1568,6 +1570,7 @@ function collect(d) {
   }
   burst(d.x, d.y, SUPPLY[d.kind].col(), 12, 1);
   Snd.blip(1560, .09, "triangle", .04);
+  tip("supply");                        /* 아이템 알림이 먼저 뜨고 그 뒤에 안내 */
 }
 
 /* ═══════════════════════════════════════════════
@@ -1806,6 +1809,7 @@ function damageEnemy(e, dmg) {
     G.kills++;
     G.combo++; G.comboT = 2.2;
     if (G.combo > G.maxCombo) G.maxCombo = G.combo;
+    if (G.combo === 4) tip("combo");          /* 배율이 처음 붙는 순간 */
     G.score += Math.round(e.score * comboMul());
     /* 처치 정지 — 프레임당 한 번만 걸어 연속 처치 시 누적되지 않게 한다 */
     G.stop = Math.max(G.stop, .045);
@@ -1866,7 +1870,7 @@ function hurt() {
     p.guard = 0; p.inv = .7;
     burst(p.x, p.y, C.drift, 22, 1.2);
     G.flash = .35;
-    toast("육각 차폐 전개");
+    if (S.tips.includes("guard")) toast("육각 차폐 전개"); else tip("guard");
     Snd.blip(520, .16, "triangle", .05);
     return;
   }
@@ -1874,7 +1878,7 @@ function hurt() {
   if (Math.random() < st.evade) {
     p.inv = .55; p.dodgeT = .6;
     burst(p.x, p.y, C.dust, 10, .8);
-    toast("회피");
+    if (S.tips.includes("evade")) toast("회피"); else tip("evade");
     Snd.blip(760, .07, "triangle", .035);
     return;
   }
@@ -2752,6 +2756,24 @@ function toast(msg) {
   toast._t = setTimeout(() => t.classList.remove("on"), 1400);
 }
 
+/* 첫 안내 — 튜토리얼 벽을 세우는 대신, 그 상황이 처음 벌어질 때 한 번만 알려준다.
+   콤보가 중독성의 축인데 그게 점수 배율이라는 걸 알려주는 데가 없었다. */
+const TIPS = {
+  combo:  "연속 처치가 점수 배율을 올린다 — 맞으면 0으로",
+  bomb:   "폭탄: Space 또는 우하단 버튼 — 탄을 쓸어낸다",
+  supply: "보급품은 탑승자마다 다르다 (격납고에서 확인)",
+  guard:  "육각 차폐가 피탄을 막았다 — 6초마다 재충전",
+  evade:  "회피 성공 — 내구도 콤보도 잃지 않는다"
+};
+function tip(id) {
+  if (!TIPS[id] || S.tips.includes(id)) return;
+  S.tips.push(id); persist();
+  /* 같은 순간에 다른 알림이 떠 있으면 그걸 덮어쓰지 말고 뒤로 물러난다
+     (보급품 안내가 아이템 토스트에 즉시 지워지던 문제). */
+  const showing = $("toast").classList.contains("on");
+  setTimeout(() => toast(TIPS[id]), showing ? 1500 : 0);
+}
+
 function maxStage() { return Math.min(S.cleared + 1, 99); }
 function stageName(n) { return n <= 5 ? STAGES[n].nm : ENDLESS_NM + " " + (n - 5); }
 function stageEn(n) { return n <= 5 ? STAGES[n].en : "REVERB " + (n - 5); }
@@ -2919,6 +2941,7 @@ function enterStage(stage) {
 }
 
 function goPlay() {
+  if (G.player.bomb > 0) setTimeout(() => { if (G.screen === "play") tip("bomb"); }, 2500);
   G.phase = "gap"; G.waveT = .6;
   setScreen("play");
   paintHud();
@@ -2982,7 +3005,31 @@ function endRun() {
   setTimeout(() => setScreen("result"), 700);
 }
 
-function pause() { setScreen("pause"); }
+function pause() {
+  /* 멈춘 김에 현재 상황을 보여준다 — 비어 있는 정지 화면은 기회 낭비다 */
+  const lo = loadout(), p = G.player, st = stats();
+  const rows = [
+    ["구역", "STAGE " + G.stage + " · " + stageName(G.stage) +
+             (G.phase === "boss" ? " · 코어전" : " · 웨이브 " + Math.min(G.wave + 1, WAVES_PER_STAGE))],
+    ["점수", fmt(G.score) + "  (처치 " + fmt(G.kills) + " · 최대 콤보 " + G.maxCombo + ")"],
+    ["회수", "코어 " + fmt(G.coins)],
+    ["편성", lo.pilot.desig + " 「" + lo.pilot.call + "」 · " + lo.frame.desig + " " + lo.frame.nm],
+    ["상태", "내구 " + p.hp + "/" + p.maxHp + " · 폭탄 " + p.bomb +
+             (st.guard ? " · 차폐 " + (p.guard >= GUARD_CD ? "준비" : "충전중") : "") +
+             (p.surge > 0 ? " · 과부하 " + p.surge.toFixed(1) + "s" : "")]
+  ];
+  const box = $("pause-info");
+  box.innerHTML = "";
+  for (const [k, v] of rows) {
+    const r = document.createElement("div");
+    r.className = "lo-row";
+    r.innerHTML = '<span class="k"></span><span class="v"></span>';
+    r.querySelector(".k").textContent = k;
+    r.querySelector(".v").textContent = v;
+    box.appendChild(r);
+  }
+  setScreen("pause");
+}
 function resume() { setScreen("play"); last = performance.now(); }
 
 /* ═══════════════════════════════════════════════
