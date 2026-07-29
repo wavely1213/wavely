@@ -1071,11 +1071,17 @@ function stats() {
 }
 
 /* 4-2. 치장 — 도장(색)만 담당. 실루엣은 기체가 정한다. */
+/* 주색 + 보조색 2톤. 보조색은 어깨·날개 끝 등 '패널 일부'에만 얹혀
+   단색 도장보다 기계 도장처럼 읽힌다. */
 const SKINS = [
-  { id: "std",    nm: "정격 도장", sub: "관제국 제식 배색",   cost: 0,   col: () => C.signal },
-  { id: "azure",  nm: "창공",      sub: "고고도 정찰 배색",   cost: 260, col: () => C.drift },
-  { id: "verdant",nm: "초원",      sub: "지상 지원 배색",     cost: 260, col: () => C.moss },
-  { id: "ink",    nm: "흑요",      sub: "3구역 돌파 증표",    cost: 0, need: 3, col: () => C.fg }
+  { id: "std",    nm: "정격 도장", sub: "관제국 제식 배색",   cost: 0,
+    col: () => C.signal, col2: () => shade(C.signal, -.5) },
+  { id: "azure",  nm: "창공",      sub: "고고도 정찰 배색",   cost: 260,
+    col: () => C.drift,  col2: () => C.field },
+  { id: "verdant",nm: "초원",      sub: "지상 지원 배색",     cost: 260,
+    col: () => C.moss,   col2: () => shade(C.moss, -.45) },
+  { id: "ink",    nm: "흑요",      sub: "3구역 돌파 증표",    cost: 0, need: 3,
+    col: () => C.fg,     col2: () => C.signal }
 ];
 const TRAILS = [
   { id: "ember", nm: "잔불", sub: "표준 배기",        cost: 0 },
@@ -2143,6 +2149,10 @@ function skinColor() {
   const s = SKINS.find(k => k.id === S.skin) || SKINS[0];
   return s.col();
 }
+function skinAccent() {
+  const s = SKINS.find(k => k.id === S.skin) || SKINS[0];
+  return s.col2 ? s.col2() : shade(s.col(), -.45);
+}
 
 /* 기체 실루엣 — 형식별로 다르다. 필드·타이틀 프리뷰·격납고 스와치가 전부 이 함수를 공유. */
 const HULL = {
@@ -2157,13 +2167,17 @@ const HULL = {
 /* 형식별 세부 — 패널 이음새 · 방열구 · 추진기 노즐 · 스텐실 데칼 위치 */
 const DETAIL = {
   grail: { seams: [[[-7,2],[7,2]], [[0,-14],[0,-2]]],
-           vents: [[-11,6.5],[7,6.5]], nozzles: [[-3.6,11],[3.6,11]], canopy: -3, decal: [-5.5,5] },
+           vents: [[-11,6.5],[7,6.5]], nozzles: [[-3.6,11],[3.6,11]], canopy: -3, decal: [-5.5,5],
+           accent: [[-14,8.5,6,2.2],[8,8.5,6,2.2],[-1.4,-13,2.8,5]] },
   bore:  { seams: [[[-17,1],[17,1]], [[-5,-7],[5,-7]], [[-9,5.5],[9,5.5]]],
-           vents: [[-15.5,3],[11.5,3]], nozzles: [[-6.5,11.5],[0,13],[6.5,11.5]], canopy: -4, decal: [-4,-1] },
+           vents: [[-15.5,3],[11.5,3]], nozzles: [[-6.5,11.5],[0,13],[6.5,11.5]], canopy: -4, decal: [-4,-1],
+           accent: [[-17,6.5,7,3],[10,6.5,7,3],[-2,-13,4,4]] },
   whim:  { seams: [[[-4,-5],[4,-5]], [[0,-17],[0,2]]],
-           vents: [[-13.5,7.5],[9.5,7.5]], nozzles: [[-2.6,11.5],[2.6,11.5]], canopy: -6, decal: [-4,6] },
+           vents: [[-13.5,7.5],[9.5,7.5]], nozzles: [[-2.6,11.5],[2.6,11.5]], canopy: -6, decal: [-4,6],
+           accent: [[-11,5.5,5,2],[6,5.5,5,2],[-1.2,-16,2.4,6]] },
   cage:  { seams: [[[-15,-2],[15,-2]], [[-5,-9],[5,-9]], [[-8,5.5],[8,5.5]]],
-           vents: [[-15,-1],[11,-1]], nozzles: [[-6,10.5],[6,10.5]], canopy: -4, decal: [-4,7] }
+           vents: [[-15,-1],[11,-1]], nozzles: [[-6,10.5],[6,10.5]], canopy: -4, decal: [-4,7],
+           accent: [[-15.5,0.5,5,2.6],[10.5,0.5,5,2.6],[-2,-15,4,4]] }
 };
 
 function poly(g, pts, dx, dy) {
@@ -2179,10 +2193,11 @@ function poly(g, pts, dx, dy) {
    sc < 1  : 잔상·소형 표시용 경량 패스(단색 + 외곽선)
    sc >= 1 : 금속 그라디언트 + 내부 베벨 + 패널 이음새 + 노즐 발광 + 스텐실
    게임 중 플레이어(sc=1)와 프리뷰(sc 1.7~2.9)만 풀디테일을 탄다. */
-function drawFrame(g, id, x, y, sc, col) {
+function drawFrame(g, id, x, y, sc, col, col2) {
   const pts = HULL[id] || HULL.grail;
   const d = DETAIL[id] || DETAIL.grail;
   const base = col || skinColor();
+  const accent = col2 || (col ? shade(col, -.45) : skinAccent());
   const hi = sc >= 1;
 
   /* 구조선은 화면 좌표로 고정한다 — 모델 좌표로 두면 확대할수록 테두리가 같이 두꺼워져
@@ -2238,7 +2253,14 @@ function drawFrame(g, id, x, y, sc, col) {
     }
   }
 
-  /* 6. 스텐실 데칼 — 위험 표지 쉐브론 */
+  /* 6. 보조색 패널 — 2톤 도장. 게임 크기(1배)에선 오히려 산만해지므로
+     프리뷰·카드 배율에서만 얹는다. */
+  if (sc >= 1.6) {
+    g.fillStyle = accent;
+    for (const [ax, ay, aw, ah] of (d.accent || [])) g.fillRect(ax, ay, aw, ah);
+  }
+
+  /* 7. 스텐실 데칼 — 위험 표지 쉐브론 */
   g.fillStyle = alpha(C.fg, .3);
   for (let i = 0; i < 3; i++) g.fillRect(d.decal[0] + i * 2.2, d.decal[1], 1.2, 3.2);
 
@@ -3120,7 +3142,7 @@ function paintSwatch(canvas, item, kind) {
   g.clearRect(0, 0, 80, 80);
   g.fillStyle = C.field; g.fillRect(0, 0, 80, 80);
   if (kind === "skin") {
-    drawFrame(g, S.frame, 40, 42, 1.7, item.col());   /* 도장은 현재 기체 위에 얹혀 보인다 */
+    drawFrame(g, S.frame, 40, 42, 1.7, item.col(), item.col2 && item.col2());   /* 도장은 현재 기체 위에 얹혀 보인다 */
   } else {
     const col = item.id === "ion" ? C.drift : item.id === "bloom" ? C.moss : item.id === "echo" ? C.dust : C.signal;
     for (let i = 0; i < 16; i++) {
