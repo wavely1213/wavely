@@ -142,6 +142,11 @@ body {
 /* ── 스코프(플레이필드 프레임) ─────────────────── */
 .scope {
   position: relative;
+  /* 화면 크기가 아니라 '스코프 크기'가 오버플로를 결정한다.
+     뷰포트 기준 미디어쿼리로 판단하면 폭에 묶여 스코프만 작아진 경우를 놓친다
+     (390x844 폰에서 스코프는 370x555, 타이틀이 231px 넘쳤다). */
+  container-type: size;
+  container-name: scope;
   width: min(100%, 560px, calc((100dvh - 120px) * 2 / 3));
   aspect-ratio: 2 / 3;
   background: var(--c-field);
@@ -584,16 +589,6 @@ p.lead {
   background: var(--c-dim);
 }
 
-/* 좁은 화면에서 결과가 세로로 넘쳤다(390px에서 76px).
-   스코프 높이는 폭에 묶여 있으므로 폭 기준으로 결과 화면만 압축한다. */
-@media (max-width: 470px) {
-  #scr-result { padding: 16px 16px; gap: 9px; }
-  #scr-result h2 { font-size: 13.5px; }
-  #scr-result .result div { padding: 9px; }
-  #scr-result .result .v { font-size: 18px; margin-top: 3px; }
-  #scr-result .best { margin-top: 8px; gap: 5px; }
-  #scr-result .btn { padding: 11px; font-size: 12px; }
-  #scr-result .btns { gap: 6px; }
 }
 
 .wallet {
@@ -637,6 +632,102 @@ p.lead {
   white-space: nowrap;
 }
 .toast.on { opacity: 1; }
+
+/* 가로 화면(주로 폰 가로) — 세로 크롬이 높이를 먹는 동안 가로 공간은 남아돈다.
+   세로로 쌓인 배치를 옆으로 눕혀 스코프에 높이를 전부 준다. 180x270 → 247x370. */
+@media (orientation: landscape) and (max-height: 620px) {
+  #app {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 8px;
+  }
+  .scope {
+    width: auto;
+    height: calc(100dvh - 16px);
+    max-height: 100%;
+  }
+  .brand, .hint {
+    width: auto;
+    max-width: 148px;
+    flex: 0 1 auto;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .brand { order: -1; }
+  .hazard { display: none; }             /* 세로로 세우면 의미가 없다 */
+  .hint { gap: 5px; line-height: 1.5; }
+}
+
+/* 스코프가 짧으면 타이틀이 넘쳐 「출격」이 접힌다. 단계적으로 압축한다. */
+@container scope (max-height: 760px) {
+  #scr-title { padding: 16px; gap: 9px; }
+  #scr-title h1 { font-size: 30px; }
+  #scr-title .lead { font-size: 12.5px; line-height: 1.55; }
+  .shipstage { min-height: 92px; }
+  #scr-title .grow { display: none; }
+  #scr-title .btn { padding: 11px; font-size: 12.5px; }
+  #scr-title .btns { gap: 7px; }
+}
+@container scope (max-height: 600px) {
+  #scr-title { padding: 13px 15px; gap: 6px; }
+  #scr-title h1 { font-size: 24px; }
+  #scr-title h1 em { font-size: .32em; margin-top: 4px; letter-spacing: .38em; }
+  #scr-title .lead { font-size: 11.5px; line-height: 1.45; }
+  .shipstage { display: none; }          /* 프리뷰는 격납고에서 볼 수 있다 */
+  .loadout { gap: 3px; }
+  .lo-row .k { font-size: 9.5px; width: 5em; }
+  .lo-row .v { font-size: 10px; }
+  .lo-row .pip { width: 9px; }
+  .stagepick { padding: 7px 2px; }
+  .stagepick .name { font-size: 13px; }
+  .chev { width: 38px; height: 38px; }
+  #scr-title .btn { padding: 9px; font-size: 12px; }
+  #scr-title .eyebrow { font-size: 8.5px; }
+}
+/* 폰 가로처럼 매우 짧을 때 — 정보성 블록을 접고 진입 경로만 남긴다.
+   설정 문단은 스토리 화면에, 편성 요약은 격납고에 그대로 있다. */
+@container scope (max-height: 430px) {
+  #scr-title .lead,
+  #scr-title .loadout { display: none; }
+  #scr-title h1 { font-size: 21px; }
+  #scr-title { gap: 5px; }
+  .stagepick { padding: 6px 2px; }
+  #scr-title .wallet .v { font-size: 16px; }
+}
+
+/* 결과 화면도 같은 기준으로 — 폭이 아니라 스코프 높이가 원인이다 */
+@container scope (max-height: 700px) {
+  #scr-result { padding: 16px; gap: 9px; }
+  #scr-result h2 { font-size: 13.5px; }
+  #scr-result .result div { padding: 9px; }
+  #scr-result .result .v { font-size: 18px; margin-top: 3px; }
+  #scr-result .best { margin-top: 8px; gap: 5px; }
+  #scr-result .btn { padding: 11px; font-size: 12px; }
+  #scr-result .btns { gap: 6px; }
+  .story { gap: 11px; }
+  .line .say { font-size: 13.5px; line-height: 1.5; }
+  .line.n .say { font-size: 12.5px; }
+}
+
+/* 매우 짧을 때 — 결과 격자를 4열 한 줄로 눕히고 부가 표기를 접는다 */
+@container scope (max-height: 500px) {
+  #scr-result { padding: 12px 14px; gap: 6px; }
+  #scr-result h2 { font-size: 12px; }
+  #result-crew { display: none; }
+  #scr-result .result { grid-template-columns: repeat(4, 1fr); }
+  #scr-result .result div { padding: 7px 5px; }
+  #scr-result .result .k { font-size: 7.5px; letter-spacing: .1em; }
+  #scr-result .result .v { font-size: 14px; margin-top: 2px; }
+  #scr-result .best { margin-top: 3px; gap: 4px; }
+  #scr-result .btn { padding: 8px; font-size: 11.5px; }
+  .story { gap: 8px; padding: 14px 16px; }
+  .line .say { font-size: 12.5px; line-height: 1.45; }
+  .line.n .say { font-size: 11.5px; }
+  #scr-story .btn { padding: 9px; font-size: 12px; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   * { transition-duration: .01ms !important; }
