@@ -1172,11 +1172,57 @@ const STORY_END_FIXED = [
   ["관제", "전 대역 정적 확인. 파장-7, 귀환하라. …잔향은 아직 남아 있다."]
 ];
 
+/* 무한 모드 「잔향」 — 엔딩이 "잔향은 아직 남아 있다"로 끝나는데
+   정작 그 구간에 대사가 하나도 없었다. 이정표 구역에만 짧게 붙인다. */
+const STORY_REVERB = {
+  6: {
+    fixed: [
+      [null,  "근원은 껐다. 그런데 군체는 여전히 움직인다."],
+      ["관제", "송신원 없음. 반복한다 — 송신원이 없다. 그런데 대역이 다시 차오르고 있어."]
+    ],
+    pilot: {
+      stray:  "꺼진 기계가 도는 건 두 가지예요. 여분 전원이거나, 다른 손이거나.",
+      hollow: "관측 결과는 하나예요. 이건 잔향이 아니라 응답입니다.",
+      torch:  "원인은 나중에 찾죠. 지금은 눈앞부터.",
+      anchor: "탄도 재계산. 표적이 줄지 않는다는 전제로 다시 짭니다."
+    }
+  },
+  10: {
+    fixed: [
+      [null,  "다섯 구역째. 군체는 줄지 않고, 대신 조금씩 다르게 움직인다."],
+      ["관제", "패턴이 갱신되고 있다. 누군가 이걸 계속 고쳐 쓰고 있어."]
+    ],
+    pilot: {
+      stray:  "정비 흔적이에요. 이건 부서진 게 아니라 손질된 겁니다.",
+      hollow: "우리 기록을 읽고 있어요. 우리가 이긴 방식만 골라서.",
+      torch:  "학습하는 상대는 처음 아닙니다. 더 빨리 끝내면 됩니다.",
+      anchor: "같은 탄도를 두 번 쓰지 않겠습니다."
+    }
+  },
+  15: {
+    fixed: [
+      [null,  "열 구역째. 대역 어디에도 송신원은 없다. 군체 자신을 빼면."],
+      ["관제", "…결론이 나왔다. 근원을 끈 게 아니야. 옮겨간 거다."]
+    ],
+    pilot: {
+      stray:  "그럼 이건 고장이 아니라 이사네요. 계속 뜯겠습니다.",
+      hollow: "처음부터 대답을 기다린 게 아니었어요. 이어받을 상대를 찾은 거죠.",
+      torch:  "몇 번을 옮기든 상관없습니다. 그때마다 갑니다.",
+      anchor: "장기전 편성으로 전환합니다. 탄약 계산 다시."
+    }
+  }
+};
+
 /* 고정 줄 + 현재 탑승자 줄을 합쳐 한 편으로 만든다 */
 function storyFor(stage) {
+  const p = loadout().pilot;
+  const rv = STORY_REVERB[stage];
+  if (rv) {
+    const line = rv.pilot[p.id];
+    return line ? [...rv.fixed, [p.call, line]] : [...rv.fixed];
+  }
   const fixed = STORY_FIXED[stage];
   if (!fixed) return null;
-  const p = loadout().pilot;
   const line = (STORY_PILOT[p.id] || {})[stage];
   return line ? [...fixed, [p.call, line]] : [...fixed];
 }
@@ -3063,12 +3109,14 @@ function paintHangar() {
   const h1 = document.createElement("div");
   h1.className = "eyebrow"; h1.style.padding = "12px 0 4px"; h1.textContent = "항행 기록";
   lg.appendChild(h1);
-  for (let i = 1; i <= 5; i++) {
+  /* 본편 5편 + 무한 모드 「잔향」의 이정표 편까지 */
+  const chapters = [1, 2, 3, 4, 5, ...Object.keys(STORY_REVERB).map(Number)];
+  for (const i of chapters) {
     const seen = S.seenStory.includes(i);
     const d = document.createElement("div");
     d.className = "log" + (seen ? "" : " locked");
     d.innerHTML = '<div class="nm"></div><div class="tx"></div>';
-    d.querySelector(".nm").textContent = "STAGE " + i + " · " + STAGES[i].nm;
+    d.querySelector(".nm").textContent = "STAGE " + i + " · " + stageName(i);
     /* 현재 탑승자의 대사로 다시 읽힌다 — 탑승자를 바꾸면 기록도 바뀐다 */
     d.querySelector(".tx").textContent = seen
       ? storyFor(i).map(l => (l[0] ? l[0] + ": " : "") + l[1]).join("  /  ")
