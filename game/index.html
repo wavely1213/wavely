@@ -1079,7 +1079,9 @@ const SHIELD = [null,
   { hp: 6, bomb: 3 }, { hp: 7, bomb: 4 }
 ];
 const MAXLV = 5;
-const upCost = lv => Math.round(40 * Math.pow(lv, 1.75) / 5) * 5;
+/* 시뮬레이션 결과 전체 해금에 약 113판이 필요했다(코어 ~60/판, 총액 6,755).
+   간단한 게임에 비해 과한 그라인드라 비용을 낮추고, 아래에 구역 클리어 보너스를 뒀다. */
+const upCost = lv => Math.round(18 * Math.pow(lv, 1.6) / 5) * 5;
 
 const EQUIP = [
   { id: "weapon", nm: "무기 코일", tbl: WEAPON, line: lv => WEAPON[lv].nm + " · " + WEAPON[lv].desc + " · 위력 " + WEAPON[lv].dmg },
@@ -1095,17 +1097,17 @@ const PILOTS = [
     evade: .06, rate: .89, drop: "repair",
     dropNm: "정비 부품", dropTx: "내구 1 회복" },
 
-  { id: "hollow", desig: "P-02", call: "할로우",   nm: "진 나오미", cost: 320,
+  { id: "hollow", desig: "P-02", call: "할로우",   nm: "진 나오미", cost: 240,
     bio: "관측 특기. 쏘는 것보다 보는 것이 빠르다는 이유로 배치되었다.",
     evade: .20, rate: 1.06, drop: "cluster",
     dropNm: "코어 뭉치", dropTx: "코어 5 즉시 회수" },
 
-  { id: "torch",  desig: "P-03", call: "토치",     nm: "서 도윤",   cost: 440,
+  { id: "torch",  desig: "P-03", call: "토치",     nm: "서 도윤",   cost: 320,
     bio: "돌입 성향. 관제 기록에 '제동 거리 미상'이라고 적혀 있다.",
     evade: .03, rate: .80, drop: "surge",
     dropNm: "과부하 셀", dropTx: "8초간 연사 +45%" },
 
-  { id: "anchor", desig: "P-04", call: "앵커",     nm: "문 세라",   cost: 360, need: 2,
+  { id: "anchor", desig: "P-04", call: "앵커",     nm: "문 세라",   cost: 280, need: 2,
     bio: "포격 관제 출신. 탄도를 먼저 그리고 나서 방아쇠를 생각한다.",
     evade: .10, rate: 1.00, drop: "ord",
     dropNm: "예비 탄두", dropTx: "폭탄 1 보급" }
@@ -1119,17 +1121,17 @@ const FRAMES = [
     atk: 1.00, spd: 1.00, rate: 1.00, perk: "output",
     perkNm: "정격 출력", perkTx: "콤보 배율 상한 ×6" },
 
-  { id: "bore",   desig: "HV-09", nm: "보어",   cost: 480, cls: "중장 돌파",
+  { id: "bore",   desig: "HV-09", nm: "보어",   cost: 340, cls: "중장 돌파",
     bio: "장갑을 두르는 대신 관절을 포기했다. 앞으로만 잘 간다.",
     atk: 1.34, spd: .82, rate: 1.14, perk: "pierce",
     perkNm: "천공 탄심", perkTx: "관통 +1" },
 
-  { id: "whim",   desig: "SL-02", nm: "윔지",   cost: 420, cls: "경량 정찰",
+  { id: "whim",   desig: "SL-02", nm: "윔지",   cost: 300, cls: "경량 정찰",
     bio: "장갑판을 전부 떼어낸 시험 사양. 맞으면 끝이지만, 잘 안 맞는다.",
     atk: .84, spd: 1.28, rate: .86, perk: "magnet",
     perkNm: "견인장 확대", perkTx: "보급품 회수 범위 ×1.8" },
 
-  { id: "cage",   desig: "XN-11", nm: "케이지", cost: 600, need: 3, cls: "시제 실험기",
+  { id: "cage",   desig: "XN-11", nm: "케이지", cost: 420, need: 3, cls: "시제 실험기",
     bio: "육각 차폐 실증기. 관제국은 아직 이 기체의 도면을 공개하지 않았다.",
     atk: 1.08, spd: .96, rate: 1.00, perk: "guard",
     perkNm: "육각 차폐", perkTx: "6초마다 피탄 1회 무효" }
@@ -1170,18 +1172,18 @@ function stats() {
 const SKINS = [
   { id: "std",    nm: "정격 도장", sub: "관제국 제식 배색",   cost: 0,
     col: () => C.signal, col2: () => shade(C.signal, -.5) },
-  { id: "azure",  nm: "창공",      sub: "고고도 정찰 배색",   cost: 260,
+  { id: "azure",  nm: "창공",      sub: "고고도 정찰 배색",   cost: 210,
     col: () => C.drift,  col2: () => C.field },
-  { id: "verdant",nm: "초원",      sub: "지상 지원 배색",     cost: 260,
+  { id: "verdant",nm: "초원",      sub: "지상 지원 배색",     cost: 210,
     col: () => C.moss,   col2: () => shade(C.moss, -.45) },
   { id: "ink",    nm: "흑요",      sub: "3구역 돌파 증표",    cost: 0, need: 3,
     col: () => C.fg,     col2: () => C.signal }
 ];
 const TRAILS = [
   { id: "ember", nm: "잔불", sub: "표준 배기",        cost: 0 },
-  { id: "ion",   nm: "이온", sub: "냉각 배기",        cost: 200 },
-  { id: "echo",  nm: "잔향", sub: "위상 잔상",        cost: 380 },
-  { id: "bloom", nm: "개화", sub: "유기 촉매",        cost: 320 }
+  { id: "ion",   nm: "이온", sub: "냉각 배기",        cost: 160 },
+  { id: "echo",  nm: "잔향", sub: "위상 잔상",        cost: 300 },
+  { id: "bloom", nm: "개화", sub: "유기 촉매",        cost: 260 }
 ];
 
 /* 저장 데이터 검증은 위 목록(MAXLV·PILOTS·FRAMES·SKINS·TRAILS)에 의존한다 */
@@ -1815,8 +1817,10 @@ function damageEnemy(e, dmg) {
   }
 }
 
-/* 기체 「정격 출력」이 상한을 ×5 → ×6으로 올린다 */
-function comboMul() { return Math.min(stats().comboCap, 1 + Math.floor(G.combo / 5) * .5); }
+/* 기체 「정격 출력」이 상한을 x5 -> x6으로 올린다.
+   4킬마다 +0.5 — 5킬 기준일 때는 실측 콤보(11~27)가 x2.0~x3.5에 머물러
+   상한 자체가 닿지 않는 장식이었다. */
+function comboMul() { return Math.min(stats().comboCap, 1 + Math.floor(G.combo / 4) * .5); }
 
 function killBoss() {
   const b = G.boss;
@@ -2922,6 +2926,10 @@ function goPlay() {
 
 function nextStage() {
   S.cleared = Math.max(S.cleared, G.stage);
+  /* 구역 클리어 보너스 — 같은 구역을 반복하는 것보다 깊이 들어가는 쪽이 이득이어야 한다 */
+  const bonus = 15 + 5 * G.stage;
+  G.coins += bonus;
+  toast("구역 정리 보너스 +" + bonus);
   persist();
   const end = G.stage === 5 ? storyEnd() : null;
   const p = G.player;
