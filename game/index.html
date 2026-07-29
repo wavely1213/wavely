@@ -1,6 +1,8 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>파장 WAVELENGTH</title>
+<!-- 기체 실루엣 파비콘. 외부 요청 0 원칙에 따라 인라인 SVG data URI. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23141413'/%3E%3Cpath d='M16 2 L22 18 L28 25 L20 23 L16 28 L12 23 L4 25 L10 18 Z' fill='%23d97757'/%3E%3C/svg%3E" />
 
 <style>
 /* ─────────────────────────────────────────────────────────────
@@ -823,7 +825,8 @@ const DEFAULT_SAVE = {
   trail: "ember",
   owned: ["std", "ember", "stray", "grail"],
   seenStory: [],
-  codex: []                            // 조우한 군체 id
+  codex: [],                           // 조우한 군체 id
+  sound: true                          // 소리 설정도 저장한다 — 껐는데 새로고침마다 켜지면 안 된다
 };
 
 let S;
@@ -3088,6 +3091,40 @@ function paintHangar() {
   h3.className = "eyebrow"; h3.style.padding = "16px 0 8px";
   h3.textContent = "최고 " + fmt(S.best) + " · 돌파 " + S.cleared + "구역";
   lg.appendChild(h3);
+
+  /* 진행 초기화 — 되돌릴 수 없으므로 2단계로 받는다.
+     별도 확인 창을 띄우지 않고 버튼 자체가 상태를 바꾼다. */
+  const rs = document.createElement("button");
+  rs.type = "button";
+  rs.className = "btn ghost";
+  rs.style.marginTop = "6px";
+  rs.textContent = "기록 초기화";
+  let armed = false;
+  rs.addEventListener("click", () => {
+    Snd.ui();
+    if (!armed) {
+      armed = true;
+      rs.textContent = "정말 지웁니다 — 한 번 더";
+      rs.style.borderColor = "var(--c-bad)";
+      rs.style.color = "var(--c-bad)";
+      setTimeout(() => {
+        if (!armed) return;
+        armed = false;
+        rs.textContent = "기록 초기화";
+        rs.style.borderColor = ""; rs.style.color = "";
+      }, 4000);
+      return;
+    }
+    const keepSound = S.sound;
+    S = structuredClone(DEFAULT_SAVE);
+    S.sound = keepSound;                   /* 소리 설정은 진행 기록이 아니다 */
+    persist();
+    G.pickStage = 1;
+    toast("기록을 초기화했습니다");
+    paintHangar();
+    paintTitle();
+  });
+  lg.appendChild(rs);
 }
 
 function cosRow(item, kind) {
@@ -3201,15 +3238,19 @@ function selectTab(name) {
 }
 for (const t of TABS) $("tab-" + t).addEventListener("click", () => { selectTab(t); Snd.ui(); });
 
+function paintSound() { $("btn-sound").textContent = "소리 " + (Snd.on ? "ON" : "OFF"); }
 $("btn-sound").addEventListener("click", () => {
   Snd.on = !Snd.on;
-  $("btn-sound").textContent = "소리 " + (Snd.on ? "ON" : "OFF");
+  S.sound = Snd.on; persist();
+  paintSound();
   if (Snd.on) { Snd.init(); Snd.ui(); }
 });
 
 document.addEventListener("visibilitychange", () => { if (document.hidden && G.screen === "play") pause(); });
 
 /* 시작 */
+Snd.on = S.sound !== false;
+paintSound();
 G.pickStage = maxStage();
 G.player = newPlayer();
 paintTitle();
