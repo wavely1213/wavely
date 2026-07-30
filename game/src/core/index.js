@@ -16,3 +16,4 @@ export * from "./input.js";
 export * from "./wave.js";
 export * from "./entity.js";
 export * from "./update.js";
+export * from "./draw.js";
