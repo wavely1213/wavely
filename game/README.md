@@ -47,14 +47,20 @@ node game/test/balance.mjs --frames     # 기체 4종 비교
 
 ```
 game/
-  src/core/    host util color data save state input wave entity update run shop draw
-               ← 타깃 무관. 그리기까지 여기 있다. node 에서 그대로 돌아간다
+  src/core/    host util color audio data save state input wave entity update run shop draw
+               ← 타깃 무관. 그리기와 소리 악보까지 여기 있다. node 에서 그대로 돌아간다
   src/web/     theme sound host.web canvas loop flow hangar bind        ← Canvas · DOM · WebAudio
   src/native/  skia2d                                                  ← Canvas2D 인터페이스를 Skia 로
   src/index.template.html   마크업 · CSS (/*@BUNDLE@*/ 자리에 코어+웹이 들어간다)
-  app/         Expo 프로젝트 — App.jsx · GameField(Skia) · Hangar · host.native · sound(PCM)
+  app/         Expo 프로젝트
+     App.jsx        타이틀 · 스토리 · 전투 · 정지 · 결과
+     src/GameField  Skia 캔버스 + 프레임 루프 + 터치
+     src/ShipPreview · src/Plate   타이틀 프리뷰 · 격납고 카드/스와치
+     src/Hangar · src/ui           격납고 · 공용 부품
+     src/host.native · src/theme · src/fonts   호스트 배선 · 색표 · 서체 스택
+     src/sound · src/synth         WAV 를 구워 expo-audio 로 (synth 는 순수 함수)
   build.mjs    src/ → index.html
-  test/        core · regress · skia2d · app
+  test/        core · regress · skia2d · app · app-render · balance
 ```
 
 **그리기도 공유한다.** core/draw.js 는 Canvas2D 인터페이스에만 의존하고,
@@ -62,15 +68,23 @@ game/
 기체·군체·보스·이펙트를 한 번 그리면 웹과 앱에 같이 나온다 —
 `game/test/skia2d.mjs` 가 두 결과를 픽셀로 대조해 그걸 보장한다.
 
-| host 지점 | 웹 | 앱(예정) |
+| host 지점 | 웹 | 앱 |
 |---|---|---|
-| `color(k)` | CSS 변수 → `C[k]` | 테마 객체 |
-| `sound.*` | WebAudio 신디사이저 | expo-audio |
+| `sound.*` | WebAudio 신디사이저 | 같은 악보를 PCM 으로 구워 expo-audio |
 | `notify` · `tip` | 화면 상단 토스트 | RN 오버레이 |
 | `hudChanged` | `paintHud()` | 상태 업데이트 |
-| `runEnded` · `stageCleared` | 결과·다음 구역 화면 | 네비게이션 |
+| `runEnded` · `stageCleared` | 결과·다음 구역 화면 | 화면 전환 |
+| `Path2D` | 브라우저 것 | Skia 어댑터가 만든 것 |
+| `fontFamily` | `--font-ui` CSS 변수 | `theme.js` 의 같은 스택 |
 | `reduced` | `prefers-reduced-motion` | `AccessibilityInfo` |
-| `storage` | `localStorage` | `AsyncStorage` |
+| `storage` | `localStorage` | `AsyncStorage`(메모리 우선, 디스크는 뒤따라) |
+
+색은 host 를 거치지 않는다. 코어가 색표 `C` 를 갖고 있고 타깃이 `setColors()` 로 채운다 —
+그리기가 프레임마다 수백 번 읽는 값이라 함수 호출을 한 겹 두지 않았다.
+
+**한 곳이라도 안 꽂으면 조용히 기본값(무동작·sans-serif)으로 흘러간다.**
+`unwired()` 가 안 꽂힌 지점을 돌려주고, 회귀 검사가 그게 비어 있는지 본다.
+(실제로 `fontFamily` 를 빠뜨려 캔버스 글자가 다른 서체로 나온 적이 있다.)
 
 코어를 브라우저 없이 돌려 볼 수 있다는 게 이 구조의 검증 수단이다.
 

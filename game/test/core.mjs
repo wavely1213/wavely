@@ -282,6 +282,22 @@ mem.clear(); loadSave();
   check("코어의 이름을 타깃이 덮어쓰지 않는다", clash.length === 0, clash.join(" | "));
 }
 
+/* ── 문서가 코드를 따라오는가 ──
+   host 지점은 이 구조의 계약이라 README 에 표로 적어 뒀다. 지점이 늘거나 이름이 바뀌면
+   표만 낡는다 — 실제로 없어진 `color(k)` 가 한동안 문서에 남아 있었다. */
+{
+  const fs = await import("node:fs");
+  const path = await import("node:path");
+  const url = await import("node:url");
+  const dir = path.dirname(url.fileURLToPath(import.meta.url));
+  const hostSrc = fs.readFileSync(path.join(dir, "../src/core/host.js"), "utf8");
+  const readme = fs.readFileSync(path.join(dir, "../README.md"), "utf8");
+  const keys = [...hostSrc.matchAll(/^  ([\w]+):/gm)].map(m => m[1]);
+  /* README 는 `sound.*` 처럼 쓰기도 하므로 이름만 들어 있으면 된다 */
+  const missing = keys.filter(k => !new RegExp("`" + k + "[.*`]").test(readme));
+  check("host 지점이 README 에 다 적혀 있다", missing.length === 0, missing.join(", "));
+}
+
 for (const n of ok) console.log("  통과  " + n);
 for (const n of fails) console.log("  실패  " + n);
 console.log(`\n${ok.length} 통과 / ${fails.length} 실패`);
