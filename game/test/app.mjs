@@ -57,7 +57,69 @@ const SRC = ["App.jsx", "index.js", "metro.config.js", "babel.config.js",
   check("앱이 쓰는 코어 이름이 전부 있다", missing.length === 0, missing.join(", "));
 }
 
-/* ── ③ 소리 ── */
+/* ── ③ 패키지에서 가져다 쓰는 이름이 실제로 있는지 ──
+   없는 API 를 부르면 기기에서만 터진다. 타입 선언을 읽어 미리 잡는다.
+   (실제로 useKeepAwake 에 없는 옵션을 넘기는 코드를 쓴 적이 있다.) */
+{
+  /* 패키지 타입 선언에서 export 이름을 모은다. export * 는 끝까지 따라간다. */
+  const seen = new Set();
+  const collect = (file, out = new Set()) => {
+    const isFile = f => { try { return fs.statSync(f).isFile(); } catch { return false; } };
+    const real = isFile(file) ? file : isFile(file + ".d.ts") ? file + ".d.ts"
+               : isFile(path.join(file, "index.d.ts")) ? path.join(file, "index.d.ts") : null;
+    if (!real || seen.has(real)) return out;
+    seen.add(real);
+    let src;
+    try { src = fs.readFileSync(real, "utf8"); } catch { return out; }
+    /* 주석을 먼저 걷어낸다 — export 블록 안의 {@link ...} 가 중괄호 짝을 깨뜨린다 */
+    src = src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
+
+    for (const m of src.matchAll(/^export\s+(?:declare\s+)?(?:abstract\s+)?(?:function|const|class|let|var|type|interface|enum)\s+([\w$]+)/gm)) out.add(m[1]);
+    for (const m of src.matchAll(/^export\s*\{([^}]*)\}/gm))
+      for (const raw of m[1].split(",")) {
+        const n = raw.trim().replace(/^type\s+/, "").split(/\s+as\s+/).pop().trim();
+        if (n) out.add(n);
+      }
+    for (const m of src.matchAll(/^export\s+(?:type\s+)?\*\s+from\s+["']([^"']+)["']/gm)) {
+      if (!m[1].startsWith(".")) continue;
+      collect(path.resolve(path.dirname(real), m[1]), out);
+    }
+    return out;
+  };
+
+  const typesOf = pkg => {
+    let dir, meta;
+    try { dir = path.dirname(appRequire.resolve(pkg + "/package.json")); meta = JSON.parse(fs.readFileSync(path.join(dir, "package.json"), "utf8")); }
+    catch { return null; }
+    for (const c of [meta.types, meta.typings, "lib/typescript/src/index.d.ts", "build/index.d.ts",
+                     "lib/typescript/index.d.ts", "types/index.d.ts", "types", "index.d.ts"]) {
+      if (!c) continue;
+      seen.clear();
+      const n = collect(path.join(dir, c));
+      if (n.size > 3) return n;
+    }
+    return null;
+  };
+
+  const cache = new Map(), missing = [], unchecked = new Set();
+  for (const f of SRC) {
+    const src = fs.readFileSync(path.join(APP, f), "utf8");
+    for (const m of src.matchAll(/import\s*\{([^}]*)\}\s*from\s*["']([^."'][^"']*)["']/g)) {
+      const pkg = m[2];
+      if (!cache.has(pkg)) cache.set(pkg, typesOf(pkg));
+      const have = cache.get(pkg);
+      if (!have) { unchecked.add(pkg); continue; }
+      for (const raw of m[1].split(",")) {
+        const n = raw.trim().replace(/^type\s+/, "").split(/\s+as\s+/)[0].trim();
+        if (n && !have.has(n)) missing.push(`${f}: ${pkg} → ${n}`);
+      }
+    }
+  }
+  check("패키지에서 가져오는 이름이 전부 있다", missing.length === 0, missing.join(", "));
+  if (unchecked.size) console.log("  (타입 선언을 못 읽어 건너뜀: " + [...unchecked].join(", ") + ")");
+}
+
+/* ── ④ 소리 ── */
 {
   const synth = await import(path.join(APP, "src/synth.js"));
   const cases = [

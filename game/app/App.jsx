@@ -7,7 +7,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { View, Text, Pressable, useColorScheme, useWindowDimensions, AppState } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { useKeepAwake } from "expo-keep-awake";
+import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
 import * as Haptics from "expo-haptics";
 
 import {
@@ -32,6 +32,8 @@ const TIPS = {
   guard:  "육각 차폐가 피탄을 막았다 — 6초마다 재충전",
   evade:  "회피 성공 — 내구도 콤보도 잃지 않는다",
 };
+
+const AWAKE = "wavelength-play";
 
 export default function App() {
   return (
@@ -61,7 +63,6 @@ function Game() {
   G.screen = screen;
   const toastT = useRef(null);
 
-  useKeepAwake();
 
   const notify = useCallback(msg => {
     setToast(msg);
@@ -77,6 +78,14 @@ function Game() {
     setTimeout(() => notify(TIPS[id]), showing ? 1500 : 0);
   }, [notify]);
 
+  /* 전투 중에만 화면을 깨워 둔다 — 사격이 자동이라 손을 떼는 구간이 있다.
+     타이틀·격납고에서까지 붙잡고 있으면 배터리만 먹는다. */
+  useEffect(() => {
+    if (screen !== "play") return;
+    activateKeepAwakeAsync(AWAKE).catch(() => {});
+    return () => { deactivateKeepAwake(AWAKE).catch(() => {}); };
+  }, [screen]);
+
   /* ── 부팅 ── */
   useEffect(() => {
     let alive = true;
@@ -85,7 +94,13 @@ function Game() {
       hudChanged: refresh,
       runEnded: () => endRun(),
       stageCleared: () => nextStage(),
-    }).then(() => { if (alive) setBooted(true); });
+    }).then(() => {
+      if (!alive) return;
+      setBooted(true);
+      /* 소리는 첫 WAV 를 굽는 데 잠깐 걸린다. 출격 버튼에서 하면 그 순간 화면이 끊기므로
+         타이틀이 뜨자마자 뒤에서 미리 굽는다. */
+      Snd.init();
+    });
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
