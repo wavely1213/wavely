@@ -229,7 +229,76 @@ async function fresh(opts = {}) {
   await p.close();
 }
 
-/* ── 11. host 지점이 하나도 안 빠졌는지 ──
+/* ── 11. 글자 대비 (WCAG AA) ──
+   두 테마를 모두 디자인했으니 두 테마 모두에서 읽혀야 한다.
+   면 색(--c-moss 등)을 소형 글자에 그대로 쓰면 라이트에서 미달한다 —
+   그래서 텍스트용 파생(--c-moss-t)이 따로 있고, 이 검사가 그걸 강제한다. */
+{
+  const AUDIT = () => {
+    const lum = c => { const s = c.map(v => v / 255).map(v => v <= .03928 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4);
+                       return .2126 * s[0] + .7152 * s[1] + .0722 * s[2]; };
+    /* color(srgb 0..1) 과 rgb(0..255) 를 모두 받고, 반투명은 뒤 배경과 합성한다 */
+    const parse = t => { const n = (t.match(/[\d.]+/g) || []).map(Number);
+      return t.startsWith("color(") ? { c: n.slice(0, 3).map(v => v * 255), a: n.length > 3 ? n[3] : 1 }
+                                    : { c: n.slice(0, 3), a: n.length > 3 ? n[3] : 1 }; };
+    const over = (f, b) => f.c.map((v, i) => v * f.a + b[i] * (1 - f.a));
+    const bgOf = el => {
+      const st = [];
+      for (let e = el; e; e = e.parentElement) {
+        const p = parse(getComputedStyle(e).backgroundColor);
+        if (p.a > 0) st.push(p);
+        if (p.a >= 1) break;
+      }
+      let bg = [255, 255, 255];
+      for (let i = st.length - 1; i >= 0; i--) bg = over(st[i], bg);
+      return bg;
+    };
+    const out = [];
+    for (const el of document.querySelectorAll("*")) {
+      if (!el.offsetParent && el.offsetWidth === 0) continue;
+      const txt = [...el.childNodes].filter(n => n.nodeType === 3 && n.textContent.trim())
+                                    .map(n => n.textContent.trim()).join("");
+      if (!txt) continue;
+      const cs = getComputedStyle(el);
+      if (cs.visibility === "hidden" || +cs.opacity === 0) continue;
+      const bg = bgOf(el), fg = over(parse(cs.color), bg);
+      const L1 = lum(fg), L2 = lum(bg);
+      const ratio = (Math.max(L1, L2) + .05) / (Math.min(L1, L2) + .05);
+      const size = parseFloat(cs.fontSize), bold = parseInt(cs.fontWeight) >= 700;
+      const need = (size >= 24 || (size >= 18.66 && bold)) ? 3 : 4.5;
+      if (ratio < need) out.push(`${txt.slice(0, 12)} ${ratio.toFixed(2)}<${need} (${size}px)`);
+    }
+    return [...new Set(out)];
+  };
+
+  const bad = [];
+  for (const scheme of ["light", "dark"]) {
+    const p = await fresh({ colorScheme: scheme });
+    const at = async label => {
+      const r = await p.evaluate(AUDIT);
+      if (r.length) bad.push(`${scheme}/${label}: ${r.join(" · ")}`);
+    };
+    await at("타이틀");
+    await p.click("#btn-hangar"); await p.waitForTimeout(350);
+    for (const t of ["tab-pilot", "tab-frame", "tab-eq", "tab-cos", "tab-log"]) {
+      await p.click("#" + t); await p.waitForTimeout(200);
+      await at("격납고·" + t.slice(4));
+    }
+    await p.click("#btn-hangar-back"); await p.waitForTimeout(300);
+    await enterPlay(p);
+    await at("전투");
+    await p.evaluate(() => setScreen("pause"));
+    await p.waitForTimeout(200);
+    await at("정지");
+    await p.evaluate(() => endRun());
+    await p.waitForTimeout(900);
+    await at("결과");
+    await p.close();
+  }
+  check("글자 대비 AA", bad.length === 0, bad.join(" | "));
+}
+
+/* ── 12. host 지점이 하나도 안 빠졌는지 ──
    한 곳만 빠뜨려도 화면은 멀쩡히 돌면서 기본값(무동작·sans-serif)으로 흘러간다.
    실제로 fontFamily 를 안 꽂아 캔버스 글자가 조용히 다른 서체로 나오고 있었다. */
 {
@@ -240,7 +309,7 @@ async function fresh(opts = {}) {
   await p.close();
 }
 
-/* ── 12. 라이트 테마에서도 무오류 ── */
+/* ── 13. 라이트 테마에서도 무오류 ── */
 {
   const p = await fresh({ colorScheme: "light" });
   check("라이트 부팅", p.errs.length === 0, p.errs.join(" | "));

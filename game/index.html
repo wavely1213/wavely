@@ -17,7 +17,7 @@
   --c-ground:   #efece3;
   --c-field:    #faf9f5;
   --c-fg:       #141413;
-  --c-dim:      #6f6d64;
+  --c-dim:      #6b695f;
   --c-line:     #d9d5c8;
   --c-signal:   #d97757;
   --c-signal-t: #a9482a;   /* 텍스트용 진한 오렌지 */
@@ -56,7 +56,7 @@
 
 /* 뷰어 토글이 미디어쿼리를 양방향으로 이겨야 한다 */
 :root[data-theme="light"] {
-  --c-ground:#efece3; --c-field:#faf9f5; --c-fg:#141413; --c-dim:#6f6d64;
+  --c-ground:#efece3; --c-field:#faf9f5; --c-fg:#141413; --c-dim:#6b695f;
   --c-line:#d9d5c8; --c-signal:#d97757; --c-signal-t:#a9482a;
   --c-drift:#5d8fc2; --c-drift-t:#38658f; --c-moss:#788c5d; --c-moss-t:#56663f; --c-dust:#b0aea5; --c-bad:#b3402c;
 }
@@ -240,7 +240,7 @@ body {
   border-radius: 50%;
   border: 1.5px solid var(--c-moss);
   background: color-mix(in srgb, var(--c-moss) 12%, transparent);
-  color: var(--c-moss);
+  color: var(--c-moss-t);
   font: inherit;
   font-size: 10px;
   letter-spacing: .16em;
@@ -320,7 +320,7 @@ p.lead {
 }
 .btn:hover { background: var(--c-fg); color: var(--c-field); }
 .btn:focus-visible { outline: 2px solid var(--c-signal); outline-offset: 3px; }
-.btn.primary { border-color: var(--c-signal); background: var(--c-signal); color: #fff; }
+.btn.primary { border-color: var(--c-signal); background: var(--c-signal); color: #141413; }
 .btn.primary:hover { filter: brightness(1.08); }
 .btn.ghost { border-color: var(--c-line); color: var(--c-dim); font-weight: 500; }
 .btn.ghost:hover { background: transparent; color: var(--c-fg); border-color: var(--c-dim); }
@@ -468,7 +468,7 @@ p.lead {
 .buy:disabled { opacity: .3; cursor: default; }
 .buy:focus-visible { outline: 2px solid var(--c-signal); outline-offset: 2px; }
 .buy.owned { border-color: var(--c-moss); color: var(--c-moss-t); }
-.buy.equipped { border-color: var(--c-moss); background: var(--c-moss); color: #fff; }
+.buy.equipped { border-color: var(--c-moss); background: var(--c-moss); color: #141413; }
 
 .swatch {
   width: 40px; height: 40px;
@@ -554,7 +554,9 @@ p.lead {
   color: var(--c-dim);
   margin-top: 5px;
 }
-.log.locked .nm, .log.locked .tx { color: var(--c-line); }
+/* 잠긴 기록도 "어느 구역인지"는 읽혀야 한다 — 잠김은 문구가 말해 준다.
+   --c-line 으로 두면 대비 1.39 라 사실상 안 보인다. */
+.log.locked .nm, .log.locked .tx { color: var(--c-dim); }
 
 /* 결과 */
 .result { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--c-line); border: var(--bezel); }
@@ -601,7 +603,7 @@ p.lead {
 .wallet .v {
   font-family: var(--font-num);
   font-size: 19px;
-  color: var(--c-moss);
+  color: var(--c-moss-t);      /* 면 색(--c-moss)은 라이트에서 대비 3.49 — 소형 숫자에 못 쓴다 */
   font-variant-numeric: tabular-nums;
 }
 
@@ -763,7 +765,7 @@ p.lead {
         </div>
         <div class="hud-col right">
           <div class="tag">CORE</div>
-          <div class="num" id="hud-coin" style="color:var(--c-moss)">0</div>
+          <div class="num" id="hud-coin" style="color:var(--c-moss-t)">0</div>
           <button class="iconbtn" id="btn-pause" style="pointer-events:auto;margin-top:4px" type="button">II</button>
         </div>
       </div>
@@ -842,7 +844,7 @@ p.lead {
       <div class="grow"></div>
       <div class="result">
         <div><div class="k">Score</div><div class="v" id="r-score">0</div></div>
-        <div><div class="k">Core</div><div class="v" id="r-coin" style="color:var(--c-moss)">0</div></div>
+        <div><div class="k">Core</div><div class="v" id="r-coin" style="color:var(--c-moss-t)">0</div></div>
         <div><div class="k">Kills</div><div class="v" id="r-kill">0</div></div>
         <div><div class="k">Max Combo</div><div class="v" id="r-combo">0</div></div>
       </div>

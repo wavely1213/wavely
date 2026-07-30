@@ -5,7 +5,7 @@
      signal 플레이어·아군 탄 / drift 적·적 탄 / moss 획득물 / dust 계기 / bad 경고 */
 
 export const LIGHT = {
-  ground: "#efece3", field: "#faf9f5", fg: "#141413", dim: "#6f6d64", line: "#d9d5c8",
+  ground: "#efece3", field: "#faf9f5", fg: "#141413", dim: "#6b695f", line: "#d9d5c8",
   signal: "#d97757", drift: "#5d8fc2", moss: "#788c5d", dust: "#b0aea5", bad: "#b3402c",
   /* 소형 텍스트용 — 면 색 그대로 쓰면 라이트에서 대비가 모자란다 */
   signalT: "#a9482a", driftT: "#38658f", mossT: "#56663f",

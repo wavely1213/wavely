@@ -119,7 +119,35 @@ const SRC = ["App.jsx", "index.js", "metro.config.js", "babel.config.js",
   if (unchecked.size) console.log("  (타입 선언을 못 읽어 건너뜀: " + [...unchecked].join(", ") + ")");
 }
 
-/* ── ④ 소리 ── */
+/* ── ④ 색표가 웹과 같은지 ──
+   앱의 theme.js 와 웹의 CSS 변수는 같은 값이어야 한다. 어긋나면 두 화면이
+   다른 제품처럼 보이는데, 눈으로 비교하지 않으면 아무도 모른다. */
+{
+  const css = fs.readFileSync(path.join(DIR, "../src/index.template.html"), "utf8");
+  const cssVars = mode => {
+    /* :root 가 라이트, prefers-color-scheme: dark 블록부터가 다크 */
+    const block = mode === "dark" ? css.slice(css.indexOf("prefers-color-scheme: dark"))
+                                  : css.slice(css.indexOf(":root"));
+    const out = {};
+    for (const m of block.matchAll(/--c-([\w-]+):\s*(#[0-9a-fA-F]{3,8})/g))
+      if (!(m[1] in out)) out[m[1]] = m[2].toLowerCase();
+    return out;
+  };
+  const theme = await import(path.join(APP, "src/theme.js"));
+  const KEYS = { ground: "ground", field: "field", fg: "fg", dim: "dim", line: "line",
+                 signal: "signal", drift: "drift", moss: "moss", dust: "dust", bad: "bad",
+                 signalT: "signal-t", driftT: "drift-t", mossT: "moss-t" };
+  const diff = [];
+  for (const [mode, tbl] of [["light", theme.LIGHT], ["dark", theme.DARK]]) {
+    const v = cssVars(mode);
+    for (const [k, cssKey] of Object.entries(KEYS))
+      if (v[cssKey] && v[cssKey] !== String(tbl[k]).toLowerCase())
+        diff.push(`${mode}.${k}: 앱 ${tbl[k]} ≠ 웹 ${v[cssKey]}`);
+  }
+  check("앱 색표 = 웹 CSS 변수", diff.length === 0, diff.join(", "));
+}
+
+/* ── ⑤ 소리 ── */
 {
   const synth = await import(path.join(APP, "src/synth.js"));
   const cases = [
