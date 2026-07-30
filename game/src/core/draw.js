@@ -1,10 +1,21 @@
+import { B, SUPPLY } from "./entity.js";
+import { C, alpha, colorVer, shade } from "./color.js";
+import { G } from "./state.js";
+import { GUARD_CD, SKINS, stageEn, stageName, stats } from "./data.js";
+import { H, PAD, W, clamp, rand } from "./util.js";
+import { S } from "./save.js";
+import { host } from "./host.js";
 /* ═══════════════════════════════════════════════
    10. 그리기
    ═══════════════════════════════════════════════ */
-function draw() {
+/* 그리기는 Canvas2D 인터페이스에만 의존한다. 웹은 진짜 2D 컨텍스트를,
+   앱은 Skia 위에 얹은 같은 모양의 어댑터를 넣는다 (native/skia2d.js). */
+let ctx = null;
+export function setCtx(c) { ctx = c; }
+export function draw() {
   ctx.save();
 
-  if (G.shake > 0 && !REDUCED) {
+  if (G.shake > 0 && !host.reduced) {
     const s = G.shake * 7;
     ctx.translate(rand(-s, s), rand(-s, s));
   }
@@ -166,11 +177,11 @@ function draw() {
     ctx.fillRect(PAD, H / 2 - 42, W - 2 * PAD, 84);
     ctx.globalAlpha = a * (blink ? 1 : .35);
     ctx.fillStyle = C.signal;
-    ctx.font = "600 20px " + getComputedStyle(document.body).fontFamily;
+    ctx.font = "600 20px " + host.fontFamily;
     ctx.textAlign = "center";
     ctx.fillText("AX 증폭 코어 · 접근", W / 2, H / 2 - 2);
     ctx.globalAlpha = a;
-    ctx.font = "10px " + getComputedStyle(document.body).fontFamily;
+    ctx.font = "10px " + host.fontFamily;
     ctx.fillStyle = C.dim;
     ctx.fillText("CORE APPROACHING", W / 2, H / 2 + 20);
     ctx.textAlign = "left";
@@ -181,7 +192,7 @@ function draw() {
      입력은 잠그지 않는다(이동·폭탄 유지). */
   if (G.phase === "clear") {
     const t = G.waveT;
-    const fam = getComputedStyle(document.body).fontFamily;
+    const fam = host.fontFamily;
     const a = clamp(t * 2, 0, 1) * clamp((2.4 - t) * 2, 0, 1);
     ctx.textAlign = "center";
 
@@ -234,14 +245,14 @@ function draw() {
 
 /* 구역마다 대역의 상태가 다르다. 이름이 이미 방향을 정해주므로 그대로 따른다.
    flow 음수 = 파형이 역류(근원), noise = 파형이 무너진 정도, seam = 격벽 유무. */
-const BACKDROP = {
+export const BACKDROP = {
   1: { amp: 1.0, layers: 2, flow: 1.0, noise: 0,   seam: 1, echo: 0, glow: 0 },  /* 정적 지대 */
   2: { amp: 1.5, layers: 3, flow: 1.2, noise: 0,   seam: 1, echo: 0, glow: 0 },  /* 간섭 구역 */
   3: { amp: 1.2, layers: 2, flow: 1.0, noise: 0,   seam: 1, echo: 1, glow: 0 },  /* 반향의 벽 */
   4: { amp: .5,  layers: 1, flow: .7,  noise: 1,   seam: 0, echo: 0, glow: 0 },  /* 백색 소음 */
   5: { amp: 1.8, layers: 2, flow: -1.4, noise: .3, seam: 1, echo: 0, glow: 1 }   /* 근원 — 역류 */
 };
-function backdropOf(stage) {
+export function backdropOf(stage) {
   if (BACKDROP[stage]) return BACKDROP[stage];
   /* 잔향 — 4·5를 섞고 갈수록 탈색된다 */
   const k = Math.min(1, (stage - 5) / 8);
@@ -249,8 +260,8 @@ function backdropOf(stage) {
 }
 
 /* 배경: 스크롤되는 파형 + 미세 먼지 */
-const motes = Array.from({ length: 38 }, () => ({ x: rand(0, W), y: rand(0, H), s: rand(18, 70), w: rand(4, 16) }));
-function drawBackdrop() {
+export const motes = Array.from({ length: 38 }, () => ({ x: rand(0, W), y: rand(0, H), s: rand(18, 70), w: rand(4, 16) }));
+export function drawBackdrop() {
   const t = G.t;
   const B = backdropOf(G.stage);
   const dim = B.fade ? .18 * (1 - B.fade * .6) : .18;
@@ -341,17 +352,17 @@ function drawBackdrop() {
   }
 }
 
-function skinColor() {
+export function skinColor() {
   const s = SKINS.find(k => k.id === S.skin) || SKINS[0];
   return s.col();
 }
-function skinAccent() {
+export function skinAccent() {
   const s = SKINS.find(k => k.id === S.skin) || SKINS[0];
   return s.col2 ? s.col2() : shade(s.col(), -.45);
 }
 
 /* 기체 실루엣 — 형식별로 다르다. 필드·타이틀 프리뷰·격납고 스와치가 전부 이 함수를 공유. */
-const HULL = {
+export const HULL = {
   grail: [[0,-17],[7,2],[15,11],[5,9],[0,14],[-5,9],[-15,11],[-7,2]],
   bore:  [[0,-15],[5,-10],[5,-4],[17,-2],[18,10],[10,11],[8,5],[4,6],[2,14],
           [-2,14],[-4,6],[-8,5],[-10,11],[-18,10],[-17,-2],[-5,-4],[-5,-10]],
@@ -361,7 +372,7 @@ const HULL = {
 };
 
 /* 형식별 세부 — 패널 이음새 · 방열구 · 추진기 노즐 · 스텐실 데칼 위치 */
-const DETAIL = {
+export const DETAIL = {
   grail: { seams: [[[-7,2],[7,2]], [[0,-14],[0,-2]]],
            vents: [[-11,6.5],[7,6.5]], nozzles: [[-3.6,11],[3.6,11]], canopy: -3, decal: [-5.5,5],
            accent: [[-14,8.5,6,2.2],[8,8.5,6,2.2],[-1.4,-13,2.8,5]] },
@@ -376,7 +387,7 @@ const DETAIL = {
            accent: [[-15.5,0.5,5,2.6],[10.5,0.5,5,2.6],[-2,-15,4,4]] }
 };
 
-function poly(g, pts, dx, dy) {
+export function poly(g, pts, dx, dy) {
   g.beginPath();
   for (let i = 0; i < pts.length; i++) {
     const x = pts[i][0] + (dx || 0), y = pts[i][1] + (dy || 0);
@@ -389,7 +400,7 @@ function poly(g, pts, dx, dy) {
    sc < 1  : 잔상·소형 표시용 경량 패스(단색 + 외곽선)
    sc >= 1 : 금속 그라디언트 + 내부 베벨 + 패널 이음새 + 노즐 발광 + 스텐실
    게임 중 플레이어(sc=1)와 프리뷰(sc 1.7~2.9)만 풀디테일을 탄다. */
-function drawFrame(g, id, x, y, sc, col, col2) {
+export function drawFrame(g, id, x, y, sc, col, col2) {
   const pts = HULL[id] || HULL.grail;
   const d = DETAIL[id] || DETAIL.grail;
   const base = col || skinColor();
@@ -521,13 +532,13 @@ function drawFrame(g, id, x, y, sc, col, col2) {
 
   g.restore();
 }
-function drawShip(g, x, y, sc, col) { drawFrame(g, S.frame, x, y, sc, col); }
+export function drawShip(g, x, y, sc, col) { drawFrame(g, S.frame, x, y, sc, col); }
 
 /* ── 군체 실루엣 ────────────────────────────────
    수가 많으므로 기체와 같은 비용을 쓸 수 없다. 대신
    ① 외곽·베벨 경로를 Path2D로 한 번만 만들어 재사용하고
    ② 베벨은 전체 윤곽 대신 위/아래 오프셋 스트로크 2줄로 끝낸다. */
-const ESHAPE = {
+export const ESHAPE = {
   drone:  [[0, 12], [6, 4], [11, -5], [4, -3], [0, -7], [-4, -3], [-11, -5], [-6, 4]],
   weaver: [[0, 13], [7, 5], [13, 1], [8, -3], [0, -9], [-8, -3], [-13, 1], [-7, 5]],
   turret: Array.from({ length: 8 }, (_, i) => {
@@ -537,12 +548,12 @@ const ESHAPE = {
   rusher: [[0, 14], [5, 2], [9, -10], [3, -7], [-3, -7], [-9, -10], [-5, 2]]
 };
 
-const ePath = {};
-function enemyPaths(kind) {
+export const ePath = {};
+export function enemyPaths(kind) {
   let e = ePath[kind];
   if (!e) {
     const mk = (dx, dy) => {
-      const p = new Path2D(), pts = ESHAPE[kind];
+      const p = new host.Path2D(), pts = ESHAPE[kind];
       pts.forEach(([x, y], i) => i ? p.lineTo(x + dx, y + dy) : p.moveTo(x + dx, y + dy));
       p.closePath();
       return p;
@@ -554,8 +565,8 @@ function enemyPaths(kind) {
 
 /* 그라디언트는 로컬 좌표계 기준이라 한 번 만들면 모든 군체가 공유한다.
    테마가 바뀌면 colorVer가 올라가고 그때만 다시 만든다. */
-let eGradVer = -1, eGrad = null;
-function enemyGrad() {
+export let eGradVer = -1, eGrad = null;
+export function enemyGrad() {
   if (eGradVer !== colorVer) {
     eGrad = ctx.createLinearGradient(0, -14, 0, 14);
     eGrad.addColorStop(0, shade(C.drift, .30));
@@ -566,27 +577,27 @@ function enemyGrad() {
   return eGrad;
 }
 
-function drawEnemy(e) {
-  const P = enemyPaths(e.kind);
+export function drawEnemy(e) {
+  const sp = enemyPaths(e.kind);
   const wrecked = e.hp < e.maxHp * .45;
 
   ctx.save();
   ctx.translate(e.x, e.y);
 
   ctx.fillStyle = enemyGrad();
-  ctx.fill(P.base);
+  ctx.fill(sp.base);
 
   /* 경량 베벨 — 클립 안에서 오프셋 경로 2줄 */
   ctx.save();
-  ctx.clip(P.base);
+  ctx.clip(sp.base);
   ctx.lineWidth = 2.2;
-  ctx.strokeStyle = "rgba(255,255,255,.16)"; ctx.stroke(P.hi);
-  ctx.strokeStyle = "rgba(0,0,0,.30)";       ctx.stroke(P.lo);
+  ctx.strokeStyle = "rgba(255,255,255,.16)"; ctx.stroke(sp.hi);
+  ctx.strokeStyle = "rgba(0,0,0,.30)";       ctx.stroke(sp.lo);
   ctx.restore();
 
   /* 외곽선은 반투명으로 — C.fg 원색은 다크에서 순백이라 스티커처럼 뜬다.
      분리에 필요한 만큼만 남기고 장갑면이 주인공이 되게 한다. */
-  ctx.strokeStyle = alpha(C.fg, .5); ctx.lineWidth = .9; ctx.stroke(P.base);
+  ctx.strokeStyle = alpha(C.fg, .5); ctx.lineWidth = .9; ctx.stroke(sp.base);
 
   /* 형식별 장비 */
   if (e.kind === "drone") {
@@ -622,7 +633,7 @@ function drawEnemy(e) {
   if (e.flash > 0) {
     ctx.globalAlpha = Math.min(1, e.flash / .09) * .85;
     ctx.fillStyle = C.field;
-    ctx.fill(P.base);
+    ctx.fill(sp.base);
     ctx.globalAlpha = 1;
   }
 
@@ -630,7 +641,7 @@ function drawEnemy(e) {
 }
 
 /* AX 증폭 코어 — 육각 차폐를 겹쳐 두르고 송신을 되뿌린다 */
-function drawBoss(b) {
+export function drawBoss(b) {
   /* 격파 진행도 — 0이면 온전, 1이면 소멸 직전 */
   const d = b.dead ? clamp(b.dieT / 1.3, 0, 1) : 0;
 
@@ -723,7 +734,7 @@ function drawBoss(b) {
   ctx.restore();
 }
 
-function drawShock() {
+export function drawShock() {
   const s = G.wave1;
   if (!s) return;
   const a = clamp(1 - s.r / 780, 0, 1);

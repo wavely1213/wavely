@@ -2,14 +2,17 @@
    5. 캔버스 · 입력
    ═══════════════════════════════════════════════ */
 const cv = document.getElementById("cv");
-const ctx = cv.getContext("2d");
 const scope = document.getElementById("scope");
+
+/* 그리기 코어에 진짜 2D 컨텍스트를 꽂는다 — 앱에서는 여기에 Skia 어댑터가 들어간다 */
+const g2d = cv.getContext("2d");
+setCtx(g2d);
 
 function resize() {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   cv.width = W * dpr; cv.height = H * dpr;
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.imageSmoothingEnabled = true;
+  g2d.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g2d.imageSmoothingEnabled = true;
 }
 resize();
 window.addEventListener("resize", resize);

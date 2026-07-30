@@ -20,7 +20,7 @@ const ORDER = [
   "core/host.js",
   "core/util.js",
   "core/color.js",
-  "web/theme.js",       // C · readColors — host.color()가 여기서 값을 얻는다
+  "web/theme.js",       // CSS 변수 → setColors()
   "web/sound.js",       // Snd
   "core/data.js",
   "core/save.js",
@@ -30,8 +30,8 @@ const ORDER = [
   "core/wave.js",
   "core/entity.js",
   "core/update.js",
+  "core/draw.js",
   "web/canvas.js",
-  "web/draw.js",
   "web/loop.js",
   "web/flow.js",
   "web/hangar.js",

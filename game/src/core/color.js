@@ -1,6 +1,22 @@
-import { clamp } from "./util.js";
-/* 색 계산 — 값만 다루므로 코어에 둔다. 실제 색 자체는 host.color()가 준다. */
+/* 색 — 의미에 1:1로 고정된 10개 토큰.
+   값 자체는 타깃이 넣어 준다 (웹은 CSS 변수, 앱은 테마 객체).
+   코어는 이름만 알고, 이름과 의미의 대응은 여기가 유일한 정의다. */
 
+import { clamp } from "./util.js";
+
+export const COLOR_KEYS = ["ground", "field", "fg", "dim", "line", "signal", "drift", "moss", "dust", "bad"];
+
+/* 참조를 바꾸지 않고 안을 갈아 끼운다 — 테마가 바뀌어도 import 한 쪽이 다시 안 읽어도 된다 */
+export const C = {};
+for (const k of COLOR_KEYS) C[k] = "#888";
+
+/* 캐시한 그라디언트를 언제 버릴지 알려주는 값 */
+export let colorVer = 0;
+
+export function setColors(map) {
+  for (const k of COLOR_KEYS) C[k] = map[k] || "#888";
+  colorVer++;
+}
 
 /* rgba 헬퍼 — hex만 다룬다 */
 export function rgb(hex) {

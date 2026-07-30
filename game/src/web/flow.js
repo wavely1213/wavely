@@ -38,9 +38,7 @@ function tip(id) {
   setTimeout(() => toast(TIPS[id]), showing ? 1500 : 0);
 }
 
-function maxStage() { return Math.min(S.cleared + 1, 99); }
-function stageName(n) { return n <= 5 ? STAGES[n].nm : ENDLESS_NM + " " + (n - 5); }
-function stageEn(n) { return n <= 5 ? STAGES[n].en : "REVERB " + (n - 5); }
+/* maxStage · stageName · stageEn 은 코어(data.js) 로 옮겼다 — 화면과 무관한 규칙이므로 */
 
 function paintTitle() {
   G.pickStage = clamp(G.pickStage, 1, maxStage());

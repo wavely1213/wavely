@@ -1,3 +1,4 @@
+import { C } from "./color.js";
 import { G } from "./state.js";
 import { S, persist } from "./save.js";
 import { host } from "./host.js";
@@ -105,10 +106,10 @@ export function dropSupply(x, y) {
 }
 
 export const SUPPLY = {
-  cluster: { nm: "코어 뭉치", col: () => host.color("moss") },
-  repair:  { nm: "정비 부품", col: () => host.color("moss") },
-  surge:   { nm: "과부하 셀", col: () => host.color("signal") },
-  ord:     { nm: "예비 탄두", col: () => host.color("dust") }
+  cluster: { nm: "코어 뭉치", col: () => C.moss },
+  repair:  { nm: "정비 부품", col: () => C.moss },
+  surge:   { nm: "과부하 셀", col: () => C.signal },
+  ord:     { nm: "예비 탄두", col: () => C.dust }
 };
 
 export function collect(d) {

@@ -1,6 +1,6 @@
 import { S } from "./save.js";
 import { host } from "./host.js";
-import { shade } from "./color.js";
+import { C, shade } from "./color.js";
 /* ═══════════════════════════════════════════════
    4. 게임 데이터
    ═══════════════════════════════════════════════ */
@@ -119,13 +119,13 @@ export function stats() {
    단색 도장보다 기계 도장처럼 읽힌다. */
 export const SKINS = [
   { id: "std",    nm: "정격 도장", sub: "관제국 제식 배색",   cost: 0,
-    col: () => host.color("signal"), col2: () => shade(host.color("signal"), -.5) },
+    col: () => C.signal, col2: () => shade(C.signal, -.5) },
   { id: "azure",  nm: "창공",      sub: "고고도 정찰 배색",   cost: 210,
-    col: () => host.color("drift"),  col2: () => host.color("field") },
+    col: () => C.drift,  col2: () => C.field },
   { id: "verdant",nm: "초원",      sub: "지상 지원 배색",     cost: 210,
-    col: () => host.color("moss"),   col2: () => shade(host.color("moss"), -.45) },
+    col: () => C.moss,   col2: () => shade(C.moss, -.45) },
   { id: "ink",    nm: "흑요",      sub: "3구역 돌파 증표",    cost: 0, need: 3,
-    col: () => host.color("fg"),     col2: () => host.color("signal") }
+    col: () => C.fg,     col2: () => C.signal }
 ];
 export const TRAILS = [
   { id: "ember", nm: "잔불", sub: "표준 배기",        cost: 0 },
@@ -278,3 +278,8 @@ export const CODEX = [
   { id: "rusher", nm: "MR-0 돌입기", tx: "무장이 없다. 그냥 온다. 군체가 가장 정직해지는 형태이고, 가장 싸게 찍어낼 수 있는 형태다." },
   { id: "boss",   nm: "AX 증폭 코어", tx: "구역마다 하나씩 매달린 중계 증폭기. 육각 차폐를 두르고 송신을 되뿌린다. 부수면 그 구간의 군체가 잠시 손을 놓는다." }
 ];
+
+/* 구역 이름은 데이터에서 나오는 규칙이라 화면 어디서나 같은 답을 줘야 한다 */
+export function maxStage() { return Math.min(S.cleared + 1, 99); }
+export function stageName(n) { return n <= 5 ? STAGES[n].nm : ENDLESS_NM + " " + (n - 5); }
+export function stageEn(n) { return n <= 5 ? STAGES[n].en : "REVERB " + (n - 5); }

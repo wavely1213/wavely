@@ -1,13 +1,11 @@
 /* ═══════════════════════════════════════════════
-   2. 색 (CSS 변수 → 캔버스)
+   2. 색 (CSS 변수 → 코어 색표)
    ═══════════════════════════════════════════════ */
-const C = {};
-const COLOR_KEYS = ["ground", "field", "fg", "dim", "line", "signal", "drift", "moss", "dust", "bad"];
-let colorVer = 0;                     /* 캐시한 그라디언트를 언제 버릴지 알려주는 값 */
 function readColors() {
   const cs = getComputedStyle(document.documentElement);
-  for (const k of COLOR_KEYS) C[k] = cs.getPropertyValue("--c-" + k).trim() || "#888";
-  colorVer++;
+  const map = {};
+  for (const k of COLOR_KEYS) map[k] = cs.getPropertyValue("--c-" + k).trim();
+  setColors(map);
 }
 readColors();
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", readColors);

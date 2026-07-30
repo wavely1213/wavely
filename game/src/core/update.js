@@ -1,3 +1,4 @@
+import { C } from "./color.js";
 import { G } from "./state.js";
 import { P, keys } from "./input.js";
 import { GUARD_CD, stats } from "./data.js";
@@ -53,7 +54,7 @@ export function update(dt) {
 
   /* — 배기 파티클 — */
   if (!host.reduced && Math.random() < .8) {
-    const tcol = S.trail === "ion" ? host.color("drift") : S.trail === "bloom" ? host.color("moss") : host.color("signal");
+    const tcol = S.trail === "ion" ? C.drift : S.trail === "bloom" ? C.moss : C.signal;
     if (S.trail !== "echo")
       G.parts.push({ x: p.x + rand(-4, 4), y: p.y + 12, vx: rand(-14, 14), vy: rand(60, 130), life: .3, max: .3, col: tcol, sz: S.trail === "bloom" ? rand(2, 3.4) : rand(1, 2.4) });
   }
@@ -85,7 +86,7 @@ export function update(dt) {
       const bo = G.boss;
       if (dist2(b.x, b.y, bo.x, bo.y) < (bo.r + b.r) ** 2) {
         bo.hp -= b.dmg;
-        burst(b.x, b.y, host.color("signal"), 3, .6);
+        burst(b.x, b.y, C.signal, 3, .6);
         host.sound.hit();
         if (b.pierce > 0) { b.pierce--; b.hit.push(bo); } else consumed = true;
         if (bo.hp <= 0) killBoss();
@@ -157,7 +158,7 @@ export function update(dt) {
     if (dd < 18) {
       G.drops.splice(i, 1);
       collect(d);
-      G.parts.push({ x: d.x, y: d.y, vx: 0, vy: -40, life: .3, max: .3, col: host.color("moss"), sz: 3 });
+      G.parts.push({ x: d.x, y: d.y, vx: 0, vy: -40, life: .3, max: .3, col: C.moss, sz: 3 });
       continue;
     }
     if (d.y > H + 30) G.drops.splice(i, 1);
@@ -234,7 +235,7 @@ export function updateBoss(dt, p) {
 export function damageEnemy(e, dmg) {
   e.hp -= dmg;
   e.flash = .09;
-  burst(e.x, e.y, host.color("drift"), 3, .5);
+  burst(e.x, e.y, C.drift, 3, .5);
   host.sound.hit();
   if (e.hp <= 0) {
     const idx = G.enemies.indexOf(e);
@@ -246,7 +247,7 @@ export function damageEnemy(e, dmg) {
     G.score += Math.round(e.score * comboMul());
     /* 처치 정지 — 프레임당 한 번만 걸어 연속 처치 시 누적되지 않게 한다 */
     G.stop = Math.max(G.stop, .045);
-    burst(e.x, e.y, host.color("drift"), 14, 1, true);
+    burst(e.x, e.y, C.drift, 14, 1, true);
     dropLoot(e.x, e.y, e.kind === "turret" ? 3 : e.kind === "weaver" ? 2 : 1);
     if (Math.random() < .045) dropSupply(e.x, e.y);   /* 탑승자별 보급품 */
     G.shake = Math.min(1, G.shake + .12);
@@ -264,7 +265,7 @@ export function killBoss() {
   b.dead = true; b.dieT = 0;
   G.kills++;
   G.score += Math.round(5000 * comboMul());
-  burst(b.x, b.y, host.color("drift"), 34, 1.6, true);   /* 1단: 차폐가 먼저 깨진다 */
+  burst(b.x, b.y, C.drift, 34, 1.6, true);   /* 1단: 차폐가 먼저 깨진다 */
   dropLoot(b.x, b.y, 26);
   dropSupply(b.x - 16, b.y); dropSupply(b.x + 16, b.y);
   G.ebullets.length = 0;
@@ -282,12 +283,12 @@ export function updateBossDeath(dt) {
   const was = b.dieT;
   b.dieT += dt;
   if (was < .35 && b.dieT >= .35) {          /* 2단: 장갑이 뜯긴다 */
-    burst(b.x, b.y, host.color("drift"), 30, 2.0, true);
+    burst(b.x, b.y, C.drift, 30, 2.0, true);
     G.shake = Math.max(G.shake, .7);
     host.sound.boom();
   }
   if (was < .8 && b.dieT >= .8) {            /* 3단: 코어가 터진다 */
-    burst(b.x, b.y, host.color("signal"), 44, 2.4, true);
+    burst(b.x, b.y, C.signal, 44, 2.4, true);
     G.shake = 1; G.flash = 1;
     host.sound.big();
   }
@@ -304,7 +305,7 @@ export function hurt() {
 
   if (st.guard && p.guard >= GUARD_CD) {
     p.guard = 0; p.inv = .7;
-    burst(p.x, p.y, host.color("drift"), 22, 1.2);
+    burst(p.x, p.y, C.drift, 22, 1.2);
     G.flash = .35;
     if (S.tips.includes("guard")) host.notify("육각 차폐 전개"); else host.tip("guard");
     host.sound.blip(520, .16, "triangle", .05);
@@ -313,7 +314,7 @@ export function hurt() {
 
   if (Math.random() < st.evade) {
     p.inv = .55; p.dodgeT = .6;
-    burst(p.x, p.y, host.color("dust"), 10, .8);
+    burst(p.x, p.y, C.dust, 10, .8);
     if (S.tips.includes("evade")) host.notify("회피"); else host.tip("evade");
     host.sound.blip(760, .07, "triangle", .035);
     return;
@@ -322,9 +323,9 @@ export function hurt() {
   p.hp--; p.inv = 1.4;
   G.combo = 0;
   G.shake = 1; G.flash = .6; G.stop = .1;  /* 맞은 것도 한 박자 끊어 인지시킨다 */
-  burst(p.x, p.y, host.color("signal"), 20, 1.3);
+  burst(p.x, p.y, C.signal, 20, 1.3);
   host.sound.hurt();
-  if (p.hp <= 0) { p.dead = true; burst(p.x, p.y, host.color("signal"), 50, 2); host.sound.big(); host.runEnded(); }
+  if (p.hp <= 0) { p.dead = true; burst(p.x, p.y, C.signal, 50, 2); host.sound.big(); host.runEnded(); }
 }
 
 export function useBomb() {
@@ -341,7 +342,7 @@ export function useBomb() {
   host.sound.bomb();
   for (const e of [...G.enemies]) damageEnemy(e, 60);
   if (G.boss && !G.boss.dead && G.boss.entered) { G.boss.hp -= 140; if (G.boss.hp <= 0) killBoss(); }
-  burst(p.x, p.y, host.color("moss"), 40, 1.8, true);
+  burst(p.x, p.y, C.moss, 40, 1.8, true);
   host.hudChanged();
 }
 
@@ -357,7 +358,7 @@ export function updateShock(dt) {
     const d = Math.hypot(b.x - s.x, b.y - s.y);
     if (d <= s.r && d > prev - 40) {
       G.ebullets.splice(i, 1);
-      G.parts.push({ x: b.x, y: b.y, vx: rand(-30, 30), vy: rand(-30, 30), life: .25, max: .25, col: host.color("moss"), sz: 3 });
+      G.parts.push({ x: b.x, y: b.y, vx: rand(-30, 30), vy: rand(-30, 30), life: .25, max: .25, col: C.moss, sz: 3 });
     } else if (d <= prev) {
       G.ebullets.splice(i, 1);
     }
