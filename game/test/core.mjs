@@ -117,6 +117,49 @@ mem.clear(); loadSave();
   check("첫 안내는 한 번만", markTip("combo") === true && markTip("combo") === false, S.tips.join(","));
 }
 
+/* ── 프레임 레이트가 달라도 같은 게임이어야 한다 ──
+   앱이 붙으면서 120Hz 기기가 실사용에 들어왔다. 같은 편성이 기기에 따라
+   다른 화력을 내면 안 된다. 실제로 연사가 60Hz −10.2%, 120Hz −4.4% 로 갈려 있었다. */
+{
+  const fireInterval = fps => {
+    S.eq = { weapon: 1, engine: 1, shield: 1 };
+    beginRun(1); armStage();
+    G.screen = "play"; G.phase = "gap"; G.waveT = -1e6;   /* 적이 안 나오게 */
+    G.player.inv = 1e9;
+    let shots = 0;
+    const dt = 1 / fps, N = Math.round(20 * fps);
+    for (let i = 0; i < N; i++) {
+      const before = G.bullets.length;
+      update(dt);
+      if (G.bullets.length > before) shots++;
+      G.bullets.length = 0;
+    }
+    return 20 / shots;
+  };
+  const want = (S.eq = { weapon: 1, engine: 1, shield: 1 }, stats().rate);
+  const got = [30, 60, 120, 144].map(f => ({ fps: f, iv: fireInterval(f) }));
+  const off = got.map(g => Math.abs(g.iv / want - 1));
+  check("연사 간격이 표시대로", Math.max(...off) < .02,
+    got.map(g => `${g.fps}fps ${(g.iv / want * 100 - 100).toFixed(1)}%`).join(" · "));
+  check("연사가 프레임 레이트를 안 탄다",
+    Math.max(...got.map(g => g.iv)) / Math.min(...got.map(g => g.iv)) < 1.02,
+    got.map(g => `${g.fps}fps ${g.iv.toFixed(4)}s`).join(" · "));
+
+  /* 이동도 같은 시간이면 같은 곳에 있어야 한다 */
+  const moveTo = fps => {
+    beginRun(1); G.screen = "play"; G.phase = "gap"; G.waveT = -1e6;
+    G.player.inv = 1e9;
+    P.active = true; P.tx = 100; P.ty = 200;
+    const dt = 1 / fps;
+    for (let i = 0; i < Math.round(.5 * fps); i++) update(dt);
+    return [G.player.x, G.player.y];
+  };
+  const pts = [30, 60, 120, 144].map(moveTo);
+  const spread = Math.max(...pts.map(a => Math.hypot(a[0] - pts[1][0], a[1] - pts[1][1])));
+  check("이동이 프레임 레이트를 안 탄다", spread < 1,
+    pts.map(a => `(${a[0].toFixed(1)},${a[1].toFixed(1)})`).join(" "));
+}
+
 /* ── 무한 모드 「잔향」 — 5구역 뒤로는 데이터에 없는 번호가 계속 들어온다 ── */
 {
   S.cleared = 99;

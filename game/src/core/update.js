@@ -60,8 +60,16 @@ export function update(dt) {
   }
 
   /* — 사격 — */
+  /* 남은 시간을 버리지 않고 이월한다.
+     `p.cd = rate` 로 두면 프레임 경계에서 초과분이 사라져 실제 연사가 표시보다 느려지고,
+     그 손실이 프레임 레이트에 따라 달라진다 — 실측 60Hz −10.2%, 120Hz −4.4%.
+     같은 편성이 기기에 따라 다른 화력을 내면 안 된다. */
   p.cd -= dt;
-  if (p.cd <= 0 && !p.dead) { shoot(); p.cd = st.rate * (p.surge > 0 ? .55 : 1); }
+  if (p.cd <= 0 && !p.dead) {
+    shoot();
+    p.cd += st.rate * (p.surge > 0 ? .55 : 1);
+    if (p.cd < 0) p.cd = 0;             /* 프레임보다 빠른 연사까지 따라잡지는 않는다 */
+  }
 
   /* — 콤보 감쇠 — */
   if (G.combo > 0) { G.comboT -= dt; if (G.comboT <= 0) G.combo = 0; }
