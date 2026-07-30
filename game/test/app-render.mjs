@@ -228,6 +228,31 @@ await act(async () => { pressableWith(tree, "출격").props.onPress(); });
 await act(async () => { await wait(120); });
 check("전투 진입", has(tree, "BOMB"), texts(tree).slice(0, 14).join("|"));
 
+/* 필드 크기는 계산이 아니라 측정으로 정해진다 — onLayout 이 실제로 반영되는가.
+   기기마다 머리말·안전영역 높이가 달라서, 빼기로 잡으면 태블릿에서 하단이 눌린다. */
+{
+  const field = tree.root.findAll(n => n.type === "View" && typeof n.props.onLayout === "function", { deep: true }).at(-1);
+  check("필드가 onLayout 을 단다", !!field, "onLayout 붙은 View 없음");
+  /* GameField 의 뿌리 View — 명시적인 width/height 를 가진 것 */
+  const sizeOf = () => {
+    const v = tree.root.findAll(n => n.type === "View" && n.props.style
+      && typeof n.props.style.width === "number" && typeof n.props.style.height === "number"
+      && n.props.onStartShouldSetResponder, { deep: true }).at(-1);
+    return v ? [v.props.style.width, v.props.style.height] : null;
+  };
+  const before = sizeOf();
+  await act(async () => {
+    field.props.onLayout({ nativeEvent: { layout: { x: 0, y: 0, width: 900, height: 1200 } } });
+  });
+  await act(async () => { await wait(40); });
+  const after = sizeOf();
+  check("잰 크기가 필드에 반영된다", after && after[1] > (before ? before[1] : 0),
+    `${JSON.stringify(before)} → ${JSON.stringify(after)}`);
+  /* 480×720 비율은 유지돼야 한다 */
+  check("필드 비율 유지", after && Math.abs(after[0] / after[1] - 480 / 720) < .02,
+    after ? `${after[0]}×${after[1]}` : "없음");
+}
+
 /* 루프가 실제로 도는가 — 렌더만 되고 세계가 멈춰 있으면 화면은 멀쩡해 보인다 */
 {
   const core = require2("../src/core/index.js");

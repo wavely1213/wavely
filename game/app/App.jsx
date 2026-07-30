@@ -4,7 +4,7 @@
    이 파일이 하는 일은 화면 전환과 계기판 UI 뿐이다.
 */
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { View, Text, Pressable, useColorScheme, useWindowDimensions, AppState } from "react-native";
+import { View, Text, Pressable, useColorScheme, AppState } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
@@ -46,7 +46,6 @@ export default function App() {
 function Game() {
   const scheme = useColorScheme() === "light" ? "light" : "dark";
   const c = themeFor(scheme);
-  const { width, height } = useWindowDimensions();
 
   const [booted, setBooted] = useState(false);
   const [screen, setScreen] = useState("title");
@@ -54,6 +53,7 @@ function Game() {
   const [, bump] = useState(0);                 /* HUD·격납고 숫자 갱신용 */
   const [story, setStory] = useState(null);     /* { lines, then } */
   const [result, setResult] = useState(null);
+  const [box, setBox] = useState({ w: 360, h: 480 });   /* 필드가 실제로 받은 공간 */
 
   const refresh = useCallback(() => bump(n => n + 1), []);
   const screenRef = useRef(screen);
@@ -165,9 +165,10 @@ function Game() {
   const running = screen === "play";
   /* 저장이 손상돼 있으면 돌파하지 않은 구역을 가리킬 수 있다 — 웹 타이틀과 같은 보정 */
   G.pickStage = clamp(G.pickStage, 1, maxStage());
-  /* 필드가 쓸 수 있는 세로 공간 — 머리말과 화면별 하단 UI 를 뺀 나머지 */
-  const fieldH = Math.max(240, height - 190);
-  const fieldW = Math.min(width, fieldH * (W / H));
+  /* 필드 크기는 계산하지 않고 **재서** 쓴다. 머리말·안전영역·하단 UI 높이를 빼는 식으로
+     잡으면 기기마다 어긋난다(태블릿에서 하단이 눌렸다). 남은 공간을 그대로 받는다. */
+  const fieldH = Math.max(200, box.h);
+  const fieldW = Math.min(box.w, fieldH * (W / H));
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: c.ground }} edges={["top", "bottom"]}>
@@ -242,7 +243,8 @@ function Game() {
         <>
           {screen === "title" ? (
             /* 타이틀에서는 필드 대신 기체를 세워 둔다 — 장착한 도장·궤적이 그대로 보인다 */
-            <View style={{ alignItems: "center", justifyContent: "center", height: fieldH }}>
+            <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+              onLayout={e => { const { width: w, height: h } = e.nativeEvent.layout; setBox(b => (b.w === w && b.h === h ? b : { w, h })); }}>
               <Text style={{ color: c.dim, fontSize: 13, lineHeight: 22, paddingHorizontal: 28, textAlign: "center", marginBottom: 8 }}>
                 기계화 3세기. 대역을 따라 내려온 군체가 도시를 덮었다.{"\n"}
                 기체를 입고 대역을 거슬러 올라가, 그들을 움직이는 송신을 끊어라.
@@ -250,13 +252,14 @@ function Game() {
               <ShipPreview size={Math.min(220, fieldH - 120)} active revision={S.frame + S.skin + S.trail} />
             </View>
           ) : (
-            <View style={{ alignItems: "center" }}>
+            <View style={{ flex: 1, alignItems: "center" }}
+              onLayout={e => { const { width: w, height: h } = e.nativeEvent.layout; setBox(b => (b.w === w && b.h === h ? b : { w, h })); }}>
               <GameField width={fieldW} height={fieldH} running={running} ground={c.field} />
             </View>
           )}
 
           {screen === "title" && (
-            <View style={{ flex: 1, padding: 18, gap: 10 }}>
+            <View style={{ padding: 18, gap: 10 }}>
               <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
                 <Pressable onPress={() => { G.pickStage = Math.max(1, G.pickStage - 1); refresh(); }}
                   disabled={G.pickStage <= 1} hitSlop={12}>
@@ -278,14 +281,13 @@ function Game() {
                 {lo.pilot.desig} 「{lo.pilot.call}」 · {lo.frame.desig} {lo.frame.nm} · 코어 {fmt(S.coins)}
               </Text>
 
-              <View style={{ flex: 1 }} />
               <Btn c={c} primary onPress={() => { Snd.init(); Snd.ui(); startRun(G.pickStage); }}>출격</Btn>
               <Btn c={c} onPress={() => { Snd.ui(); setScreen("hangar"); }}>격납고</Btn>
             </View>
           )}
 
           {(screen === "play" || screen === "pause") && (
-            <View style={{ flex: 1, paddingHorizontal: 16, paddingTop: 10 }}>
+            <View style={{ paddingHorizontal: 16, paddingTop: 10, paddingBottom: 10 }}>
               <View style={{ flexDirection: "row", alignItems: "center" }}>
                 <View style={{ flex: 1 }}>
                   <Text style={[mono, { color: c.dim, fontSize: 10 }]}>

@@ -25,7 +25,6 @@ export default function GameField({ width, height, running, ground }) {
   const offX = (width - W * scale) / 2;
   const offY = (height - H * scale) / 2;
 
-
   useEffect(() => {
     setHost({ Path2D: makePath2D(Skia) });
     let raf = 0, last = 0, alive = true;
@@ -47,7 +46,8 @@ export default function GameField({ width, height, running, ground }) {
       }
 
       const rec = Skia.PictureRecorder();
-      const canvas = rec.beginRecording();
+      /* 컬링 범위를 준다 — 안 주면 Skia 가 무한 영역으로 잡아 잘라낼 기회를 잃는다 */
+      const canvas = rec.beginRecording(Skia.XYWHRect(0, 0, width, height));
       canvas.save();
       canvas.translate(offX, offY);
       canvas.scale(scale, scale);
@@ -60,7 +60,7 @@ export default function GameField({ width, height, running, ground }) {
 
     raf = requestAnimationFrame(frame);
     return () => { alive = false; cancelAnimationFrame(raf); };
-  }, [running, scale, offX, offY, picture]);
+  }, [running, scale, offX, offY, width, height, picture]);
 
   /* 터치 — locationX/Y 는 이 View 기준이라 화면 어디에 놓이든 맞는다.
      손가락 위쪽으로 52px 띄워 기체가 손에 가리지 않게 한다 (웹의 터치 오프셋과 같은 값). */
