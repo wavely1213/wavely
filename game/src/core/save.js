@@ -50,3 +50,12 @@ export function persist() {
   try { host.storage.set(SAVE_KEY, JSON.stringify(S)); } catch (e) { /* 저장 불가 환경 무시 */ }
 }
 /* loadSave()는 호스트가 부팅 때 한 번 부른다 — 데이터 목록보다 뒤에 실행되어야 하므로 */
+
+/* 진행 초기화. 소리 설정은 진행 기록이 아니므로 남긴다.
+   여기 있어야 하는 이유: S 는 이 모듈이 소유한 바인딩이라 바깥에서는 갈아 끼울 수 없다. */
+export function resetSave() {
+  const keepSound = S.sound;
+  S = structuredClone(DEFAULT_SAVE);
+  S.sound = keepSound;
+  persist();
+}

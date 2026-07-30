@@ -243,10 +243,7 @@ function paintHangar() {
       }, 4000);
       return;
     }
-    const keepSound = S.sound;
-    S = structuredClone(DEFAULT_SAVE);
-    S.sound = keepSound;                   /* 소리 설정은 진행 기록이 아니다 */
-    persist();
+    resetSave();                           /* 초기화 규칙은 코어(save.js)가 갖는다 */
     G.pickStage = 1;
     toast("기록을 초기화했습니다");
     paintHangar();

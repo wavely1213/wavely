@@ -172,6 +172,13 @@ const pressableWith = (tree, label) => {
   return all.at(-1);                       /* 가장 안쪽(잎에 가까운) 것 */
 };
 
+/* 글자가 정확히 일치하는 것만 — 「기록」 탭과 「기록 초기화」 버튼처럼 서로를 포함할 때 쓴다 */
+const pressableExact = (tree, label) => {
+  const all = tree.root.findAll(n => n.type === "Pressable" && textUnder(n).trim() === label, { deep: true });
+  if (!all.length) throw new Error(`「${label}」 버튼(정확히)을 못 찾았다`);
+  return all.at(-1);
+};
+
 let tree;
 const errs = [];
 const origErr = console.error;
@@ -190,9 +197,27 @@ check("렌더 중 콘솔 오류 없음", errs.length === 0, errs.join(" | "));
 await act(async () => { pressableWith(tree, "격납고").props.onPress(); });
 check("격납고 진입", has(tree, "탑승자") && has(tree, "스트레이"), texts(tree).slice(0, 14).join("|"));
 for (const tab of ["기체", "장비", "치장", "기록"]) {
-  await act(async () => { pressableWith(tree, tab).props.onPress(); });
+  await act(async () => { pressableExact(tree, tab).props.onPress(); });
   check(`격납고 · ${tab}`, texts(tree).length > 5, "탭 내용 없음");
 }
+/* 기록 탭이 웹과 같은 내용을 담는가 — 항행 기록 · 조우 기록 · 최고 기록 · 초기화 */
+{
+  await act(async () => { pressableExact(tree, "기록").props.onPress(); });
+  check("기록 탭 구성",
+    has(tree, "항행 기록") && has(tree, "조우 기록") && has(tree, "최고") && has(tree, "기록 초기화"),
+    texts(tree).join("|").slice(0, 160));
+
+  /* 초기화는 두 번 눌러야 지워진다 */
+  const core = require2("../src/core/index.js");
+  core.S.coins = 500; core.S.best = 9999; core.S.sound = false;
+  await act(async () => { pressableExact(tree, "기록 초기화").props.onPress(); });
+  check("초기화 1단계는 경고만", core.S.coins === 500 && has(tree, "한 번 더"), "코어 " + core.S.coins);
+  await act(async () => { pressableWith(tree, "한 번 더").props.onPress(); });
+  check("초기화 2단계에서 지운다", core.S.coins === 0 && core.S.best === 0, `코어 ${core.S.coins} 최고 ${core.S.best}`);
+  check("소리 설정은 남는다", core.S.sound === false, "sound " + core.S.sound);
+  core.S.sound = true;
+}
+
 await act(async () => { pressableWith(tree, "닫기").props.onPress(); });
 check("격납고 → 타이틀", has(tree, "출격"), texts(tree).slice(0, 10).join("|"));
 

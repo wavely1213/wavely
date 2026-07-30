@@ -6,6 +6,7 @@ import { View, Text, ScrollView, Pressable } from "react-native";
 import {
   S, PILOTS, FRAMES, SKINS, TRAILS, fmt, stageName,
   statusOf, acquire, upgrade, equipRows, storyFor, STORY_REVERB,
+  CODEX, resetSave, G,
 } from "../../src/core/index";
 import { mono, Badge, Btn, Row } from "./ui";
 import Plate from "./Plate";
@@ -37,8 +38,19 @@ function PriceBtn({ c, item, slot, equippedId, onDone }) {
   );
 }
 
+/* 기록 한 줄 — 아직 못 본 것은 흐리게, 그래도 어느 구역인지는 읽히게 */
+function LogRow({ c, title, body, seen }) {
+  return (
+    <View style={{ paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: c.line }}>
+      <Text style={[mono, { color: seen ? c.dim : c.line, fontSize: 10 }]}>{title}</Text>
+      <Text style={{ color: c.dim, fontSize: 13, marginTop: 6, lineHeight: 20 }}>{body}</Text>
+    </View>
+  );
+}
+
 export default function Hangar({ c, onClose, notify, refresh }) {
   const [tab, setTab] = useState("pilot");
+  const [armed, setArmed] = useState(false);   /* 기록 초기화 2단계 */
   /* 다시 그려야 할 이유 — 도장을 바꾸면 도면 색이, 기체를 바꾸면 스와치 실루엣이 따라간다 */
   const dep = S.skin + "/" + S.frame + "/" + c.field;
   const done = (r, item) => {
@@ -127,22 +139,57 @@ export default function Hangar({ c, onClose, notify, refresh }) {
           </>
         )}
 
-        {tab === "log" && [1, 2, 3, 4, 5, ...Object.keys(STORY_REVERB).map(Number)].map(n => {
-          const seen = S.seenStory.includes(n);
-          const lines = storyFor(n);
-          return (
-            <View key={n} style={{ paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: c.line, opacity: seen ? 1 : .35 }}>
-              <Text style={[mono, { color: c.dim, fontSize: 10 }]}>STAGE {n} · {stageName(n)}</Text>
-              {seen && lines
-                ? lines.map(([who, say], i) => (
-                    <Text key={i} style={{ color: who === null ? c.dim : c.fg, fontSize: 13, marginTop: 6 }}>
-                      {who ? `${who} — ` : ""}{say}
-                    </Text>
-                  ))
-                : <Text style={{ color: c.dim, fontSize: 13, marginTop: 6 }}>아직 도달하지 않은 구역</Text>}
-            </View>
-          );
-        })}
+        {tab === "log" && (
+          <>
+            <Text style={[mono, { color: c.dim, fontSize: 11, marginTop: 14, marginBottom: 2 }]}>항행 기록</Text>
+            {[1, 2, 3, 4, 5, ...Object.keys(STORY_REVERB).map(Number)].map(n => {
+              const seen = S.seenStory.includes(n);
+              const lines = seen ? storyFor(n) : null;
+              return (
+                <LogRow key={n} c={c} seen={seen}
+                  title={`STAGE ${n} · ${stageName(n)}`}
+                  body={lines
+                    ? lines.map(([who, say]) => (who ? `${who}: ` : "") + say).join("  /  ")
+                    : "미확인 구역"} />
+              );
+            })}
+
+            <Text style={[mono, { color: c.dim, fontSize: 11, marginTop: 22, marginBottom: 2 }]}>조우 기록</Text>
+            {CODEX.map(x => {
+              const seen = S.codex.includes(x.id);
+              return <LogRow key={x.id} c={c} seen={seen}
+                title={seen ? x.nm : "??? · 미조우"}
+                body={seen ? x.tx : "아직 만나지 않았다."} />;
+            })}
+
+            <Text style={[mono, { color: c.dim, fontSize: 11, marginTop: 22 }]}>
+              최고 {fmt(S.best)} · 돌파 {S.cleared}구역
+            </Text>
+
+            {/* 되돌릴 수 없으므로 2단계로 받는다 — 확인 창을 띄우지 않고 버튼 자체가 상태를 바꾼다 */}
+            <Pressable
+              onPress={() => {
+                if (!armed) {
+                  setArmed(true);
+                  setTimeout(() => setArmed(false), 4000);
+                  return;
+                }
+                resetSave();
+                G.pickStage = 1;
+                setArmed(false);
+                notify("기록을 초기화했습니다");
+                refresh();
+              }}
+              style={({ pressed }) => ({
+                marginTop: 10, paddingVertical: 12, borderRadius: 10, alignItems: "center",
+                borderWidth: 1, borderColor: armed ? c.bad : c.line, opacity: pressed ? .7 : 1,
+              })}>
+              <Text style={{ color: armed ? c.bad : c.dim, fontSize: 13, letterSpacing: 1 }}>
+                {armed ? "정말 지웁니다 — 한 번 더" : "기록 초기화"}
+              </Text>
+            </Pressable>
+          </>
+        )}
       </ScrollView>
 
       <View style={{ padding: 18, paddingTop: 8 }}>
