@@ -14,7 +14,7 @@ import { Canvas, Picture, Skia } from "@shopify/react-native-skia";
 import { useSharedValue } from "react-native-reanimated";
 
 import { Skia2D, makePath2D } from "../../src/native/skia2d";
-import { W, H, G, P, host, update, movePlayer, stats, draw, setCtx } from "../../src/core/index";
+import { W, H, G, P, setHost, update, movePlayer, stats, draw, setCtx } from "../../src/core/index";
 
 /* 서체는 한 번만 찾아 크기별로 캐시한다 — fillText 마다 만들면 프레임이 흔들린다 */
 function makeFontResolver() {
@@ -44,7 +44,7 @@ export default function GameField({ width, height, running, ground }) {
   const fontFor = useMemo(makeFontResolver, []);
 
   useEffect(() => {
-    host.Path2D = makePath2D(Skia);
+    setHost({ Path2D: makePath2D(Skia) });
     let raf = 0, last = 0, alive = true;
 
     const frame = now => {

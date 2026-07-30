@@ -6,7 +6,7 @@
      2) loadSave()          — 저장 데이터 로드·검증 (데이터 목록에 의존하므로 반드시 이 순서)
      3) startRun() / update(dt) — 게임 루프는 타깃이 돌린다
 */
-export { host, setHost } from "./host.js";
+export { host, setHost, wired, unwired } from "./host.js";
 export * from "./util.js";
 export * from "./color.js";
 export * from "./data.js";

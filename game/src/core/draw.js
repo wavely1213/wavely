@@ -792,3 +792,67 @@ export function drawShipPreview(g, w, h, dt) {
 
   drawShip(g, cx, cy, sc);
 }
+
+/* ── 격납고 카드 아트 ──────────────────────────
+   웹은 카드마다 별도 캔버스에, 앱은 카드마다 작은 Skia 캔버스에 그린다.
+   같은 함수를 쓰므로 두 화면의 카드가 어긋날 수 없다. */
+
+/* 카드의 기준 크기. 안쪽 좌표는 전부 이 크기 기준으로 그리고,
+   다른 크기를 받으면 통째로 배율만 건다 — 격자 간격·선 굵기까지 같이 따라온다. */
+export const PLATE = 124;
+
+/* 탑승자는 초상 대신 계기판식 식별 표식으로 구분한다 — 얼굴을 그리지 않고 규격으로. */
+export function drawPilotPlate(g, p, N) {
+  const N0 = plateBegin(g, N);
+
+  g.fillStyle = C.ground; g.fillRect(0, 0, N0, N0);
+  plateGrid(g, N0);
+
+  const cx = N0 / 2, cy = N0 / 2;
+  const col = p.drop === "surge" ? C.signal : p.drop === "ord" ? C.dust : p.drop === "repair" ? C.moss : C.drift;
+
+  /* 회피율만큼 링이 열려 있다 */
+  g.strokeStyle = col; g.lineWidth = 4;
+  g.beginPath(); g.arc(cx, cy, 36, -1.9, -1.9 + 6.283 * (1 - p.evade * 2.6)); g.stroke();
+
+  g.strokeStyle = alpha(C.fg, .8); g.lineWidth = 2;
+  g.beginPath();
+  for (let i = 0; i < 6; i++) {
+    const a = i / 6 * 6.283 - Math.PI / 2;
+    const hx = cx + Math.cos(a) * 22, hy = cy + Math.sin(a) * 22;
+    i ? g.lineTo(hx, hy) : g.moveTo(hx, hy);
+  }
+  g.closePath(); g.stroke();
+
+  g.fillStyle = C.fg;
+  g.font = "600 26px " + host.fontFamily;
+  g.textAlign = "center"; g.textBaseline = "middle";
+  g.fillText(p.desig.split("-")[1], cx, cy + 1);
+  g.textAlign = "left"; g.textBaseline = "alphabetic";
+  g.restore();
+}
+
+export function drawFramePlate(g, f, N, col) {
+  const N0 = plateBegin(g, N);
+  g.fillStyle = C.ground; g.fillRect(0, 0, N0, N0);
+  plateGrid(g, N0);
+  drawFrame(g, f.id, N0 / 2, N0 / 2 + 4, 2.9, col || skinColor());
+  g.restore();
+}
+
+/* 요청한 크기에 맞춰 배율을 걸고, 안쪽에서 쓸 기준 크기를 돌려준다.
+   짝이 되는 g.restore() 는 각 함수 끝에 있다. */
+function plateBegin(g, N) {
+  const k = (N || PLATE) / PLATE;
+  g.save();
+  if (k !== 1) g.scale(k, k);
+  return PLATE;
+}
+
+/* 계기 격자 — 두 카드가 같은 바탕을 쓴다 */
+function plateGrid(g, N) {
+  g.strokeStyle = alpha(C.line, 1); g.lineWidth = 1;
+  for (let i = 14; i < N; i += 14) {
+    g.beginPath(); g.moveTo(i, 0); g.lineTo(i, N); g.moveTo(0, i); g.lineTo(N, i); g.stroke();
+  }
+}

@@ -4,6 +4,8 @@
    전부 지연 호출(화살표 래퍼)이라 아직 정의되지 않은 아래쪽 심볼도 안전하다.
    ═══════════════════════════════════════════════ */
 const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
+/* 캔버스 텍스트도 화면과 같은 서체를 써야 한다 — CSS 서체 스택을 그대로 넘긴다 */
+const FONT = getComputedStyle(document.body).fontFamily;
 
 setHost({
   color: k => C[k],
@@ -13,6 +15,8 @@ setHost({
   hudChanged: () => paintHud(),
   runEnded: () => endRun(),
   stageCleared: () => nextStage(),
+  Path2D,
+  fontFamily: FONT,
   reduced: REDUCED,
   storage: {
     get: k => localStorage.getItem(k),

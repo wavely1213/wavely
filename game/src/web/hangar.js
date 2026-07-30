@@ -111,49 +111,9 @@ function unitCard(item, kind) {
   return row;
 }
 
-/* 탑승자 초상 대신 계기판식 식별 표식 — 얼굴을 그리지 않고 규격으로 구분한다 */
-function paintPilotArt(canvas, p) {
-  const g = canvas.getContext("2d");
-  const N = canvas.width;
-  g.fillStyle = C.ground; g.fillRect(0, 0, N, N);
-
-  g.strokeStyle = alpha(C.line, 1); g.lineWidth = 1;
-  for (let i = 14; i < N; i += 14) {
-    g.beginPath(); g.moveTo(i, 0); g.lineTo(i, N); g.moveTo(0, i); g.lineTo(N, i); g.stroke();
-  }
-
-  const cx = N / 2, cy = N / 2;
-  const col = p.drop === "surge" ? C.signal : p.drop === "ord" ? C.dust : p.drop === "repair" ? C.moss : C.drift;
-
-  /* 회피율만큼 링이 열려 있다 */
-  g.strokeStyle = col; g.lineWidth = 4;
-  g.beginPath(); g.arc(cx, cy, 36, -1.9, -1.9 + 6.283 * (1 - p.evade * 2.6)); g.stroke();
-
-  g.strokeStyle = alpha(C.fg, .8); g.lineWidth = 2;
-  g.beginPath();
-  for (let i = 0; i < 6; i++) {
-    const a = i / 6 * 6.283 - Math.PI / 2;
-    const hx = cx + Math.cos(a) * 22, hy = cy + Math.sin(a) * 22;
-    i ? g.lineTo(hx, hy) : g.moveTo(hx, hy);
-  }
-  g.closePath(); g.stroke();
-
-  g.fillStyle = C.fg;
-  g.font = "600 26px " + getComputedStyle(document.body).fontFamily;
-  g.textAlign = "center"; g.textBaseline = "middle";
-  g.fillText(p.desig.split("-")[1], cx, cy + 1);
-}
-
-function paintFrameArt(canvas, f) {
-  const g = canvas.getContext("2d");
-  const N = canvas.width;
-  g.fillStyle = C.ground; g.fillRect(0, 0, N, N);
-  g.strokeStyle = alpha(C.line, 1); g.lineWidth = 1;
-  for (let i = 14; i < N; i += 14) {
-    g.beginPath(); g.moveTo(i, 0); g.lineTo(i, N); g.moveTo(0, i); g.lineTo(N, i); g.stroke();
-  }
-  drawFrame(g, f.id, N / 2, N / 2 + 4, 2.9, skinColor());
-}
+/* 카드 아트는 코어(core/draw.js)에 있다 — 앱 격납고와 같은 그림을 쓴다 */
+function paintPilotArt(canvas, p) { drawPilotPlate(canvas.getContext("2d"), p, canvas.width); }
+function paintFrameArt(canvas, f) { drawFramePlate(canvas.getContext("2d"), f, canvas.width); }
 
 function paintHangar() {
   $("hangar-coin").textContent = fmt(S.coins);

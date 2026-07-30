@@ -210,7 +210,18 @@ async function fresh(opts = {}) {
   await p.close();
 }
 
-/* ── 11. 라이트 테마에서도 무오류 ── */
+/* ── 11. host 지점이 하나도 안 빠졌는지 ──
+   한 곳만 빠뜨려도 화면은 멀쩡히 돌면서 기본값(무동작·sans-serif)으로 흘러간다.
+   실제로 fontFamily 를 안 꽂아 캔버스 글자가 조용히 다른 서체로 나오고 있었다. */
+{
+  const p = await fresh();
+  const r = await p.evaluate(() => ({ missing: unwired(), font: host.fontFamily, body: getComputedStyle(document.body).fontFamily }));
+  check("host 지점이 전부 꽂혀 있다", r.missing.length === 0, "빠짐: " + r.missing.join(", "));
+  check("캔버스 서체 = 화면 서체", r.font === r.body, `${r.font} ≠ ${r.body}`);
+  await p.close();
+}
+
+/* ── 12. 라이트 테마에서도 무오류 ── */
 {
   const p = await fresh({ colorScheme: "light" });
   check("라이트 부팅", p.errs.length === 0, p.errs.join(" | "));

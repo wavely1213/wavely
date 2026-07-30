@@ -6,14 +6,14 @@
    앱은 이 어댑터. 새 기체·새 이펙트를 한 번만 그리면 양쪽에 나온다.
 
    구현한 것
-     상태   fillStyle strokeStyle globalAlpha lineWidth font textAlign
-     경로   beginPath moveTo lineTo closePath arc ellipse
+     상태   fillStyle strokeStyle globalAlpha lineWidth font textAlign textBaseline
+     경로   beginPath moveTo lineTo closePath arc(부분호 포함) ellipse
      그리기 fill stroke fillRect strokeRect fillText clip
      변환   save restore translate rotate scale
      그 외  createLinearGradient createRadialGradient clearRect · Path2D
 
    구현하지 않은 것(코어가 안 쓴다): 곡선(bezier/quadratic), lineDash,
-   그림자, 합성 모드, 패턴, drawImage, textBaseline.
+   그림자, 합성 모드, 패턴, drawImage.
    나중에 코어에서 쓰게 되면 여기서도 막히므로, 조용히 어긋나지 않는다.
 */
 
@@ -69,6 +69,7 @@ export class Skia2D {
     this.lineWidth = 1;
     this.font = "10px sans-serif";
     this.textAlign = "left";
+    this.textBaseline = "alphabetic";
 
     this._path = Skia.Path.Make();
     this._open = false;
@@ -84,7 +85,7 @@ export class Skia2D {
     this._stack.push({
       fillStyle: this.fillStyle, strokeStyle: this.strokeStyle,
       globalAlpha: this.globalAlpha, lineWidth: this.lineWidth,
-      font: this.font, textAlign: this.textAlign
+      font: this.font, textAlign: this.textAlign, textBaseline: this.textBaseline
     });
     this.canvas.save();
   }
@@ -105,11 +106,15 @@ export class Skia2D {
   moveTo(x, y) { this._path.moveTo(x, y); this._open = true; }
   lineTo(x, y) { this._open ? this._path.lineTo(x, y) : (this._path.moveTo(x, y), this._open = true); }
   closePath() { this._path.close(); }
-  arc(x, y, r, a0, a1) {
-    /* 코어의 arc 는 전부 beginPath 직후의 완전한 원이다.
-       부분호를 쓰게 되면 시작점 연결선 규칙이 Canvas2D 와 달라지므로 여기서 막는다. */
-    if (Math.abs(a1 - a0) < 6.28) throw new Error("skia2d: 부분호는 아직 구현하지 않았다");
-    this._path.addOval(this.Skia.XYWHRect(x - r, y - r, r * 2, r * 2));
+  arc(x, y, r, a0, a1, ccw) {
+    const oval = this.Skia.XYWHRect(x - r, y - r, r * 2, r * 2);
+    let sweep = a1 - a0;
+    if (Math.abs(sweep) >= 6.28) { this._path.addOval(oval); this._open = true; return; }
+    /* Canvas2D 는 현재 점이 있으면 호의 시작점까지 직선을 잇고, 없으면 그냥 옮긴다.
+       Skia 의 arcToOval(forceMoveTo=false) 가 정확히 같은 규칙이다. */
+    if (ccw && sweep > 0) sweep -= 6.283185307;
+    if (!ccw && sweep < 0) sweep += 6.283185307;
+    this._path.arcToOval(oval, a0 * DEG, sweep * DEG, !this._open);
     this._open = true;
   }
   ellipse(x, y, rx, ry, rot, a0, a1) {
@@ -173,12 +178,20 @@ export class Skia2D {
   fillText(text, x, y) {
     const f = this._font(this.font);
     if (!f) return;
-    let tx = x;
+    let tx = x, ty = y;
     if (this.textAlign === "center" || this.textAlign === "right") {
       const w = f.getGlyphWidths(f.getGlyphIDs(text)).reduce((s, v) => s + v, 0);
       tx -= this.textAlign === "center" ? w / 2 : w;
     }
-    this.canvas.drawText(text, tx, y, this._paint(this.fillStyle, false), f);
+    /* Skia 의 drawText 는 알파벳 기준선에 그린다. Canvas2D 의 나머지 기준선은
+       폰트 메트릭으로 옮겨 준다 — 계기판 숫자를 상자 한가운데 놓을 때 필요하다. */
+    if (this.textBaseline !== "alphabetic") {
+      const m = f.getMetrics();
+      if (this.textBaseline === "middle") ty -= (m.ascent + m.descent) / 2;
+      else if (this.textBaseline === "top") ty -= m.ascent;
+      else if (this.textBaseline === "bottom") ty -= m.descent;
+    }
+    this.canvas.drawText(text, tx, ty, this._paint(this.fillStyle, false), f);
   }
 
   /* ── 그라디언트 ── */
