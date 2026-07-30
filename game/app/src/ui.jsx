@@ -50,7 +50,7 @@ export function Btn({ c, onPress, primary, disabled, children, style }) {
 }
 
 /* 리스트 행 — 구분선만, 그림자 없음 */
-export function Row({ c, title, sub, right, onPress, dim }) {
+export function Row({ c, title, sub, right, onPress, dim, art }) {
   return (
     <Pressable
       onPress={onPress}
@@ -60,6 +60,7 @@ export function Row({ c, title, sub, right, onPress, dim }) {
         opacity: dim ? .45 : pressed && onPress ? .7 : 1,
       })}
     >
+      {art}
       <View style={{ flex: 1 }}>
         <Text style={{ color: c.fg, fontSize: 15, fontWeight: "600" }}>{title}</Text>
         {!!sub && <Text style={{ color: c.dim, fontSize: 12, marginTop: 3 }}>{sub}</Text>}

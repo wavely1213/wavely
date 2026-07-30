@@ -8,30 +8,14 @@
    그림을 매 프레임 React 상태로 올리면 초당 60번 재렌더가 된다.
    SharedValue 로 넘기면 JS 스레드는 값만 바꾸고 렌더 트리는 그대로다.
 */
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect } from "react";
 import { View } from "react-native";
 import { Canvas, Picture, Skia } from "@shopify/react-native-skia";
 import { useSharedValue } from "react-native-reanimated";
 
 import { Skia2D, makePath2D } from "../../src/native/skia2d";
+import { fontFor } from "./fonts";
 import { W, H, G, P, setHost, update, movePlayer, stats, draw, setCtx } from "../../src/core/index";
-
-/* 서체는 한 번만 찾아 크기별로 캐시한다 — fillText 마다 만들면 프레임이 흔들린다 */
-function makeFontResolver() {
-  let tf = null;
-  try { const m = Skia.FontMgr.System(); tf = m.matchFamilyStyle(m.getFamilyName(0)); } catch { tf = null; }
-  const cache = new Map();
-  return spec => {
-    if (!tf) return null;
-    let f = cache.get(spec);
-    if (!f) {
-      const m = /(\d+(?:\.\d+)?)px/.exec(spec);
-      f = Skia.Font(tf, m ? parseFloat(m[1]) : 10);
-      cache.set(spec, f);
-    }
-    return f;
-  };
-}
 
 export default function GameField({ width, height, running, ground }) {
   const picture = useSharedValue(null);
@@ -41,7 +25,6 @@ export default function GameField({ width, height, running, ground }) {
   const offX = (width - W * scale) / 2;
   const offY = (height - H * scale) / 2;
 
-  const fontFor = useMemo(makeFontResolver, []);
 
   useEffect(() => {
     setHost({ Path2D: makePath2D(Skia) });
@@ -77,7 +60,7 @@ export default function GameField({ width, height, running, ground }) {
 
     raf = requestAnimationFrame(frame);
     return () => { alive = false; cancelAnimationFrame(raf); };
-  }, [running, scale, offX, offY, fontFor, picture]);
+  }, [running, scale, offX, offY, picture]);
 
   /* 터치 — locationX/Y 는 이 View 기준이라 화면 어디에 놓이든 맞는다.
      손가락 위쪽으로 52px 띄워 기체가 손에 가리지 않게 한다 (웹의 터치 오프셋과 같은 값). */

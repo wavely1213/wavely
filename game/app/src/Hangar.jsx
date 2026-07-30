@@ -8,6 +8,7 @@ import {
   statusOf, acquire, upgrade, equipRows, storyFor, STORY_REVERB,
 } from "../../src/core/index";
 import { mono, Badge, Btn, Row } from "./ui";
+import Plate from "./Plate";
 
 const TABS = [
   ["pilot", "탑승자"], ["frame", "기체"], ["eq", "장비"], ["cos", "치장"], ["log", "기록"],
@@ -38,6 +39,8 @@ function PriceBtn({ c, item, slot, equippedId, onDone }) {
 
 export default function Hangar({ c, onClose, notify, refresh }) {
   const [tab, setTab] = useState("pilot");
+  /* 도장을 바꾸면 기체 도면 색이 따라가야 한다 — 테마와 함께 다시 그릴 이유 */
+  const dep = S.skin + "/" + c.field;
   const done = (r, item) => {
     if (r === "poor") notify("코어가 모자란다");
     else if (r === "locked") notify("아직 기밀이다");
@@ -65,7 +68,7 @@ export default function Hangar({ c, onClose, notify, refresh }) {
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: 24 }}>
         {tab === "pilot" && PILOTS.map(p => (
-          <Row key={p.id} c={c}
+          <Row key={p.id} c={c} art={<Plate kind="pilot" item={p} dep={dep} />}
             title={`${p.call} · ${p.nm}`}
             sub={`회피 ${Math.round(p.evade * 100)}% · 연사 ${Math.round(100 / p.rate)}% · ${p.dropNm} — ${p.dropTx}`}
             right={<View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
@@ -75,7 +78,7 @@ export default function Hangar({ c, onClose, notify, refresh }) {
         ))}
 
         {tab === "frame" && FRAMES.map(f => (
-          <Row key={f.id} c={c}
+          <Row key={f.id} c={c} art={<Plate kind="frame" item={f} dep={dep} />}
             title={f.nm}
             sub={`공격 ${Math.round(f.atk * 100)}% · 기동 ${Math.round(f.spd * 100)}% · ${f.perkNm} — ${f.perkTx}`}
             right={<View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
