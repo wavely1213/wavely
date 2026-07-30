@@ -157,13 +157,22 @@ mem.clear(); loadSave();
   };
   {
     const FPS = [30, 60, 120, 144];
-    const parts = FPS.map(f => {
-      let sum = 0;                        /* 난수가 섞이므로 5회 평균 */
-      for (let k = 0; k < 5; k++) sum += trailAfter(f, "ember");
-      return sum / 5;
-    });
-    check("배기 파티클이 주사율을 안 탄다", Math.max(...parts) / Math.min(...parts) < 1.6,
-      parts.map((v, i) => `${FPS[i]}fps ${v.toFixed(1)}개`).join(" · "));
+    /* 난수를 고정한다 — 여기서 보려는 건 "프레임 레이트에 따라 양이 달라지는가" 하나뿐이고,
+       난수까지 흔들리면 어쩌다 한 번 실패하는 검사가 된다(실제로 그랬다). */
+    const realRandom = Math.random;
+    let seed = 12345;
+    Math.random = () => ((seed = (seed * 1103515245 + 12345) >>> 0) / 4294967296);
+    let parts;
+    try {
+      parts = FPS.map(f => {
+        let sum = 0;
+        for (let k = 0; k < 8; k++) sum += trailAfter(f, "ember");
+        return sum / 8;
+      });
+    } finally { Math.random = realRandom; }
+    /* 정상값은 초당 48개 × 수명 0.3초 ≈ 14.4개 */
+    check("배기 파티클이 주사율을 안 탄다", parts.every(v => v > 10 && v < 19),
+      parts.map((v, i) => `${FPS[i]}fps ${v.toFixed(1)}개 (기대 14.4)`).join(" · "));
 
     const spans = FPS.map(f => trailAfter(f, "echo"));
     check("잔상 길이가 주사율을 안 탄다", Math.max(...spans) / Math.min(...spans) < 1.2,
