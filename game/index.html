@@ -1721,6 +1721,117 @@ function collect(d) {
   host.tip("supply");                        /* 아이템 알림이 먼저 뜨고 그 뒤에 안내 */
 }
 
+
+/* ═══════════════════════════════════════════════
+   런 진행 — 상태만 다룬다
+   ═══════════════════════════════════════════════ */
+/* 화면 전환·대사·결과 표시는 타깃이 한다. 여기 있는 건 어느 화면에서 보든
+   똑같아야 하는 규칙 — 무엇이 초기화되고, 얼마를 받고, 언제 기록이 갱신되는가. */
+
+/* 출격 — 세계를 비우고 기체를 세운다. 아직 웨이브는 시작하지 않는다. */
+function beginRun(stage) {
+  G.stage = stage; G.wave = 0;
+  G.score = 0; G.coins = 0; G.kills = 0; G.combo = 0; G.maxCombo = 0;
+  G.bullets.length = 0; G.ebullets.length = 0; G.enemies.length = 0;
+  G.parts.length = 0; G.drops.length = 0; G.echo.length = 0; G.queue.length = 0;
+  G.boss = null; G.t = 0; G.shake = 0; G.flash = 0; G.stop = 0; G.muzzle = 0; G.wave1 = null;
+  G.over = false;
+  G.player = newPlayer();
+  P.tx = W / 2; P.ty = H - 130; P.active = false;
+  keys.clear();
+}
+
+/* 대사가 끝나 실제로 전투가 시작되는 순간 */
+function armStage() { G.phase = "gap"; G.waveT = .6; }
+
+/* 구역 클리어 — 보너스와 보급을 주고 다음 구역으로 옮긴다.
+   @returns {{bonus:number, ending:boolean}} 타깃이 알림·엔딩 대사에 쓴다 */
+function finishStage() {
+  S.cleared = Math.max(S.cleared, G.stage);
+  /* 같은 구역을 반복하는 것보다 깊이 들어가는 쪽이 이득이어야 한다 */
+  const bonus = 15 + 5 * G.stage;
+  G.coins += bonus;
+  persist();
+
+  const ending = G.stage === 5;
+  const p = G.player;
+  p.hp = Math.min(p.maxHp, p.hp + 1);
+  p.bomb = stats().bomb;
+  G.stage++; G.wave = 0;
+  G.boss = null;
+  G.enemies.length = 0; G.ebullets.length = 0;
+  return { bonus, ending };
+}
+
+/* 런 종료 — 코어 적립과 기록 갱신. 두 번 들어오면 그만큼 중복 적립되므로 한 번만 센다.
+   @returns {null|{record:boolean, prevBest:number}} 이미 끝난 런이면 null */
+function finishRun() {
+  if (G.over) return null;
+  G.over = true;
+
+  S.coins += G.coins;
+  const prevBest = S.best;
+  const record = G.score > S.best;
+  if (record) S.best = G.score;
+  persist();
+  G.pickStage = clamp(G.stage, 1, maxStage());   /* 재출격은 쓰러진 구역에서 */
+  return { record, prevBest };
+}
+
+
+/* ═══════════════════════════════════════════════
+   격납고 — 해금·구매·장착 규칙
+   ═══════════════════════════════════════════════ */
+/* 규칙이 화면마다 따로 적혀 있으면 앱과 웹의 가격이 언젠가 어긋난다.
+   판정은 전부 여기서 하고, 화면은 결과만 보여준다. */
+
+const owned = id => S.owned.includes(id);
+const locked = item => !!(item.need && S.cleared < item.need);
+
+/* 항목의 현재 상태 — 버튼 문구를 여기서 갈라 준다 */
+function statusOf(item, equippedId) {
+  if (item.id === equippedId) return "equipped";
+  if (owned(item.id)) return "owned";
+  if (locked(item)) return "locked";
+  return S.coins >= item.cost ? "buyable" : "poor";
+}
+
+/* 사고 바로 장착한다 — 사 놓고 안 끼우는 단계는 군더더기다.
+   @returns "equipped" | "bought" | "locked" | "poor" */
+function acquire(item, slot) {
+  if (owned(item.id)) { S[slot] = item.id; persist(); return "equipped"; }
+  if (locked(item)) return "locked";
+  if (S.coins < item.cost) return "poor";
+  S.coins -= item.cost;
+  S.owned.push(item.id);
+  S[slot] = item.id;
+  persist();
+  return "bought";
+}
+
+/* 장비 강화. @returns "ok" | "max" | "poor" */
+function upgrade(slotId) {
+  const lv = S.eq[slotId];
+  if (lv >= MAXLV) return "max";
+  const cost = upCost(lv);          /* 현재 레벨을 넣는다 — 웹 격납고와 같은 식 */
+  if (S.coins < cost) return "poor";
+  S.coins -= cost;
+  S.eq[slotId]++;
+  persist();
+  return "ok";
+}
+
+/* 다음 레벨 비용 — 만렙이면 null */
+const nextCost = slotId => (S.eq[slotId] >= MAXLV ? null : upCost(S.eq[slotId]));
+
+/* 장비 3슬롯의 현재 상태를 한 번에 (화면이 표를 그대로 그릴 수 있게) */
+const equipRows = () => EQUIP.map(it => ({
+  ...it,
+  lv: S.eq[it.id],
+  max: S.eq[it.id] >= MAXLV,
+  cost: nextCost(it.id),
+}));
+
 /* ═══════════════════════════════════════════════
    9. 업데이트
    ═══════════════════════════════════════════════ */
@@ -3116,17 +3227,10 @@ function showStory(stage, lines, then) {
 }
 
 /* — 런 — */
-function beginRun(stage) {
+function startRun(stage) {
   Snd.init();
-  G.stage = stage; G.wave = 0;
-  G.score = 0; G.coins = 0; G.kills = 0; G.combo = 0; G.maxCombo = 0;
-  G.bullets.length = 0; G.ebullets.length = 0; G.enemies.length = 0;
-  G.parts.length = 0; G.drops.length = 0; G.echo.length = 0;
-  G.boss = null; G.t = 0; G.shake = 0; G.flash = 0; G.stop = 0; G.muzzle = 0; G.wave1 = null;
-  G.over = false;
+  beginRun(stage);                       /* 상태 초기화는 코어(run.js)가 한다 */
   $("hud").inert = false;
-  G.player = newPlayer();
-  P.tx = W / 2; P.ty = H - 130; P.active = false;
   enterStage(stage);
 }
 
@@ -3143,42 +3247,26 @@ function enterStage(stage) {
 
 function goPlay() {
   if (G.player.bomb > 0) setTimeout(() => { if (G.screen === "play") tip("bomb"); }, 2500);
-  G.phase = "gap"; G.waveT = .6;
+  armStage();
   setScreen("play");
   paintHud();
 }
 
 function nextStage() {
-  S.cleared = Math.max(S.cleared, G.stage);
-  /* 구역 클리어 보너스 — 같은 구역을 반복하는 것보다 깊이 들어가는 쪽이 이득이어야 한다 */
-  const bonus = 15 + 5 * G.stage;
-  G.coins += bonus;
+  const { bonus, ending } = finishStage();
   toast("구역 정리 보너스 +" + bonus);
-  persist();
-  const end = G.stage === 5 ? storyEnd() : null;
-  const p = G.player;
-  p.hp = Math.min(p.maxHp, p.hp + 1);
-  p.bomb = stats().bomb;
-  G.stage++; G.wave = 0;
-  G.boss = null;
-  G.enemies.length = 0; G.ebullets.length = 0;
-  if (end) { showStory(G.stage - 1, end, () => enterStage(G.stage)); }
+  const end = ending ? storyEnd() : null;
+  if (end) showStory(G.stage - 1, end, () => enterStage(G.stage));
   else enterStage(G.stage);
 }
 
 function endRun() {
   /* 중단 버튼 연타나 사망 직후 조작으로 두 번 들어올 수 있다 —
      그대로 두면 그 횟수만큼 코어가 중복 적립된다. */
-  if (G.over) return;
-  G.over = true;
+  const r = finishRun();
+  if (!r) return;
+  const { record, prevBest } = r;         /* prevBest 는 갱신 전 값 — 눈금 위치에 쓴다 */
   $("hud").inert = true;                  /* 결과 화면이 뜨기 전 700ms 동안 HUD 조작 차단 */
-
-  S.coins += G.coins;
-  const prevBest = S.best;                /* 갱신 전 값 — 눈금 위치에 쓴다 */
-  const record = G.score > S.best;
-  if (record) S.best = G.score;
-  persist();
-  G.pickStage = clamp(G.stage, 1, maxStage());   /* 재출격은 쓰러진 구역에서 */
 
   const lo = loadout();
   $("result-head").textContent = "기체 상실 · 회수 보고";
@@ -3433,8 +3521,7 @@ function paintHangar() {
       btn.textContent = fmt(cost);
       btn.disabled = S.coins < cost;
       btn.addEventListener("click", () => {
-        if (S.coins < cost) return;
-        S.coins -= cost; S.eq[it.id]++; persist();
+        if (upgrade(it.id) !== "ok") return;
         Snd.ui(); toast(it.nm + " LV " + S.eq[it.id]);
         paintHangar();
       });
@@ -3600,7 +3687,7 @@ function paintSwatch(canvas, item, kind) {
    ═══════════════════════════════════════════════ */
 $("stage-prev").addEventListener("click", () => { G.pickStage--; Snd.ui(); paintTitle(); });
 $("stage-next").addEventListener("click", () => { G.pickStage++; Snd.ui(); paintTitle(); });
-$("btn-start").addEventListener("click", () => { Snd.init(); Snd.ui(); beginRun(G.pickStage); });
+$("btn-start").addEventListener("click", () => { Snd.init(); Snd.ui(); startRun(G.pickStage); });
 $("btn-hangar").addEventListener("click", () => { Snd.ui(); openHangar(); });
 $("btn-hangar-back").addEventListener("click", () => {
   Snd.ui();
@@ -3628,7 +3715,7 @@ $("btn-resume").addEventListener("click", resume);
 $("btn-abort").addEventListener("click", () => { Snd.ui(); endRun(); });
 $("btn-bomb").addEventListener("click", useBomb);
 
-$("btn-again").addEventListener("click", () => { Snd.ui(); beginRun(clamp(G.pickStage, 1, maxStage())); });
+$("btn-again").addEventListener("click", () => { Snd.ui(); startRun(clamp(G.pickStage, 1, maxStage())); });
 $("btn-to-hangar").addEventListener("click", () => { Snd.ui(); G._fromResult = true; openHangar(); });
 $("btn-to-title").addEventListener("click", () => { Snd.ui(); paintTitle(); setScreen("title"); });
 

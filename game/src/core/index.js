@@ -15,5 +15,7 @@ export * from "./state.js";
 export * from "./input.js";
 export * from "./wave.js";
 export * from "./entity.js";
+export * from "./run.js";
+export * from "./shop.js";
 export * from "./update.js";
 export * from "./draw.js";

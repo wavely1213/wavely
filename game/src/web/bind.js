@@ -3,7 +3,7 @@
    ═══════════════════════════════════════════════ */
 $("stage-prev").addEventListener("click", () => { G.pickStage--; Snd.ui(); paintTitle(); });
 $("stage-next").addEventListener("click", () => { G.pickStage++; Snd.ui(); paintTitle(); });
-$("btn-start").addEventListener("click", () => { Snd.init(); Snd.ui(); beginRun(G.pickStage); });
+$("btn-start").addEventListener("click", () => { Snd.init(); Snd.ui(); startRun(G.pickStage); });
 $("btn-hangar").addEventListener("click", () => { Snd.ui(); openHangar(); });
 $("btn-hangar-back").addEventListener("click", () => {
   Snd.ui();
@@ -31,7 +31,7 @@ $("btn-resume").addEventListener("click", resume);
 $("btn-abort").addEventListener("click", () => { Snd.ui(); endRun(); });
 $("btn-bomb").addEventListener("click", useBomb);
 
-$("btn-again").addEventListener("click", () => { Snd.ui(); beginRun(clamp(G.pickStage, 1, maxStage())); });
+$("btn-again").addEventListener("click", () => { Snd.ui(); startRun(clamp(G.pickStage, 1, maxStage())); });
 $("btn-to-hangar").addEventListener("click", () => { Snd.ui(); G._fromResult = true; openHangar(); });
 $("btn-to-title").addEventListener("click", () => { Snd.ui(); paintTitle(); setScreen("title"); });
 

@@ -198,8 +198,7 @@ function paintHangar() {
       btn.textContent = fmt(cost);
       btn.disabled = S.coins < cost;
       btn.addEventListener("click", () => {
-        if (S.coins < cost) return;
-        S.coins -= cost; S.eq[it.id]++; persist();
+        if (upgrade(it.id) !== "ok") return;
         Snd.ui(); toast(it.nm + " LV " + S.eq[it.id]);
         paintHangar();
       });

@@ -177,17 +177,10 @@ function showStory(stage, lines, then) {
 }
 
 /* — 런 — */
-function beginRun(stage) {
+function startRun(stage) {
   Snd.init();
-  G.stage = stage; G.wave = 0;
-  G.score = 0; G.coins = 0; G.kills = 0; G.combo = 0; G.maxCombo = 0;
-  G.bullets.length = 0; G.ebullets.length = 0; G.enemies.length = 0;
-  G.parts.length = 0; G.drops.length = 0; G.echo.length = 0;
-  G.boss = null; G.t = 0; G.shake = 0; G.flash = 0; G.stop = 0; G.muzzle = 0; G.wave1 = null;
-  G.over = false;
+  beginRun(stage);                       /* 상태 초기화는 코어(run.js)가 한다 */
   $("hud").inert = false;
-  G.player = newPlayer();
-  P.tx = W / 2; P.ty = H - 130; P.active = false;
   enterStage(stage);
 }
 
@@ -204,42 +197,26 @@ function enterStage(stage) {
 
 function goPlay() {
   if (G.player.bomb > 0) setTimeout(() => { if (G.screen === "play") tip("bomb"); }, 2500);
-  G.phase = "gap"; G.waveT = .6;
+  armStage();
   setScreen("play");
   paintHud();
 }
 
 function nextStage() {
-  S.cleared = Math.max(S.cleared, G.stage);
-  /* 구역 클리어 보너스 — 같은 구역을 반복하는 것보다 깊이 들어가는 쪽이 이득이어야 한다 */
-  const bonus = 15 + 5 * G.stage;
-  G.coins += bonus;
+  const { bonus, ending } = finishStage();
   toast("구역 정리 보너스 +" + bonus);
-  persist();
-  const end = G.stage === 5 ? storyEnd() : null;
-  const p = G.player;
-  p.hp = Math.min(p.maxHp, p.hp + 1);
-  p.bomb = stats().bomb;
-  G.stage++; G.wave = 0;
-  G.boss = null;
-  G.enemies.length = 0; G.ebullets.length = 0;
-  if (end) { showStory(G.stage - 1, end, () => enterStage(G.stage)); }
+  const end = ending ? storyEnd() : null;
+  if (end) showStory(G.stage - 1, end, () => enterStage(G.stage));
   else enterStage(G.stage);
 }
 
 function endRun() {
   /* 중단 버튼 연타나 사망 직후 조작으로 두 번 들어올 수 있다 —
      그대로 두면 그 횟수만큼 코어가 중복 적립된다. */
-  if (G.over) return;
-  G.over = true;
+  const r = finishRun();
+  if (!r) return;
+  const { record, prevBest } = r;         /* prevBest 는 갱신 전 값 — 눈금 위치에 쓴다 */
   $("hud").inert = true;                  /* 결과 화면이 뜨기 전 700ms 동안 HUD 조작 차단 */
-
-  S.coins += G.coins;
-  const prevBest = S.best;                /* 갱신 전 값 — 눈금 위치에 쓴다 */
-  const record = G.score > S.best;
-  if (record) S.best = G.score;
-  persist();
-  G.pickStage = clamp(G.stage, 1, maxStage());   /* 재출격은 쓰러진 구역에서 */
 
   const lo = loadout();
   $("result-head").textContent = "기체 상실 · 회수 보고";

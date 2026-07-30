@@ -29,6 +29,8 @@ const ORDER = [
   "core/input.js",
   "core/wave.js",
   "core/entity.js",
+  "core/run.js",
+  "core/shop.js",
   "core/update.js",
   "core/draw.js",
   "web/canvas.js",

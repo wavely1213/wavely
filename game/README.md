@@ -13,12 +13,26 @@
 
 ## 실행
 
+웹
 ```
 node game/build.mjs        # src/ → index.html
 open game/index.html       # 그냥 열면 된다
+```
 
-node game/build.mjs --check    # index.html 이 src/ 와 어긋났는지 검사
-node game/test/regress.mjs     # 회귀 검사 (Playwright)
+앱 (Expo · Skia)
+```
+cd game/app
+npm install
+npx expo run:ios      # 또는 run:android — 네이티브 모듈이 있어 Expo Go 로는 안 된다
+```
+
+검사
+```
+node game/build.mjs --check    # index.html 이 src/ 와 어긋났는지
+node game/test/core.mjs        # 코어만 (브라우저 없이)
+node game/test/regress.mjs     # 웹 회귀 (Playwright)
+node game/test/skia2d.mjs      # Skia 와 Canvas2D 픽셀 대조
+node game/test/app.mjs         # 앱 컴파일 · 코어 이름 · 소리 파형
 ```
 
 ## 구조 — 코어 / 타깃
@@ -27,11 +41,21 @@ node game/test/regress.mjs     # 회귀 검사 (Playwright)
 타깃이 그걸 자기 구현으로 채운다. 웹은 Canvas·WebAudio·localStorage, 앱은 Skia·expo-audio·AsyncStorage.
 
 ```
-game/src/
-  core/    host util color data save state input wave entity update   ← 타깃 무관. node 에서 그대로 돌아간다
-  web/     theme sound host.web canvas draw loop flow hangar bind      ← Canvas · DOM · WebAudio
-  index.template.html                                                  ← 마크업 · CSS (/*@BUNDLE@*/ 자리에 코어+웹이 들어간다)
+game/
+  src/core/    host util color data save state input wave entity update run shop draw
+               ← 타깃 무관. 그리기까지 여기 있다. node 에서 그대로 돌아간다
+  src/web/     theme sound host.web canvas loop flow hangar bind        ← Canvas · DOM · WebAudio
+  src/native/  skia2d                                                  ← Canvas2D 인터페이스를 Skia 로
+  src/index.template.html   마크업 · CSS (/*@BUNDLE@*/ 자리에 코어+웹이 들어간다)
+  app/         Expo 프로젝트 — App.jsx · GameField(Skia) · Hangar · host.native · sound(PCM)
+  build.mjs    src/ → index.html
+  test/        core · regress · skia2d · app
 ```
+
+**그리기도 공유한다.** core/draw.js 는 Canvas2D 인터페이스에만 의존하고,
+앱은 `src/native/skia2d.js` 로 같은 인터페이스를 Skia 위에 만든다.
+기체·군체·보스·이펙트를 한 번 그리면 웹과 앱에 같이 나온다 —
+`game/test/skia2d.mjs` 가 두 결과를 픽셀로 대조해 그걸 보장한다.
 
 | host 지점 | 웹 | 앱(예정) |
 |---|---|---|
