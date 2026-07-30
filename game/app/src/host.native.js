@@ -1,11 +1,11 @@
 /* 호스트 연결 (앱) — 코어가 바깥 세계에 닿는 9개 지점을 RN 구현에 꽂는다.
    웹 쪽 짝은 game/src/web/host.web.js 다. 둘을 나란히 놓고 보면 무엇이 타깃별인지 바로 보인다. */
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { AccessibilityInfo, Platform } from "react-native";
+import { AccessibilityInfo } from "react-native";
 
 import { setHost, setColors, loadSave, persist, S } from "../../src/core/index";
 import { Snd } from "./sound";
-import { themeFor } from "./theme";
+import { themeFor, FONT_UI } from "./theme";
 
 /* AsyncStorage 는 비동기인데 코어의 저장은 동기다.
    메모리를 진짜 저장소로 두고, 디스크에는 뒤따라 쓴다 — 게임 루프가 I/O 를 기다리지 않게. */
@@ -42,7 +42,7 @@ export async function bootCore({ scheme, notify, tip, hudChanged, runEnded, stag
     sound: Snd,
     notify, tip, hudChanged, runEnded, stageCleared,
     reduced,
-    fontFamily: Platform.select({ ios: "Helvetica Neue", android: "sans-serif", default: "sans-serif" }),
+    fontFamily: FONT_UI,                 /* 웹의 --font-ui 와 같은 스택 */
   });
   loadSave();
   Snd.on = S.sound !== false;

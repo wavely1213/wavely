@@ -145,6 +145,19 @@ const SRC = ["App.jsx", "index.js", "metro.config.js", "babel.config.js",
         diff.push(`${mode}.${k}: 앱 ${tbl[k]} ≠ 웹 ${v[cssKey]}`);
   }
   check("앱 색표 = 웹 CSS 변수", diff.length === 0, diff.join(", "));
+
+  /* 서체 스택도 같은 이유로 어긋나면 안 된다 — 캔버스 글자가 화면 글자와 달라진다 */
+  const norm = t => t.replace(/["'\s]/g, "").toLowerCase();
+  const cssFont = k => {
+    const m = new RegExp("--font-" + k + ":\\s*([^;]+);").exec(css.replace(/\n\s+/g, " "));
+    return m ? norm(m[1]) : null;
+  };
+  const fdiff = [];
+  for (const [k, v] of [["ui", theme.FONT_UI], ["story", theme.FONT_STORY], ["num", theme.FONT_NUM]]) {
+    const want = cssFont(k);
+    if (want && norm(v) !== want) fdiff.push(`${k}: 앱 ${norm(v)} ≠ 웹 ${want}`);
+  }
+  check("앱 서체 스택 = 웹 CSS 변수", fdiff.length === 0, fdiff.join(" | "));
 }
 
 /* ── ⑤ 소리 ── */

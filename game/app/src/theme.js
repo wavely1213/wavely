@@ -18,3 +18,9 @@ export const DARK = {
 };
 
 export const themeFor = scheme => (scheme === "light" ? LIGHT : DARK);
+
+/* 서체 스택 — 웹의 CSS 변수(--font-ui / --font-story / --font-num)와 같은 목록이다.
+   캔버스 글자는 이 스택을 순서대로 훑어 기기에 실제로 있는 가족을 고른다(fonts.js). */
+export const FONT_UI = '"Poppins", "Century Gothic", "Trebuchet MS", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif';
+export const FONT_STORY = '"Lora", Georgia, "Apple SD Gothic Neo", "Nanum Myeongjo", serif';
+export const FONT_NUM = 'ui-monospace, "SF Mono", Menlo, Consolas, monospace';

@@ -125,7 +125,7 @@ if (!hi) { /* 단색 + 외곽선으로 끝 */ return; }
 | 색 토큰의 의미 | `core/color.js` | 된다 (값은 타깃이 넣는다) |
 | 데이터·밸런스·해금·가격 | `core/data.js` `run.js` `shop.js` | **된다** |
 | 소리(무엇이 어떤 파형으로) | `core/audio.js` | **된다** |
-| 색 값 | 웹 `index.template.html` CSS 변수 / 앱 `app/src/theme.js` | 아니다 — **둘 다 고친다** |
+| 색 값 · 서체 스택 | 웹 `index.template.html` CSS 변수 / 앱 `app/src/theme.js` | 아니다 — **둘 다 고친다** |
 | 화면 배치·버튼·내비게이션 | 웹 `src/web/` / 앱 `app/` | 아니다 |
 | 안내 문구 | 타깃별 (「Space」 같은 말은 그 조작이 있는 쪽에서만 맞다) | 아니다 |
 
@@ -515,7 +515,7 @@ node game/test/balance.mjs --progress   # 검사가 아니라 측정 — 밸런�
 | `core.mjs` | 39 | 저장·스펙 합산·런 진행·격납고 규칙·5분 소크·잔향 99구역·프레임 레이트 독립 |
 | `regress.mjs` | 28 | 예전에 밟은 함정 재발 · 반응형 8종 · 대비 · CSS 유실 · host 배선 |
 | `skia2d.mjs` | 11 | 앱과 웹의 그림 픽셀 대조 |
-| `app.mjs` | 23 | 앱 컴파일 · 코어 이름 · 패키지 API · 색표 일치 · 소리 파형 |
+| `app.mjs` | 24 | 앱 컴파일 · 코어 이름 · 패키지 API · 색표 일치 · 소리 파형 |
 | `app-render.mjs` | 28 | 앱 화면을 실제로 그려 타이틀→격납고→출격→전투→정지→결과 전 흐름 |
 
 **지금까지 고친 정합성 결함**
