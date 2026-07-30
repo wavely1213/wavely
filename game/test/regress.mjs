@@ -156,17 +156,36 @@ async function fresh(opts = {}) {
   await p.close();
 }
 
-/* ── 9. 작은 화면에서 출격 버튼이 잘리지 않는다 (390×844 = 가장 흔한 기기) ── */
+/* ── 9. 어느 화면에서도 타이틀이 스크롤 없이 들어가고, 손가락 타겟이 44px 이상 ──
+   여기는 한 번 고쳐 놓아도 다른 걸 키우면 바로 다시 넘친다. 기기별로 못 박아 둔다. */
 {
-  const p = await browser.newPage({ viewport: { width: 390, height: 844 }, colorScheme: "dark" });
-  await p.goto("file://" + TARGET);
-  await p.waitForTimeout(500);
-  const cut = await p.evaluate(() => {
-    const b = document.getElementById("btn-start").getBoundingClientRect();
-    return Math.round(b.bottom - innerHeight);
-  });
-  check("390×844 출격 버튼 노출", cut <= 0, "아래로 " + cut + "px 잘림");
-  await p.close();
+  const SIZES = [[320, 568, "SE1"], [360, 640, "작은 폰"], [390, 844, "가장 흔한 폰"],
+                 [430, 932, "큰 폰"], [844, 390, "폰 가로"], [768, 1024, "태블릿"],
+                 [1280, 900, "노트북"], [1920, 1080, "FHD"]];
+  const over = [], small = [];
+  for (const [w, h, nm] of SIZES) {
+    const p = await browser.newPage({ viewport: { width: w, height: h }, colorScheme: "dark" });
+    await p.goto("file://" + TARGET);
+    await p.waitForTimeout(450);
+    const r = await p.evaluate(() => {
+      const s = document.getElementById("scr-title");
+      const tiny = [];
+      for (const e of document.querySelectorAll("#scr-title button, .brand button")) {
+        const b = e.getBoundingClientRect();
+        if (b.width && b.height && (b.width < 44 || b.height < 44))
+          tiny.push(`${e.id || e.className}:${Math.round(b.width)}×${Math.round(b.height)}`);
+      }
+      const ship = document.getElementById("title-ship").getBoundingClientRect();
+      return { over: s.scrollHeight - s.clientHeight, tiny, ship: [Math.round(ship.width), Math.round(ship.height)] };
+    });
+    if (r.over > 0) over.push(`${nm} ${w}×${h}: ${r.over}px`);
+    if (r.tiny.length) small.push(`${nm}: ${r.tiny.join(" ")}`);
+    /* 프리뷰가 보이면 정사각이어야 한다 — 높이만 눌리면 기체가 납작해진다 */
+    if (r.ship[1] > 0 && Math.abs(r.ship[0] - r.ship[1]) > 2) over.push(`${nm} 프리뷰 비율 ${r.ship.join("×")}`);
+    await p.close();
+  }
+  check("타이틀이 스크롤 없이 들어간다", over.length === 0, over.join(" | "));
+  check("손가락 타겟 44px 이상", small.length === 0, small.join(" | "));
 }
 
 /* ── 10. CSS 가 통째로 버려지지 않았는지 ──
