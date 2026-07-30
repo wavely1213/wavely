@@ -7,17 +7,49 @@
 > 정격관제국은 단독 출격기 「파장-7」에 조종사 하나를 태워 대역 위로 올려보낸다.
 > 목표는 군체를 움직이는 송신 — 근원을 끊는 것.
 
-- 단일 파일: `game/index.html` (외부 요청 0 — 폰트·이미지·사운드 전부 인라인 또는 코드 생성)
-- 와벨리 앱 코드(`src/`)와 완전히 분리되어 있다. 앱 의존성 없음, 빌드 없음.
+- 배포물은 여전히 **파일 하나** — `game/index.html` (외부 요청 0)
+- 소스는 `game/src/` 에 나뉘어 있고, `node game/build.mjs` 가 그걸 하나로 이어 붙인다
+- 와벨리 앱 코드(`src/`)와 완전히 분리되어 있다. 앱 의존성 없음.
 
 ## 실행
 
 ```
-# 그냥 열기
-open game/index.html
+node game/build.mjs        # src/ → index.html
+open game/index.html       # 그냥 열면 된다
 
-# 또는 로컬 서버
-npx http-server game -p 8080
+node game/build.mjs --check    # index.html 이 src/ 와 어긋났는지 검사
+node game/test/regress.mjs     # 회귀 검사 (Playwright)
+```
+
+## 구조 — 코어 / 타깃
+
+게임 로직은 브라우저를 모른다. 바깥 세계에 닿는 곳은 `core/host.js` 의 **9개 지점**뿐이고,
+타깃이 그걸 자기 구현으로 채운다. 웹은 Canvas·WebAudio·localStorage, 앱은 Skia·expo-audio·AsyncStorage.
+
+```
+game/src/
+  core/    host util color data save state input wave entity update   ← 타깃 무관. node 에서 그대로 돌아간다
+  web/     theme sound host.web canvas draw loop flow hangar bind      ← Canvas · DOM · WebAudio
+  index.template.html                                                  ← 마크업 · CSS (/*@BUNDLE@*/ 자리에 코어+웹이 들어간다)
+```
+
+| host 지점 | 웹 | 앱(예정) |
+|---|---|---|
+| `color(k)` | CSS 변수 → `C[k]` | 테마 객체 |
+| `sound.*` | WebAudio 신디사이저 | expo-audio |
+| `notify` · `tip` | 화면 상단 토스트 | RN 오버레이 |
+| `hudChanged` | `paintHud()` | 상태 업데이트 |
+| `runEnded` · `stageCleared` | 결과·다음 구역 화면 | 네비게이션 |
+| `reduced` | `prefers-reduced-motion` | `AccessibilityInfo` |
+| `storage` | `localStorage` | `AsyncStorage` |
+
+코어를 브라우저 없이 돌려 볼 수 있다는 게 이 구조의 검증 수단이다.
+
+```js
+import { setHost, loadSave, G, update } from "./game/src/core/index.js";
+setHost({ storage: { get: () => null, set: () => {} } });
+loadSave();
+for (let i = 0; i < 600; i++) update(1 / 60);   // 10초치 시뮬레이션, DOM 없이
 ```
 
 ## 조작

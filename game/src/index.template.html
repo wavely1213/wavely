@@ -1,0 +1,891 @@
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>파장 WAVELENGTH</title>
+<!-- 기체 실루엣 파비콘. 외부 요청 0 원칙에 따라 인라인 SVG data URI. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23141413'/%3E%3Cpath d='M16 2 L22 18 L28 25 L20 23 L16 28 L12 23 L4 25 L10 18 Z' fill='%23d97757'/%3E%3C/svg%3E" />
+
+<style>
+/* ─────────────────────────────────────────────────────────────
+   파장 WAVELENGTH — 종스크롤 슈팅
+   팔레트: Claude(Anthropic) 브랜드
+   의미 고정 → signal=플레이어 / drift=적 / moss=획득물 / dust=계기
+   ───────────────────────────────────────────────────────────── */
+
+:root {
+  color-scheme: light dark;
+
+  --c-ground:   #efece3;
+  --c-field:    #faf9f5;
+  --c-fg:       #141413;
+  --c-dim:      #6f6d64;
+  --c-line:     #d9d5c8;
+  --c-signal:   #d97757;
+  --c-signal-t: #a9482a;   /* 텍스트용 진한 오렌지 */
+  --c-drift:    #5d8fc2;
+  --c-drift-t:  #38658f;
+  --c-moss:     #788c5d;
+  --c-moss-t:   #56663f;   /* 소형 텍스트용 — 면 색 그대로 쓰면 라이트에서 대비 3.49로 미달 */
+  --c-dust:     #b0aea5;
+  --c-bad:      #b3402c;
+
+  --font-ui: "Poppins", "Century Gothic", "Trebuchet MS", "Apple SD Gothic Neo",
+             "Malgun Gothic", system-ui, sans-serif;
+  --font-story: "Lora", Georgia, "Apple SD Gothic Neo", "Nanum Myeongjo", serif;
+  --font-num: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --bezel: 1px solid var(--c-line);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --c-ground:   #0d0d0c;
+    --c-field:    #141413;
+    --c-fg:       #faf9f5;
+    --c-dim:      #97948a;
+    --c-line:     #302e29;
+    --c-signal:   #d97757;
+    --c-signal-t: #e08e70;
+    --c-drift:    #6a9bcc;
+    --c-drift-t:  #8bb4d9;
+    --c-moss:     #94ab72;
+    --c-moss-t:   #94ab72;   /* 다크는 면 색 그대로 7.31 — 충분 */
+    --c-dust:     #b0aea5;
+    --c-bad:      #e0674a;
+  }
+}
+
+/* 뷰어 토글이 미디어쿼리를 양방향으로 이겨야 한다 */
+:root[data-theme="light"] {
+  --c-ground:#efece3; --c-field:#faf9f5; --c-fg:#141413; --c-dim:#6f6d64;
+  --c-line:#d9d5c8; --c-signal:#d97757; --c-signal-t:#a9482a;
+  --c-drift:#5d8fc2; --c-drift-t:#38658f; --c-moss:#788c5d; --c-moss-t:#56663f; --c-dust:#b0aea5; --c-bad:#b3402c;
+}
+:root[data-theme="dark"] {
+  --c-ground:#0d0d0c; --c-field:#141413; --c-fg:#faf9f5; --c-dim:#97948a;
+  --c-line:#302e29; --c-signal:#d97757; --c-signal-t:#e08e70;
+  --c-drift:#6a9bcc; --c-drift-t:#8bb4d9; --c-moss:#94ab72; --c-moss-t:#94ab72; --c-dust:#b0aea5; --c-bad:#e0674a;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--c-ground);
+  color: var(--c-fg);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+#app {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px 12px;
+}
+
+/* ── 상단 워드마크 ─────────────────────────────── */
+.brand {
+  width: min(100%, 560px);
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.brand b {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: .22em;
+}
+.brand span {
+  font-size: 10px;
+  letter-spacing: .3em;
+  color: var(--c-dim);
+  text-transform: uppercase;
+}
+/* 위험 표지 띠 — 기계화 시대 산업 규격 */
+.hazard {
+  flex: 1;
+  height: 7px;
+  align-self: center;
+  background: repeating-linear-gradient(-45deg,
+    var(--c-signal) 0 6px, transparent 6px 13px);
+  opacity: .55;
+}
+.iconbtn {
+  appearance: none;
+  border: var(--bezel);
+  background: transparent;
+  color: var(--c-dim);
+  font: inherit;
+  font-size: 11px;
+  letter-spacing: .12em;
+  padding: 4px 9px;
+  min-height: 32px;
+  border-radius: 2px;
+  cursor: pointer;
+  position: relative;
+}
+/* 계기판 밀도를 지키면서 히트 영역만 44px로 넓힌다 */
+.iconbtn::after {
+  content: "";
+  position: absolute;
+  inset: 50% 0 auto 0;
+  height: 44px;
+  transform: translateY(-50%);
+}
+.iconbtn:hover { color: var(--c-fg); border-color: var(--c-dim); }
+.iconbtn:focus-visible { outline: 2px solid var(--c-signal); outline-offset: 2px; }
+
+/* ── 스코프(플레이필드 프레임) ─────────────────── */
+.scope {
+  position: relative;
+  /* 화면 크기가 아니라 '스코프 크기'가 오버플로를 결정한다.
+     뷰포트 기준 미디어쿼리로 판단하면 폭에 묶여 스코프만 작아진 경우를 놓친다
+     (390x844 폰에서 스코프는 370x555, 타이틀이 231px 넘쳤다). */
+  container-type: size;
+  container-name: scope;
+  width: min(100%, 560px, calc((100dvh - 120px) * 2 / 3));
+  aspect-ratio: 2 / 3;
+  background: var(--c-field);
+  border: var(--bezel);
+  border-radius: 3px;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+/* id 선택자 — .swatch 같은 스코프 내 다른 캔버스를 삼키지 않게 */
+#cv { display: block; width: 100%; height: 100%; }
+
+/* ── HUD ───────────────────────────────────────── */
+.hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 8px 9px;
+  font-size: 11px;
+  letter-spacing: .06em;
+}
+.hud.off { display: none; }
+.hud-row { display: flex; align-items: flex-start; gap: 8px; }
+.hud-col { display: flex; flex-direction: column; gap: 3px; }
+.hud-col.right { align-items: flex-end; margin-left: auto; }
+
+.tag {
+  color: var(--c-dim);
+  font-size: 9px;
+  letter-spacing: .26em;
+  text-transform: uppercase;
+}
+.num {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: 17px;
+  line-height: 1;
+}
+.hearts { display: flex; gap: 3px; }
+.heart {
+  width: 9px; height: 9px;
+  background: var(--c-signal);
+  clip-path: polygon(50% 100%, 0 40%, 22% 0, 50% 22%, 78% 0, 100% 40%);
+}
+.heart.gone { background: var(--c-line); }
+
+.combo {
+  align-self: center;
+  font-family: var(--font-num);
+  font-size: 26px;
+  color: var(--c-signal-t);
+  opacity: 0;
+  transition: opacity .18s;
+  text-shadow: 0 0 18px color-mix(in srgb, var(--c-signal) 45%, transparent);
+}
+.combo.on { opacity: 1; }
+.combo small { font-size: 11px; letter-spacing: .1em; color: var(--c-dim); }
+/* 배율이 붙기 전에는 조용하게, 붙은 뒤에만 달아오른다 */
+.combo:not(.hot) { color: var(--c-dim); text-shadow: none; font-size: 20px; }
+
+.hud-bottom { display: flex; align-items: flex-end; gap: 8px; }
+.bombs { display: flex; gap: 4px; }
+.bomb {
+  width: 10px; height: 10px;
+  border: 1.5px solid var(--c-moss);
+  border-radius: 50%;
+}
+.bomb.gone { border-color: var(--c-line); }
+
+/* 상태 표시 — 과부하 · 차폐 */
+.chips { display: flex; gap: 5px; margin-bottom: 6px; }
+.chip {
+  font-family: var(--font-num);
+  font-size: 9px;
+  letter-spacing: .1em;
+  padding: 2px 6px;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+}
+.chip.surge { color: var(--c-signal-t); }
+.chip.guard { color: var(--c-drift-t); }
+
+.touchbtn {
+  pointer-events: auto;
+  margin-left: auto;
+  width: 54px; height: 54px;
+  border-radius: 50%;
+  border: 1.5px solid var(--c-moss);
+  background: color-mix(in srgb, var(--c-moss) 12%, transparent);
+  color: var(--c-moss);
+  font: inherit;
+  font-size: 10px;
+  letter-spacing: .16em;
+  cursor: pointer;
+}
+.touchbtn:active { background: color-mix(in srgb, var(--c-moss) 30%, transparent); }
+.touchbtn:disabled { opacity: .3; }
+
+/* ── 오버레이 스크린 ───────────────────────────── */
+.screen {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--c-field) 93%, transparent);
+  backdrop-filter: blur(2px);
+  display: flex;
+  flex-direction: column;
+  padding: 22px 20px;
+  gap: 14px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.screen[hidden] { display: none; }
+
+.eyebrow {
+  font-size: 9px;
+  letter-spacing: .34em;
+  text-transform: uppercase;
+  color: var(--c-dim);
+}
+h1 {
+  margin: 0;
+  font-size: clamp(30px, 11vw, 46px);
+  font-weight: 600;
+  letter-spacing: .14em;
+  line-height: 1;
+  text-wrap: balance;
+}
+h1 em {
+  display: block;
+  font-style: normal;
+  font-size: .28em;
+  letter-spacing: .5em;
+  color: var(--c-dim);
+  margin-top: 8px;
+}
+h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: .1em;
+}
+p.lead {
+  margin: 0;
+  font-family: var(--font-story);
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--c-dim);
+  max-width: 34ch;
+}
+.grow { flex: 1; }
+
+.btn {
+  appearance: none;
+  width: 100%;
+  border: 1.5px solid var(--c-fg);
+  background: transparent;
+  color: var(--c-fg);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .16em;
+  padding: 13px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background .12s, color .12s;
+}
+.btn:hover { background: var(--c-fg); color: var(--c-field); }
+.btn:focus-visible { outline: 2px solid var(--c-signal); outline-offset: 3px; }
+.btn.primary { border-color: var(--c-signal); background: var(--c-signal); color: #fff; }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.ghost { border-color: var(--c-line); color: var(--c-dim); font-weight: 500; }
+.btn.ghost:hover { background: transparent; color: var(--c-fg); border-color: var(--c-dim); }
+.btn:disabled { opacity: .35; cursor: default; }
+.btn:disabled:hover { background: transparent; color: var(--c-fg); }
+.btns { display: flex; flex-direction: column; gap: 8px; }
+
+/* 타이틀 기체 프리뷰 — 장착 중인 도장·궤적을 그대로 보여준다 */
+.shipstage { flex: 1; min-height: 130px; display: flex; align-items: center; justify-content: center; }
+#title-ship { width: 200px; height: 200px; max-height: 100%; }
+
+/* 현재 편성 */
+.loadout { display: flex; flex-direction: column; gap: 8px; }
+.lo-row { display: flex; align-items: center; gap: 10px; }
+.lo-row .k { font-size: 11px; letter-spacing: .1em; color: var(--c-dim); width: 5.6em; flex: none; white-space: nowrap; }
+.lo-row .v { font-size: 11.5px; letter-spacing: .04em; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lo-row .pips { margin: 0; flex: none; }
+.lo-row .pip { width: 11px; }
+
+/* 스테이지 선택 */
+.stagepick {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-top: var(--bezel);
+  border-bottom: var(--bezel);
+  padding: 12px 2px;
+}
+.stagepick .info { flex: 1; }
+.stagepick .name { font-size: 14px; font-weight: 600; letter-spacing: .06em; }
+.stagepick .sub { font-size: 10px; letter-spacing: .2em; color: var(--c-dim); margin-top: 3px; }
+.chev {
+  appearance: none;
+  border: var(--bezel);
+  background: transparent;
+  color: var(--c-fg);
+  width: 44px; height: 44px;
+  font-size: 14px;
+  border-radius: 2px;
+  cursor: pointer;
+}
+.chev:disabled { opacity: .25; cursor: default; }
+.chev:focus-visible { outline: 2px solid var(--c-signal); outline-offset: 2px; }
+
+/* 스토리 */
+.story { display: flex; flex-direction: column; gap: 16px; justify-content: center; }
+.line { display: flex; flex-direction: column; gap: 5px; }
+.line .who {
+  font-size: 9px;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--c-signal-t);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.line.b .who { color: var(--c-drift-t); }
+.line.n .who { color: var(--c-dim); }
+/* 화자 식별 표식 — 관제는 계기 프레임, 탑승자는 식별번호 */
+.line .bdg {
+  font-family: var(--font-num);
+  font-style: normal;
+  font-size: 8.5px;
+  letter-spacing: .1em;
+  border: 1px solid currentColor;
+  padding: 1px 4px;
+  border-radius: 2px;
+}
+.line.p { border-left: 2px solid var(--c-signal); padding-left: 10px; }
+.line.b { border-left: 2px solid var(--c-drift); padding-left: 10px; }
+.line .say {
+  font-family: var(--font-story);
+  font-size: 15px;
+  line-height: 1.6;
+}
+.line.n .say { font-style: italic; color: var(--c-dim); font-size: 13.5px; }
+/* 아직 출력되지 않은 줄 — 자리는 잡아두고 내용만 감춘다(레이아웃이 튀지 않게) */
+.line { transition: opacity .22s ease-out, transform .22s ease-out; }
+.line.pend { opacity: 0; transform: translateY(6px); }
+@media (prefers-reduced-motion: reduce) { .line.pend { transform: none; } }
+
+/* 탭 */
+.tabs { display: flex; gap: 0; border-bottom: var(--bezel); }
+.tab {
+  appearance: none;
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;                /* 시각 크기는 그대로, 히트 영역만 확보 */
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--c-dim);
+  font: inherit;
+  font-size: 10.5px;
+  letter-spacing: .08em;
+  padding: 9px 0;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.tab[aria-selected="true"] { color: var(--c-fg); border-bottom-color: var(--c-signal); }
+.tab:focus-visible { outline: 2px solid var(--c-signal); outline-offset: -2px; }
+
+.panel { display: flex; flex-direction: column; gap: 2px; }
+.panel[hidden] { display: none; }
+
+/* 장비 행 */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 2px;
+  border-bottom: var(--bezel);
+}
+.row .body { flex: 1; min-width: 0; }
+.row .nm { font-size: 13px; font-weight: 600; letter-spacing: .05em; }
+.row .st {
+  font-family: var(--font-num);
+  font-size: 10.5px;
+  color: var(--c-dim);
+  margin-top: 4px;
+  letter-spacing: .02em;
+}
+.row .st b { color: var(--c-moss-t); font-weight: 600; }
+.pips { display: flex; gap: 2px; margin-top: 6px; }
+.pip { width: 15px; height: 3px; background: var(--c-line); }
+.pip.on { background: var(--c-signal); }
+.buy {
+  appearance: none;
+  border: 1.5px solid var(--c-fg);
+  background: transparent;
+  color: var(--c-fg);
+  font: inherit;
+  font-family: var(--font-num);
+  font-size: 11px;
+  padding: 8px 10px;
+  min-height: 44px;
+  min-width: 56px;
+  border-radius: 2px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.buy:hover:not(:disabled) { background: var(--c-fg); color: var(--c-field); }
+.buy:disabled { opacity: .3; cursor: default; }
+.buy:focus-visible { outline: 2px solid var(--c-signal); outline-offset: 2px; }
+.buy.owned { border-color: var(--c-moss); color: var(--c-moss-t); }
+.buy.equipped { border-color: var(--c-moss); background: var(--c-moss); color: #fff; }
+
+.swatch {
+  width: 40px; height: 40px;
+  border: var(--bezel);
+  border-radius: 2px;
+  flex: none;
+}
+
+/* 탑승자 · 기체 카드 */
+.unit {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px 2px;
+  border-bottom: var(--bezel);
+}
+.unit .art {
+  width: 62px; height: 62px;
+  border: var(--bezel);
+  background: var(--c-ground);
+  flex: none;
+  border-radius: 2px;
+}
+.unit .body { flex: 1; min-width: 0; }
+.unit .desig {
+  font-family: var(--font-num);
+  font-size: 9.5px;
+  letter-spacing: .18em;
+  color: var(--c-dim);
+}
+.unit .nm { font-size: 13.5px; font-weight: 600; letter-spacing: .04em; margin-top: 3px; }
+.unit .nm small { font-weight: 400; font-size: 11px; color: var(--c-dim); margin-left: 6px; letter-spacing: .02em; }
+.unit .bio {
+  font-family: var(--font-story);
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--c-dim);
+  margin-top: 6px;
+}
+.unit .head { display: flex; align-items: flex-start; gap: 10px; }
+.unit .head .buy { margin-left: auto; }
+
+.stats { display: flex; flex-wrap: wrap; gap: 3px 12px; margin-top: 8px; }
+.stat {
+  font-family: var(--font-num);
+  font-size: 10px;
+  color: var(--c-dim);
+  font-variant-numeric: tabular-nums;
+}
+.stat b { font-weight: 600; color: var(--c-fg); }
+.stat.up b { color: var(--c-moss-t); }
+.stat.dn b { color: var(--c-bad); }
+/* 장착 중인 것 대비 증감 */
+.stat .d { font-style: normal; font-size: 9px; letter-spacing: 0; }
+.stat .d.good { color: var(--c-moss-t); }
+.stat .d.bad { color: var(--c-bad); }
+
+.perk {
+  margin-top: 8px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  border-left: 2px solid var(--c-signal);
+  padding-left: 9px;
+}
+.perk .lbl {
+  font-size: 8.5px;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+  color: var(--c-dim);
+  flex: none;
+}
+.perk .val { font-size: 11.5px; letter-spacing: .03em; }
+.perk .val b { color: var(--c-signal-t); font-weight: 600; }
+
+/* 기록 */
+.log { padding: 12px 2px; border-bottom: var(--bezel); }
+.log .nm { font-size: 12px; font-weight: 600; letter-spacing: .06em; }
+.log .tx {
+  font-family: var(--font-story);
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--c-dim);
+  margin-top: 5px;
+}
+.log.locked .nm, .log.locked .tx { color: var(--c-line); }
+
+/* 결과 */
+.result { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--c-line); border: var(--bezel); }
+.result div { background: var(--c-field); padding: 12px; }
+.result .k { font-size: 9px; letter-spacing: .26em; color: var(--c-dim); text-transform: uppercase; }
+.result .v { font-family: var(--font-num); font-size: 21px; margin-top: 5px; font-variant-numeric: tabular-nums; }
+.newbest { color: var(--c-signal-t); font-size: 10px; letter-spacing: .22em; }
+
+/* 최고 기록 대비 위치 — 숫자 격자만으로는 한 판을 끝낸 감정을 받아주지 못한다 */
+.best { display: flex; flex-direction: column; gap: 7px; margin-top: 14px; }
+.best-row { display: flex; align-items: baseline; justify-content: space-between; }
+.best-row .k { font-size: 10px; letter-spacing: .16em; color: var(--c-dim); }
+.best-row .v {
+  font-family: var(--font-num);
+  font-size: 15px;
+  color: var(--c-signal-t);
+  font-variant-numeric: tabular-nums;
+}
+.best .bar {
+  position: relative;
+  height: 4px;
+  background: var(--c-line);
+  border-radius: 2px;
+  overflow: visible;
+}
+.best .bar i {
+  display: block; height: 100%;
+  background: var(--c-signal);
+  border-radius: 2px;
+  transition: width .5s cubic-bezier(.2,.8,.2,1);
+}
+.best .bar b {                        /* 이전 최고 기록 눈금 */
+  position: absolute; top: -4px;
+  width: 2px; height: 12px;
+  background: var(--c-dim);
+}
+
+}
+
+.wallet {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  padding-bottom: 2px;
+}
+.wallet .v {
+  font-family: var(--font-num);
+  font-size: 19px;
+  color: var(--c-moss);
+  font-variant-numeric: tabular-nums;
+}
+
+.hint {
+  width: min(100%, 560px);
+  font-size: 10px;
+  letter-spacing: .12em;
+  color: var(--c-dim);
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.hint b { color: var(--c-fg); font-weight: 600; }
+
+.toast {
+  position: absolute;
+  left: 50%;
+  bottom: 76px;
+  transform: translateX(-50%);
+  background: var(--c-fg);
+  color: var(--c-field);
+  font-size: 11px;
+  letter-spacing: .1em;
+  padding: 8px 14px;
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity .2s;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.toast.on { opacity: 1; }
+
+/* 가로 화면(주로 폰 가로) — 세로 크롬이 높이를 먹는 동안 가로 공간은 남아돈다.
+   세로로 쌓인 배치를 옆으로 눕혀 스코프에 높이를 전부 준다. 180x270 → 247x370. */
+@media (orientation: landscape) and (max-height: 620px) {
+  #app {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 8px;
+  }
+  .scope {
+    width: auto;
+    height: calc(100dvh - 16px);
+    max-height: 100%;
+  }
+  .brand, .hint {
+    width: auto;
+    max-width: 148px;
+    flex: 0 1 auto;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .brand { order: -1; }
+  .hazard { display: none; }             /* 세로로 세우면 의미가 없다 */
+  .hint { gap: 5px; line-height: 1.5; }
+}
+
+/* 스코프가 짧으면 타이틀이 넘쳐 「출격」이 접힌다. 단계적으로 압축한다. */
+@container scope (max-height: 760px) {
+  #scr-title { padding: 16px; gap: 9px; }
+  #scr-title h1 { font-size: 30px; }
+  #scr-title .lead { font-size: 12.5px; line-height: 1.55; }
+  .shipstage { min-height: 92px; }
+  #scr-title .grow { display: none; }
+  #scr-title .btn { padding: 11px; font-size: 12.5px; }
+  #scr-title .btns { gap: 7px; }
+}
+@container scope (max-height: 600px) {
+  #scr-title { padding: 13px 15px; gap: 6px; }
+  #scr-title h1 { font-size: 24px; }
+  #scr-title h1 em { font-size: .32em; margin-top: 4px; letter-spacing: .38em; }
+  #scr-title .lead { font-size: 11.5px; line-height: 1.45; }
+  .shipstage { display: none; }          /* 프리뷰는 격납고에서 볼 수 있다 */
+  .loadout { gap: 3px; }
+  .lo-row .k { font-size: 9.5px; width: 5em; }
+  .lo-row .v { font-size: 10px; }
+  .lo-row .pip { width: 9px; }
+  .stagepick { padding: 7px 2px; }
+  .stagepick .name { font-size: 13px; }
+  .chev { width: 38px; height: 38px; }
+  #scr-title .btn { padding: 9px; font-size: 12px; }
+  #scr-title .eyebrow { font-size: 8.5px; }
+}
+/* 폰 가로처럼 매우 짧을 때 — 정보성 블록을 접고 진입 경로만 남긴다.
+   설정 문단은 스토리 화면에, 편성 요약은 격납고에 그대로 있다. */
+@container scope (max-height: 430px) {
+  #scr-title .lead,
+  #scr-title .loadout { display: none; }
+  #scr-title h1 { font-size: 21px; }
+  #scr-title { gap: 5px; }
+  .stagepick { padding: 6px 2px; }
+  #scr-title .wallet .v { font-size: 16px; }
+}
+
+/* 결과 화면도 같은 기준으로 — 폭이 아니라 스코프 높이가 원인이다 */
+@container scope (max-height: 700px) {
+  #scr-result { padding: 16px; gap: 9px; }
+  #scr-result h2 { font-size: 13.5px; }
+  #scr-result .result div { padding: 9px; }
+  #scr-result .result .v { font-size: 18px; margin-top: 3px; }
+  #scr-result .best { margin-top: 8px; gap: 5px; }
+  #scr-result .btn { padding: 11px; font-size: 12px; }
+  #scr-result .btns { gap: 6px; }
+  .story { gap: 11px; }
+  .line .say { font-size: 13.5px; line-height: 1.5; }
+  .line.n .say { font-size: 12.5px; }
+}
+
+/* 매우 짧을 때 — 결과 격자를 4열 한 줄로 눕히고 부가 표기를 접는다 */
+@container scope (max-height: 500px) {
+  #scr-result { padding: 12px 14px; gap: 6px; }
+  #scr-result h2 { font-size: 12px; }
+  #result-crew { display: none; }
+  #scr-result .result { grid-template-columns: repeat(4, 1fr); }
+  #scr-result .result div { padding: 7px 5px; }
+  #scr-result .result .k { font-size: 7.5px; letter-spacing: .1em; }
+  #scr-result .result .v { font-size: 14px; margin-top: 2px; }
+  #scr-result .best { margin-top: 3px; gap: 4px; }
+  #scr-result .btn { padding: 8px; font-size: 11.5px; }
+  .story { gap: 8px; padding: 14px 16px; }
+  .line .say { font-size: 12.5px; line-height: 1.45; }
+  .line.n .say { font-size: 11.5px; }
+  #scr-story .btn { padding: 9px; font-size: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: .01ms !important; }
+}
+</style>
+
+<div id="app">
+  <div class="brand">
+    <b>파장</b><span>Wavelength</span>
+    <i class="hazard"></i>
+    <button class="iconbtn" id="btn-sound" type="button">소리 ON</button>
+  </div>
+
+  <div class="scope" id="scope">
+    <canvas id="cv"></canvas>
+
+    <!-- HUD -->
+    <div class="hud off" id="hud">
+      <div class="hud-row">
+        <div class="hud-col">
+          <div class="tag" id="hud-stage">STAGE 1 · WAVE 1</div>
+          <div class="num" id="hud-score">0</div>
+          <div class="hearts" id="hud-hearts"></div>
+        </div>
+        <div class="hud-col right">
+          <div class="tag">CORE</div>
+          <div class="num" id="hud-coin" style="color:var(--c-moss)">0</div>
+          <button class="iconbtn" id="btn-pause" style="pointer-events:auto;margin-top:4px" type="button">II</button>
+        </div>
+      </div>
+
+      <div class="combo" id="hud-combo">×1.0<br /><small>COMBO 0</small></div>
+
+      <div class="hud-bottom">
+        <div class="hud-col">
+          <div class="chips" id="hud-chips"></div>
+          <div class="tag">BOMB</div>
+          <div class="bombs" id="hud-bombs"></div>
+        </div>
+        <button class="touchbtn" id="btn-bomb" type="button">BOMB</button>
+      </div>
+    </div>
+
+    <!-- 타이틀 -->
+    <div class="screen" id="scr-title">
+      <div class="eyebrow">정격관제국 · 단독 출격기 파장-7</div>
+      <h1>파장<em>Wavelength</em></h1>
+      <p class="lead">기계화 3세기. 대역을 따라 내려온 군체가 도시를 덮었다. 기체를 입고 대역을 거슬러 올라가, 그들을 움직이는 송신을 끊어라.</p>
+
+      <div class="shipstage"><canvas id="title-ship" width="240" height="240"></canvas></div>
+
+      <div class="loadout">
+        <div class="eyebrow">현재 편성</div>
+        <div id="title-loadout"></div>
+      </div>
+
+      <div class="stagepick">
+        <button class="chev" id="stage-prev" type="button" aria-label="이전 스테이지">◀</button>
+        <div class="info">
+          <div class="name" id="stage-name">정적 지대</div>
+          <div class="sub" id="stage-sub">STAGE 1</div>
+        </div>
+        <button class="chev" id="stage-next" type="button" aria-label="다음 스테이지">▶</button>
+      </div>
+
+      <div class="wallet"><span class="tag">보유 코어</span><span class="v" id="title-coin">0</span></div>
+
+      <div class="btns">
+        <button class="btn primary" id="btn-start" type="button">출격</button>
+        <button class="btn" id="btn-hangar" type="button">격납고</button>
+      </div>
+      <div class="eyebrow" id="title-best">최고 기록 —</div>
+    </div>
+
+    <!-- 스토리 -->
+    <div class="screen story" id="scr-story" hidden>
+      <div class="eyebrow" id="story-head">STAGE 1 · 정적 지대</div>
+      <div class="grow"></div>
+      <div id="story-lines"></div>
+      <div class="grow"></div>
+      <button class="btn primary" id="btn-story-go" type="button">진입</button>
+      <button class="btn ghost" id="btn-story-skip" type="button">건너뛰기</button>
+    </div>
+
+    <!-- 일시정지 -->
+    <div class="screen" id="scr-pause" hidden>
+      <div class="eyebrow">기체 정지 · 관제 회선 유지</div>
+      <h2>대기 상태</h2>
+      <div class="loadout" id="pause-info"></div>
+      <div class="grow"></div>
+      <div class="btns">
+        <button class="btn primary" id="btn-resume" type="button">계속</button>
+        <button class="btn ghost" id="btn-abort" type="button">출격 중단</button>
+      </div>
+    </div>
+
+    <!-- 결과 -->
+    <div class="screen" id="scr-result" hidden>
+      <div class="eyebrow" id="result-head">기체 상실 · 회수 보고</div>
+      <h2 id="result-title">파장-7 신호 소실</h2>
+      <div class="eyebrow" id="result-crew" style="letter-spacing:.14em"></div>
+      <div class="newbest" id="result-best" hidden>NEW RECORD</div>
+      <div class="grow"></div>
+      <div class="result">
+        <div><div class="k">Score</div><div class="v" id="r-score">0</div></div>
+        <div><div class="k">Core</div><div class="v" id="r-coin" style="color:var(--c-moss)">0</div></div>
+        <div><div class="k">Kills</div><div class="v" id="r-kill">0</div></div>
+        <div><div class="k">Max Combo</div><div class="v" id="r-combo">0</div></div>
+      </div>
+      <!-- 이번 판이 최고 기록 대비 어디쯤인지 -->
+      <div class="best">
+        <div class="best-row"><span class="k">최고 기록 대비</span><span class="v" id="r-pct">—</span></div>
+        <div class="bar"><i id="r-bar"></i><b id="r-mark"></b></div>
+        <div class="best-row"><span class="tag" id="r-bestlbl">BEST —</span><span class="tag" id="r-depth"></span></div>
+      </div>
+      <div class="grow"></div>
+      <div class="btns">
+        <button class="btn primary" id="btn-again" type="button">재출격</button>
+        <button class="btn" id="btn-to-hangar" type="button">격납고</button>
+        <button class="btn ghost" id="btn-to-title" type="button">타이틀</button>
+      </div>
+    </div>
+
+    <!-- 격납고 -->
+    <div class="screen" id="scr-hangar" hidden>
+      <div class="hud-row">
+        <div>
+          <div class="eyebrow">격납고</div>
+          <div class="wallet"><span class="v" id="hangar-coin">0</span><span class="tag">코어</span></div>
+        </div>
+      </div>
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" id="tab-pilot" aria-selected="true" type="button">탑승자</button>
+        <button class="tab" role="tab" id="tab-frame" aria-selected="false" type="button">기체</button>
+        <button class="tab" role="tab" id="tab-eq" aria-selected="false" type="button">장비</button>
+        <button class="tab" role="tab" id="tab-cos" aria-selected="false" type="button">치장</button>
+        <button class="tab" role="tab" id="tab-log" aria-selected="false" type="button">기록</button>
+      </div>
+      <div class="panel" id="pn-pilot"></div>
+      <div class="panel" id="pn-frame" hidden></div>
+      <div class="panel" id="pn-eq" hidden></div>
+      <div class="panel" id="pn-cos" hidden></div>
+      <div class="panel" id="pn-log" hidden></div>
+      <div class="grow"></div>
+      <button class="btn" id="btn-hangar-back" type="button">닫기</button>
+    </div>
+
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <div class="hint">
+    <span><b>이동</b> 드래그 / 방향키·WASD</span>
+    <span><b>사격</b> 자동</span>
+    <span><b>폭탄</b> Space</span>
+    <span><b>정지</b> Esc</span>
+  </div>
+</div>
+
+<script>
+/*@BUNDLE@*/
+</script>
