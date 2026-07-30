@@ -32,7 +32,8 @@ node game/build.mjs --check    # index.html 이 src/ 와 어긋났는지
 node game/test/core.mjs        # 코어만 (브라우저 없이)
 node game/test/regress.mjs     # 웹 회귀 (Playwright)
 node game/test/skia2d.mjs      # Skia 와 Canvas2D 픽셀 대조
-node game/test/app.mjs         # 앱 컴파일 · 코어 이름 · 소리 파형
+node game/test/app.mjs         # 앱 컴파일 · 코어 이름 · 패키지 API · 색표 · 소리 파형
+node game/test/app-render.mjs  # 앱 화면을 실제로 그려 전 흐름을 눌러 본다
 ```
 
 ## 구조 — 코어 / 타깃
