@@ -24,7 +24,7 @@ if (!fs.existsSync(path.join(APP, "node_modules"))) {
 const appRequire = createRequire(path.join(APP, "package.json"));
 
 const SRC = ["App.jsx", "index.js", "metro.config.js", "babel.config.js",
-  "src/GameField.jsx", "src/Hangar.jsx", "src/ui.jsx",
+  "src/GameField.jsx", "src/ShipPreview.jsx", "src/Hangar.jsx", "src/ui.jsx",
   "src/host.native.js", "src/sound.js", "src/synth.js", "src/theme.js"];
 
 /* ── ① 바벨 ── */

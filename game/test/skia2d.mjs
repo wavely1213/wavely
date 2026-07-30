@@ -60,6 +60,9 @@ const SCENES = [
   /* 보스는 방사 그라디언트(동심원 두 개)를 쓴다 */
   { name: "보스 코어", w: 320, h: 320,
     code: `mkBoss(160, 150); drawBoss(G.boss)` },
+  /* 타이틀 프리뷰. 「잔향」 궤적은 난수를 안 써서 양쪽이 완전히 같은 그림이 된다 */
+  { name: "기체 프리뷰(잔향)", w: 240, h: 240,
+    code: `S.trail = "echo"; resetShipPreview(); drawShipPreview(g, 240, 240, 0)` },
 ];
 
 /* 두 엔진에서 똑같이 부를 수 있도록, 난수를 안 쓰는 엔티티 생성기를 심는다 */
@@ -102,8 +105,10 @@ function renderSkia(scene) {
   const bg = Skia.Paint(); bg.setColor(Skia.Color(DARK.field));
   sc.drawRect(Skia.XYWHRect(0, 0, scene.w, scene.h), bg);
   core.G.enemies.length = 0; core.G.boss = null; core.G.t = 3;
-  new Function("g", "C", "G", "SKINS", "drawFrame", "drawEnemy", "drawBoss", HELPERS + scene.code)(
-    g, core.C, core.G, core.SKINS, core.drawFrame, core.drawEnemy, core.drawBoss);
+  core.S.trail = "ember";
+  new Function("g", "C", "G", "S", "SKINS", "drawFrame", "drawEnemy", "drawBoss", "drawShipPreview", "resetShipPreview", HELPERS + scene.code)(
+    g, core.C, core.G, core.S, core.SKINS, core.drawFrame, core.drawEnemy, core.drawBoss,
+    core.drawShipPreview, core.resetShipPreview);
   return Buffer.from(surface.makeImageSnapshot().readPixels(0, 0, {
     width: scene.w, height: scene.h,
     colorType: RGBA_8888, alphaType: UNPREMUL
@@ -122,12 +127,12 @@ async function renderCanvas(scene) {
     cv.width = w; cv.height = h;
     const g = cv.getContext("2d");
     g.fillStyle = field; g.fillRect(0, 0, w, h);
-    G.enemies.length = 0; G.boss = null; G.t = 3;
+    G.enemies.length = 0; G.boss = null; G.t = 3; S.trail = "ember";
     /* 웹 번들에서 drawEnemy/drawBoss 는 모듈 ctx 를 쓴다 — 임시로 갈아 끼운다 */
     setCtx(g);
     try {
-      new Function("g", "C", "G", "SKINS", "drawFrame", "drawEnemy", "drawBoss", helpers + code)(
-        g, C, G, SKINS, drawFrame, drawEnemy, drawBoss);
+      new Function("g", "C", "G", "S", "SKINS", "drawFrame", "drawEnemy", "drawBoss", "drawShipPreview", "resetShipPreview", helpers + code)(
+        g, C, G, S, SKINS, drawFrame, drawEnemy, drawBoss, drawShipPreview, resetShipPreview);
     } finally { setCtx(document.getElementById("cv").getContext("2d")); }
     return Array.from(g.getImageData(0, 0, w, h).data);
   }, { w: scene.w, h: scene.h, code: scene.code, field: DARK.field, helpers: HELPERS });

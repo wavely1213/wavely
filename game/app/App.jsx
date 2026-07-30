@@ -19,6 +19,7 @@ import { bootCore, flushStorage, applyTheme, setSound } from "./src/host.native"
 import { themeFor } from "./src/theme";
 import { Snd } from "./src/sound";
 import GameField from "./src/GameField";
+import ShipPreview from "./src/ShipPreview";
 import Hangar from "./src/Hangar";
 import { mono, Hazard, Badge, Btn, Stat, KV, Toast } from "./src/ui";
 
@@ -198,9 +199,20 @@ function Game() {
         </View>
       ) : (
         <>
-          <View style={{ alignItems: "center" }}>
-            <GameField width={fieldW} height={fieldH} running={running} ground={c.field} />
-          </View>
+          {screen === "title" ? (
+            /* 타이틀에서는 필드 대신 기체를 세워 둔다 — 장착한 도장·궤적이 그대로 보인다 */
+            <View style={{ alignItems: "center", justifyContent: "center", height: fieldH }}>
+              <Text style={{ color: c.dim, fontSize: 13, lineHeight: 22, paddingHorizontal: 28, textAlign: "center", marginBottom: 8 }}>
+                기계화 3세기. 대역을 따라 내려온 군체가 도시를 덮었다.{"\n"}
+                기체를 입고 대역을 거슬러 올라가, 그들을 움직이는 송신을 끊어라.
+              </Text>
+              <ShipPreview size={Math.min(220, fieldH - 120)} active revision={S.frame + S.skin + S.trail} />
+            </View>
+          ) : (
+            <View style={{ alignItems: "center" }}>
+              <GameField width={fieldW} height={fieldH} running={running} ground={c.field} />
+            </View>
+          )}
 
           {screen === "title" && (
             <View style={{ flex: 1, padding: 18, gap: 10 }}>

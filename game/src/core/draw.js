@@ -754,3 +754,41 @@ export function drawShock() {
   ctx.beginPath(); ctx.arc(0, 0, s.r * .72, 0, 6.283); ctx.stroke();
   ctx.restore();
 }
+
+/* ── 타이틀 기체 프리뷰 ────────────────────────
+   장착한 도장·궤적이 실제로 어떻게 보이는지 그대로 보여 준다.
+   지우기는 타깃이 한다 — 앱은 매 프레임 새 그림을 뜨므로 지울 것이 없고,
+   여기서 지우면 Skia 쪽에서 배경에 구멍을 뚫는 꼴이 된다. */
+const tsParts = [];
+let tsT = 0;
+export function resetShipPreview() { tsParts.length = 0; tsT = 0; }
+
+export function drawShipPreview(g, w, h, dt) {
+  tsT += dt;
+  const cx = w / 2, cy = h / 2 - 10 + Math.sin(tsT * 1.4) * 7;
+  const sc = Math.min(w, h) / 100;             /* 240px 상자에서 2.4 — 웹의 기존 배율 그대로 */
+
+  const tcol = S.trail === "ion" ? C.drift : S.trail === "bloom" ? C.moss : S.trail === "echo" ? C.dust : C.signal;
+  if (S.trail === "echo") {
+    for (let i = 1; i <= 8; i++) {
+      g.globalAlpha = (1 - i / 9) * .2;
+      drawShip(g, cx, cy + i * 5, sc * .875);
+    }
+    g.globalAlpha = 1;
+  } else {
+    if (tsParts.length < 90 && Math.random() < .9)
+      tsParts.push({ x: cx + rand(-7, 7), y: cy + 26, vy: rand(70, 150), life: .55, max: .55, sz: S.trail === "bloom" ? rand(3, 6) : rand(2, 4.5) });
+    for (let i = tsParts.length - 1; i >= 0; i--) {
+      const q = tsParts[i];
+      q.life -= dt; q.y += q.vy * dt;
+      if (q.life <= 0) { tsParts.splice(i, 1); continue; }
+      g.globalAlpha = q.life / q.max;
+      g.fillStyle = tcol;
+      if (S.trail === "bloom") { g.beginPath(); g.arc(q.x, q.y, q.sz / 2, 0, 6.283); g.fill(); }
+      else g.fillRect(q.x - q.sz / 2, q.y - q.sz / 2, q.sz, S.trail === "ion" ? q.sz * 2.4 : q.sz);
+    }
+    g.globalAlpha = 1;
+  }
+
+  drawShip(g, cx, cy, sc);
+}
