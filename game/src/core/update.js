@@ -1,8 +1,8 @@
 import { C } from "./color.js";
 import { G } from "./state.js";
-import { P, keys } from "./input.js";
 import { GUARD_CD, stats } from "./data.js";
 import { H, PAD, W, clamp, dist2, rand } from "./util.js";
+import { P, keys } from "./input.js";
 import { S } from "./save.js";
 import { WAVES_PER_STAGE, eSpd, startBoss, startWave } from "./wave.js";
 import { aimed, burst, collect, dropLoot, dropSupply, eshot, shoot, spawnEnemy } from "./entity.js";
@@ -10,6 +10,9 @@ import { host } from "./host.js";
 /* ═══════════════════════════════════════════════
    9. 업데이트
    ═══════════════════════════════════════════════ */
+/* 60Hz 기준으로 맞춰 놓았던 값들을 초 단위로 환산한 것 — 어느 주사율에서나 같은 그림이 나온다 */
+export const EXHAUST_PER_SEC = 48;     /* 예전: 프레임당 0.8 */
+export const ECHO_STEP = 1 / 60;       /* 예전: 매 프레임 한 점 */
 /* 이동은 시뮬레이션과 분리한다 — 히트스톱은 '세계'를 멈추는 연출이지
    조작을 뺏는 장치가 아니다. 회피가 핵심인 장르에서 45ms씩 끊기면 손해로만 느껴진다. */
 export function movePlayer(dt, st) {
@@ -39,23 +42,39 @@ export function update(dt) {
   const p = G.player;
   const st = stats();
 
+  const px0 = p.x, py0 = p.y;            /* 잔상을 프레임 사이에 나눠 찍을 때 쓴다 */
   movePlayer(dt, st);
   if (p.inv > 0) p.inv -= dt;
   if (p.surge > 0) p.surge = Math.max(0, p.surge - dt);
   if (p.dodgeT > 0) p.dodgeT = Math.max(0, p.dodgeT - dt);
   if (st.guard && p.guard < GUARD_CD) p.guard = Math.min(GUARD_CD, p.guard + dt);
 
-  /* — 잔상 트레일 — */
+  /* — 잔상 트레일 —
+     프레임마다 한 점씩 찍으면 잔상이 덮는 시간이 주사율에 따라 달라진다
+     (120Hz 에서 절반). 시간 간격으로 찍어 어느 기기에서나 같은 길이가 되게 한다. */
   if (S.trail === "echo") {
-    G.echo.push({ x: p.x, y: p.y, t: 0 });
-    if (G.echo.length > 10) G.echo.shift();
+    G.echoT -= dt;
+    /* 프레임이 ECHO_STEP 보다 길면 그 사이 위치를 나눠 찍는다 —
+       안 그러면 저프레임에서 잔상이 같은 점 수로 두 배 길이를 덮는다. */
+    let guard = 8;
+    while (G.echoT <= 0 && guard--) {
+      G.echoT += ECHO_STEP;
+      const k = dt > 0 ? clamp(1 + G.echoT / dt, 0, 1) : 1;
+      G.echo.push({ x: px0 + (p.x - px0) * k, y: py0 + (p.y - py0) * k, t: 0 });
+      if (G.echo.length > 10) G.echo.shift();
+    }
+    if (G.echoT < 0) G.echoT = 0;
   }
   for (const e of G.echo) e.t += dt;
 
-  /* — 배기 파티클 — */
-  if (!host.reduced && Math.random() < .8) {
+  /* — 배기 파티클 —
+     프레임당 확률로 뿌리면 120Hz 에서 두 배로 나온다. 초당 개수로 환산하고,
+     한 프레임에 여러 개가 나와야 하는 저프레임에서는 정수부만큼 한꺼번에 뿌린다. */
+  if (!host.reduced && S.trail !== "echo") {
+    const want = EXHAUST_PER_SEC * dt;
+    const n = Math.floor(want) + (Math.random() < want % 1 ? 1 : 0);
     const tcol = S.trail === "ion" ? C.drift : S.trail === "bloom" ? C.moss : C.signal;
-    if (S.trail !== "echo")
+    for (let i = 0; i < n; i++)
       G.parts.push({ x: p.x + rand(-4, 4), y: p.y + 12, vx: rand(-14, 14), vy: rand(60, 130), life: .3, max: .3, col: tcol, sz: S.trail === "bloom" ? rand(2, 3.4) : rand(1, 2.4) });
   }
 

@@ -145,6 +145,32 @@ mem.clear(); loadSave();
     Math.max(...got.map(g => g.iv)) / Math.min(...got.map(g => g.iv)) < 1.02,
     got.map(g => `${g.fps}fps ${g.iv.toFixed(4)}s`).join(" · "));
 
+  /* 연출도 주사율을 타면 안 된다 — 프레임당 확률로 뿌리면 120Hz 에서 두 배가 된다 */
+  const trailAfter = (fps, trail) => {
+    S.trail = trail;
+    beginRun(1); armStage();
+    G.screen = "play"; G.phase = "gap"; G.waveT = -1e6;
+    G.player.inv = 1e9;
+    const dt = 1 / fps;
+    for (let i = 0; i < Math.round(3 * fps); i++) update(dt);
+    return trail === "echo" ? G.echo[0].t : G.parts.length;
+  };
+  {
+    const FPS = [30, 60, 120, 144];
+    const parts = FPS.map(f => {
+      let sum = 0;                        /* 난수가 섞이므로 5회 평균 */
+      for (let k = 0; k < 5; k++) sum += trailAfter(f, "ember");
+      return sum / 5;
+    });
+    check("배기 파티클이 주사율을 안 탄다", Math.max(...parts) / Math.min(...parts) < 1.6,
+      parts.map((v, i) => `${FPS[i]}fps ${v.toFixed(1)}개`).join(" · "));
+
+    const spans = FPS.map(f => trailAfter(f, "echo"));
+    check("잔상 길이가 주사율을 안 탄다", Math.max(...spans) / Math.min(...spans) < 1.2,
+      spans.map((v, i) => `${FPS[i]}fps ${v.toFixed(3)}초`).join(" · "));
+    S.trail = "ember";
+  }
+
   /* 이동도 같은 시간이면 같은 곳에 있어야 한다 */
   const moveTo = fps => {
     beginRun(1); G.screen = "play"; G.phase = "gap"; G.waveT = -1e6;

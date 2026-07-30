@@ -760,6 +760,7 @@ export function drawShock() {
    지우기는 타깃이 한다 — 앱은 매 프레임 새 그림을 뜨므로 지울 것이 없고,
    여기서 지우면 Skia 쪽에서 배경에 구멍을 뚫는 꼴이 된다. */
 const tsParts = [];
+const PREVIEW_PER_SEC = 54;            /* 예전: 프레임당 0.9 */
 let tsT = 0;
 export function resetShipPreview() { tsParts.length = 0; tsT = 0; }
 
@@ -776,7 +777,9 @@ export function drawShipPreview(g, w, h, dt) {
     }
     g.globalAlpha = 1;
   } else {
-    if (tsParts.length < 90 && Math.random() < .9)
+    /* 프레임당 확률이 아니라 초당 개수로 — 120Hz 에서 두 배로 나오면 안 된다 */
+    const wantP = PREVIEW_PER_SEC * dt;
+    if (tsParts.length < 90 && Math.random() < Math.min(1, wantP))
       tsParts.push({ x: cx + rand(-7, 7), y: cy + 26, vy: rand(70, 150), life: .55, max: .55, sz: S.trail === "bloom" ? rand(3, 6) : rand(2, 4.5) });
     for (let i = tsParts.length - 1; i >= 0; i--) {
       const q = tsParts[i];

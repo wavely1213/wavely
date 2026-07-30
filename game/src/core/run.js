@@ -15,7 +15,7 @@ export function beginRun(stage) {
   G.stage = stage; G.wave = 0;
   G.score = 0; G.coins = 0; G.kills = 0; G.combo = 0; G.maxCombo = 0;
   G.bullets.length = 0; G.ebullets.length = 0; G.enemies.length = 0;
-  G.parts.length = 0; G.drops.length = 0; G.echo.length = 0; G.queue.length = 0;
+  G.parts.length = 0; G.drops.length = 0; G.echo.length = 0; G.echoT = 0; G.queue.length = 0;
   G.boss = null; G.t = 0; G.shake = 0; G.flash = 0; G.stop = 0; G.muzzle = 0; G.wave1 = null;
   G.over = false;
   G.player = newPlayer();

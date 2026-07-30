@@ -10,7 +10,7 @@ export const G = {
   score: 0, coins: 0, kills: 0, combo: 0, maxCombo: 0, comboT: 0,
   player: null, bullets: [], ebullets: [], enemies: [], parts: [], drops: [],
   queue: [], waveT: 0, phase: "idle", boss: null, bossIn: 0,
-  echo: []
+  echo: [], echoT: 0                   // echoT: 잔상 점을 찍기까지 남은 시간
 };
 
 export function newPlayer() {
