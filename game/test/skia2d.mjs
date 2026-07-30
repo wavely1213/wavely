@@ -77,6 +77,9 @@ const SCENES = [
   { name: "탑승자 표식 카드", w: 124 * 4, h: 124,
     code: `PILOTS.forEach((p,i)=>{ g.save(); g.translate(124*i,0); drawPilotPlate(g, p, 124); g.restore(); })`,
     textMask: [0,1,2,3].map(i => [124 * i + 42, 42, 40, 40]) },
+  { name: "치장 스와치", w: 80 * 8, h: 80,
+    code: `[...SKINS.map(k=>[k,"skin"]), ...TRAILS.map(t=>[t,"trail"])].forEach(([it,kind],i)=>{
+             g.save(); g.translate(80*i,0); drawSwatch(g, it, kind, 80); g.restore(); })` },
   { name: "카드 축소(62px)", w: 62 * 4, h: 62,
     code: `FRAMES.forEach((f,i)=>{ g.save(); g.translate(62*i,0); drawFramePlate(g, f, 62); g.restore(); })` },
 ];
@@ -128,9 +131,9 @@ function renderSkia(scene) {
   sc.drawRect(Skia.XYWHRect(0, 0, scene.w, scene.h), bg);
   core.G.enemies.length = 0; core.G.boss = null; core.G.t = 3;
   core.S.trail = "ember";
-  new Function("g", "C", "G", "S", "SKINS", "FRAMES", "PILOTS", "drawFrame", "drawEnemy", "drawBoss",
+  new Function("g", "C", "G", "S", "SKINS", "FRAMES", "PILOTS", "TRAILS", "drawSwatch", "drawFrame", "drawEnemy", "drawBoss",
                "drawShipPreview", "resetShipPreview", "drawFramePlate", "drawPilotPlate", HELPERS + scene.code)(
-    g, core.C, core.G, core.S, core.SKINS, core.FRAMES, core.PILOTS,
+    g, core.C, core.G, core.S, core.SKINS, core.FRAMES, core.PILOTS, core.TRAILS, core.drawSwatch,
     core.drawFrame, core.drawEnemy, core.drawBoss,
     core.drawShipPreview, core.resetShipPreview, core.drawFramePlate, core.drawPilotPlate);
   return Buffer.from(surface.makeImageSnapshot().readPixels(0, 0, {
@@ -156,9 +159,9 @@ async function renderCanvas(scene) {
     setCtx(g);
     try {
       setHost({ fontFamily: font });
-      new Function("g", "C", "G", "S", "SKINS", "FRAMES", "PILOTS", "drawFrame", "drawEnemy", "drawBoss",
+      new Function("g", "C", "G", "S", "SKINS", "FRAMES", "PILOTS", "TRAILS", "drawSwatch", "drawFrame", "drawEnemy", "drawBoss",
                    "drawShipPreview", "resetShipPreview", "drawFramePlate", "drawPilotPlate", helpers + code)(
-        g, C, G, S, SKINS, FRAMES, PILOTS, drawFrame, drawEnemy, drawBoss,
+        g, C, G, S, SKINS, FRAMES, PILOTS, TRAILS, drawSwatch, drawFrame, drawEnemy, drawBoss,
         drawShipPreview, resetShipPreview, drawFramePlate, drawPilotPlate);
     } finally { setCtx(document.getElementById("cv").getContext("2d")); }
     return Array.from(g.getImageData(0, 0, w, h).data);

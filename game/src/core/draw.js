@@ -856,3 +856,28 @@ function plateGrid(g, N) {
     g.beginPath(); g.moveTo(i, 0); g.lineTo(i, N); g.moveTo(0, i); g.lineTo(N, i); g.stroke();
   }
 }
+
+/* 치장 스와치 — 도장은 현재 기체 위에 얹어, 궤적은 흘러내리는 모양으로 보여 준다.
+   기준 80px 로 그리고 다른 크기는 배율만 건다. */
+export const SWATCH = 80;
+
+export function drawSwatch(g, item, kind, N) {
+  const k = (N || SWATCH) / SWATCH;
+  g.save();
+  if (k !== 1) g.scale(k, k);
+
+  g.fillStyle = C.field; g.fillRect(0, 0, SWATCH, SWATCH);
+  if (kind === "skin") {
+    drawFrame(g, S.frame, 40, 42, 1.7, item.col(), item.col2 && item.col2());
+  } else {
+    const col = item.id === "ion" ? C.drift : item.id === "bloom" ? C.moss : item.id === "echo" ? C.dust : C.signal;
+    for (let i = 0; i < 16; i++) {
+      g.globalAlpha = 1 - i / 18;
+      g.fillStyle = col;
+      const sz = item.id === "bloom" ? 5 - i * .2 : item.id === "echo" ? 7 - i * .35 : 4 - i * .18;
+      g.fillRect(40 - sz / 2 + Math.sin(i * .8) * 7, 8 + i * 4.2, sz, item.id === "ion" ? 5 : sz);
+    }
+    g.globalAlpha = 1;
+  }
+  g.restore();
+}

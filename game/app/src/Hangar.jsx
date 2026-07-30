@@ -39,8 +39,8 @@ function PriceBtn({ c, item, slot, equippedId, onDone }) {
 
 export default function Hangar({ c, onClose, notify, refresh }) {
   const [tab, setTab] = useState("pilot");
-  /* 도장을 바꾸면 기체 도면 색이 따라가야 한다 — 테마와 함께 다시 그릴 이유 */
-  const dep = S.skin + "/" + c.field;
+  /* 다시 그려야 할 이유 — 도장을 바꾸면 도면 색이, 기체를 바꾸면 스와치 실루엣이 따라간다 */
+  const dep = S.skin + "/" + S.frame + "/" + c.field;
   const done = (r, item) => {
     if (r === "poor") notify("코어가 모자란다");
     else if (r === "locked") notify("아직 기밀이다");
@@ -114,12 +114,14 @@ export default function Hangar({ c, onClose, notify, refresh }) {
           <>
             <Text style={[mono, { color: c.dim, fontSize: 11, marginTop: 14, marginBottom: 4 }]}>기체 도장</Text>
             {SKINS.map(k => (
-              <Row key={k.id} c={c} title={k.nm} sub={k.sub}
+              <Row key={k.id} c={c} art={<Plate kind="skin" item={k} size={54} dep={dep} />}
+                title={k.nm} sub={k.sub}
                 right={<PriceBtn c={c} item={k} slot="skin" equippedId={S.skin} onDone={done} />} />
             ))}
             <Text style={[mono, { color: c.dim, fontSize: 11, marginTop: 22, marginBottom: 4 }]}>배기 궤적</Text>
             {TRAILS.map(t => (
-              <Row key={t.id} c={c} title={t.nm} sub={t.sub}
+              <Row key={t.id} c={c} art={<Plate kind="trail" item={t} size={54} dep={dep} />}
+                title={t.nm} sub={t.sub}
                 right={<PriceBtn c={c} item={t} slot="trail" equippedId={S.trail} onDone={done} />} />
             ))}
           </>

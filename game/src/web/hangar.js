@@ -301,20 +301,9 @@ function cosRow(item, kind) {
   return row;
 }
 
+/* 스와치도 코어(core/draw.js)에 있다 — 앱 치장 탭과 같은 그림 */
 function paintSwatch(canvas, item, kind) {
   const g = canvas.getContext("2d");
-  g.clearRect(0, 0, 80, 80);
-  g.fillStyle = C.field; g.fillRect(0, 0, 80, 80);
-  if (kind === "skin") {
-    drawFrame(g, S.frame, 40, 42, 1.7, item.col(), item.col2 && item.col2());   /* 도장은 현재 기체 위에 얹혀 보인다 */
-  } else {
-    const col = item.id === "ion" ? C.drift : item.id === "bloom" ? C.moss : item.id === "echo" ? C.dust : C.signal;
-    for (let i = 0; i < 16; i++) {
-      g.globalAlpha = 1 - i / 18;
-      g.fillStyle = col;
-      const sz = item.id === "bloom" ? 5 - i * .2 : item.id === "echo" ? 7 - i * .35 : 4 - i * .18;
-      g.fillRect(40 - sz / 2 + Math.sin(i * .8) * 7, 8 + i * 4.2, sz, item.id === "ion" ? 5 : sz);
-    }
-    g.globalAlpha = 1;
-  }
+  g.clearRect(0, 0, canvas.width, canvas.height);
+  drawSwatch(g, item, kind, canvas.width);
 }

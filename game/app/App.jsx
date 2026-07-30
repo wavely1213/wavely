@@ -13,7 +13,7 @@ import * as Haptics from "expo-haptics";
 import {
   G, S, W, H, fmt, clamp, stats, loadout, maxStage, stageName, stageEn,
   WAVES_PER_STAGE, GUARD_CD, storyFor, storyEnd, persist,
-  beginRun, armStage, finishStage, finishRun, useBomb,
+  beginRun, armStage, finishStage, finishRun, useBomb, markTip,
 } from "../src/core/index";
 import { bootCore, flushStorage, applyTheme, setSound } from "./src/host.native";
 import { themeFor } from "./src/theme";
@@ -22,6 +22,16 @@ import GameField from "./src/GameField";
 import ShipPreview from "./src/ShipPreview";
 import Hangar from "./src/Hangar";
 import { mono, Hazard, Badge, Btn, Stat, KV, Toast } from "./src/ui";
+
+/* 첫 안내 — 문구는 조작이 있는 쪽이 갖는다. 웹은 「Space 또는 우하단 버튼」,
+   앱은 버튼밖에 없으니 그렇게 쓴다. 한 번만 뜨는 규칙은 코어(markTip)가 안다. */
+const TIPS = {
+  combo:  "연속 처치가 점수 배율을 올린다 — 맞으면 0으로",
+  bomb:   "우하단 BOMB 버튼 — 화면의 탄을 쓸어낸다",
+  supply: "보급품은 탑승자마다 다르다 (격납고에서 확인)",
+  guard:  "육각 차폐가 피탄을 막았다 — 6초마다 재충전",
+  evade:  "회피 성공 — 내구도 콤보도 잃지 않는다",
+};
 
 export default function App() {
   return (
@@ -56,15 +66,22 @@ function Game() {
   const notify = useCallback(msg => {
     setToast(msg);
     if (toastT.current) clearTimeout(toastT.current);
-    toastT.current = setTimeout(() => setToast(null), 1600);
+    toastT.current = setTimeout(() => { toastT.current = null; setToast(null); }, 1600);
   }, []);
+
+  /* 다른 알림이 떠 있으면 덮어쓰지 말고 뒤로 물러난다
+     — 보급품 안내가 아이템 토스트에 즉시 지워지던 문제와 같은 이유 */
+  const tip = useCallback(id => {
+    if (!TIPS[id] || !markTip(id)) return;
+    const showing = toastT.current !== null;
+    setTimeout(() => notify(TIPS[id]), showing ? 1500 : 0);
+  }, [notify]);
 
   /* ── 부팅 ── */
   useEffect(() => {
     let alive = true;
     bootCore({
-      scheme, notify,
-      tip: () => {},                            /* 첫 안내는 앱에서 아직 안 쓴다 */
+      scheme, notify, tip,
       hudChanged: refresh,
       runEnded: () => endRun(),
       stageCleared: () => nextStage(),
@@ -87,7 +104,11 @@ function Game() {
   }, []);
 
   /* ── 흐름 ── */
-  const goPlay = () => { armStage(); setScreen("play"); };
+  const goPlay = () => {
+    armStage();
+    setScreen("play");
+    if (G.player.bomb > 0) setTimeout(() => { if (screenRef.current === "play") tip("bomb"); }, 2500);
+  };
 
   const enterStage = stage => {
     const lines = storyFor(stage);

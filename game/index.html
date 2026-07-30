@@ -1791,6 +1791,16 @@ function finishRun() {
   return { record, prevBest };
 }
 
+/* 첫 안내는 한 번만 뜬다. 무엇을 보여줬는지는 저장에 남으므로 규칙은 코어가 갖고,
+   문구는 타깃이 갖는다 — 「Space 또는 우하단 버튼」 같은 말은 조작이 있는 쪽에서만 맞다.
+   @returns 이번에 처음이면 true */
+function markTip(id) {
+  if (S.tips.includes(id)) return false;
+  S.tips.push(id);
+  persist();
+  return true;
+}
+
 
 /* ═══════════════════════════════════════════════
    격납고 — 해금·구매·장착 규칙
@@ -3056,6 +3066,31 @@ function plateGrid(g, N) {
   }
 }
 
+/* 치장 스와치 — 도장은 현재 기체 위에 얹어, 궤적은 흘러내리는 모양으로 보여 준다.
+   기준 80px 로 그리고 다른 크기는 배율만 건다. */
+const SWATCH = 80;
+
+function drawSwatch(g, item, kind, N) {
+  const k = (N || SWATCH) / SWATCH;
+  g.save();
+  if (k !== 1) g.scale(k, k);
+
+  g.fillStyle = C.field; g.fillRect(0, 0, SWATCH, SWATCH);
+  if (kind === "skin") {
+    drawFrame(g, S.frame, 40, 42, 1.7, item.col(), item.col2 && item.col2());
+  } else {
+    const col = item.id === "ion" ? C.drift : item.id === "bloom" ? C.moss : item.id === "echo" ? C.dust : C.signal;
+    for (let i = 0; i < 16; i++) {
+      g.globalAlpha = 1 - i / 18;
+      g.fillStyle = col;
+      const sz = item.id === "bloom" ? 5 - i * .2 : item.id === "echo" ? 7 - i * .35 : 4 - i * .18;
+      g.fillRect(40 - sz / 2 + Math.sin(i * .8) * 7, 8 + i * 4.2, sz, item.id === "ion" ? 5 : sz);
+    }
+    g.globalAlpha = 1;
+  }
+  g.restore();
+}
+
 /* ═══════════════════════════════════════════════
    5. 캔버스 · 입력
    ═══════════════════════════════════════════════ */
@@ -3166,8 +3201,7 @@ const TIPS = {
   evade:  "회피 성공 — 내구도 콤보도 잃지 않는다"
 };
 function tip(id) {
-  if (!TIPS[id] || S.tips.includes(id)) return;
-  S.tips.push(id); persist();
+  if (!TIPS[id] || !markTip(id)) return;
   /* 같은 순간에 다른 알림이 떠 있으면 그걸 덮어쓰지 말고 뒤로 물러난다
      (보급품 안내가 아이템 토스트에 즉시 지워지던 문제). */
   const showing = $("toast").classList.contains("on");
@@ -3710,22 +3744,11 @@ function cosRow(item, kind) {
   return row;
 }
 
+/* 스와치도 코어(core/draw.js)에 있다 — 앱 치장 탭과 같은 그림 */
 function paintSwatch(canvas, item, kind) {
   const g = canvas.getContext("2d");
-  g.clearRect(0, 0, 80, 80);
-  g.fillStyle = C.field; g.fillRect(0, 0, 80, 80);
-  if (kind === "skin") {
-    drawFrame(g, S.frame, 40, 42, 1.7, item.col(), item.col2 && item.col2());   /* 도장은 현재 기체 위에 얹혀 보인다 */
-  } else {
-    const col = item.id === "ion" ? C.drift : item.id === "bloom" ? C.moss : item.id === "echo" ? C.dust : C.signal;
-    for (let i = 0; i < 16; i++) {
-      g.globalAlpha = 1 - i / 18;
-      g.fillStyle = col;
-      const sz = item.id === "bloom" ? 5 - i * .2 : item.id === "echo" ? 7 - i * .35 : 4 - i * .18;
-      g.fillRect(40 - sz / 2 + Math.sin(i * .8) * 7, 8 + i * 4.2, sz, item.id === "ion" ? 5 : sz);
-    }
-    g.globalAlpha = 1;
-  }
+  g.clearRect(0, 0, canvas.width, canvas.height);
+  drawSwatch(g, item, kind, canvas.width);
 }
 
 /* ═══════════════════════════════════════════════

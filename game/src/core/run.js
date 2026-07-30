@@ -59,3 +59,13 @@ export function finishRun() {
   G.pickStage = clamp(G.stage, 1, maxStage());   /* 재출격은 쓰러진 구역에서 */
   return { record, prevBest };
 }
+
+/* 첫 안내는 한 번만 뜬다. 무엇을 보여줬는지는 저장에 남으므로 규칙은 코어가 갖고,
+   문구는 타깃이 갖는다 — 「Space 또는 우하단 버튼」 같은 말은 조작이 있는 쪽에서만 맞다.
+   @returns 이번에 처음이면 true */
+export function markTip(id) {
+  if (S.tips.includes(id)) return false;
+  S.tips.push(id);
+  persist();
+  return true;
+}

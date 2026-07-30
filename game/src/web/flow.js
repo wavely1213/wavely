@@ -30,8 +30,7 @@ const TIPS = {
   evade:  "회피 성공 — 내구도 콤보도 잃지 않는다"
 };
 function tip(id) {
-  if (!TIPS[id] || S.tips.includes(id)) return;
-  S.tips.push(id); persist();
+  if (!TIPS[id] || !markTip(id)) return;
   /* 같은 순간에 다른 알림이 떠 있으면 그걸 덮어쓰지 말고 뒤로 물러난다
      (보급품 안내가 아이템 토스트에 즉시 지워지던 문제). */
   const showing = $("toast").classList.contains("on");
