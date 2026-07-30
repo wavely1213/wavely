@@ -92,6 +92,9 @@ function Game() {
 
   useEffect(() => { if (booted) { applyTheme(scheme); refresh(); } }, [scheme, booted, refresh]);
 
+  /* 앱이 내려가면 오디오 플레이어를 놓아 준다 */
+  useEffect(() => () => Snd.release(), []);
+
   /* 앱이 뒤로 가면 멈추고 저장을 밀어 넣는다 */
   useEffect(() => {
     const sub = AppState.addEventListener("change", st => {
@@ -145,6 +148,8 @@ function Game() {
 
   const lo = loadout();
   const running = screen === "play";
+  /* 저장이 손상돼 있으면 돌파하지 않은 구역을 가리킬 수 있다 — 웹 타이틀과 같은 보정 */
+  G.pickStage = clamp(G.pickStage, 1, maxStage());
   /* 필드가 쓸 수 있는 세로 공간 — 머리말과 화면별 하단 UI 를 뺀 나머지 */
   const fieldH = Math.max(240, height - 190);
   const fieldW = Math.min(width, fieldH * (W / H));
