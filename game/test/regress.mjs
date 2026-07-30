@@ -5,6 +5,7 @@
          (경로를 주면 그 HTML을 검사한다 — 리팩터링 전후 대조용)
 */
 import { chromium } from "/opt/node22/lib/node_modules/playwright/index.mjs";
+import fs from "node:fs";
 import path from "node:path";
 
 const TARGET = path.resolve(process.argv[2] || new URL("../index.html", import.meta.url).pathname);
@@ -168,7 +169,48 @@ async function fresh(opts = {}) {
   await p.close();
 }
 
-/* ── 10. 라이트 테마에서도 무오류 ── */
+/* ── 10. CSS 가 통째로 버려지지 않았는지 ──
+   떠 있는 중괄호 하나면 브라우저가 뒤따르는 규칙을 조용히 버린다.
+   실제로 `.wallet { display:flex }` 이 그렇게 죽어 있었고, 화면은 그냥
+   조금 어색해 보일 뿐이라 눈으로는 안 잡혔다. 숫자로 잡는다. */
+{
+  const css = fs.readFileSync(path.join(path.dirname(TARGET), "src/index.template.html"), "utf8")
+    .replace(/[\s\S]*?<style>/, "").replace(/<\/style>[\s\S]*/, "")
+    .replace(/\/\*[\s\S]*?\*\//g, "");
+
+  /* 선택자를 긁으면서 중괄호 균형도 같이 본다.
+     깊이가 음수로 내려가면 그 자리가 바로 떠 있는 중괄호다. */
+  const want = new Set();
+  let depth = 0, buf = "", stray = 0;
+  for (const ch of css) {
+    if (ch === "{") {
+      const sel = buf.trim();
+      if (sel && !sel.startsWith("@") && depth <= 1)
+        sel.split(",").forEach(t => want.add(t.trim().replace(/\s+/g, " ")));
+      depth++; buf = "";
+    } else if (ch === "}") {
+      if (depth === 0) stray++; else depth--;
+      buf = "";
+    } else buf += ch;
+  }
+  check("중괄호 균형", stray === 0 && depth === 0, `떠 있는 } ${stray}개 · 안 닫힌 { ${depth}개`);
+
+  const p = await fresh();
+  const have = new Set(await p.evaluate(() => {
+    const out = [];
+    const walk = rules => { for (const r of rules) {
+      if (r.selectorText) r.selectorText.split(",").forEach(t => out.push(t.trim()));
+      if (r.cssRules) walk(r.cssRules);
+    } };
+    for (const s of document.styleSheets) { try { walk(s.cssRules); } catch {} }
+    return out;
+  }));
+  const lost = [...want].filter(s => !have.has(s));
+  check("CSS 규칙이 버려지지 않았다", lost.length === 0, "사라진 선택자: " + lost.join(" | "));
+  await p.close();
+}
+
+/* ── 11. 라이트 테마에서도 무오류 ── */
 {
   const p = await fresh({ colorScheme: "light" });
   check("라이트 부팅", p.errs.length === 0, p.errs.join(" | "));
