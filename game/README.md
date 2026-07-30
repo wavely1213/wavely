@@ -34,6 +34,10 @@ node game/test/regress.mjs     # 웹 회귀 (Playwright)
 node game/test/skia2d.mjs      # Skia 와 Canvas2D 픽셀 대조
 node game/test/app.mjs         # 앱 컴파일 · 코어 이름 · 패키지 API · 색표 · 소리 파형
 node game/test/app-render.mjs  # 앱 화면을 실제로 그려 전 흐름을 눌러 본다
+
+node game/test/balance.mjs              # 자동 조종으로 경제·콤보 측정
+node game/test/balance.mjs --progress   # 새 계정이 전부 여는 데 몇 판인가
+node game/test/balance.mjs --frames     # 기체 4종 비교
 ```
 
 ## 구조 — 코어 / 타깃
