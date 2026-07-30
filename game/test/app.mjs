@@ -149,6 +149,28 @@ const SRC = ["App.jsx", "index.js", "metro.config.js", "babel.config.js",
 
 /* ── ⑤ 소리 ── */
 {
+  /* 악보는 코어에 있다 — 앱이 그걸 그대로 굽는지, 그리고 음량에 여유가 있는지 */
+  const synth = await import(path.join(APP, "src/synth.js"));
+  const audio = await import(path.join(DIR, "../src/core/audio.js"));
+  const PART = { noise: synth.renderNoise, blip: synth.renderBlip, sweep: synth.renderSweep };
+  const render = n => {
+    const b = synth.mix(audio.SFX[n].map(([k, ...a]) => PART[k](...a)));
+    for (let i = 0; i < b.length; i++) b[i] *= audio.MASTER;
+    return b;
+  };
+  const peakOf = a => a.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+  const bad = Object.keys(audio.SFX).filter(k => { const p2 = peakOf(render(k)); return !(p2 > 0 && p2 < 1); });
+  check("소리마다 음량이 범위 안", bad.length === 0, bad.join(", "));
+
+  /* 최악 동시 발음에서 클리핑하지 않는가 — 음량을 올릴 때 제일 먼저 깨지는 곳 */
+  const worst = synth.mix(["big", "bomb", "hurt", "boom", "boom", "shoot", "shoot", "hit"].map(render));
+  const wp = peakOf(worst);
+  check("동시 발음 8성부가 안 깨진다", wp < .95, `피크 ${wp.toFixed(3)}`);
+  /* 너무 작으면 폰에서 안 들린다 — 원래 -18.9 dBFS 였다 */
+  check("가장 큰 소리가 충분히 크다", peakOf(render("big")) > .2, `피크 ${peakOf(render("big")).toFixed(3)}`);
+}
+
+{
   const synth = await import(path.join(APP, "src/synth.js"));
   const cases = [
     ["blip", () => synth.renderBlip(320, .03, "square", .012), .012],

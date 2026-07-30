@@ -20,6 +20,7 @@ const ORDER = [
   "core/host.js",
   "core/util.js",
   "core/color.js",
+  "core/audio.js",
   "web/theme.js",       // CSS 변수 → setColors()
   "web/sound.js",       // Snd
   "core/data.js",

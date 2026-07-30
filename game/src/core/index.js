@@ -9,6 +9,7 @@
 export { host, setHost, wired, unwired } from "./host.js";
 export * from "./util.js";
 export * from "./color.js";
+export * from "./audio.js";
 export * from "./data.js";
 export * from "./save.js";
 export * from "./state.js";

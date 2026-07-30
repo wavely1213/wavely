@@ -980,6 +980,47 @@ function shade(hex, amt) {
   return "rgb(" + rgb(hex).map(f).join(",") + ")";
 }
 
+/* 소리의 '악보' — 무엇이 어떤 파형으로 나는가.
+   웹은 이걸 WebAudio 그래프로, 앱은 PCM 으로 렌더한다. 소리를 내는 방식은 달라도
+   **숫자는 한 곳에만** 있어야 두 화면의 소리가 갈라지지 않는다.
+
+   부품
+     ["noise", 중심주파수, Q, 길이, 음량]   밴드패스를 지난 짧은 노이즈 = 금속성
+     ["blip",  주파수, 길이, 파형, 음량]     단순 오실레이터 = 전자음
+     ["sweep", 시작, 끝, 길이, 음량]         지수 주파수 램프 = 임팩트의 저역
+
+   기계화 톤 — 공압식 발사, 금속 타격, 저역 임팩트, 릴레이 클릭.
+*/
+
+/* 전체 음량. 원래 값들이 -36~-19 dBFS 로 너무 작아 폰에서 거의 안 들렸다.
+   비율은 그대로 두고 전체만 올린다 — 최악 동시 발음(8성부)이 0.28 → 0.69 로,
+   클리핑(1.0)까지는 아직 여유가 있다. */
+const MASTER = 2.5;
+
+const SFX = {
+  shoot: [["noise", 1900, 9, .045, .05], ["blip", 320, .03, "square", .012]],
+  hit:   [["noise", 2600, 5, .05, .07]],
+  boom:  [["noise", 700, 1.2, .22, .10], ["sweep", 240, 45, .26, .05]],
+  big:   [["noise", 420, .8, .55, .14], ["sweep", 150, 28, .7, .08]],
+  coin:  [["blip", 1180, .05, "triangle", .03], ["noise", 4200, 12, .03, .03]],
+  hurt:  [["noise", 900, 2, .18, .12], ["sweep", 280, 80, .22, .07]],
+  bomb:  [["noise", 300, .6, .5, .12], ["sweep", 80, 820, .35, .06]],
+  ui:    [["noise", 3000, 14, .025, .05]],
+};
+
+/* 코어가 파라미터째 부르는 blip 들 — 앱은 이 목록을 미리 구워 둔다 */
+const BLIPS = [
+  [300, .05, "sawtooth", .02],    // 직조체 사격
+  [240, .06, "sawtooth", .022],   // 포탑 사격
+  [520, .16, "triangle", .05],    // 육각 차폐
+  [760, .07, "triangle", .035],   // 회피
+  [1560, .09, "triangle", .04],   // 보스 격파
+  [160, .09, "sawtooth", .03],
+];
+
+/* 동시 발음 상한 — 연사 시 소리가 뭉치지 않게 */
+const VOICE_CAP = 8;
+
 /* ═══════════════════════════════════════════════
    2. 색 (CSS 변수 → 코어 색표)
    ═══════════════════════════════════════════════ */
@@ -1004,7 +1045,7 @@ const Snd = {
     const t = this.ctx.currentTime;
     const o = this.ctx.createOscillator(), g = this.ctx.createGain();
     o.type = type || "square"; o.frequency.setValueAtTime(freq, t);
-    g.gain.setValueAtTime(vol || .05, t);
+    g.gain.setValueAtTime((vol || .05) * MASTER, t);
     g.gain.exponentialRampToValueAtTime(.0001, t + dur);
     o.connect(g); g.connect(this.ctx.destination);
     o.start(t); o.stop(t + dur);
@@ -1016,7 +1057,7 @@ const Snd = {
     o.type = "sawtooth";
     o.frequency.setValueAtTime(f1, t);
     o.frequency.exponentialRampToValueAtTime(Math.max(20, f2), t + dur);
-    g.gain.setValueAtTime(vol || .07, t);
+    g.gain.setValueAtTime((vol || .07) * MASTER, t);
     g.gain.exponentialRampToValueAtTime(.0001, t + dur);
     o.connect(g); g.connect(this.ctx.destination);
     o.start(t); o.stop(t + dur);
@@ -1047,28 +1088,27 @@ const Snd = {
   noise(freq, q, dur, vol) {
     if (!this.on || !this.ctx) return;
     const t = this.ctx.currentTime;
-    if (this.active(t) >= 8) return;            /* 연사 시 소리가 뭉치지 않게 */
+    if (this.active(t) >= VOICE_CAP) return;     /* 연사 시 소리가 뭉치지 않게 */
     const src = this.ctx.createBufferSource(); src.buffer = this.noiseBuf();
     const f = this.ctx.createBiquadFilter(); f.type = "bandpass";
     f.frequency.setValueAtTime(freq, t); f.Q.value = q;
     const g = this.ctx.createGain();
-    g.gain.setValueAtTime(vol, t);
+    g.gain.setValueAtTime(vol * MASTER, t);
     g.gain.exponentialRampToValueAtTime(.0001, t + dur);
     src.connect(f); f.connect(g); g.connect(this.ctx.destination);
     this._ends.push(t + dur);
     src.start(t); src.stop(t + dur);
   },
 
-  /* 기계화 톤 — 공압식 발사, 금속 타격, 저역 임팩트, 릴레이 클릭 */
-  shoot()  { this.noise(1900, 9, .045, .05); this.blip(320, .03, "square", .012); },
-  hit()    { this.noise(2600, 5, .05, .07); },
-  boom()   { this.noise(700, 1.2, .22, .10); this.sweep(240, 45, .26, .05); },
-  big()    { this.noise(420, .8, .55, .14); this.sweep(150, 28, .7, .08); },
-  coin()   { this.blip(1180, .05, "triangle", .03); this.noise(4200, 12, .03, .03); },
-  hurt()   { this.noise(900, 2, .18, .12); this.sweep(280, 80, .22, .07); },
-  bomb()   { this.noise(300, .6, .5, .12); this.sweep(80, 820, .35, .06); },
-  ui()     { this.noise(3000, 14, .025, .05); }
+  /* 이름 붙은 소리는 코어의 악보(core/audio.js SFX)에서 그대로 만든다 —
+     숫자가 두 군데 있으면 웹과 앱의 소리가 언젠가 갈라진다. */
+  play(name) {
+    const parts = SFX[name];
+    if (!parts) return;
+    for (const [kind, ...a] of parts) this[kind](...a);
+  }
 };
+for (const name of Object.keys(SFX)) Snd[name] = function () { this.play(name); };
 
 /* ═══════════════════════════════════════════════
    4. 게임 데이터

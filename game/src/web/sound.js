@@ -9,7 +9,7 @@ const Snd = {
     const t = this.ctx.currentTime;
     const o = this.ctx.createOscillator(), g = this.ctx.createGain();
     o.type = type || "square"; o.frequency.setValueAtTime(freq, t);
-    g.gain.setValueAtTime(vol || .05, t);
+    g.gain.setValueAtTime((vol || .05) * MASTER, t);
     g.gain.exponentialRampToValueAtTime(.0001, t + dur);
     o.connect(g); g.connect(this.ctx.destination);
     o.start(t); o.stop(t + dur);
@@ -21,7 +21,7 @@ const Snd = {
     o.type = "sawtooth";
     o.frequency.setValueAtTime(f1, t);
     o.frequency.exponentialRampToValueAtTime(Math.max(20, f2), t + dur);
-    g.gain.setValueAtTime(vol || .07, t);
+    g.gain.setValueAtTime((vol || .07) * MASTER, t);
     g.gain.exponentialRampToValueAtTime(.0001, t + dur);
     o.connect(g); g.connect(this.ctx.destination);
     o.start(t); o.stop(t + dur);
@@ -52,25 +52,24 @@ const Snd = {
   noise(freq, q, dur, vol) {
     if (!this.on || !this.ctx) return;
     const t = this.ctx.currentTime;
-    if (this.active(t) >= 8) return;            /* 연사 시 소리가 뭉치지 않게 */
+    if (this.active(t) >= VOICE_CAP) return;     /* 연사 시 소리가 뭉치지 않게 */
     const src = this.ctx.createBufferSource(); src.buffer = this.noiseBuf();
     const f = this.ctx.createBiquadFilter(); f.type = "bandpass";
     f.frequency.setValueAtTime(freq, t); f.Q.value = q;
     const g = this.ctx.createGain();
-    g.gain.setValueAtTime(vol, t);
+    g.gain.setValueAtTime(vol * MASTER, t);
     g.gain.exponentialRampToValueAtTime(.0001, t + dur);
     src.connect(f); f.connect(g); g.connect(this.ctx.destination);
     this._ends.push(t + dur);
     src.start(t); src.stop(t + dur);
   },
 
-  /* 기계화 톤 — 공압식 발사, 금속 타격, 저역 임팩트, 릴레이 클릭 */
-  shoot()  { this.noise(1900, 9, .045, .05); this.blip(320, .03, "square", .012); },
-  hit()    { this.noise(2600, 5, .05, .07); },
-  boom()   { this.noise(700, 1.2, .22, .10); this.sweep(240, 45, .26, .05); },
-  big()    { this.noise(420, .8, .55, .14); this.sweep(150, 28, .7, .08); },
-  coin()   { this.blip(1180, .05, "triangle", .03); this.noise(4200, 12, .03, .03); },
-  hurt()   { this.noise(900, 2, .18, .12); this.sweep(280, 80, .22, .07); },
-  bomb()   { this.noise(300, .6, .5, .12); this.sweep(80, 820, .35, .06); },
-  ui()     { this.noise(3000, 14, .025, .05); }
+  /* 이름 붙은 소리는 코어의 악보(core/audio.js SFX)에서 그대로 만든다 —
+     숫자가 두 군데 있으면 웹과 앱의 소리가 언젠가 갈라진다. */
+  play(name) {
+    const parts = SFX[name];
+    if (!parts) return;
+    for (const [kind, ...a] of parts) this[kind](...a);
+  }
 };
+for (const name of Object.keys(SFX)) Snd[name] = function () { this.play(name); };

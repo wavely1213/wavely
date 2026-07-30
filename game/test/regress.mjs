@@ -118,10 +118,13 @@ async function fresh(opts = {}) {
     await new Promise(r => setTimeout(r, 400));
     /* 헤드리스에는 사용자 제스처가 없어 AudioContext가 suspended 로 남는다.
        그러면 currentTime이 흐르지 않아 '빠지는지'는 볼 수 없고, '넘치지 않는지'만 본다. */
-    return { peak, state: Snd.ctx.state, drained: Snd.active(Snd.ctx.currentTime + 1) };
+    /* 악보(core/audio.js)에 있는 소리가 전부 실제 메서드로 있는지도 같이 본다 */
+    const missing = Object.keys(SFX).filter(k => typeof Snd[k] !== "function");
+    return { peak, state: Snd.ctx.state, drained: Snd.active(Snd.ctx.currentTime + 1), missing, cap: VOICE_CAP };
   });
-  check("발음 상한 유지", r.peak <= 9, "peak=" + r.peak);
+  check("발음 상한 유지", r.peak <= r.cap + 1, `peak=${r.peak} 상한=${r.cap}`);
   check("발음 카운터 배수", r.drained === 0, "잔여=" + r.drained + " (ctx " + r.state + ")");
+  check("악보의 소리가 전부 있다", r.missing.length === 0, r.missing.join(", "));
   await p.close();
 }
 

@@ -10,29 +10,15 @@
 import { File, Paths } from "expo-file-system";
 import { createAudioPlayer, setAudioModeAsync } from "expo-audio";
 import { renderBlip, renderSweep, renderNoise, wav, mix } from "./synth";
+import { SFX, BLIPS, MASTER } from "../../src/core/audio";
 
-/* ── 이름 붙은 소리 — web/sound.js 와 같은 파라미터 ── */
-const RECIPES = {
-  shoot: () => mix([renderNoise(1900, 9, .045, .05), renderBlip(320, .03, "square", .012)]),
-  hit:   () => renderNoise(2600, 5, .05, .07),
-  boom:  () => mix([renderNoise(700, 1.2, .22, .10), renderSweep(240, 45, .26, .05)]),
-  big:   () => mix([renderNoise(420, .8, .55, .14), renderSweep(150, 28, .7, .08)]),
-  coin:  () => mix([renderBlip(1180, .05, "triangle", .03), renderNoise(4200, 12, .03, .03)]),
-  hurt:  () => mix([renderNoise(900, 2, .18, .12), renderSweep(280, 80, .22, .07)]),
-  bomb:  () => mix([renderNoise(300, .6, .5, .12), renderSweep(80, 820, .35, .06)]),
-  ui:    () => renderNoise(3000, 14, .025, .05),
+/* 악보는 코어(core/audio.js)에 있다 — 웹과 같은 숫자를 읽는다 */
+const PART = { noise: renderNoise, blip: renderBlip, sweep: renderSweep };
+const render = name => {
+  const buf = mix(SFX[name].map(([kind, ...a]) => PART[kind](...a)));
+  for (let i = 0; i < buf.length; i++) buf[i] *= MASTER;
+  return buf;
 };
-
-/* 코어가 blip 을 파라미터째 부르는 자리들 — 미리 구워 둔다.
-   목록에 없는 조합이 들어오면 그때 굽고, 그 한 번만 소리가 늦는다. */
-const BLIPS = [
-  [300, .05, "sawtooth", .02],    // 직조체 사격
-  [240, .06, "sawtooth", .022],   // 포탑 사격
-  [520, .16, "triangle", .05],    // 육각 차폐
-  [760, .07, "triangle", .035],   // 회피
-  [1560, .09, "triangle", .04],   // 보스 격파
-  [160, .09, "sawtooth", .03],
-];
 
 const VOICES = 4;                 /* 같은 소리가 겹칠 수 있는 최대 수 */
 
@@ -48,6 +34,8 @@ class Voice {
   }
   release() { for (const p of this.players) { try { p.remove(); } catch {} } }
 }
+
+const scaled = buf => { for (let i = 0; i < buf.length; i++) buf[i] *= MASTER; return buf; };
 
 const voices = new Map();
 let dir = null;
@@ -76,8 +64,8 @@ export const Snd = {
     try {
       await setAudioModeAsync({ playsInSilentMode: true, shouldPlayInBackground: false });
       dir = Paths.cache;
-      for (const [k, r] of Object.entries(RECIPES)) await bake(k, r);
-      for (const b of BLIPS) await bake(blipKey(...b), () => renderBlip(...b));
+      for (const k of Object.keys(SFX)) await bake(k, () => render(k));
+      for (const b of BLIPS) await bake(blipKey(...b), () => scaled(renderBlip(...b)));
     } catch { this.on = false; }
   },
 
@@ -89,7 +77,7 @@ export const Snd = {
     const key = blipKey(freq, dur, type, vol);
     const v = voices.get(key);
     if (v) v.play(1);
-    else if (!voices.has(key)) bake(key, () => renderBlip(freq, dur, type, vol)).then(x => x && x.play(1));
+    else if (!voices.has(key)) bake(key, () => scaled(renderBlip(freq, dur, type, vol))).then(x => x && x.play(1));
   },
   shoot() { this._named("shoot"); },
   hit()   { this._named("hit"); },
