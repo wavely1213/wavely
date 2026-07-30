@@ -221,10 +221,27 @@ for (const tab of ["기체", "장비", "치장", "기록"]) {
 await act(async () => { pressableWith(tree, "닫기").props.onPress(); });
 check("격납고 → 타이틀", has(tree, "출격"), texts(tree).slice(0, 10).join("|"));
 
-/* 출격 → 스토리 → 전투 */
-await act(async () => { pressableWith(tree, "출격").props.onPress(); });
+/* 출격 → 스토리 → 전투.
+   대사는 한 줄씩 세워진다 — 한꺼번에 뿌리면 읽기 전에 지나간다(웹과 같은 규칙). */
+await act(async () => { pressableExact(tree, "출격").props.onPress(); });
 check("스토리 진입", has(tree, "STAGE 1"), texts(tree).slice(0, 10).join("|"));
-await act(async () => { pressableWith(tree, "출격").props.onPress(); });
+
+{
+  const core = require2("../src/core/index.js");
+  const lines = core.storyFor(1).length;
+  const shownNow = () => core.storyFor(1).filter(([, say]) => has(tree, say)).length;
+  await act(async () => { await wait(60); });
+  const first = shownNow();
+  check("대사가 한 번에 다 나오지 않는다", first > 0 && first < lines, `${first}/${lines}줄`);
+
+  /* 출력 중에는 버튼이 「건너뛰기」 — 누르면 남은 줄이 한 번에 나온다 */
+  check("출력 중 버튼은 건너뛰기", has(tree, "건너뛰기"), texts(tree).slice(-4).join("|"));
+  await act(async () => { pressableWith(tree, "건너뛰기").props.onPress(); });
+  check("건너뛰면 전부 나온다", shownNow() === lines, `${shownNow()}/${lines}줄`);
+  check("다 나오면 버튼은 출격", has(tree, "출격"), texts(tree).slice(-4).join("|"));
+}
+
+await act(async () => { pressableExact(tree, "출격").props.onPress(); });
 await act(async () => { await wait(120); });
 check("전투 진입", has(tree, "BOMB"), texts(tree).slice(0, 14).join("|"));
 

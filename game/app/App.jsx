@@ -11,7 +11,7 @@ import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
 import * as Haptics from "expo-haptics";
 
 import {
-  G, S, W, H, fmt, clamp, stats, loadout, maxStage, stageName, stageEn,
+  G, S, W, H, host, fmt, clamp, stats, loadout, maxStage, stageName, stageEn,
   WAVES_PER_STAGE, GUARD_CD, storyFor, storyEnd, persist,
   beginRun, armStage, finishStage, finishRun, useBomb, markTip,
 } from "../src/core/index";
@@ -52,6 +52,7 @@ function Game() {
   const [toast, setToast] = useState(null);
   const [, bump] = useState(0);                 /* HUD·격납고 숫자 갱신용 */
   const [story, setStory] = useState(null);     /* { lines, then } */
+  const [shown, setShown] = useState(0);        /* 스토리 대사가 몇 줄까지 나왔나 */
   const [result, setResult] = useState(null);
   const [box, setBox] = useState({ w: 360, h: 480 });   /* 필드가 실제로 받은 공간 */
 
@@ -121,6 +122,18 @@ function Game() {
     return () => sub.remove();
   }, []);
 
+  /* 대사를 한 줄씩 세운다 — 한꺼번에 뿌리면 읽기 전에 지나간다.
+     웹과 같은 간격(520ms, 동작 줄이기면 60ms)이고, 줄마다 음이 반 음씩 올라간다. */
+  useEffect(() => {
+    if (screen !== "story" || !story) return;
+    if (shown >= story.lines.length) return;
+    const t = setTimeout(() => {
+      Snd.blip(420 + shown * 60, .05, "triangle", .02);
+      setShown(n => n + 1);
+    }, shown === 0 ? 0 : (host.reduced ? 60 : 520));
+    return () => clearTimeout(t);
+  }, [screen, story, shown]);
+
   /* ── 흐름 ── */
   const goPlay = () => {
     armStage();
@@ -132,6 +145,7 @@ function Game() {
     const lines = storyFor(stage);
     /* 처음 보는 구역에서만 대사를 세운다 — 재도전 흐름을 끊지 않기 위해 */
     if (lines && !S.seenStory.includes(stage)) {
+      setShown(0);
       setStory({ stage, lines, then: () => { S.seenStory.push(stage); persist(); setStory(null); goPlay(); } });
       setScreen("story");
     } else goPlay();
@@ -144,6 +158,7 @@ function Game() {
     notify("구역 정리 보너스 +" + bonus);
     const end = ending ? storyEnd() : null;
     if (end) {
+      setShown(0);
       setStory({ stage: G.stage - 1, lines: end, then: () => { setStory(null); enterStage(G.stage); } });
       setScreen("story");
     } else enterStage(G.stage);
@@ -193,7 +208,7 @@ function Game() {
             STAGE {story.stage} · {stageName(story.stage)} · {stageEn(story.stage)}
           </Text>
           <View style={{ flex: 1, justifyContent: "center", gap: 16 }}>
-            {story.lines.map(([who, say], i) => (
+            {story.lines.slice(0, shown).map(([who, say], i) => (
               <View key={i}>
                 {who !== null && (
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 5 }}>
@@ -208,7 +223,12 @@ function Game() {
               </View>
             ))}
           </View>
-          <Btn c={c} primary onPress={() => { Snd.ui(); story.then(); }}>출격</Btn>
+          {/* 출력이 남아 있으면 먼저 마치고, 다 나온 뒤에 눌러야 진입한다 (웹과 같은 규칙) */}
+          <Btn c={c} primary onPress={() => {
+            Snd.ui();
+            if (shown < story.lines.length) { setShown(story.lines.length); return; }
+            story.then();
+          }}>{shown < story.lines.length ? "건너뛰기" : "출격"}</Btn>
         </View>
       ) : screen === "result" && result ? (
         <View style={{ flex: 1, padding: 18 }}>
