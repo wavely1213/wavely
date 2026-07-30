@@ -35,6 +35,7 @@ function unitCard(item, kind) {
   const art = document.createElement("canvas");
   art.className = "art";
   art.width = 124; art.height = 124;
+  art.setAttribute("aria-hidden", "true");   /* 옆의 글자가 같은 내용을 이미 말한다 */
   (isPilot ? paintPilotArt : paintFrameArt)(art, item);
 
   const body = document.createElement("div");
@@ -265,6 +266,7 @@ function cosRow(item, kind) {
   const sw = document.createElement("canvas");
   sw.className = "swatch";
   sw.width = 80; sw.height = 80;
+  sw.setAttribute("aria-hidden", "true");
   paintSwatch(sw, item, kind);
 
   const body = document.createElement("div");

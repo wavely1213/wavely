@@ -10,6 +10,15 @@ function setScreen(name) {
      오버레이가 마우스는 가리지만 키보드 포커스는 그대로 통과하므로 inert가 필요하다. */
   $("hud").classList.toggle("off", name !== "play" && name !== "pause");
   $("hud").inert = (name !== "play") || G.over;
+
+  /* 화면이 바뀌면 포커스도 따라간다.
+     안 옮기면 body 로 떨어져서 키보드 사용자는 매번 맨 위에서 Tab 을 다시 시작해야 한다.
+     화면 자체에 포커스를 주면(tabindex=-1) 스크린리더가 제목부터 읽고,
+     Tab 은 그 화면의 첫 버튼으로 이어진다. 전투는 캔버스라 옮길 곳이 없다. */
+  if (name !== "play") {
+    const box = $("scr-" + name);
+    if (box) box.focus({ preventScroll: true });
+  }
 }
 
 function toast(msg) {

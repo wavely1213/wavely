@@ -250,6 +250,7 @@ body {
 .touchbtn:disabled { opacity: .3; }
 
 /* ── 오버레이 스크린 ───────────────────────────── */
+.screen:focus { outline: none; }   /* 화면 전환 시 포커스만 옮긴다 — 테두리를 그리지는 않는다 */
 .screen {
   position: absolute;
   inset: 0;
@@ -753,7 +754,8 @@ p.lead {
   </div>
 
   <div class="scope" id="scope">
-    <canvas id="cv"></canvas>
+    <!-- 필드는 그림이다. 안에서 벌어지는 일은 HUD 숫자와 알림으로 따로 전달한다. -->
+    <canvas id="cv" role="img" aria-label="플레이필드 — 기체와 군체가 그려진다"></canvas>
 
     <!-- HUD -->
     <div class="hud off" id="hud">
@@ -783,12 +785,12 @@ p.lead {
     </div>
 
     <!-- 타이틀 -->
-    <div class="screen" id="scr-title">
+    <div class="screen" tabindex="-1" id="scr-title">
       <div class="eyebrow">정격관제국 · 단독 출격기 파장-7</div>
       <h1>파장<em>Wavelength</em></h1>
       <p class="lead">기계화 3세기. 대역을 따라 내려온 군체가 도시를 덮었다. 기체를 입고 대역을 거슬러 올라가, 그들을 움직이는 송신을 끊어라.</p>
 
-      <div class="shipstage"><canvas id="title-ship" width="240" height="240"></canvas></div>
+      <div class="shipstage"><canvas id="title-ship" width="240" height="240" role="img" aria-label="장착한 기체 미리보기"></canvas></div>
 
       <div class="loadout">
         <div class="eyebrow">현재 편성</div>
@@ -814,7 +816,7 @@ p.lead {
     </div>
 
     <!-- 스토리 -->
-    <div class="screen story" id="scr-story" hidden>
+    <div class="screen story" tabindex="-1" id="scr-story" hidden>
       <div class="eyebrow" id="story-head">STAGE 1 · 정적 지대</div>
       <div class="grow"></div>
       <div id="story-lines"></div>
@@ -824,7 +826,7 @@ p.lead {
     </div>
 
     <!-- 일시정지 -->
-    <div class="screen" id="scr-pause" hidden>
+    <div class="screen" tabindex="-1" id="scr-pause" hidden>
       <div class="eyebrow">기체 정지 · 관제 회선 유지</div>
       <h2>대기 상태</h2>
       <div class="loadout" id="pause-info"></div>
@@ -836,7 +838,7 @@ p.lead {
     </div>
 
     <!-- 결과 -->
-    <div class="screen" id="scr-result" hidden>
+    <div class="screen" tabindex="-1" id="scr-result" hidden>
       <div class="eyebrow" id="result-head">기체 상실 · 회수 보고</div>
       <h2 id="result-title">파장-7 신호 소실</h2>
       <div class="eyebrow" id="result-crew" style="letter-spacing:.14em"></div>
@@ -863,7 +865,7 @@ p.lead {
     </div>
 
     <!-- 격납고 -->
-    <div class="screen" id="scr-hangar" hidden>
+    <div class="screen" tabindex="-1" id="scr-hangar" hidden>
       <div class="hud-row">
         <div>
           <div class="eyebrow">격납고</div>
@@ -886,7 +888,8 @@ p.lead {
       <button class="btn" id="btn-hangar-back" type="button">닫기</button>
     </div>
 
-    <div class="toast" id="toast"></div>
+    <!-- 회피·차폐·보급품 같은 순간 알림. 화면을 못 보는 사용자에게도 전달돼야 한다. -->
+    <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
   </div>
 
   <div class="hint">
@@ -3194,6 +3197,15 @@ function setScreen(name) {
      오버레이가 마우스는 가리지만 키보드 포커스는 그대로 통과하므로 inert가 필요하다. */
   $("hud").classList.toggle("off", name !== "play" && name !== "pause");
   $("hud").inert = (name !== "play") || G.over;
+
+  /* 화면이 바뀌면 포커스도 따라간다.
+     안 옮기면 body 로 떨어져서 키보드 사용자는 매번 맨 위에서 Tab 을 다시 시작해야 한다.
+     화면 자체에 포커스를 주면(tabindex=-1) 스크린리더가 제목부터 읽고,
+     Tab 은 그 화면의 첫 버튼으로 이어진다. 전투는 캔버스라 옮길 곳이 없다. */
+  if (name !== "play") {
+    const box = $("scr-" + name);
+    if (box) box.focus({ preventScroll: true });
+  }
 }
 
 function toast(msg) {
@@ -3491,6 +3503,7 @@ function unitCard(item, kind) {
   const art = document.createElement("canvas");
   art.className = "art";
   art.width = 124; art.height = 124;
+  art.setAttribute("aria-hidden", "true");   /* 옆의 글자가 같은 내용을 이미 말한다 */
   (isPilot ? paintPilotArt : paintFrameArt)(art, item);
 
   const body = document.createElement("div");
@@ -3721,6 +3734,7 @@ function cosRow(item, kind) {
   const sw = document.createElement("canvas");
   sw.className = "swatch";
   sw.width = 80; sw.height = 80;
+  sw.setAttribute("aria-hidden", "true");
   paintSwatch(sw, item, kind);
 
   const body = document.createElement("div");

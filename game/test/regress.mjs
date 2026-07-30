@@ -309,7 +309,53 @@ async function fresh(opts = {}) {
   await p.close();
 }
 
-/* ── 13. 라이트 테마에서도 무오류 ── */
+/* ── 13. 접근성 — 화면 전환 시 포커스 · 알림 · 캔버스 이름 ──
+   포커스를 안 옮기면 body 로 떨어져 키보드 사용자는 매번 맨 위에서 Tab 을 다시 시작해야 한다. */
+{
+  const p = await fresh();
+  const focusOn = () => p.evaluate(() => document.activeElement.id || document.activeElement.tagName);
+
+  const lost = [];
+  if (await focusOn() !== "scr-title") lost.push("타이틀: " + await focusOn());
+
+  await p.click("#btn-start"); await p.waitForTimeout(350);
+  if (await focusOn() !== "scr-story") lost.push("스토리: " + await focusOn());
+
+  for (let i = 0; i < 4 && await p.evaluate(() => G.screen) === "story"; i++) {
+    await p.click("#btn-story-go"); await p.waitForTimeout(250);
+  }
+  await p.keyboard.press("Escape"); await p.waitForTimeout(250);
+  if (await focusOn() !== "scr-pause") lost.push("정지: " + await focusOn());
+
+  await p.click("#btn-resume"); await p.waitForTimeout(200);
+  await p.evaluate(() => endRun()); await p.waitForTimeout(900);
+  if (await focusOn() !== "scr-result") lost.push("결과: " + await focusOn());
+
+  check("화면이 바뀌면 포커스도 따라간다", lost.length === 0, lost.join(", "));
+
+  /* Tab 한 번에 그 화면의 첫 버튼으로 이어지는가 */
+  await p.keyboard.press("Tab");
+  check("Tab 하나로 첫 버튼", await focusOn() === "btn-again", await focusOn());
+
+  const a11y = await p.evaluate(() => {
+    const t = document.getElementById("toast");
+    const bad = [];
+    if (t.getAttribute("aria-live") !== "polite") bad.push("토스트에 aria-live 없음");
+    for (const cv of document.querySelectorAll("canvas"))
+      if (!cv.getAttribute("aria-label") && cv.getAttribute("aria-hidden") !== "true")
+        bad.push("이름 없는 캔버스: " + (cv.id || cv.className));
+    for (const e of document.querySelectorAll("button, [role=tab]")) {
+      const r = e.getBoundingClientRect();
+      if (r.width && r.height && !(e.getAttribute("aria-label") || e.textContent.trim()))
+        bad.push("이름 없는 버튼: " + (e.id || e.className));
+    }
+    return [...new Set(bad)];
+  });
+  check("알림·캔버스·버튼에 이름", a11y.length === 0, a11y.join(", "));
+  await p.close();
+}
+
+/* ── 14. 라이트 테마에서도 무오류 ── */
 {
   const p = await fresh({ colorScheme: "light" });
   check("라이트 부팅", p.errs.length === 0, p.errs.join(" | "));
