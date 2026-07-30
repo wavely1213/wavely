@@ -263,11 +263,11 @@ export function backdropOf(stage) {
 export const motes = Array.from({ length: 38 }, () => ({ x: rand(0, W), y: rand(0, H), s: rand(18, 70), w: rand(4, 16) }));
 export function drawBackdrop() {
   const t = G.t;
-  const B = backdropOf(G.stage);
-  const dim = B.fade ? .18 * (1 - B.fade * .6) : .18;
+  const bd = backdropOf(G.stage);   /* B 는 코어의 탄 생성기 이름이라 피한다 */
+  const dim = bd.fade ? .18 * (1 - bd.fade * .6) : .18;
 
   /* 근원의 광원 — 위에서 대역을 끌어올리는 것이 있다 */
-  if (B.glow) {
+  if (bd.glow) {
     const g = ctx.createRadialGradient(W / 2, -40, 10, W / 2, -40, 420);
     g.addColorStop(0, alpha(C.signal, .16));
     g.addColorStop(1, alpha(C.signal, 0));
@@ -277,12 +277,12 @@ export function drawBackdrop() {
 
   ctx.strokeStyle = alpha(C.dust, dim);
   ctx.lineWidth = 1;
-  for (let k = 0; k < B.layers; k++) {
-    const off = (t * (26 + k * 18) * B.flow) % 90;
+  for (let k = 0; k < bd.layers; k++) {
+    const off = (t * (26 + k * 18) * bd.flow) % 90;
     ctx.beginPath();
     for (let y = -90 + off; y < H + 90; y += 90) {
       for (let x = 0; x <= W; x += 12) {
-        const yy = y + Math.sin((x / W) * 6.283 * (1 + k) + t * (1.1 + k * .6)) * (9 + k * 5) * B.amp;
+        const yy = y + Math.sin((x / W) * 6.283 * (1 + k) + t * (1.1 + k * .6)) * (9 + k * 5) * bd.amp;
         if (x === 0) ctx.moveTo(x, yy); else ctx.lineTo(x, yy);
       }
     }
@@ -290,14 +290,14 @@ export function drawBackdrop() {
   }
 
   /* 반향 — 지나간 파형이 1.4초 늦게 한 번 더 지나간다 */
-  if (B.echo) {
+  if (bd.echo) {
     const te = t - 1.4;
     ctx.strokeStyle = alpha(C.drift, dim * .8);
-    const off = (te * 26 * B.flow) % 90;
+    const off = (te * 26 * bd.flow) % 90;
     ctx.beginPath();
     for (let y = -90 + off; y < H + 90; y += 90) {
       for (let x = 0; x <= W; x += 12) {
-        const yy = y + Math.sin((x / W) * 6.283 + te * 1.1) * 9 * B.amp;
+        const yy = y + Math.sin((x / W) * 6.283 + te * 1.1) * 9 * bd.amp;
         if (x === 0) ctx.moveTo(x, yy); else ctx.lineTo(x, yy);
       }
     }
@@ -305,27 +305,27 @@ export function drawBackdrop() {
   }
 
   /* 백색 소음 — 파형이 무너져 알갱이만 남는다 */
-  if (B.noise) {
-    ctx.fillStyle = alpha(C.dust, .16 * B.noise);
-    const n = Math.round(90 * B.noise);
+  if (bd.noise) {
+    ctx.fillStyle = alpha(C.dust, .16 * bd.noise);
+    const n = Math.round(90 * bd.noise);
     for (let i = 0; i < n; i++) {
       const nx = (i * 97.31 + t * 40) % W;
-      const ny = (i * 173.7 + t * 90 * B.flow) % H;
+      const ny = (i * 173.7 + t * 90 * bd.flow) % H;
       ctx.fillRect(nx, (ny + H) % H, 2, 2);
     }
   }
 
   ctx.fillStyle = alpha(C.dust, .3);
   for (const m of motes) {
-    m.y += m.s * G.dt * B.flow;           /* 고정 1/60이면 120Hz에서 배경만 절반 속도로 흐른다 */
+    m.y += m.s * G.dt * bd.flow;           /* 고정 1/60이면 120Hz에서 배경만 절반 속도로 흐른다 */
     if (m.y > H + 10) { m.y = -10; m.x = rand(0, W); }
     if (m.y < -10) { m.y = H + 10; m.x = rand(0, W); }
     ctx.fillRect(m.x, m.y, m.w, 1);
   }
 
   /* 격벽 이음새 + 리벳 — 구조물이 남아 있는 구역에서만 */
-  if (B.seam) {
-    const seam = (t * 34 * B.flow) % 200;
+  if (bd.seam) {
+    const seam = (t * 34 * bd.flow) % 200;
     ctx.strokeStyle = alpha(C.line, .8);
     ctx.lineWidth = 1;
     ctx.fillStyle = alpha(C.dust, .35);

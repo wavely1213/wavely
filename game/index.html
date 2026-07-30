@@ -2564,11 +2564,11 @@ function backdropOf(stage) {
 const motes = Array.from({ length: 38 }, () => ({ x: rand(0, W), y: rand(0, H), s: rand(18, 70), w: rand(4, 16) }));
 function drawBackdrop() {
   const t = G.t;
-  const B = backdropOf(G.stage);
-  const dim = B.fade ? .18 * (1 - B.fade * .6) : .18;
+  const bd = backdropOf(G.stage);   /* B 는 코어의 탄 생성기 이름이라 피한다 */
+  const dim = bd.fade ? .18 * (1 - bd.fade * .6) : .18;
 
   /* 근원의 광원 — 위에서 대역을 끌어올리는 것이 있다 */
-  if (B.glow) {
+  if (bd.glow) {
     const g = ctx.createRadialGradient(W / 2, -40, 10, W / 2, -40, 420);
     g.addColorStop(0, alpha(C.signal, .16));
     g.addColorStop(1, alpha(C.signal, 0));
@@ -2578,12 +2578,12 @@ function drawBackdrop() {
 
   ctx.strokeStyle = alpha(C.dust, dim);
   ctx.lineWidth = 1;
-  for (let k = 0; k < B.layers; k++) {
-    const off = (t * (26 + k * 18) * B.flow) % 90;
+  for (let k = 0; k < bd.layers; k++) {
+    const off = (t * (26 + k * 18) * bd.flow) % 90;
     ctx.beginPath();
     for (let y = -90 + off; y < H + 90; y += 90) {
       for (let x = 0; x <= W; x += 12) {
-        const yy = y + Math.sin((x / W) * 6.283 * (1 + k) + t * (1.1 + k * .6)) * (9 + k * 5) * B.amp;
+        const yy = y + Math.sin((x / W) * 6.283 * (1 + k) + t * (1.1 + k * .6)) * (9 + k * 5) * bd.amp;
         if (x === 0) ctx.moveTo(x, yy); else ctx.lineTo(x, yy);
       }
     }
@@ -2591,14 +2591,14 @@ function drawBackdrop() {
   }
 
   /* 반향 — 지나간 파형이 1.4초 늦게 한 번 더 지나간다 */
-  if (B.echo) {
+  if (bd.echo) {
     const te = t - 1.4;
     ctx.strokeStyle = alpha(C.drift, dim * .8);
-    const off = (te * 26 * B.flow) % 90;
+    const off = (te * 26 * bd.flow) % 90;
     ctx.beginPath();
     for (let y = -90 + off; y < H + 90; y += 90) {
       for (let x = 0; x <= W; x += 12) {
-        const yy = y + Math.sin((x / W) * 6.283 + te * 1.1) * 9 * B.amp;
+        const yy = y + Math.sin((x / W) * 6.283 + te * 1.1) * 9 * bd.amp;
         if (x === 0) ctx.moveTo(x, yy); else ctx.lineTo(x, yy);
       }
     }
@@ -2606,27 +2606,27 @@ function drawBackdrop() {
   }
 
   /* 백색 소음 — 파형이 무너져 알갱이만 남는다 */
-  if (B.noise) {
-    ctx.fillStyle = alpha(C.dust, .16 * B.noise);
-    const n = Math.round(90 * B.noise);
+  if (bd.noise) {
+    ctx.fillStyle = alpha(C.dust, .16 * bd.noise);
+    const n = Math.round(90 * bd.noise);
     for (let i = 0; i < n; i++) {
       const nx = (i * 97.31 + t * 40) % W;
-      const ny = (i * 173.7 + t * 90 * B.flow) % H;
+      const ny = (i * 173.7 + t * 90 * bd.flow) % H;
       ctx.fillRect(nx, (ny + H) % H, 2, 2);
     }
   }
 
   ctx.fillStyle = alpha(C.dust, .3);
   for (const m of motes) {
-    m.y += m.s * G.dt * B.flow;           /* 고정 1/60이면 120Hz에서 배경만 절반 속도로 흐른다 */
+    m.y += m.s * G.dt * bd.flow;           /* 고정 1/60이면 120Hz에서 배경만 절반 속도로 흐른다 */
     if (m.y > H + 10) { m.y = -10; m.x = rand(0, W); }
     if (m.y < -10) { m.y = H + 10; m.x = rand(0, W); }
     ctx.fillRect(m.x, m.y, m.w, 1);
   }
 
   /* 격벽 이음새 + 리벳 — 구조물이 남아 있는 구역에서만 */
-  if (B.seam) {
-    const seam = (t * 34 * B.flow) % 200;
+  if (bd.seam) {
+    const seam = (t * 34 * bd.flow) % 200;
     ctx.strokeStyle = alpha(C.line, .8);
     ctx.lineWidth = 1;
     ctx.fillStyle = alpha(C.dust, .35);
@@ -3572,9 +3572,10 @@ function statChip(label, pct, higherIsBetter, base) {
 
 function unitCard(item, kind) {
   const isPilot = kind === "pilot";
-  const owned = S.owned.includes(item.id);
-  const equipped = (isPilot ? S.pilot : S.frame) === item.id;
-  const locked = item.need && S.cleared < item.need;
+  const slot = isPilot ? "pilot" : "frame";
+  /* 소유·해금·가격 판정은 코어(core/shop.js)가 한다 — 여기서 다시 쓰면 앱과 갈라진다 */
+  const state = statusOf(item, S[slot]);
+  const isEquipped = state === "equipped", isLocked = state === "locked";
 
   const row = document.createElement("div");
   row.className = "unit";
@@ -3600,22 +3601,20 @@ function unitCard(item, kind) {
   const btn = document.createElement("button");
   btn.className = "buy";
   btn.type = "button";
-  if (locked) { btn.textContent = "STAGE " + item.need; btn.disabled = true; }
-  else if (equipped) { btn.textContent = "탑승중"; btn.disabled = true; btn.classList.add("equipped"); }
-  else if (owned) {
-    btn.textContent = "선택"; btn.classList.add("owned");
+  if (isLocked) { btn.textContent = "STAGE " + item.need; btn.disabled = true; }
+  else if (isEquipped) { btn.textContent = "탑승중"; btn.disabled = true; btn.classList.add("equipped"); }
+  else {
+    const has = state === "owned";
+    btn.textContent = has ? "선택" : fmt(item.cost);
+    if (has) btn.classList.add("owned"); else btn.disabled = state === "poor";
     btn.addEventListener("click", () => {
-      if (isPilot) S.pilot = item.id; else S.frame = item.id;
-      persist(); Snd.ui(); toast((isPilot ? "탑승자 " : "기체 ") + (isPilot ? item.call : item.nm)); paintHangar();
-    });
-  } else {
-    btn.textContent = fmt(item.cost);
-    btn.disabled = S.coins < item.cost;
-    btn.addEventListener("click", () => {
-      if (S.coins < item.cost) return;
-      S.coins -= item.cost; S.owned.push(item.id);
-      if (isPilot) S.pilot = item.id; else S.frame = item.id;
-      persist(); Snd.ui(); toast((isPilot ? item.call : item.nm) + " 배치"); paintHangar();
+      const r = acquire(item, slot);
+      if (r === "poor" || r === "locked") return;
+      Snd.ui();
+      toast(r === "bought"
+        ? (isPilot ? item.call : item.nm) + " 배치"
+        : (isPilot ? "탑승자 " : "기체 ") + (isPilot ? item.call : item.nm));
+      paintHangar();
     });
   }
   head.appendChild(btn);
@@ -3623,13 +3622,13 @@ function unitCard(item, kind) {
 
   const bio = document.createElement("div");
   bio.className = "bio";
-  bio.textContent = locked ? item.need + "구역 돌파 시 기밀 해제." : item.bio;
+  bio.textContent = isLocked ? item.need + "구역 돌파 시 기밀 해제." : item.bio;
   body.appendChild(bio);
 
   const st = document.createElement("div");
   st.className = "stats";
   const cur = loadout();
-  const ref = equipped ? null : (isPilot ? cur.pilot : cur.frame);   /* 장착 중인 것과 비교 */
+  const ref = isEquipped ? null : (isPilot ? cur.pilot : cur.frame);   /* 장착 중인 것과 비교 */
   if (isPilot) {
     st.appendChild(statChip("회피", Math.round(item.evade * 100), true, ref && Math.round(ref.evade * 100)));
     st.appendChild(statChip("연사", Math.round(100 / item.rate), true, ref && Math.round(100 / ref.rate)));
@@ -3800,9 +3799,9 @@ function paintHangar() {
 }
 
 function cosRow(item, kind) {
-  const owned = S.owned.includes(item.id);
-  const equipped = (kind === "skin" ? S.skin : S.trail) === item.id;
-  const locked = item.need && S.cleared < item.need;
+  const slot = kind === "skin" ? "skin" : "trail";
+  const state = statusOf(item, S[slot]);
+  const isEquipped = state === "equipped", isLocked = state === "locked";
 
   const row = document.createElement("div");
   row.className = "row";
@@ -3817,29 +3816,23 @@ function cosRow(item, kind) {
   body.className = "body";
   body.innerHTML = '<div class="nm"></div><div class="st"></div>';
   body.querySelector(".nm").textContent = item.nm;
-  body.querySelector(".st").textContent = locked
+  body.querySelector(".st").textContent = isLocked
     ? "STAGE " + item.need + " 돌파 시 해금"
     : item.sub;
 
   const btn = document.createElement("button");
   btn.className = "buy";
   btn.type = "button";
-  if (locked) { btn.textContent = "잠김"; btn.disabled = true; }
-  else if (equipped) { btn.textContent = "장착중"; btn.disabled = true; btn.classList.add("equipped"); }
-  else if (owned) {
-    btn.textContent = "장착"; btn.classList.add("owned");
+  if (isLocked) { btn.textContent = "잠김"; btn.disabled = true; }
+  else if (isEquipped) { btn.textContent = "장착중"; btn.disabled = true; btn.classList.add("equipped"); }
+  else {
+    const has = state === "owned";
+    btn.textContent = has ? "장착" : item.cost > 0 ? fmt(item.cost) : "수령";
+    if (has) btn.classList.add("owned"); else btn.disabled = state === "poor";
     btn.addEventListener("click", () => {
-      if (kind === "skin") S.skin = item.id; else S.trail = item.id;
-      persist(); Snd.ui(); toast(item.nm + " 장착"); paintHangar();
-    });
-  } else {
-    btn.textContent = item.cost > 0 ? fmt(item.cost) : "수령";
-    btn.disabled = S.coins < item.cost;
-    btn.addEventListener("click", () => {
-      if (S.coins < item.cost) return;
-      S.coins -= item.cost; S.owned.push(item.id);
-      if (kind === "skin") S.skin = item.id; else S.trail = item.id;
-      persist(); Snd.ui(); toast(item.nm + " 획득"); paintHangar();
+      const r = acquire(item, slot);
+      if (r === "poor" || r === "locked") return;
+      Snd.ui(); toast(item.nm + (r === "bought" ? " 획득" : " 장착")); paintHangar();
     });
   }
 

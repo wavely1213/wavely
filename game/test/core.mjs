@@ -245,6 +245,43 @@ mem.clear(); loadSave();
   check("잠긴 도장", statusOf(dark, S.skin) === "locked", statusOf(dark, S.skin));
 }
 
+/* ── 구조: 타깃이 코어의 규칙을 다시 쓰고 있지 않은가 ──
+   웹 격납고가 소유·해금 판정을 자기 손으로 계산하고 있었다. 코어에 같은 규칙이
+   있는데도. 그런 중복은 지금은 같은 답을 내지만 언젠가 갈라진다.
+   또 하나 — 번들에서는 한 스코프라 코어의 바인딩을 갈아 끼워도 돌아가지만,
+   앱처럼 진짜 모듈로 쓰면 못 한다(실제로 `S = ...` 가 그랬다). */
+{
+  const fs = await import("node:fs");
+  const path = await import("node:path");
+  const url = await import("node:url");
+  const SRC = path.join(path.dirname(url.fileURLToPath(import.meta.url)), "../src");
+  const list = d => fs.readdirSync(path.join(SRC, d)).filter(f => f.endsWith(".js")).map(f => d + "/" + f);
+
+  const exp = {};
+  for (const f of list("core")) {
+    const t = fs.readFileSync(path.join(SRC, f), "utf8");
+    for (const m of t.matchAll(/^export\s+(?:const|let|var)\s+([\w$]+)/gm)) exp[m[1]] = f;
+    for (const m of t.matchAll(/^export\s+(?:function|class)\s+([\w$]+)/gm)) exp[m[1]] = f;
+  }
+
+  const clash = [];
+  for (const f of [...list("core"), ...list("web"), ...list("native")]) {
+    const raw = fs.readFileSync(path.join(SRC, f), "utf8")
+      .replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
+    const own = new Set();
+    for (const m of raw.matchAll(/^(?:export\s+)?(?:const|let|var)\s+([\w$]+)/gm)) own.add(m[1]);
+    for (const m of raw.matchAll(/^(?:export\s+)?(?:function|class)\s+([\w$]+)/gm)) own.add(m[1]);
+    for (const [n, owner] of Object.entries(exp)) {
+      if (owner === f || own.has(n)) continue;
+      /* 코어의 이름을 지역 변수로 다시 만들거나(규칙 중복), 대입하는 곳(바인딩 교체) */
+      const re = new RegExp("(?<![.\\w$])" + n + "\\s*(?:\\+\\+|--|[-+*/|&^]?=(?!=))", "g");
+      for (const m of raw.matchAll(re))
+        clash.push(f + ":" + raw.slice(0, m.index).split("\n").length + "  " + n + " ← " + owner);
+    }
+  }
+  check("코어의 이름을 타깃이 덮어쓰지 않는다", clash.length === 0, clash.join(" | "));
+}
+
 for (const n of ok) console.log("  통과  " + n);
 for (const n of fails) console.log("  실패  " + n);
 console.log(`\n${ok.length} 통과 / ${fails.length} 실패`);

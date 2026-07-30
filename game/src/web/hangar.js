@@ -25,9 +25,10 @@ function statChip(label, pct, higherIsBetter, base) {
 
 function unitCard(item, kind) {
   const isPilot = kind === "pilot";
-  const owned = S.owned.includes(item.id);
-  const equipped = (isPilot ? S.pilot : S.frame) === item.id;
-  const locked = item.need && S.cleared < item.need;
+  const slot = isPilot ? "pilot" : "frame";
+  /* 소유·해금·가격 판정은 코어(core/shop.js)가 한다 — 여기서 다시 쓰면 앱과 갈라진다 */
+  const state = statusOf(item, S[slot]);
+  const isEquipped = state === "equipped", isLocked = state === "locked";
 
   const row = document.createElement("div");
   row.className = "unit";
@@ -53,22 +54,20 @@ function unitCard(item, kind) {
   const btn = document.createElement("button");
   btn.className = "buy";
   btn.type = "button";
-  if (locked) { btn.textContent = "STAGE " + item.need; btn.disabled = true; }
-  else if (equipped) { btn.textContent = "탑승중"; btn.disabled = true; btn.classList.add("equipped"); }
-  else if (owned) {
-    btn.textContent = "선택"; btn.classList.add("owned");
+  if (isLocked) { btn.textContent = "STAGE " + item.need; btn.disabled = true; }
+  else if (isEquipped) { btn.textContent = "탑승중"; btn.disabled = true; btn.classList.add("equipped"); }
+  else {
+    const has = state === "owned";
+    btn.textContent = has ? "선택" : fmt(item.cost);
+    if (has) btn.classList.add("owned"); else btn.disabled = state === "poor";
     btn.addEventListener("click", () => {
-      if (isPilot) S.pilot = item.id; else S.frame = item.id;
-      persist(); Snd.ui(); toast((isPilot ? "탑승자 " : "기체 ") + (isPilot ? item.call : item.nm)); paintHangar();
-    });
-  } else {
-    btn.textContent = fmt(item.cost);
-    btn.disabled = S.coins < item.cost;
-    btn.addEventListener("click", () => {
-      if (S.coins < item.cost) return;
-      S.coins -= item.cost; S.owned.push(item.id);
-      if (isPilot) S.pilot = item.id; else S.frame = item.id;
-      persist(); Snd.ui(); toast((isPilot ? item.call : item.nm) + " 배치"); paintHangar();
+      const r = acquire(item, slot);
+      if (r === "poor" || r === "locked") return;
+      Snd.ui();
+      toast(r === "bought"
+        ? (isPilot ? item.call : item.nm) + " 배치"
+        : (isPilot ? "탑승자 " : "기체 ") + (isPilot ? item.call : item.nm));
+      paintHangar();
     });
   }
   head.appendChild(btn);
@@ -76,13 +75,13 @@ function unitCard(item, kind) {
 
   const bio = document.createElement("div");
   bio.className = "bio";
-  bio.textContent = locked ? item.need + "구역 돌파 시 기밀 해제." : item.bio;
+  bio.textContent = isLocked ? item.need + "구역 돌파 시 기밀 해제." : item.bio;
   body.appendChild(bio);
 
   const st = document.createElement("div");
   st.className = "stats";
   const cur = loadout();
-  const ref = equipped ? null : (isPilot ? cur.pilot : cur.frame);   /* 장착 중인 것과 비교 */
+  const ref = isEquipped ? null : (isPilot ? cur.pilot : cur.frame);   /* 장착 중인 것과 비교 */
   if (isPilot) {
     st.appendChild(statChip("회피", Math.round(item.evade * 100), true, ref && Math.round(ref.evade * 100)));
     st.appendChild(statChip("연사", Math.round(100 / item.rate), true, ref && Math.round(100 / ref.rate)));
@@ -253,9 +252,9 @@ function paintHangar() {
 }
 
 function cosRow(item, kind) {
-  const owned = S.owned.includes(item.id);
-  const equipped = (kind === "skin" ? S.skin : S.trail) === item.id;
-  const locked = item.need && S.cleared < item.need;
+  const slot = kind === "skin" ? "skin" : "trail";
+  const state = statusOf(item, S[slot]);
+  const isEquipped = state === "equipped", isLocked = state === "locked";
 
   const row = document.createElement("div");
   row.className = "row";
@@ -270,29 +269,23 @@ function cosRow(item, kind) {
   body.className = "body";
   body.innerHTML = '<div class="nm"></div><div class="st"></div>';
   body.querySelector(".nm").textContent = item.nm;
-  body.querySelector(".st").textContent = locked
+  body.querySelector(".st").textContent = isLocked
     ? "STAGE " + item.need + " 돌파 시 해금"
     : item.sub;
 
   const btn = document.createElement("button");
   btn.className = "buy";
   btn.type = "button";
-  if (locked) { btn.textContent = "잠김"; btn.disabled = true; }
-  else if (equipped) { btn.textContent = "장착중"; btn.disabled = true; btn.classList.add("equipped"); }
-  else if (owned) {
-    btn.textContent = "장착"; btn.classList.add("owned");
+  if (isLocked) { btn.textContent = "잠김"; btn.disabled = true; }
+  else if (isEquipped) { btn.textContent = "장착중"; btn.disabled = true; btn.classList.add("equipped"); }
+  else {
+    const has = state === "owned";
+    btn.textContent = has ? "장착" : item.cost > 0 ? fmt(item.cost) : "수령";
+    if (has) btn.classList.add("owned"); else btn.disabled = state === "poor";
     btn.addEventListener("click", () => {
-      if (kind === "skin") S.skin = item.id; else S.trail = item.id;
-      persist(); Snd.ui(); toast(item.nm + " 장착"); paintHangar();
-    });
-  } else {
-    btn.textContent = item.cost > 0 ? fmt(item.cost) : "수령";
-    btn.disabled = S.coins < item.cost;
-    btn.addEventListener("click", () => {
-      if (S.coins < item.cost) return;
-      S.coins -= item.cost; S.owned.push(item.id);
-      if (kind === "skin") S.skin = item.id; else S.trail = item.id;
-      persist(); Snd.ui(); toast(item.nm + " 획득"); paintHangar();
+      const r = acquire(item, slot);
+      if (r === "poor" || r === "locked") return;
+      Snd.ui(); toast(item.nm + (r === "bought" ? " 획득" : " 장착")); paintHangar();
     });
   }
 
