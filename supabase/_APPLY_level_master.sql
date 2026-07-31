@@ -1,11 +1,15 @@
 -- ============================================================
---  핫픽스 v2: refresh_unlocks / get_level_card 의 좋아요 집계를 다형성 스키마로 수정
---  증상: get_level_card 가 42703 "column l.post_id does not exist" 로 실패 → 레벨카드가 아예 안 뜸.
---  원인: likes 는 (target_type,target_id) 구조인데 이 함수들이 l.post_id 로 조인했음.
---  → 이미 _DRAFT_level_system.sql 을 RUN 한 경우 아래 두 함수만 다시 실행하면 됨(재실행 안전).
---     (또는 갱신된 _DRAFT_level_system.sql 전체를 다시 RUN 해도 동일)
+--  와벨리 레벨 — 합본 패치 (레벨카드 복구 + 마스터 전량 지급)
+--  실행: Supabase SQL Editor 에 통째로 붙여넣고 RUN. 재실행 안전(idempotent).
+--  유일한 마스터 계정: wavely1213@motmot.co.kr
+--
+--  [1부] refresh_unlocks / get_level_card 의 좋아요 집계를 다형성 스키마로 수정
+--        (l.post_id → target_type='post' + target_id) — 이게 없으면 get_level_card 가
+--        42703 으로 실패해 레벨카드가 아예 안 뜬다.
+--  [2부] 마스터 계정에 전 수집품 지급 + lvl 50(다이아) + '와벨리 단골' 활성화.
 -- ============================================================
 
+-- ========== [1부] 함수 복구 ==========
 create or replace function public.refresh_unlocks(p_user uuid)
 returns void language plpgsql security definer set search_path=public as $$
 declare v_lvl int; v_created timestamptz; v_biz boolean;
@@ -87,5 +91,42 @@ begin
                           from public.user_unlocks where user_id=p_user),'[]'::jsonb)
   );
 end; $$;
+
+
+-- ========== [2부] 마스터 전량 지급 ==========
+do $$
+declare uid uuid;
+begin
+  select id into uid from auth.users where lower(email) = 'wavely1213@motmot.co.kr';
+  if uid is null then
+    raise notice '계정 없음: wavely1213@motmot.co.kr (가입 먼저 필요)';
+    return;
+  end if;
+
+  -- 등급 테두리 전량 착용 가능하도록 다이아(최상위 tier=50)로. xp도 정합 맞춤.
+  update public.profiles
+     set lvl = 50,
+         xp  = public.xp_for_level(50),
+         equipped_border = 'sponsor'     -- 와벨리 단골 활성화
+   where id = uid;
+
+  -- 비(非)등급 수집품 전량 지급 (등급 5종은 user_unlocks 대상 아님 — 위 레벨로 해금)
+  insert into public.user_unlocks(user_id, kind, item_key)
+  select uid, t.kind, t.item_key from (values
+    -- 테두리(특수)
+    ('border','founder'), ('border','streak_30'), ('border','season_sakura'), ('border','sponsor'),
+    -- 칭호 전량
+    ('title','rookie'), ('title','guardian'), ('title','chatter'), ('title','localboss'),
+    ('title','hunter'), ('title','beloved'), ('title','evangelist'), ('title','captain'), ('title','regular'),
+    -- 배경 전량 (plain은 기본제공이라 불필요)
+    ('background','wave'), ('background','dots'), ('background','ripple'), ('background','mountain'),
+    ('background','lake'), ('background','sakura'), ('background','firework'), ('background','founder'),
+    -- 뱃지 전량
+    ('badge','owner'), ('badge','biz'), ('badge','resident_6m'), ('badge','popular'), ('badge','neighbor')
+  ) as t(kind, item_key)
+  on conflict do nothing;
+
+  raise notice '마스터 지급 완료: % (lvl 50 · 전 수집품)', uid;
+end $$;
 
 notify pgrst, 'reload schema';
