@@ -7,9 +7,9 @@
 --  (v1.1) reviews(인증방문) 트리거엔 cheater-code 4종 필수: GPS 서버게이트·매장당 1일1회·재인증 쿨다운60분·최소체류.
 --         획득 아이템은 계정귀속·판매/양도 불가(위반 제재). 신고확정·비매너 시 XP 감점(레벨다운) 허용.
 --  idempotent: 재실행 안전 (add if not exists / create or replace / drop if exists).
---  실스키마 기준: likes(user_id,post_id,id) scraps(user_id,post_id,id)
---                comments(id,post_id,author_id) posts(id,author_id)
---                profiles(id,nickname,role,biz_verified,created_at,is_admin)
+--  실스키마 기준(2026-07 실측): likes/scraps 는 다형성 (user_id,target_type,target_id,id)
+--                — post_id 컬럼 없음. target_type='post' 일 때만 target_id::uuid 로 posts 조인.
+--                comments(id,post_id,author_id) posts(id uuid,author_id) profiles(id,nickname,role,biz_verified,created_at,home_dong,is_admin)
 --                stores(owner_id,biz_verified)
 -- ============================================================
 
@@ -46,7 +46,7 @@ create table if not exists public.user_unlocks (
 );
 
 -- ---------- 3) 순수 함수 (레벨 곡선/등급) ----------
--- 누적XP(Lv L 도달) = 100·(L-1) + 20·(L-1)^2
+-- 누적XP(Lv L 도달) = 100·(L-1) + 14·(L-1)^2  (곡선계수 14 확정 — 아래 xp_to_level 역함수의 56/28과 정합)
 create or replace function public.xp_for_level(p_lvl int)
 returns bigint language sql immutable as $$
   select (100::bigint * (greatest(p_lvl,1)-1)) + (14::bigint * (greatest(p_lvl,1)-1) * (greatest(p_lvl,1)-1));
@@ -213,25 +213,32 @@ begin
 end; $$;
 
 -- ---------- 7) 트리거 함수 ----------
+-- likes/scraps 는 다형성 (target_type, target_id) 구조다(실측). post_id 컬럼 없음.
+-- target_type='post' 일 때만 글 작성자에게 XP를 준다. 다른 대상(store 등)엔 아무 것도 하지 않는다
+-- (가드 없이 new.post_id 참조 시 트리거가 매장 좋아요에서도 터져 좋아요 자체가 막힘).
 create or replace function public.trg_xp_like_ins() returns trigger language plpgsql security definer set search_path=public as $$
 declare v_a uuid; begin
-  select author_id into v_a from public.posts where id=new.post_id;
+  if new.target_type <> 'post' then return new; end if;
+  select author_id into v_a from public.posts where id=new.target_id::uuid;
   if v_a is not null then perform public._add_xp(v_a, new.user_id, 'like_recv', new.id::text); end if;
   return new; end; $$;
 create or replace function public.trg_xp_like_del() returns trigger language plpgsql security definer set search_path=public as $$
 declare v_a uuid; begin
-  select author_id into v_a from public.posts where id=old.post_id;
+  if old.target_type <> 'post' then return old; end if;
+  select author_id into v_a from public.posts where id=old.target_id::uuid;
   if v_a is not null then perform public._reverse_xp(v_a, 'like_recv', old.id::text); end if;
   return old; end; $$;
 
 create or replace function public.trg_xp_scrap_ins() returns trigger language plpgsql security definer set search_path=public as $$
 declare v_a uuid; begin
-  select author_id into v_a from public.posts where id=new.post_id;
+  if new.target_type <> 'post' then return new; end if;
+  select author_id into v_a from public.posts where id=new.target_id::uuid;
   if v_a is not null then perform public._add_xp(v_a, new.user_id, 'scrap_recv', new.id::text); end if;
   return new; end; $$;
 create or replace function public.trg_xp_scrap_del() returns trigger language plpgsql security definer set search_path=public as $$
 declare v_a uuid; begin
-  select author_id into v_a from public.posts where id=old.post_id;
+  if old.target_type <> 'post' then return old; end if;
+  select author_id into v_a from public.posts where id=old.target_id::uuid;
   if v_a is not null then perform public._reverse_xp(v_a, 'scrap_recv', old.id::text); end if;
   return old; end; $$;
 
