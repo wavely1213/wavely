@@ -385,6 +385,12 @@ end; $$;
 -- 클라 직접 조작 차단(09 하드닝 패턴): xp·lvl·장착은 RPC로만
 revoke update (xp, lvl, equipped_title, equipped_border, equipped_background) on public.profiles from authenticated;
 
+-- 꾸미기 컬럼 SELECT 부여 — 25_profiles_pii_lockdown 은 '당시 존재하던' 컬럼만 개별 grant 했다.
+-- 이후 추가된 lvl/equipped_* 는 grant 대상에서 빠져 있어, posts/comments의 인라인 링 조인
+-- (profiles(nickname,lvl,equipped_border,equipped_title))이 권한오류로 실패한다 → 반드시 재부여.
+-- 레벨·장착은 cosmetic(공개 표시용)이라 노출해도 무방. xp 는 굳이 열지 않는다(카드는 RPC로 받음).
+grant select (lvl, equipped_title, equipped_border, equipped_background) on public.profiles to authenticated;
+
 alter table public.xp_ledger   enable row level security;
 alter table public.user_unlocks enable row level security;
 
