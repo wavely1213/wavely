@@ -109,7 +109,7 @@ begin
   end if;
   if exists (select 1 from public.posts p
               where p.author_id=p_user
-                and (select count(*) from public.likes l where l.post_id=p.id) >= 50) then
+                and (select count(*) from public.likes l where l.target_type='post' and l.target_id=p.id::text) >= 50) then
     insert into public.user_unlocks(user_id,kind,item_key) values (p_user,'badge','popular') on conflict do nothing;
   end if;
   -- 업적: 댓글 작성 300 → 수다쟁이 / 받은 좋아요 누적 500 → 사랑받는 글쟁이
@@ -117,7 +117,7 @@ begin
   if (select count(*) from public.comments where author_id=p_user) >= 300 then
     insert into public.user_unlocks(user_id,kind,item_key) values (p_user,'title','chatter') on conflict do nothing;
   end if;
-  if (select count(*) from public.likes l join public.posts p on p.id=l.post_id where p.author_id=p_user) >= 500 then
+  if (select count(*) from public.likes l join public.posts p on p.id=l.target_id::uuid where l.target_type='post' and p.author_id=p_user) >= 500 then
     insert into public.user_unlocks(user_id,kind,item_key) values (p_user,'title','beloved') on conflict do nothing;
   end if;
 end; $$;
@@ -293,7 +293,7 @@ begin
   -- 원장에 아예 안 남아서 실제 활동량보다 항상 작게 나온다.
   select count(*) into v_posts    from public.posts    where author_id=p_user;
   select count(*) into v_comments from public.comments where author_id=p_user;
-  select count(*) into v_likes    from public.likes l join public.posts p on p.id=l.post_id where p.author_id=p_user;
+  select count(*) into v_likes    from public.likes l join public.posts p on p.id=l.target_id::uuid where l.target_type='post' and p.author_id=p_user;
   return jsonb_build_object(
     'nickname', v_nick, 'xp', v_xp, 'level', v_lvl, 'tier', v_tier,
     'equipped_title', v_title,
