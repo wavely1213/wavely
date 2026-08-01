@@ -1,5 +1,6 @@
 import { Image } from 'expo-image';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { Text } from '@/components/Txt';
 
 export function Avatar({ url, fallback = '🙂', size = 40, bg = '#0EA5E9' }: { url?: string | null; fallback?: string; size?: number; bg?: string }) {
   const r = size / 3.2;

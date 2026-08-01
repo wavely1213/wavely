@@ -1,6 +1,7 @@
 import { Image } from 'expo-image';
 import { Component, type ReactNode } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/Txt';
 
 type Props = { children: ReactNode };
 type State = { error: Error | null };

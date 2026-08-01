@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router';
-import { ScrollView, StyleSheet, Text, useColorScheme, View, Pressable } from 'react-native';
+import { ScrollView, StyleSheet, useColorScheme, View, Pressable } from 'react-native';
+import { Text } from '@/components/Txt';
 import { useScheme } from '@/lib/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 

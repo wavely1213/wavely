@@ -2,7 +2,8 @@
 // 색은 축제 오렌지(이 화면 전용 스코프) — 앱 스카이 토큰과 무관. cosmetic 테마.
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Linking, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Linking, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/Txt';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Icon, IconName } from '@/components/Icon';

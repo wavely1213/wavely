@@ -1,4 +1,5 @@
-import { Text, View, type ViewStyle } from 'react-native';
+import { View, type ViewStyle } from 'react-native';
+import { Text } from '@/components/Txt';
 import { useScheme } from '@/lib/theme';
 import { TagColors, TagColorsDark } from '@/constants/theme';
 

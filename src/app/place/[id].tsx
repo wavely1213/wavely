@@ -3,7 +3,8 @@ import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, useColorScheme, View } from 'react-native';
+import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, useColorScheme, View } from 'react-native';
+import { Text, TextInput } from '@/components/Txt';
 import { useScheme } from '@/lib/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 

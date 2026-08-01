@@ -3,7 +3,8 @@
 // RN엔 conic-gradient가 없어 핸드오프 링의 메탈릭을 SVG LinearGradient 스톱으로 재현(색값은 핸드오프 원본).
 import { Image } from 'expo-image';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Easing, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/Txt';
 import Svg, { Circle, Defs, LinearGradient, Path, Stop } from 'react-native-svg';
 
 import { Colors } from '@/constants/theme';

@@ -3,7 +3,8 @@
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/Txt';
 
 import { prettyCat } from '@/constants/app';
 import { Colors, UI } from '@/constants/theme';

@@ -1,6 +1,7 @@
 // 데스크톱 웹 3-Column 셸 (디자인 핸드오프 §1). width >= 1024 에서만 사용.
 // 좌: Sidebar(232) / 센터: 자식(Tabs 화면) / 우: RightRail(320, >=1180에서만).
-import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, View } from 'react-native';
+import { Text } from '@/components/Txt';
 import { router, usePathname } from 'expo-router';
 import { useScheme } from '@/lib/theme';
 import { useAuth } from '@/lib/auth';

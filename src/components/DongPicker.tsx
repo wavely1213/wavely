@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, useColorScheme, View } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, useColorScheme, View } from 'react-native';
+import { Text } from '@/components/Txt';
 import { useScheme } from '@/lib/theme';
 
 import { Colors } from '@/constants/theme';

@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Platform, Pressable, Share, StyleSheet, Text, useColorScheme, View } from 'react-native';
+import { Platform, Pressable, Share, StyleSheet, useColorScheme, View } from 'react-native';
+import { Text } from '@/components/Txt';
 import { useScheme } from '@/lib/theme';
 
 import { Colors } from '@/constants/theme';

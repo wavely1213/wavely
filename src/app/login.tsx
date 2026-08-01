@@ -1,7 +1,8 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Image } from 'expo-image';
-import { Platform, Pressable, StyleSheet, Text, TextInput, useColorScheme, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, useColorScheme, View } from 'react-native';
+import { Text, TextInput } from '@/components/Txt';
 import { useScheme } from '@/lib/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 

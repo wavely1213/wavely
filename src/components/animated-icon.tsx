@@ -1,6 +1,7 @@
 import { Image } from 'expo-image';
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
+import { Animated, Easing, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/Txt';
 
 import { APP_NAME, APP_TAGLINE } from '@/constants/app';
 

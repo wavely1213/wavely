@@ -1,6 +1,7 @@
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, useColorScheme, View } from 'react-native';
+import { Pressable, StyleSheet, useColorScheme, View } from 'react-native';
+import { Text } from '@/components/Txt';
 import { useScheme } from '@/lib/theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
