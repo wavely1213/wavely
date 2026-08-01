@@ -111,11 +111,27 @@ export default function JobsScreen() {
     if (!isSupabaseConfigured) { setLoading(false); return; }
     setLoading(true);
     supabase.rpc('dong_list').then(({ data }) => setDongOptions(mergeDongs(((data as any[]) ?? []).map((d) => d.dong))));
-    let q = supabase.from('job_posts').select(JOBPOST_LIST_COLS).eq('status', 'open').order('boost', { ascending: false }).order('created_at', { ascending: false }).limit(60);
-    if (kind !== 'all') q = q.eq('kind', kind === 'hiring' ? 'hire' : 'seek');   // 앱 kind → 웹 kind
-    if (dong) q = q.eq('dong', dong);
-    if (debSearch.trim()) q = q.ilike('title', `%${debSearch.trim()}%`);
-    const { data } = await q;
+    // 웹 fetchJobs와 동일한 3단 폴백 게이팅. 이게 없으면 **마감된 공고가 계속 목록에 남는다**.
+    // tier2=마감일·게시지연·만료 필터(SQL 42), tier1=익명컬럼만(43/44), tier0=코어.
+    const now = new Date().toISOString();
+    const today = now.slice(0, 10);
+    const build = (sel: string, tier: 2 | 1 | 0) => {
+      let q = supabase.from('job_posts').select(sel).eq('status', 'open');
+      if (tier === 2) q = q.order('boost', { ascending: false });   // boost 미적용 하위티어에선 제외(클라가 재정렬)
+      q = q.order('created_at', { ascending: false }).limit(60);
+      if (kind !== 'all') q = q.eq('kind', kind === 'hiring' ? 'hire' : 'seek');   // 앱 kind → 웹 kind
+      if (dong) q = q.eq('dong', dong);
+      if (debSearch.trim()) q = q.ilike('title', `%${debSearch.trim()}%`);
+      if (tier === 2) {
+        q = q.or(`deadline.is.null,deadline.gte.${today}`)      // 마감일 안 지남
+          .lte('published_at', now)                             // 게시시각 지남(무료=1h 지연)
+          .or(`expires_at.is.null,expires_at.gt.${now}`);       // 노출 안 만료(무료=1일)
+      }
+      return q;
+    };
+    let { data, error } = await build(`${JOBPOST_LIST_COLS},deadline,published_at,expires_at`, 2);
+    if (error) ({ data, error } = await build(JOBPOST_LIST_COLS, 1));
+    if (error) ({ data } = await build(JOBPOST_LIST_COLS, 0));
     setJobs(((data as any[]) ?? []).map(fromJobPost) as Job[]);   // 웹 shape → 앱 shape
     setLoading(false);
   }, [kind, dong, debSearch]);

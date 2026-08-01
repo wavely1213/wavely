@@ -72,7 +72,7 @@ export default function AccountScreen() {
           </View>
 
           {/* 동네레벨 — get_level_card RPC 배포 전엔 렌더 안 됨(dormant) */}
-          <LevelCard userId={session.user.id} />
+          <LevelCard userId={session.user.id} avatarUrl={profile.avatar_url} />
 
           <Text style={[styles.menuHead, { color: c.textSecondary }]}>동네 생활</Text>
           <Row icon="cart" label="중고거래" onPress={() => router.push('/market')} />
