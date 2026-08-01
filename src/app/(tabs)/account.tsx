@@ -73,7 +73,7 @@ export default function AccountScreen() {
           </View>
 
           {/* 동네레벨 — get_level_card RPC 배포 전엔 렌더 안 됨(dormant) */}
-          <LevelCard userId={session.user.id} avatarUrl={profile.avatar_url} />
+          <LevelCard userId={session.user.id} avatarUrl={profile.avatar_url} onPressDogam={() => router.push('/dogam' as any)} />   {/* 라우트 타입은 .expo/types 생성물이라 stale — festival과 동일 패턴 */}
 
           <Text style={[styles.menuHead, { color: c.textSecondary }]}>동네 생활</Text>
           <Row icon="cart" label="중고거래" onPress={() => router.push('/market')} />

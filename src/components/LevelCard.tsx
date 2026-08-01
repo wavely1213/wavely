@@ -1,6 +1,7 @@
 // 동네레벨 — 앱(RN) 레벨 카드 + 등급 테두리 링. cosmetic-only(검색순위·광고노출 무관).
 // get_level_card RPC 미배포면 렌더 안 함(dormant) — 웹과 동일 정책.
 // RN엔 conic-gradient가 없어 핸드오프 링의 메탈릭을 SVG LinearGradient 스톱으로 재현(색값은 핸드오프 원본).
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Image } from 'expo-image';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Pressable, StyleSheet, View } from 'react-native';
@@ -138,21 +139,43 @@ export function LevelCard({ userId, avatarUrl, onPressDogam }: { userId?: string
   const c = Colors[scheme];
   const [card, setCard] = useState<LevelCardData | null>(null);
 
+  const [lvUp, setLvUp] = useState<number | null>(null);
   const load = useCallback(async () => {
     if (!userId) { setCard(null); return; }
     try {
       const { data, error } = await supabase.rpc('get_level_card', { p_user: userId });
       if (error || !data) { setCard(null); return; }
-      setCard(data as LevelCardData);
+      const c2 = data as LevelCardData;
+      setCard(c2);
+      // 기기별 AsyncStorage 기준이라 다른 기기에서 오른 레벨은 그 기기에서 1회만 알린다(중복 알림 방지).
+      try {
+        const K = 'wv_lv_seen:' + userId;
+        const seen = Number((await AsyncStorage.getItem(K)) || 0);
+        if (seen && c2.level > seen) setLvUp(c2.level);
+        await AsyncStorage.setItem(K, String(c2.level));
+      } catch { /* 저장 실패는 무시 — 알림만 못 뜬다 */ }
     } catch { setCard(null); }
   }, [userId]);
   useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    if (lvUp == null) return;
+    const t = setTimeout(() => setLvUp(null), 2600);   // 웹과 동일 2.6s
+    return () => clearTimeout(t);
+  }, [lvUp]);
 
   if (!card) return null;   // dormant — RPC 배포 전엔 아무것도 렌더하지 않음
+  // 레벨업 감지 — 서버가 leveled_up 플래그를 안 주므로 직전에 본 레벨과 비교한다.
+  // 승급 광선·컨페티는 §3-3 '앱 이펙트 범위'에서 미적용으로 확정 → 앱은 토스트만.
   const pct = Math.max(0, Math.min(100, card.progress_pct || 0));
   const badges = (card.unlocks || []).filter((u) => u.kind === 'badge').slice(0, 6);
   return (
     <View style={[s.card, { backgroundColor: c.card, borderColor: c.border }]}>
+      {lvUp != null && (
+        <View style={[s.lvup, { backgroundColor: c.primarySoft, borderColor: c.primary }]}>
+          <Text style={{ fontSize: 13, fontWeight: '800', color: c.primaryDeep }}>🎉 Lv {lvUp} 달성</Text>
+          <Text style={{ fontSize: 11.5, fontWeight: '600', color: c.primaryDeep, marginTop: 2 }}>도감에서 새 아이템을 확인해 보세요</Text>
+        </View>
+      )}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
         <LevelRing tier={card.tier} border={card.equipped_border} size={52} label={card.nickname} img={avatarUrl} />
         <View style={{ flex: 1, minWidth: 0 }}>
