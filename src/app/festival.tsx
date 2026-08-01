@@ -8,12 +8,34 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Icon, IconName } from '@/components/Icon';
 import { useScheme } from '@/lib/theme';
 
+// 모든 값은 주최측 공식 사이트·모집공고 원문 기준(2026-08 확인). 웹(wavely-web)과 동일 정본.
 const FEST = {
   site: 'https://mdfestival26.imweb.me',
-  tel: '07075761657',
+  subtitle: '춘천 대표 K-미식 축제',
+  hours: '11:00 – 22:00',                 // 참여부스 운영시간(공고)
+  placeName: '공지천 산책로 일대',
+  placeDetail: '효자교–공지교 아래 하천 일대',
+  // 주최/주관은 춘천시·조직위·문화재단. '사무국'은 운영대행사라 주최로 적으면 사실관계 오류.
+  host: '춘천시 · 춘천막국수닭갈비조직위원회 · 춘천문화재단',
+  operator: '(주)다옴피앤씨 운영사무국',
+  tel: '0332421825', telLabel: '033-242-1825', telHours: '10:00–18:00',
+  cityTel: '0332503068', cityTelLabel: '033-250-3068',   // 춘천시청 관광정책과(부스 문의)
+  email: 'daom1825@naver.com',
   place: '2026 춘천막국수닭갈비축제',   // 길찾기 = 네이버 통일(FESTIVAL_TAB §6)
   insta: 'https://www.instagram.com/mdfestival/',
 };
+// 참여업체 모집 — 공고 원문(idx 172697014 / 172635376) 기준. 마감 지나면 카드가 자동으로 사라진다.
+const ENTRY = [
+  { key: 'booth', name: '막국수 · 닭갈비 참여부스', due: [2026, 7, 5] as const, dueLabel: '8.5(수) 18:00',
+    scale: '막국수 3개소 · 닭갈비 5개소', by: '춘천시청 관광정책과',
+    url: 'https://mdfestival26.imweb.me/Notice/?bmode=view&idx=172697014&t=board' },
+  { key: 'fnb', name: '로컬 F&B 입점', due: [2026, 7, 7] as const, dueLabel: '8.7(금)',
+    scale: '부스 운영관리비 50만원 (부가세 포함)', by: '운영사무국',
+    url: 'https://mdfestival26.imweb.me/Notice/?bmode=view&idx=172635376&t=board' },
+];
+const STEPS = [['신청', '7.27 – 8.7'], ['선정 발표', '8.14'], ['계약', '8.31 – 9.4'], ['운영', '10.14 – 18']] as const;
+const ddayOf = (d: readonly [number, number, number]) =>
+  Math.round((new Date(d[0], d[1], d[2]).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) / 86400000);
 const FEST_GEO = { lat: 37.8646, lng: 127.7203 };   // 공지천 산책로 일대(온의동 586)
 // 네이버 길찾기 — 앱 스킴 우선, 실패 시 웹. 카카오 경로는 쓰지 않는다(지도 SDK가 네이버).
 function festRoute() {
@@ -92,13 +114,15 @@ export default function Festival() {
               <View style={{ flex: 1 }} />
               <Pressable onPress={() => open(FEST.site)} style={s.barBtn}><Icon name="share" size={18} color="#fff" /></Pressable>
             </View>
-            <View style={s.badge}><Text style={s.badgeT}>춘천 대표 미식 축제</Text></View>
+            <View style={s.badge}><Text style={s.badgeT}>2026 로컬 축제</Text></View>
             <Text style={s.hname}>2026 춘천{'\n'}막국수닭갈비축제</Text>
+            <Text style={s.hsub}>{FEST.subtitle}</Text>
             <View style={s.meta}>
               <View style={s.pill}><Icon name="clock" size={14} color="#fff" /><Text style={s.pillT}>  10.14 수 – 10.18 일</Text></View>
+              <View style={s.pill}><Text style={s.pillT}>{FEST.hours}</Text></View>
               <View style={[s.pill, { backgroundColor: '#fff' }]}><Text style={[s.pillT, { color: O.deep, fontWeight: '800' }]}>{dday}</Text></View>
             </View>
-            <View style={s.loc}><Icon name="pin" size={15} color="#fff" /><Text style={s.locT}>  공지천 산책로 일대 · 춘천 온의동</Text></View>
+            <View style={s.loc}><Icon name="pin" size={15} color="#fff" /><Text style={s.locT}>  {FEST.placeName} · 춘천 온의동</Text></View>
           </View>
         </SafeAreaView>
 
@@ -113,7 +137,11 @@ export default function Festival() {
 
         <Section title="축제 한눈에">
           <View style={[s.card, { backgroundColor: card, borderColor: line }]}>
-            {([['기간', '2026.10.14(수) – 10.18(일)', '5일간'], ['장소', '공지천 산책로 일대', '강원특별자치도 춘천시 온의동 586'], ['주최', '2026 막국수닭갈비축제 사무국', '']] as const).map((r, i) => (
+            {([
+              ['기간', '2026.10.14(수) – 10.18(일)', `5일간 · 운영 ${FEST.hours}`],
+              ['장소', FEST.placeName, `${FEST.placeDetail} · 춘천시 온의동 586`],
+              ['주최', FEST.host, `운영 ${FEST.operator}`],
+            ] as const).map((r, i) => (
               <View key={i} style={[s.irow, { borderBottomColor: line }]}>
                 <Text style={[s.k, { color: ink2 }]}>{r[0]}</Text>
                 <View style={{ flex: 1 }}><Text style={[s.v, { color: ink }]}>{r[1]}</Text>{!!r[2] && <Text style={[s.vs, { color: ink2 }]}>{r[2]}</Text>}</View>
@@ -121,7 +149,10 @@ export default function Festival() {
             ))}
             <Pressable onPress={() => open('tel:' + FEST.tel)} style={[s.irow, { borderBottomWidth: 0 }]}>
               <Text style={[s.k, { color: ink2 }]}>문의</Text>
-              <Text style={[s.v, { color: O.deep, fontWeight: '700' }]}>070-7576-1657</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={[s.v, { color: O.deep, fontWeight: '700' }]}>{FEST.telLabel}</Text>
+                <Text style={[s.vs, { color: ink2 }]}>운영사무국 {FEST.telHours}</Text>
+              </View>
             </Pressable>
           </View>
         </Section>
@@ -182,20 +213,60 @@ export default function Festival() {
         </Section>
 
         <Section title="참여 업체">
-          <View style={[s.note, { backgroundColor: soft, borderColor: line }]}>
+          {/* 공고 원문 일정 4단계 */}
+          <View style={s.steps}>
+            {STEPS.map(([label, when], i) => (
+              <View key={label} style={s.step}>
+                <View style={[s.stepDot, { backgroundColor: i === 0 ? O.pri : soft, borderColor: line }]}>
+                  <Text style={[s.stepN, { color: i === 0 ? '#fff' : ink2 }]}>{i + 1}</Text>
+                </View>
+                <Text style={[s.stepL, { color: i === 0 ? ink : ink2 }]}>{label}</Text>
+                <Text style={[s.stepW, { color: ink2 }]}>{when}</Text>
+              </View>
+            ))}
+          </View>
+
+          {/* 사장님 대상 모집 — 마감이 남은 건만 노출(지나면 스스로 사라짐) */}
+          {ENTRY.some((e) => ddayOf(e.due) >= 0) && (
+            <View style={[s.recruit, { backgroundColor: soft, borderColor: line }]}>
+              <View style={s.recruitH}>
+                <Icon name="store" size={16} color={O.deep} />
+                <Text style={[s.recruitHT, { color: O.deep }]}>  우리 가게도 참여할 수 있어요</Text>
+              </View>
+              {ENTRY.filter((e) => ddayOf(e.due) >= 0).map((e) => {
+                const d = ddayOf(e.due);
+                return (
+                  <Pressable key={e.key} onPress={() => open(e.url)} style={[s.rcard, { backgroundColor: card, borderColor: line }]}>
+                    <View style={[s.rdd, { backgroundColor: d <= 3 ? O.pri : soft }]}>
+                      <Text style={[s.rddT, { color: d <= 3 ? '#fff' : ink2 }]}>{d === 0 ? '오늘' : `D-${d}`}</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[s.v, { color: ink }]}>{e.name}</Text>
+                      <Text style={[s.vs, { color: ink2 }]}>{e.scale}</Text>
+                      <Text style={[s.vs, { color: O.deep, fontWeight: '700' }]}>신청 마감 {e.dueLabel} · {e.by}</Text>
+                    </View>
+                    <Icon name="chevronRight" size={16} color={ink2} />
+                  </Pressable>
+                );
+              })}
+              <Text style={[s.vs, { color: ink2, marginTop: 2 }]}>
+                신청서는 공고 첨부파일을 받아 작성 후 이메일·방문 접수해요. 부스 {FEST.cityTelLabel} · 로컬 F&B {FEST.telLabel}
+              </Text>
+            </View>
+          )}
+
+          <View style={[s.note, { backgroundColor: soft, borderColor: line, marginTop: 10 }]}>
             <Icon name="store" size={16} color={O.deep} />
             <Text style={[s.noteT, { color: O.deep }]}>  막국수·닭갈비 입점 업체는 선정 후 공개돼요. 확정되면 지도·업체 정보로 안내해 드려요.</Text>
-          </View>
-          <View style={{ marginTop: 10 }}>
-            <LinkRow ic="store" label="로컬 F&B 입점 모집 공고" onPress={() => open(FEST.site + '/Notice/?idx=172635376&bmode=view')} />
           </View>
         </Section>
 
         <View style={{ paddingHorizontal: 20, paddingTop: 22 }}>
-          <Text style={[s.foot, { color: ink2 }]}>주최  <Text style={{ color: ink, fontWeight: '700' }}>2026 막국수닭갈비축제 사무국</Text> · 대표 최금선</Text>
-          <Text style={[s.foot, { color: ink2 }]}>주소  강원특별자치도 춘천시 효자로14번길 21 (퇴계동) 1층</Text>
-          <Text style={[s.foot, { color: ink2 }]}>문의  070-7576-1657 · daom1825@naver.com</Text>
-          <Text style={[s.foot, { color: ink2, marginTop: 10 }]}>정보 출처: 2026 춘천막국수닭갈비축제 공식 사이트. 세부 프로그램·업체는 공식 공개 후 업데이트됩니다.</Text>
+          <Text style={[s.foot, { color: ink2 }]}>주최·주관  <Text style={{ color: ink, fontWeight: '700' }}>{FEST.host}</Text></Text>
+          <Text style={[s.foot, { color: ink2 }]}>운영  {FEST.operator} · 대표 최금선</Text>
+          <Text style={[s.foot, { color: ink2 }]}>문의  {FEST.telLabel} ({FEST.telHours}) · {FEST.email}</Text>
+          <Text style={[s.foot, { color: ink2 }]}>부스 문의  춘천시청 관광정책과 {FEST.cityTelLabel}</Text>
+          <Text style={[s.foot, { color: ink2, marginTop: 10 }]}>정보 출처: 2026 춘천막국수닭갈비축제 공식 사이트 및 모집공고. 세부 프로그램·업체는 공식 공개 후 업데이트됩니다.</Text>
         </View>
       </ScrollView>
 
@@ -227,6 +298,20 @@ const s = StyleSheet.create({
   badge: { alignSelf: 'flex-start', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 999, paddingHorizontal: 11, paddingVertical: 4, marginBottom: 11 },
   badgeT: { color: '#fff', fontSize: 12, fontWeight: '700' },
   hname: { color: '#fff', fontSize: 26, fontWeight: '800', lineHeight: 33 },
+  hsub: { color: '#fff', opacity: 0.92, fontSize: 13, fontWeight: '700', marginTop: 6 },
+  // 참여업체 — 공고 일정 4단계 + 사장님 모집 카드
+  steps: { flexDirection: 'row', gap: 6 },
+  step: { flex: 1, alignItems: 'center', gap: 4 },
+  stepDot: { width: 26, height: 26, borderRadius: 13, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  stepN: { fontSize: 12, fontWeight: '800' },
+  stepL: { fontSize: 11.5, fontWeight: '700' },
+  stepW: { fontSize: 10.5, fontWeight: '600' },
+  recruit: { marginTop: 14, borderWidth: 1, borderRadius: 14, padding: 13, gap: 9 },
+  recruitH: { flexDirection: 'row', alignItems: 'center' },
+  recruitHT: { fontSize: 13.5, fontWeight: '800' },
+  rcard: { flexDirection: 'row', alignItems: 'center', gap: 11, borderWidth: 1, borderRadius: 12, padding: 11 },
+  rdd: { minWidth: 50, height: 34, borderRadius: 9, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 8 },
+  rddT: { fontSize: 13, fontWeight: '800' },
   meta: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 13, flexWrap: 'wrap' },
   pill: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.16)', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 6 },
   pillT: { color: '#fff', fontSize: 14, fontWeight: '600' },
