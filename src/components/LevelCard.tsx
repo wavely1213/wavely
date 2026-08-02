@@ -133,6 +133,53 @@ export function LevelRing({ tier = 'bronze', border, size = 58, label = '와', i
   );
 }
 
+// 순위 노출 거부 토글 — 랭킹은 재미 요소이지 강제가 아니다.
+// rank_hidden 컬럼 미배포면 null → 토글 자체를 렌더하지 않는다(먹통 스위치 방지).
+function RankToggle({ userId }: { userId?: string | null }) {
+  const scheme = useScheme();
+  const c = Colors[scheme];
+  const [hidden, setHidden] = useState<boolean | null>(null);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      if (!userId) return;
+      try {
+        const { data, error } = await supabase.from('profiles').select('rank_hidden').eq('id', userId).maybeSingle();
+        if (alive) setHidden(error || !data ? null : !!(data as any).rank_hidden);
+      } catch { if (alive) setHidden(null); }
+    })();
+    return () => { alive = false; };
+  }, [userId]);
+  if (hidden === null || !userId) return null;
+  const toggle = async () => {
+    if (busy) return;
+    const next = !hidden;
+    setBusy(true); setHidden(next);                        // 낙관적 반영
+    const { error } = await supabase.from('profiles').update({ rank_hidden: next }).eq('id', userId);
+    setBusy(false);
+    if (error) setHidden(!next);                           // 실패 시 롤백
+  };
+  return (
+    <Pressable onPress={toggle} style={[rs.wrap, { borderColor: c.border, backgroundColor: c.background }]}>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text style={[rs.t, { color: c.text }]}>동네 랭킹에 내 이름 보이기</Text>
+        <Text style={[rs.s, { color: c.textSecondary }]}>끄면 어떤 순위에도 집계되지 않아요. 내 레벨·아이템은 그대로예요.</Text>
+      </View>
+      <View style={[rs.sw, { backgroundColor: hidden ? c.backgroundSelected : c.primary }]}>
+        <View style={[rs.knob, hidden ? null : { transform: [{ translateX: 18 }] }]} />
+      </View>
+    </Pressable>
+  );
+}
+const rs = StyleSheet.create({
+  wrap: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 10, padding: 12, borderRadius: 12, borderWidth: 1 },
+  t: { fontSize: 13, fontWeight: '800' },
+  s: { fontSize: 11.5, marginTop: 3, lineHeight: 17 },
+  sw: { width: 42, height: 24, borderRadius: 999, justifyContent: 'center', paddingHorizontal: 3 },
+  knob: { width: 18, height: 18, borderRadius: 9, backgroundColor: '#fff' },
+});
+
 // 마이페이지용 레벨 카드. RPC 미배포·비로그인 시 null(dormant).
 export function LevelCard({ userId, avatarUrl, onPressDogam }: { userId?: string | null; avatarUrl?: string | null; onPressDogam?: () => void }) {
   const scheme = useScheme();
@@ -206,6 +253,7 @@ export function LevelCard({ userId, avatarUrl, onPressDogam }: { userId?: string
       <Text style={{ fontSize: 11.5, lineHeight: 17, color: c.textSecondary, marginTop: 10 }}>
         레벨은 얼마나 활동했는지, 뱃지는 무엇이 확인됐는지를 뜻해요. 높은 레벨이 신뢰를 보장하지는 않아요.
       </Text>
+      <RankToggle userId={userId} />
       {!!onPressDogam && (
         <Pressable onPress={onPressDogam} style={[s.dogam, { borderColor: c.border, backgroundColor: c.background }]}>
           <Text style={{ fontSize: 13.5, fontWeight: '800', color: c.text }}>아이템 도감 열기</Text>
@@ -221,6 +269,8 @@ const s = StyleSheet.create({
   bar: { flex: 1, height: 8, borderRadius: 999, overflow: 'hidden' },
   badge: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 9, paddingVertical: 3 },
   dogam: { marginTop: 10, height: 40, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  // 레벨업 알림 — 승급 광선·컨페티는 §3-3에서 앱 미적용으로 확정돼 카드 상단 배너로만 알린다.
+  lvup: { marginBottom: 12, padding: 12, borderRadius: 12, borderWidth: 1 },
 });
 
 export default LevelCard;

@@ -10,6 +10,7 @@ import { Avatar } from '@/components/Avatar';
 import { Icon } from '@/components/Icon';
 import { Logo } from '@/components/Logo';
 import { DongPicker } from '@/components/DongPicker';
+import { TopUsers } from '@/components/TopUsers';
 import { StripBanner } from '@/components/StripBanner';
 import { boardLabel, mergeDongs, parseHashtags } from '@/constants/app';
 import { Assets, Colors, UI, Radius, Shadow } from '@/constants/theme';
@@ -271,6 +272,8 @@ export default function CommunityScreen() {
         </View>
       ) : (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 150 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={c.primary} colors={[c.primary]} />}>
+          {/* 동네 랭킹 — 대상이 2명 미만이면 컴포넌트가 스스로 숨는다(빈 카드 방지) */}
+          <TopUsers onPress={() => router.push('/(tabs)/account')} />
           {posts.map((p) => {
             const tags = parseHashtags(`${p.title} ${p.body_preview ?? ''}`);
             return (
