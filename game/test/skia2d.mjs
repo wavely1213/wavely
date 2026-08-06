@@ -28,17 +28,27 @@ try {
   process.exit(0);
 }
 
-const { chromium } = await import("/opt/node22/lib/node_modules/playwright/index.mjs");
+const { chromiumOrSkip } = await import("./_playwright.mjs");
+const chromium = await chromiumOrSkip();
 
 /* 시스템 폰트 하나. CanvasKit 웹 빌드에는 FontMgr.System() 이 없다(네이티브에는 있다). */
 /* 엔진마다 서체가 다르면 글자 픽셀은 당연히 어긋난다 — 양쪽에 같은 것을 물린다.
    굵기도 자면을 따로 물려야 한다: 브라우저는 굵은 자면이 없으면 합성 볼드를
    만들어 주고 Skia 는 안 만들어 준다. 앱(app/src/fonts.js)도 같은 규칙이다. */
-const FONT_NAME = "DejaVu Sans";
-const TTF = {
-  400: "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-  700: "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
-};
+/* 기기마다 있는 자리가 다르다 — 있는 것을 찾아 쓰고, 하나도 없으면 글자 장면만 건너뛴다 */
+const FONT_CANDIDATES = [
+  { name: "DejaVu Sans", 400: "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+                         700: "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" },
+  { name: "DejaVu Sans", 400: "/usr/share/fonts/dejavu/DejaVuSans.ttf",
+                         700: "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf" },
+  { name: "Helvetica",   400: "/System/Library/Fonts/Helvetica.ttc",
+                         700: "/System/Library/Fonts/Helvetica.ttc" },
+  { name: "Arial",       400: "C:/Windows/Fonts/arial.ttf",
+                         700: "C:/Windows/Fonts/arialbd.ttf" },
+];
+const PICKED = FONT_CANDIDATES.find(c => fs.existsSync(c[400])) || null;
+const FONT_NAME = PICKED ? PICKED.name : "sans-serif";
+const TTF = PICKED ? { 400: PICKED[400], 700: PICKED[700] } : {};
 
 /* skia/types/Image 의 열거형 값 */
 const RGBA_8888 = 4, UNPREMUL = 3;
@@ -97,6 +107,10 @@ const HELPERS = `
     return G.boss;
   }
 `;
+
+/* 글자 자면을 못 구하면 글자가 든 장면은 비교할 수 없다 — 조용히 틀리느니 빼고 알린다 */
+const SCENE_LIST = PICKED ? SCENES : SCENES.filter(s2 => !s2.textMask);
+if (!PICKED) console.log("  (자면을 못 찾아 글자가 든 장면은 건너뛴다)");
 
 /* ── Skia 쪽 ── */
 global.CanvasKit = await CanvasKitInit({ locateFile: f => appRequire.resolve("canvaskit-wasm/bin/full/" + f) });
@@ -184,7 +198,7 @@ function inkBox(buf, w, box, bg) {
   return [x0, y0, x1, y1];
 }
 
-for (const scene of SCENES) {
+for (const scene of SCENE_LIST) {
   const a = renderSkia(scene), b = await renderCanvas(scene);
   const masks = scene.textMask || [];
   const masked = (x, y) => masks.some(([mx, my, mw, mh]) => x >= mx && x < mx + mw && y >= my && y < my + mh);

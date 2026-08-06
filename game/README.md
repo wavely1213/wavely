@@ -13,6 +13,32 @@
 
 ## 실행
 
+### 다른 컴퓨터에서 이어받기
+
+이 저장소만 있으면 된다. 받아 둔 건 아무것도 필요 없다.
+
+```
+git clone <저장소> && cd wavely
+git checkout claude/game-dev-project-ri16x7
+
+# ① 웹은 준비물이 없다 — 바로 열린다
+open game/index.html
+
+# ② 앱을 돌리려면
+cd game/app && npm install
+npx expo run:ios          # 또는 run:android
+                          # Skia 가 네이티브 모듈이라 Expo Go 로는 안 된다
+
+# ③ 검사를 돌리려면 (웹 검사만 브라우저가 필요하다)
+npm i -D playwright && npx playwright install chromium
+```
+
+`game/app/node_modules` 는 저장소에 없지만 `package-lock.json` 이 있어
+`npm install` 이 같은 버전을 그대로 복원한다.
+Playwright 가 없으면 웹 검사는 실패가 아니라 **건너뛴다**(무엇을 설치할지 알려 준다).
+
+---
+
 웹
 ```
 node game/build.mjs        # src/ → index.html

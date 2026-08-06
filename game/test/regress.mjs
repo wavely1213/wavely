@@ -4,15 +4,16 @@
    실행: node game/test/regress.mjs [파일경로]
          (경로를 주면 그 HTML을 검사한다 — 리팩터링 전후 대조용)
 */
-import { chromium } from "/opt/node22/lib/node_modules/playwright/index.mjs";
 import fs from "node:fs";
 import path from "node:path";
+import { chromiumOrSkip } from "./_playwright.mjs";
 
 const TARGET = path.resolve(process.argv[2] || new URL("../index.html", import.meta.url).pathname);
 const fails = [];
 const ok = [];
 const check = (name, cond, detail) => (cond ? ok : fails).push(name + (cond ? "" : " — " + detail));
 
+const chromium = await chromiumOrSkip();
 const browser = await chromium.launch();
 
 /* 스토리 화면을 지나 전투로 들어간다. 출력이 남아 있으면 첫 클릭은 출력을 마칠 뿐이다. */
