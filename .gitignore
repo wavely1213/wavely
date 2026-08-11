@@ -47,3 +47,4 @@ example
 *.log
 
 .vercel
+google-service-account.json

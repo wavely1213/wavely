@@ -14,10 +14,22 @@
       "android": { "buildType": "apk" }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "android": { "buildType": "app-bundle" }
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "//": "비밀번호는 여기 적지 않는다. App-specific password는 환경변수 EXPO_APPLE_APP_SPECIFIC_PASSWORD 로만 넘긴다.",
+      "ios": {
+        "appleId": "mulgyeoli2@gmail.com",
+        "ascAppId": "APP_STORE_CONNECT_APP_ID",
+        "appleTeamId": "APPLE_TEAM_ID"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./google-service-account.json",
+        "track": "internal"
+      }
+    }
   }
 }
