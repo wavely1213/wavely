@@ -29,7 +29,7 @@
         "android.permission.CAMERA"
       ],
       "adaptiveIcon": {
-        "backgroundColor": "#0EA5E9",
+        "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/images/adaptive-foreground.png"
       },
       "predictiveBackGestureEnabled": false
@@ -50,7 +50,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#0EA5E9",
+          "backgroundColor": "#FFFFFF",
           "image": "./assets/images/splash-mark.png",
           "imageWidth": 150,
           "resizeMode": "contain"
