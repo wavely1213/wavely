@@ -30,7 +30,7 @@
       ],
       "adaptiveIcon": {
         "backgroundColor": "#0EA5E9",
-        "foregroundImage": "./assets/images/wavely-logo.png"
+        "foregroundImage": "./assets/images/adaptive-foreground.png"
       },
       "predictiveBackGestureEnabled": false
     },
@@ -44,14 +44,14 @@
         "expo-notifications",
         {
           "color": "#0EA5E9",
-          "icon": "./assets/images/android-icon-monochrome.png"
+          "icon": "./assets/images/notification-icon.png"
         }
       ],
       [
         "expo-splash-screen",
         {
           "backgroundColor": "#0EA5E9",
-          "image": "./assets/images/wavely-logo.png",
+          "image": "./assets/images/splash-mark.png",
           "imageWidth": 150,
           "resizeMode": "contain"
         }
