@@ -34,7 +34,10 @@ export default function LoginScreen() {
     setErrorMsg(''); setInfoMsg('');
     try {
       const AA = await import('expo-apple-authentication');
-      const cred = await AA.signInAsync({ requestedScopes: [AA.AppleAuthenticationScope.FULL_NAME, AA.AppleAuthenticationScope.EMAIL] });
+      // EMAIL만 요청한다. FULL_NAME도 받던 걸 뺐다 — 아래에서 identityToken만 서버로 보내고
+      // cred.fullName은 쓰지 않고 버리기 때문이다. 쓰지도 않는 개인정보를 요구하면
+      // 심사에서 질문을 부르고, 데이터 안전 신고와도 어긋난다.
+      const cred = await AA.signInAsync({ requestedScopes: [AA.AppleAuthenticationScope.EMAIL] });
       if (!cred.identityToken) { setErrorMsg('Apple 로그인 토큰을 받지 못했어요.'); return; }
       const { error } = await supabase.auth.signInWithIdToken({ provider: 'apple', token: cred.identityToken });
       if (error) { setErrorMsg('Apple 로그인 실패: ' + error.message); return; }
@@ -84,15 +87,67 @@ export default function LoginScreen() {
     setInfoMsg('📧 인증 메일을 다시 보냈어요. 메일함(스팸함 포함)을 확인해주세요.');
   };
 
+  // 딥링크로 돌아온 URL에서 세션 토큰을 꺼낸다. 기본 flowType이 implicit이라 '#' 뒤에 실려 온다.
+  // (URLSearchParams는 RN 폴리필 편차가 있어 직접 파싱한다)
+  const pickToken = (url: string, key: string) => {
+    const m = url.match(new RegExp('[#&?]' + key + '=([^&]+)'));
+    return m ? decodeURIComponent(m[1]) : null;
+  };
+
   const kakaoLogin = async () => {
     setErrorMsg('');
-    const redirectTo = Platform.OS === 'web' ? (globalThis as any).location?.origin : 'wavely://';
-    // 닉네임·프로필 사진 동의항목 요청 (가입 시 프로필에 자동 동기화)
-    const { error } = await supabase.auth.signInWithOAuth({ provider: 'kakao', options: { redirectTo, scopes: 'profile_nickname profile_image' } });
-    if (error) {
-      const m = (error.message ?? '').toLowerCase();
-      if (m.includes('provider') || m.includes('not enabled') || m.includes('unsupported')) setErrorMsg('카카오 로그인은 곧 제공돼요 (연동 준비 중).');
-      else setErrorMsg('카카오 로그인 실패: ' + error.message);
+    const scopes = 'profile_nickname profile_image';   // 닉네임·프로필 사진 동의항목
+
+    if (Platform.OS === 'web') {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'kakao',
+        options: { redirectTo: (globalThis as any).location?.origin, scopes },
+      });
+      if (error) setKakaoError(error);
+      return;
+    }
+
+    // ── 앱(iOS·Android) ──────────────────────────────────────────────
+    // signInWithOAuth는 RN에서 아무 일도 하지 않는다. supabase-js가
+    // isBrowser()(= typeof document 검사)일 때만 window.location.assign()을 호출하는데
+    // RN엔 document가 없어 항상 false다. 게다가 error도 null로 돌아와서
+    // 버튼을 눌러도 화면이 그대로다 — 사용자에겐 고장으로 보인다.
+    // 그래서 URL만 받아(skipBrowserRedirect) 직접 브라우저를 열고,
+    // 돌아온 딥링크에서 토큰을 꺼내 세션을 세운다. 네이버 로그인과 같은 방식.
+    const redirectTo = 'wavely://';
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'kakao',
+      options: { redirectTo, scopes, skipBrowserRedirect: true },
+    });
+    if (error) { setKakaoError(error); return; }
+    if (!data?.url) { setErrorMsg('카카오 로그인 주소를 받지 못했어요.'); return; }
+
+    try {
+      const WebBrowser = await import('expo-web-browser');
+      const res = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+      if (res.type !== 'success' || !res.url) return;      // 사용자가 창을 닫음 → 조용히 무시
+
+      const err = pickToken(res.url, 'error_description') || pickToken(res.url, 'error');
+      if (err) { setErrorMsg('카카오 로그인 실패: ' + err); return; }
+
+      const access_token = pickToken(res.url, 'access_token');
+      const refresh_token = pickToken(res.url, 'refresh_token');
+      if (!access_token || !refresh_token) { setErrorMsg('카카오 로그인 정보를 받지 못했어요.'); return; }
+
+      const { error: e2 } = await supabase.auth.setSession({ access_token, refresh_token });
+      if (e2) { setErrorMsg('카카오 로그인 실패: ' + e2.message); return; }
+      router.replace('/');
+    } catch {
+      setErrorMsg('카카오 로그인 창을 열 수 없어요.');
+    }
+  };
+
+  const setKakaoError = (error: { message?: string }) => {
+    const m = (error.message ?? '').toLowerCase();
+    if (m.includes('provider') || m.includes('not enabled') || m.includes('unsupported')) {
+      setErrorMsg('카카오 로그인은 곧 제공돼요 (연동 준비 중).');
+    } else {
+      setErrorMsg('카카오 로그인 실패: ' + error.message);
     }
   };
 
