@@ -29,78 +29,18 @@ create table if not exists public.ad_click_guard (
 revoke all on public.ad_click_guard from anon, authenticated;   -- SECURITY DEFINER 함수만 사용
 
 
--- ========================== [P1+P2] log_ad_event 강화 =======================
--- 24판(키워드단가 과금) 기반 + (a)소유자 자기클릭 제외 (b)30초 throttle (c)월예산 캡.
-create or replace function public.log_ad_event(p_ad_id uuid, p_type text, p_keyword text default null)
-returns void language plpgsql security definer set search_path=public as $$
-declare v_format text; v_status text; v_bid int; v_owner uuid; v_store uuid;
-        v_admin boolean; v_bal int; v_new int; v_charge int;
-        v_budget int; v_month_spent int; v_actor text; v_last timestamptz;
-begin
-  if p_type not in ('impression','click') then return; end if;
-  select format, status, coalesce(bid_amount,0), owner_id, store_id, monthly_budget
-    into v_format, v_status, v_bid, v_owner, v_store, v_budget
-    from public.ads where id = p_ad_id;
-  if not found then return; end if;
-  insert into public.ad_events(ad_id, store_id, type, keyword) values (p_ad_id, v_store, p_type, p_keyword);
-
-  -- 과금은 CPC 포맷 클릭 + active 만
-  if p_type = 'click' and v_format in ('rank','place','infeed') and v_status = 'active' then
-    -- (a) 소유자 본인 클릭은 과금 제외
-    if auth.uid() is not null and auth.uid() = v_owner then return; end if;
-
-    -- (b) 클릭 throttle: 같은 actor가 같은 광고를 30초 내 재클릭하면 과금 skip(로깅은 위에서 이미 됨)
-    v_actor := coalesce(auth.uid()::text,
-                        'ip:' || coalesce((current_setting('request.headers', true))::json ->> 'x-forwarded-for', 'unknown'));
-    select last_at into v_last from public.ad_click_guard where ad_id = p_ad_id and actor = v_actor;
-    if v_last is not null and v_last > now() - interval '30 seconds' then
-      update public.ad_click_guard set last_at = now() where ad_id = p_ad_id and actor = v_actor;
-      return;
-    end if;
-    insert into public.ad_click_guard(ad_id, actor, last_at) values (p_ad_id, v_actor, now())
-      on conflict (ad_id, actor) do update set last_at = now();
-
-    -- 단가: 플레이스+키워드면 그 키워드 단가, 아니면 기본 입찰가
-    if v_format in ('place','rank') and p_keyword is not null then
-      select bid_amount into v_charge from public.ad_keywords
-       where ad_id = p_ad_id and keyword ilike '%' || p_keyword || '%'
-       order by bid_amount desc limit 1;
-    end if;
-    v_charge := coalesce(v_charge, v_bid);
-    if v_charge <= 0 then return; end if;
-
-    select coalesce(is_admin,false) into v_admin from public.profiles where id = v_owner;
-    if v_admin then return; end if;                          -- 개발자 무제한
-
-    -- (c) 월예산 캡(KST 월누적). 초과 시 광고 pause + 과금 skip.
-    if v_budget is not null and v_budget > 0 then
-      select coalesce(sum(-amount),0) into v_month_spent from public.ad_ledger
-       where ref = p_ad_id::text and type = 'deduct'
-         and created_at >= (date_trunc('month', (now() at time zone 'Asia/Seoul')) at time zone 'Asia/Seoul');
-      if v_month_spent + v_charge > v_budget then
-        update public.ads set status = 'paused' where id = p_ad_id;
-        update public.stores set is_ad = false, ad_weight = 0 where id = v_store;
-        return;
-      end if;
-    end if;
-
-    perform public._expire_free(v_owner);
-    select ad_balance into v_bal from public.profiles where id = v_owner for update;
-    v_bal := coalesce(v_bal, 0);
-    v_new := greatest(v_bal - v_charge, 0);
-    update public.profiles set ad_balance = v_new, ad_free = greatest(0, ad_free - (v_bal - v_new)) where id = v_owner;
-    insert into public.ad_ledger(user_id, type, amount, balance_after, ref, memo)
-      values (v_owner, 'deduct', -(v_bal - v_new), v_new, p_ad_id::text,
-              case when p_keyword is not null then '클릭 광고비 (' || p_keyword || ')' else '클릭 광고비' end);
-    if v_new <= 0 then
-      update public.ads set status = 'paused' where id = p_ad_id;
-      update public.stores set is_ad = false, ad_weight = 0 where id = v_store;
-    end if;
-  end if;
-end $$;
-revoke all on function public.log_ad_event(uuid, text, text) from public;
-grant execute on function public.log_ad_event(uuid, text, text) to anon, authenticated;
-
+-- ========================== [P1+P2] log_ad_event — 이 파일에서 제거됨 ==========
+-- ⛔ 여기 있던 log_ad_event 정의를 지웠다. _DEPLOY_AD_BILLING_GUARD.sql(2026-08-12)이
+--    같은 함수를 더 강하게 다시 정의하는데, 이 파일을 나중에 실행하면 그 수정을 덮어써
+--    구멍이 되살아난다(create or replace라 조용히 되돌아간다).
+--
+--    여기 있던 버전이 못 막는 것:
+--      · 비로그인 throttle이 x-forwarded-for 기반 → 헤더 위조로 무력화(요청마다 새 actor)
+--      · 2인자 오버로드 log_ad_event(uuid,text)가 살아 있어 p_keyword 빼고 부르면 우회
+--
+--    광고 과금 관련은 전부 _DEPLOY_AD_BILLING_GUARD.sql 하나만 본다.
+--    이 파일은 P3(레이스)·P4(기간보존)·P5(지출 SSOT)만 담당한다.
+-- ============================================================================
 
 -- ========================== [P3] pay_ad_from_balance 레이스 =================
 -- ads 행을 FOR UPDATE로 잠가 동시 2호출 이중차감 방지(두번째는 상태 재확인서 거절).
