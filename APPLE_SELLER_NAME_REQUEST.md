@@ -57,7 +57,7 @@ seller name appears from launch.
 
 Thank you,
 Hyeonjun Park
-mulgyeoli2@gmail.com
+middle2614@naver.com
 ```
 
 ## 답에 따라
