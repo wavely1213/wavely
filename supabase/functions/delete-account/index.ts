@@ -34,6 +34,21 @@ Deno.serve(async (req) => {
       phone: null, avatar_url: null,
     }).eq('id', uid);
 
+    // 2-a) 프로필 사진 '파일'까지 지운다.
+    //      avatar_url 컬럼만 null로 만들면 원본은 공개 버킷(post-images)에 그대로 남고,
+    //      URL을 아는 사람은 탈퇴 후에도 계속 볼 수 있었다. '데이터 삭제 요청 가능=예'와 어긋난다.
+    //      경로가 avatars/{uid}-{시각}.{ext} 라서 사진을 바꿀 때마다 옛 파일이 쌓인다 →
+    //      현재 것 하나가 아니라 그 사용자의 전부를 지운다.
+    try {
+      const { data: files } = await admin.storage.from('post-images').list('avatars', {
+        limit: 1000, search: uid,
+      });
+      const paths = (files ?? [])
+        .filter((f) => f.name.startsWith(uid + '-'))
+        .map((f) => `avatars/${f.name}`);
+      if (paths.length) await admin.storage.from('post-images').remove(paths);
+    } catch (_) { /* 스토리지 실패가 탈퇴 자체를 막지 않게 한다 */ }
+
     // 3) 본인 소유 매장은 광고/노출 정리 (선택)
     await admin.from('stores').update({ is_ad: false, ad_weight: 0 }).eq('owner_id', uid);
 

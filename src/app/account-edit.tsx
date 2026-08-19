@@ -94,6 +94,17 @@ export default function AccountEditScreen() {
       const path = `avatars/${session!.user.id}-${Date.now()}.${ext}`;
       const { error } = await supabase.storage.from('post-images').upload(path, ab, { contentType: ct, upsert: true });
       if (error) return null;
+      // 새 사진을 올렸으면 같은 사용자의 옛 사진 파일은 지운다.
+      // 경로에 시각이 들어가 URL이 매번 달라지는 구조(캐시 회피)라, 안 지우면 바꿀 때마다 원본이 쌓이고
+      // 옛 URL을 아는 사람은 계속 볼 수 있다. 실패해도 업로드 자체는 성공으로 둔다.
+      try {
+        const uid = session!.user.id;
+        const { data: olds } = await supabase.storage.from('post-images').list('avatars', { limit: 100, search: uid });
+        const stale = (olds ?? [])
+          .filter((f) => f.name.startsWith(uid + '-') && `avatars/${f.name}` !== path)
+          .map((f) => `avatars/${f.name}`);
+        if (stale.length) await supabase.storage.from('post-images').remove(stale);
+      } catch { /* 정리 실패는 무시 — 업로드는 이미 됐다 */ }
       return supabase.storage.from('post-images').getPublicUrl(path).data.publicUrl;
     } catch { return null; }
   };
