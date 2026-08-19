@@ -48,3 +48,4 @@ example
 
 .vercel
 google-service-account.json
+dist-web/
