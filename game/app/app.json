@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "파장",
+    "slug": "wavelength",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "wavelength",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "backgroundColor": "#141413",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.wavely.wavelength"
+    },
+    "android": {
+      "package": "com.wavely.wavelength",
+      "edgeToEdgeEnabled": true
+    },
+    "plugins": ["expo-audio"],
+    "experiments": { "typedRoutes": false }
+  }
+}
