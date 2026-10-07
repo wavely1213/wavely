@@ -1,0 +1,83 @@
+# ARCHITECTURE.md — 아키텍처
+
+> **목적**: 코드가 어떻게 조직되어 있고, 무엇이 무엇에 의존해도 되는지 정의한다.
+> 구조 변경·새 모듈 추가·데이터 흐름 관련 작업 전에 반드시 읽는다.
+> **갱신 시점**: 레이어/모듈/데이터 흐름이 바뀔 때. 코드와 문서가 다르면 문서를 고친다.
+
+---
+
+## 1. 아키텍처 개요
+
+단일 페이지 브라우저 앱. 상태(`state.js`)가 곡 목록을 들고, 화면(views)은 상태를 읽어 DOM을 다시 그린다.
+변경은 항상 `mutate()`를 거치고, 자동 저장(1.2초 디바운스)으로 저장소에 쓴다.
+음악은 곡 데이터 → 이벤트 타임라인 → (실시간 재생 | WAV 렌더 | MIDI) 순으로 흐른다.
+
+```
+[views/*] ──mutate()──▶ [state.js] ──save──▶ [store.js] ─▶ db capability / localStorage
+    │                        ▲
+    ├─▶ [ai.js, ai-music.js] ─┘ (결과 검사 후 mutate)   ─▶ sample capability (Claude)
+    ├─▶ [music/player.js] ─▶ [music/timeline.js] ─▶ [music/synth.js] ─▶ Web Audio
+    └─▶ [package.js] ─▶ midi.js · pack.js(wav, zip) · suno.js ─▶ downloads capability
+```
+
+## 2. 레이어와 책임
+
+| 레이어 | 위치 | 책임 | 하면 안 되는 것 |
+|---|---|---|---|
+| 화면 | `src/js/views/`, `src/js/app.js` | DOM 생성, 입력 받기, `mutate()` 호출 | 저장소 직접 접근, 음악 계산 |
+| 상태 | `src/js/state.js` | 곡 목록, 현재 곡, 자동 저장, 버전 | DOM 조작 |
+| 저장 | `src/js/store.js` | db/localStorage 읽기·쓰기 | 데이터 가공 |
+| 도메인(가사) | `structure.js`, `lyrictools.js`, `suno.js`, `constants.js` | 구조·분배·음절·라임·Suno 텍스트 | DOM, 저장 |
+| 도메인(음악) | `src/js/music/` | 이론·패턴·편곡 데이터·타임라인·신스·재생·MIDI·분석·패키징 | DOM (예외: 없음), 저장 |
+| AI | `ai.js`, `ai-music.js`, `aijob.js` | 프롬프트 작성, 응답 검사, 진행 중 작업 관리 | 검사 안 된 응답을 상태에 쓰기 |
+
+## 3. 의존 방향 규칙
+
+- views → state / ai / music / 도메인 → dom.js (공통 도우미)
+- `music/`은 views·state를 import 하지 않는다. (`player.js`는 상태 대신 곡 객체를 인자로 받는다)
+- `aijob.js`만 예외적으로 `state.refresh()`를 부른다 (진행 표시용).
+- 순환 의존이 생기면 구현을 멈추고 구조를 먼저 보고한다.
+
+## 4. 주요 모듈
+
+| 모듈 | 위치 | 역할 |
+|---|---|---|
+| 앱 셸 | src/js/app.js | 탭, 곡 목록, 재생 위치 표시 |
+| 상태 | src/js/state.js | mutate/refresh, 자동 저장, 버전 저장·복원·이전 형식 이전 |
+| 저장소 | src/js/store.js | 곡 문서 + 버전 하위 컬렉션 |
+| 이론 | src/js/music/theory.js | 키·스케일·코드 이름·느낌별 코드 진행 |
+| 악기/패턴 | music/instruments.js, patterns.js | 악기 목록·음색 종류, 드럼·베이스 프리셋 |
+| 편곡 데이터 | music/arrangement.js | 섹션 기본값, 정규화, 빠른 바꾸기 |
+| 타임라인 | music/timeline.js | 곡 → 음표 이벤트 (재생·WAV·MIDI 공통) |
+| 신스 | music/synth.js | Web Audio 악기 음색, 악기별 공유 필터 |
+| 재생/렌더 | music/player.js | 룩어헤드 실시간 재생, 2초 단위 오프라인 렌더 |
+| MIDI | music/midi.js | Type 1 SMF, 악기별 트랙 |
+| 패키징 | music/pack.js, package.js | WAV 인코딩, 무압축 zip, 제작 패키지 |
+| 분석 | music/analyze.js | 레퍼런스 BPM·키·에너지·저음·밝기 |
+| 샘플 | music/samples.js | samples/*.json 불러오기·디코딩, 악기·음색 → 묶음 매핑 |
+| 음량 측정 | music/loudness.js | BS.1770 통합 LUFS, 4배 오버샘플링 트루 피크 |
+| 마스터링 | music/master.js, views/master.js | EQ·컴프 → LUFS 맞춤 → 트루 피크 리미터 → WAV |
+| AI 작사 | ai.js | 가사·스타일·훅·검토 |
+| AI 작곡 | ai-music.js | 편곡·멜로디 (응답을 선택지 범위로 검사) |
+
+## 5. 데이터 모델 요약
+
+- Song: `{id, title, concept, members[], sections[], style, music, references[], versions[](메타만), createdAt, updatedAt}`
+- Section: `{id, type, members[], text}`
+- music: `{bpm, root(0-11), mode, sections{[sectionId]: {bars, chords[도수], seventh, energy 1-5, instruments[], drum, drumGrid, bass, melody[{s,l,d,syl}]}}, sounds{[inst]: {variant, tone, vol, mute}}}`
+- 버전 본문: `data/users/<id>/<songId>/versions/<versionId>` (db) — 곡 문서 256KB 한도 때문에 분리
+- 저장 경로: `data/users/<id>/<songId>` (본인만 읽기·쓰기)
+
+## 6. 횡단 관심사 처리 방식
+
+- **에러 처리**: capability 호출은 rejected `{code}`를 받아 화면 문구로 바꾼다 (`ai.js` `errorCopy`). 저장 실패는 상태 표시줄에 표시하고 다음 저장에 재시도.
+- **로깅**: 없음 (콘솔 출력 금지가 기본)
+- **설정**: 상수는 `constants.js`, `music/*.js` 상단에 모은다.
+- **인증/인가**: 플랫폼이 처리 (`data/users/{self}` 비공개 규칙)
+
+## 7. AI 작업 시 구조 관련 규칙
+
+1. 새 파일은 기존 레이어 구조에 맞는 위치에 만든다. 새 최상위 디렉터리가 필요하면 먼저 제안한다.
+2. 구조를 크게 바꾸는 리팩토링은 `REFACTORING_GUIDELINES.md` 절차를 따르고 사전에 계획을 보고한다.
+3. 이 문서에 없는 패턴을 새로 도입할 때는 도입 이유를 `DECISION_LOG.md`에 남긴다.
+4. 아티팩트 제약: 외부 스크립트는 허용된 CDN만, fetch·이미지·미디어 외부 로드 불가, `alert/confirm/prompt` 불가, 다운로드는 `downloads` capability로만 (허용 확장자에 .mid/.wav 없음 → zip).

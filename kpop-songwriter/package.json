@@ -1,0 +1,19 @@
+{
+  "name": "kpop-songwriter",
+  "type": "module",
+  "version": "0.3.0",
+  "description": "K-pop 작사·작곡·편곡 노트 (claude.ai 아티팩트 앱)",
+  "scripts": {
+    "build": "node build.mjs",
+    "test:unit": "node tests/unit.test.mjs",
+    "test:engine": "node tests/engine.test.cjs",
+    "test:ui": "node tests/ui-smoke.test.cjs",
+    "test": "npm run build && npm run test:unit && npm run test:engine && npm run test:master && npm run test:ui",
+    "samples": "node tools/fetch-samples.mjs",
+    "test:master": "node tests/master.test.cjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.10"
+  },
+  "private": true
+}

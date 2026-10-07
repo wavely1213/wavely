@@ -1,0 +1,169 @@
+// 멜로디 탭: 피아노롤. 스케일 안의 음만 보여서 틀린 음을 고를 일이 없다.
+// 빈 칸을 누르면 음표 추가, 음표를 누르면 선택 → 아래 버튼으로 옮기기·길이·가사 수정.
+import { h } from '../dom.js';
+import { mutate, refresh } from '../state.js';
+import { sectionLabels } from '../structure.js';
+import { degreeToMidi, NOTE_NAMES } from '../music/theory.js';
+import { countSyllables } from '../lyrictools.js';
+import { writeMelody } from '../ai-music.js';
+import { isBusy, runJob, stopJob, job } from '../aijob.js';
+import { playButton } from './playbar.js';
+
+const TOP = 10;
+const BOTTOM = -3;
+const CELL_W = 22;
+const CELL_H = 26;
+
+const ui = { sectionId: '', selected: -1, confirmClear: false, request: '', scroll: 0 };
+
+function midiName(n) { return `${NOTE_NAMES[n % 12]}${Math.floor(n / 12) - 1}`; }
+
+export function renderMelody(song) {
+  const labels = sectionLabels(song.sections);
+  if (!song.sections.some((s) => s.id === ui.sectionId)) {
+    ui.sectionId = (song.sections.find((s) => song.music.sections[s.id]?.melody.length)
+      || song.sections.find((s) => s.text.trim() && s.type !== 'Intro') || song.sections[0])?.id || '';
+    ui.selected = -1;
+  }
+  const s = song.sections.find((x) => x.id === ui.sectionId);
+  if (!s) return h('p', { class: 'empty card' }, '섹션이 없어요. 구조·가사 탭에서 섹션을 먼저 만들어 주세요.');
+  const sm = song.music.sections[s.id];
+  const label = labels[song.sections.indexOf(s)];
+  const busy = isBusy();
+  const withLyrics = song.sections.filter((x) => x.text.trim()).map((x) => x.id);
+  const syl = s.text.split('\n').filter((l) => l.trim()).reduce((a, l) => a + countSyllables(l), 0);
+
+  return h('div', { class: 'stack' },
+    h('section', { class: 'card' },
+      h('h2', null, '멜로디 만들기'),
+      h('p', { class: 'muted' }, '가사에 맞춰 AI가 멜로디 초안을 만들고, 마음에 안 드는 음만 손으로 고치세요. 가이드 멜로디는 WAV 데모에 들어가서 Suno에 올리면 그 멜로디를 따라 부르게 할 수 있어요.'),
+      h('textarea', { id: 'mel-request', rows: '2', value: ui.request, placeholder: '원하는 멜로디 느낌 (선택) 예: 코러스 첫 줄은 높게 시작, 벌스는 랩하듯 낮게', oninput: (e) => { ui.request = e.target.value; } }),
+      h('div', { class: 'row' },
+        h('button', { type: 'button', class: 'btn primary', disabled: busy, onclick: () => runJob(`${label} 멜로디 만드는 중`, async (signal) => {
+          applyMelody(await writeMelody(song, { targetIds: [s.id], request: ui.request, signal }));
+        }) }, `AI로 ${label} 멜로디`),
+        h('button', { type: 'button', class: 'btn', disabled: busy || !withLyrics.length, onclick: () => runJob('전체 멜로디 만드는 중', async (signal) => {
+          // 한 번에 너무 길면 끊기므로 섹션 3개씩 나눠 요청
+          for (let i = 0; i < withLyrics.length; i += 3) {
+            if (signal.aborted) break;
+            applyMelody(await writeMelody(song, { targetIds: withLyrics.slice(i, i + 3), request: ui.request, signal }));
+          }
+        }) }, '가사 있는 섹션 전부'),
+        busy ? h('button', { type: 'button', class: 'btn ghost', onclick: stopJob }, '중지') : null,
+        busy ? h('span', { class: 'status' }, h('span', { class: 'dot' }), job.label) : null)),
+    h('div', { class: 'chips' }, song.sections.map((x, i) => h('button', {
+      type: 'button', class: `chip${x.id === s.id ? ' on' : ''}`, 'aria-pressed': x.id === s.id ? 'true' : 'false',
+      onclick: () => { ui.sectionId = x.id; ui.selected = -1; ui.confirmClear = false; ui.scroll = 0; refresh(); },
+    }, `${labels[i]}${song.music.sections[x.id]?.melody.length ? ' ♪' : ''}`))),
+    h('section', { class: 'card' },
+      h('div', { class: 'card-head' },
+        h('h2', null, `[${label}] ${sm.bars}마디`),
+        h('div', { class: 'row' },
+          h('span', { class: 'mono muted' }, `음표 ${sm.melody.length} · 가사 음절 ${syl}`),
+          playButton(song, { onlyIds: [s.id], label, text: '▶ 이 부분 듣기', cls: 'btn small primary' }))),
+      s.text.trim() ? h('pre', { class: 'lyric-ref' }, s.text.trim()) : null,
+      renderRoll(song, s, sm),
+      renderNoteTools(song, s, sm),
+      h('div', { class: 'row' },
+        h('button', { type: 'button', class: 'btn small', onclick: () => shiftAll(s.id, 1) }, '전체 한 음 올리기'),
+        h('button', { type: 'button', class: 'btn small', onclick: () => shiftAll(s.id, -1) }, '전체 한 음 내리기'),
+        ui.confirmClear
+          ? [h('button', { type: 'button', class: 'btn small danger', onclick: () => { ui.confirmClear = false; ui.selected = -1; mutate((x) => { x.music.sections[s.id].melody = []; }); } }, '지우기 확인'),
+            h('button', { type: 'button', class: 'btn small ghost', onclick: () => { ui.confirmClear = false; refresh(); } }, '취소')]
+          : h('button', { type: 'button', class: 'btn small ghost', disabled: !sm.melody.length, onclick: () => { ui.confirmClear = true; refresh(); } }, '이 섹션 멜로디 지우기'))),
+  );
+}
+
+function applyMelody(out) {
+  mutate((x) => { out.forEach(({ id, notes }) => { if (x.music.sections[id]) x.music.sections[id].melody = notes; }); });
+}
+
+function shiftAll(id, d) {
+  mutate((x) => { x.music.sections[id].melody.forEach((n) => { n.d = Math.max(BOTTOM, Math.min(TOP, n.d + d)); }); });
+}
+
+function renderRoll(song, s, sm) {
+  const mu = song.music;
+  const steps = sm.bars * 16;
+  const rows = TOP - BOTTOM + 1;
+  // 마디마다 코드톤 줄을 연하게 칠한다 ("이 줄 음은 잘 어울려요")
+  const shades = [];
+  for (let bar = 0; bar < sm.bars; bar++) {
+    const deg = sm.chords[bar % sm.chords.length] - 1;
+    for (let d = BOTTOM; d <= TOP; d++) {
+      const rel = (((d - deg) % 7) + 7) % 7;
+      if (rel === 0 || rel === 2 || rel === 4) {
+        shades.push(h('span', { class: `shade${rel === 0 ? ' root' : ''}`, style: `left:${bar * 16 * CELL_W}px;top:${(TOP - d) * CELL_H}px;width:${16 * CELL_W}px;height:${CELL_H}px` }));
+      }
+    }
+  }
+  const notes = sm.melody.map((n, i) => h('button', {
+    type: 'button', class: `note${i === ui.selected ? ' sel' : ''}`,
+    style: `left:${n.s * CELL_W}px;top:${(TOP - n.d) * CELL_H + 2}px;width:${n.l * CELL_W - 2}px;height:${CELL_H - 4}px`,
+    'aria-label': `${n.syl || '음표'} ${midiName(degreeToMidi(mu.root, mu.mode, n.d))}`,
+    onclick: (e) => { e.stopPropagation(); ui.selected = i; refresh(); },
+  }, n.syl || ''));
+
+  const grid = h('div', {
+    class: 'roll-grid',
+    style: `width:${steps * CELL_W}px;height:${rows * CELL_H}px;--cw:${CELL_W}px;--ch:${CELL_H}px`,
+    onclick: (e) => {
+      const r = e.currentTarget.getBoundingClientRect();
+      const st = Math.floor((e.clientX - r.left) / CELL_W);
+      const d = TOP - Math.floor((e.clientY - r.top) / CELL_H);
+      if (st < 0 || st >= steps || d < BOTTOM || d > TOP) return;
+      mutate((x) => {
+        const mel = x.music.sections[s.id].melody;
+        const next = mel.filter((n) => n.s > st).sort((a, b) => a.s - b.s)[0];
+        const covering = mel.find((n) => n.s <= st && n.s + n.l > st);
+        if (covering) covering.l = st - covering.s || covering.l;
+        if (covering && covering.s === st) return;
+        const l = Math.min(2, (next ? next.s : steps) - st);
+        mel.push({ s: st, l: Math.max(1, l), d, syl: '' });
+        mel.sort((a, b) => a.s - b.s);
+        ui.selected = mel.findIndex((n) => n.s === st);
+      });
+    },
+  }, shades, notes, h('span', { class: 'playhead', id: 'roll-playhead', 'data-section': s.id, hidden: true }));
+
+  const keys = h('div', { class: 'roll-keys' }, Array.from({ length: rows }, (_, k) => {
+    const d = TOP - k;
+    const midi = degreeToMidi(mu.root, mu.mode, d);
+    return h('span', { class: `rk-key${((d % 7) + 7) % 7 === 0 ? ' tonic' : ''}`, style: `height:${CELL_H}px` }, midiName(midi));
+  }));
+  const barNums = h('div', { class: 'roll-bars', style: `width:${steps * CELL_W}px` },
+    Array.from({ length: sm.bars }, (_, b) => h('span', { style: `width:${16 * CELL_W}px` }, `${b + 1}`)));
+  const scroller = h('div', { class: 'roll-scroll', onscroll: (e) => { ui.scroll = e.target.scrollLeft; } }, barNums, grid);
+  requestAnimationFrame(() => { scroller.scrollLeft = ui.scroll; });
+  return h('div', { class: 'roll' }, keys, scroller);
+}
+
+function renderNoteTools(song, s, sm) {
+  const n = sm.melody[ui.selected];
+  if (!n) return h('p', { class: 'muted' }, '빈 칸을 누르면 음표가 생겨요. 음표를 누르면 옮기기·길이·가사를 바꿀 수 있어요. 색칠된 줄은 그 마디 코드와 잘 어울리는 음이에요.');
+  const edit = (fn) => mutate((x) => {
+    const mel = x.music.sections[s.id].melody;
+    const note = mel[ui.selected];
+    if (!note) return;
+    fn(note, mel);
+    const max = sm.bars * 16;
+    note.s = Math.max(0, Math.min(max - 1, note.s));
+    note.l = Math.max(1, Math.min(max - note.s, note.l));
+    note.d = Math.max(BOTTOM, Math.min(TOP, note.d));
+    mel.sort((a, b) => a.s - b.s);
+    ui.selected = mel.indexOf(note);
+  });
+  return h('div', { class: 'note-tools' },
+    h('span', { class: 'mono' }, `${midiName(degreeToMidi(song.music.root, song.music.mode, n.d))} · ${n.l}칸`),
+    h('button', { type: 'button', class: 'btn small', onclick: () => edit((x) => { x.d += 1; }) }, '▲ 높게'),
+    h('button', { type: 'button', class: 'btn small', onclick: () => edit((x) => { x.d -= 1; }) }, '▼ 낮게'),
+    h('button', { type: 'button', class: 'btn small', onclick: () => edit((x) => { x.s -= 1; }) }, '◀ 앞으로'),
+    h('button', { type: 'button', class: 'btn small', onclick: () => edit((x) => { x.s += 1; }) }, '▶ 뒤로'),
+    h('button', { type: 'button', class: 'btn small', onclick: () => edit((x) => { x.l += 1; }) }, '길게'),
+    h('button', { type: 'button', class: 'btn small', onclick: () => edit((x) => { x.l -= 1; }) }, '짧게'),
+    h('input', { id: 'note-syl', class: 'syl-input', value: n.syl, 'aria-label': '이 음표의 가사 음절', placeholder: '가사', maxlength: '8',
+      oninput: (e) => mutate((x) => { const note = x.music.sections[s.id].melody[ui.selected]; if (note) note.syl = e.target.value; }, 'quiet'),
+      onchange: () => refresh() }),
+    h('button', { type: 'button', class: 'btn small danger', onclick: () => { mutate((x) => { x.music.sections[s.id].melody.splice(ui.selected, 1); }); ui.selected = -1; refresh(); } }, '삭제'),
+  );
+}
