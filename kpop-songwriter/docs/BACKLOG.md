@@ -20,9 +20,11 @@
 - [x] [학습] 피드백 로그 JSONL 내보내기
 - [x] [최적화] 가사 자동 채점 + 다시 쓰기 추천 — ROADMAP C
 - [ ] [최적화] 멜로디 음역 점검 (멤버 음역 설정)
-- [ ] [웹] platform 계층(ai·storage·download·user) — ROADMAP A
-- [ ] [웹] 웹 빌드 `build:web` (base /music/, 일반 다운로드, AI 안내) + vercel.json
-- [ ] [웹] wavely-web 리라이트 안내 문서
+- [~] [웹] platform 계층 — download만 완료(platform/download.js). ai·storage는 웹 AI 결정 후
+- [x] [웹] 웹 빌드 `build:web` (base /music/, 일반 다운로드, AI 안내) + vercel.json
+- [x] [웹] wavely-web 리라이트 안내 (PROJECT_CONTEXT 5번)
+- [ ] [웹] 웹에서 저장은 브라우저(localStorage)뿐 — 기기 바꾸면 안 보임. wavely Supabase 로그인 + music_ 테이블 (승인 필요)
+- [ ] [웹] 웹 AI: Vercel 함수 + 서버 키 + 로그인 사용자만 + 사용량 제한 (소유자 결정 필요)
 
 ## 개선점 탐색에서 나온 것
 

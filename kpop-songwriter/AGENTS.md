@@ -70,9 +70,9 @@ claude.ai 아티팩트로 배포되며, AI는 사용자 본인의 Claude 사용�
 ## 5. 빌드·테스트·실행 명령어
 
 - 의존성 설치: `npm install`
-- 빌드 (단일 HTML 생성): `npm run build` → `dist/index.html`
+- 빌드 (아티팩트): `npm run build` → `dist/index.html` / (웹사이트): `npm run build:web` → `dist-web/music/`
 - 전체 테스트: `npm test` (빌드 + 단위 + 엔진 + 화면)
-- 개별: `npm run test:unit` / `test:album` / `test:learn` / `test:engine` / `test:master` / `test:ai` / `test:ui`
+- 개별: `npm run test:unit` / `test:album` / `test:learn` / `test:optimize` / `test:engine` / `test:master` / `test:ai` / `test:ui` / `test:web`
 - 샘플 다시 받기: `npm run samples` (ffmpeg 필요)
 - 엔진·화면 테스트는 Playwright(전역 설치)와 Chromium, 마스터링 테스트는 ffmpeg(독립 측정기)가 필요하다.
 - 배포: `dist/index.html` + `dist/samples/*`를 claude.ai 아티팩트로 발행 (capabilities: `sample`, `db`, `user`, `downloads`). 배포는 소유자 승인 후에만.

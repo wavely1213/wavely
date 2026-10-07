@@ -20,7 +20,8 @@ claude.ai 아티팩트로 실행되고, AI 기능은 내 Claude 사용량을 씁
 ## 개발
 ```bash
 npm install
-npm run build   # dist/index.html (단일 파일)
+npm run build       # dist/index.html (claude.ai 아티팩트)
+npm run build:web   # dist-web/music/ (mulgyeol.kr/music 웹사이트)
 npm test        # 빌드 + 단위 + 엔진 + 화면 테스트 (Playwright 전역 설치 필요)
 ```
 

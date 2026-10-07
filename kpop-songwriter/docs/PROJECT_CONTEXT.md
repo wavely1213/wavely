@@ -47,7 +47,9 @@
 /src/index.template.html  페이지 뼈대 (<title>, 폰트, STYLES/SCRIPT 자리)
 /src/styles.css           전체 스타일 (토큰 → 컴포넌트)
 /src/js                   앱 코드 (ARCHITECTURE.md 참고)
-/build.mjs                src → dist/index.html + dist/samples/
+/build.mjs                src → dist/(아티팩트) 또는 dist-web/music/(웹, `web` 인자)
+/src/web-head.html        웹 빌드 전용 <head> (base /music/, 설명, 아이콘)
+/vercel.json              웹사이트 단독 배포 설정
 /assets/samples           악기 샘플 묶음(JSON, base64 MP3)과 출처
 /tools/fetch-samples.mjs  샘플 다시 받기 (ffmpeg 필요)
 /tests                    단위·엔진·화면 테스트
@@ -61,7 +63,14 @@
 - **로컬 개발 환경 준비**: `npm install` → `npm run build` → `dist/index.html`을 브라우저로 열기 (AI·계정 저장·다운로드는 claude.ai 안에서만 동작, 로컬에선 localStorage로 대체)
 - **필요한 환경변수**: 없음
 - **실행 명령어**: `AGENTS.md` 5번 항목과 동일하게 유지
-- **배포 방법**: `dist/index.html`을 Artifact 도구로 같은 URL에 재발행 (소유자 승인 후)
+- **배포 방법 (두 갈래)**:
+  1. claude.ai 아티팩트: `npm run build` → `dist/index.html` + `dist/samples/*`를 Artifact 도구로 같은 URL에 재발행
+  2. 웹사이트 mulgyeol.kr/music: `npm run build:web` → `dist-web/music/`. 소유자 작업:
+     - Vercel에서 새 프로젝트를 만들고 Root Directory를 `kpop-songwriter`로 지정 (설정은 이 폴더의 `vercel.json`이 사용됨)
+     - mulgyeol.kr을 서비스하는 `wavely-web` 저장소의 vercel.json `rewrites`에 추가:
+       `{ "source": "/music", "destination": "https://<새 프로젝트>.vercel.app/music/" }`,
+       `{ "source": "/music/:path*", "destination": "https://<새 프로젝트>.vercel.app/music/:path*" }`
+     - 웹에서는 AI 기능이 꺼져 있다 (서버 키 결정 전, ROADMAP 4번)
 
 ## 6. 외부 서비스·연동
 
