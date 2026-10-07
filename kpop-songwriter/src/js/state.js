@@ -108,6 +108,37 @@ export function importSong(data) {
   return true;
 }
 
+// 곡 복제 (다른 버전·리믹스를 시도할 때): 섹션 id를 새로 만들어 편곡·멜로디·번안을 옮기고,
+// 버전 목록·싱크 가사·Suno 생성·마스터링 진행은 새 버전에서 다시 하도록 비운다.
+export function duplicateSong(id) {
+  const src = state.songs.find((x) => x.id === id);
+  if (!src) return null;
+  const { versions, ...rest } = src;
+  const song = JSON.parse(JSON.stringify(rest));
+  const map = {};
+  song.sections.forEach((sec) => { map[sec.id] = uid(); sec.id = map[sec.id]; });
+  song.music.sections = Object.fromEntries(Object.entries(song.music.sections || {}).filter(([k]) => map[k]).map(([k, v]) => [map[k], v]));
+  Object.values(song.translations || {}).forEach((t) => { t.sections = Object.fromEntries(Object.entries(t.sections || {}).filter(([k]) => map[k]).map(([k, v]) => [map[k], v])); });
+  Object.assign(song, {
+    id: uid(),
+    title: `${String(src.title || '제목 없음').replace(/^예시:\s*/, '')} (사본)`,
+    example: false,
+    versions: [],
+    sync: null,
+    progress: { ...(src.progress || {}), suno: false, mastered: false },
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  });
+  normalizeMusic(song);
+  const at = state.songs.indexOf(src);
+  state.songs.splice(at + 1, 0, song);
+  state.currentId = song.id;
+  state.mode = 'song';
+  schedule(song.id);
+  emit('all');
+  return song;
+}
+
 // 전체 백업 되살리기 (backup.js planRestore의 결과를 반영). 버전 본문은 먼저 따로 저장한다.
 export async function applyRestore(plan) {
   const max = state.store.maxVersions || MAX_VERSIONS;

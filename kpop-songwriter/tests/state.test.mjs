@@ -153,5 +153,33 @@ assert.ok(AL.cover && AL.promo && Array.isArray(AL.tracks), '되돌린 뒤에도
   while (S.undo(ex.id)) { /* 처음까지 */ }
   assert.equal(ex.example, false, '되돌려도 내 곡으로 남음');
 }
+// 곡 복제: 새 id·섹션 id, 편곡·멜로디·번안은 새 섹션 id로 옮김, 싱크·버전·Suno·마스터링 진행은 비움, 원본 그대로
+{
+  await S.init(fakeStore());
+  const orig = S.current();
+  S.mutateSong(orig.id, (x) => {
+    x.title = '원곡';
+    x.sync = { key: 'k', lines: [] };
+    x.progress = { arranged: true, suno: true, mastered: true };
+    x.translations = { ja: { key: 'k', sections: { [x.sections[1].id]: [{ text: 'テスト' }] } } };
+  });
+  const firstMusic = JSON.stringify(orig.music.sections[orig.sections[1].id]);
+  const copy = S.duplicateSong(orig.id);
+  assert.notEqual(copy.id, orig.id);
+  assert.equal(S.current().id, copy.id, '사본을 열어 줌');
+  assert.equal(copy.title, '원곡 (사본)');
+  assert.equal(copy.sections.length, orig.sections.length);
+  assert.ok(copy.sections.every((sec, i) => sec.id !== orig.sections[i].id && sec.text === orig.sections[i].text));
+  assert.equal(JSON.stringify(copy.music.sections[copy.sections[1].id]), firstMusic, '편곡·멜로디를 새 섹션 id로');
+  assert.equal(copy.translations.ja.sections[copy.sections[1].id][0].text, 'テスト');
+  assert.equal(copy.sync, null);
+  assert.deepEqual(copy.versions, []);
+  assert.deepEqual(copy.progress, { arranged: true, suno: false, mastered: false });
+  assert.equal(orig.title, '원곡', '원본 그대로');
+  assert.ok(orig.sync);
+  const before = S.getState().songs.length;
+  assert.equal(S.duplicateSong('없음'), null);
+  assert.equal(S.getState().songs.length, before);
+}
 console.log('state OK');
 process.exit(0);

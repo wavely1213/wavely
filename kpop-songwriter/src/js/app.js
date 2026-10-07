@@ -1,7 +1,7 @@
 // 진입점: 저장소 열기 → 상태 초기화 → 화면 그리기.
-import { h, formatTime } from './dom.js';
+import { h, formatTime, toast } from './dom.js';
 import { openStore } from './store.js';
-import { init, subscribe, getState, current, currentAlbum, newSong, selectSong, setTab, deleteSong, refresh, newAlbum, selectAlbum, showTaste, undo, redo } from './state.js';
+import { init, subscribe, getState, current, currentAlbum, newSong, selectSong, setTab, deleteSong, refresh, newAlbum, selectAlbum, showTaste, undo, redo, duplicateSong } from './state.js';
 import { undoButtons } from './views/undo-buttons.js';
 import { backupSection, importFile } from './views/backup.js';
 import { renderAlbum } from './views/album/index.js';
@@ -125,7 +125,8 @@ function renderHeader(song) {
         })()),
           h('button', { type: 'button', class: 'btn danger', onclick: () => { ui.confirmDelete = ''; deleteSong(song.id); } }, '삭제'),
           h('button', { type: 'button', class: 'btn ghost', onclick: () => { ui.confirmDelete = ''; refresh(); } }, '취소')]
-        : h('button', { type: 'button', class: 'btn ghost', onclick: () => { ui.confirmDelete = song.id; refresh(); } }, '곡 삭제')),
+        : [h('button', { type: 'button', class: 'btn ghost', id: 'song-dup', title: '어쿠스틱·리믹스 등 다른 버전을 시도할 때', onclick: () => { stopPlayer(); if (duplicateSong(song.id)) toast('사본을 만들었어요. 원본은 그대로예요'); } }, '복제'),
+          h('button', { type: 'button', class: 'btn ghost', onclick: () => { ui.confirmDelete = song.id; refresh(); } }, '곡 삭제')]),
   );
 }
 
