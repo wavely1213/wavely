@@ -76,4 +76,4 @@ claude.ai 아티팩트로 배포되며, AI는 사용자 본인의 Claude 사용�
 - 샘플 다시 받기: `npm run samples` (ffmpeg 필요)
 - 엔진·화면 테스트는 Playwright(전역 설치)와 Chromium, 마스터링 테스트는 ffmpeg(독립 측정기)가 필요하다.
 - 배포: `dist/index.html` + `dist/samples/*`를 claude.ai 아티팩트로 발행 (capabilities: `sample`, `db`, `user`, `downloads`). 배포는 소유자 승인 후에만.
-- 린터·포매터: 아직 없음 (`docs/KNOWN_ISSUES.md` I-004)
+- 린터·포매터: 아직 없음 (`docs/KNOWN_ISSUES.md` I-004). 대신 `npm run check` — 문법·안 쓰는 import·console.log 점검 (의존성 없음, `npm test`에 포함)
