@@ -7,6 +7,7 @@ import { DRUM_PATTERNS, BASS_PATTERNS } from './music/patterns.js';
 import { describeAnalysis } from './music/analyze.js';
 import { countSyllables } from './lyrictools.js';
 import { tasteBlock } from './learn/context.js';
+import { sectionRange, degreeRange, foldIntoRange, midiName } from './music/range.js';
 
 function referenceBrief(song) {
   return song.references.filter((r) => r.use).map((r) => {
@@ -110,12 +111,18 @@ export async function writeMelody(song, { targetIds, request, signal }) {
         return `${b + 1}마디 ${chordName(m.root, m.mode, d, sm.seventh)} (도수${d}, 코드톤 인덱스 ${[d - 1, d + 1, d + 3].join('/')})`;
       }),
       가사줄: s.text.split('\n').map((l) => l.trim()).filter(Boolean).map((l) => ({ 가사: l, 음절수: countSyllables(l) })),
+      음역: (() => {
+        const r = sectionRange(song, s);
+        const dr = r && degreeRange(m.root, m.mode, r);
+        return dr ? `d ${Math.max(-3, dr.lo)}~${Math.min(10, dr.hi)} (${midiName(r.low)}~${midiName(r.high)}, ${r.names.join('·')}이 부름)` : '제한 없음';
+      })(),
     };
   });
   const prompt = [
     '너는 K-pop 탑라이너(멜로디 작곡가)다. 아래 섹션의 보컬 멜로디를 만든다.',
     `키 ${keyName(m.root, m.mode)}, BPM ${m.bpm}, 4/4박자, 한 마디 = 16칸(16분음표).`,
     '음높이 d는 스케일 인덱스다: 0=으뜸음, 1=2음, … 7=한 옥타브 위 으뜸음, 음수는 아래. 범위 -3~10.',
+    '각 섹션의 "음역" 범위를 벗어나는 d를 쓰지 않는다 (부를 멤버의 음역).',
     '규칙: 가사 한 음절당 음표 하나(영어는 음절 단위), 음표에 그 음절을 syl로 붙인다. (괄호) 애드립도 음절로 처리. 음표끼리 겹치지 않는다. s+l은 총칸수를 넘지 않는다.',
     '강박(마디의 0, 4, 8, 12칸)에는 코드톤을 우선 쓴다. 줄 끝 음은 길게(4칸 이상) 끌어 숨 쉴 자리를 둔다. 줄은 대략 1~2마디씩 차지한다.',
     '코러스는 음역을 높이고 반복되는 훅 리듬을 만든다. 벌스는 낮고 말하듯. 랩 섹션은 음 변화 적게 16분 리듬 위주.',
@@ -140,7 +147,11 @@ export async function writeMelody(song, { targetIds, request, signal }) {
         if (next && n.s + n.l > next.s) n.l = Math.max(1, next.s - n.s);
         if (n.s + n.l > max) n.l = max - n.s;
       });
-      return { id: String(x.id), notes: notes.filter((n, i) => !i || n.s !== notes[i - 1].s) };
+      const sec = song.sections.find((y) => y.id === String(x.id));
+      const range = sec ? sectionRange(song, sec) : null;
+      const clean = notes.filter((n, i) => !i || n.s !== notes[i - 1].s);
+      // AI가 음역을 넘겨도 옥타브를 옮겨 부를 수 있게 만든다
+      return { id: String(x.id), notes: range && !range.conflict ? foldIntoRange(clean, m.root, m.mode, range) : clean };
     });
   if (!out.length) throw { code: 'invalid_json' };
   return out;

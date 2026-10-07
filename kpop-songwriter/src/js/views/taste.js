@@ -1,7 +1,7 @@
 // 내 취향 화면: 취향 프로필(직접 고치기·AI 정리), 반응 기록, 내보내기.
 import { h, field, formatTime, toast } from '../dom.js';
 import { getState, mutateTaste } from '../state.js';
-import { tasteStats, toJsonl, removeEntry } from '../learn/taste.js';
+import { tasteStats, toJsonl, removeEntry, newSinceSummary, SUMMARY_EVERY } from '../learn/taste.js';
 import { summarizeTaste } from '../learn/summarize.js';
 import { isBusy, runJob, stopJob, job } from '../aijob.js';
 import { INSTRUMENT_BY_ID } from '../music/instruments.js';
@@ -31,6 +31,7 @@ export function renderTaste(saveLabel) {
         h('div', { class: 'card-head' },
           h('h2', null, '취향 프로필'),
           h('label', { class: 'check' }, h('input', { type: 'checkbox', id: 'taste-on', checked: taste.enabled, onchange: (e) => mutateTaste((t) => { t.enabled = e.target.checked; }) }), 'AI 요청에 반영')),
+        newSinceSummary(taste) >= SUMMARY_EVERY ? h('p', { class: 'note' }, `지난 정리 뒤로 반응이 ${newSinceSummary(taste)}개 더 쌓였어요. "기록으로 AI가 정리하기"를 누르면 프로필이 최신 취향으로 바뀌어요.`) : null,
         h('p', { class: 'muted' }, 'AI 결과에 👍/👎를 누르거나 AI가 쓴 가사를 고치면 여기 기록돼요. 프로필은 모든 AI 요청(작사·훅·스타일·편곡·멜로디)에 함께 들어가요. 직접 써도 되고, 기록을 보고 AI가 정리하게 해도 돼요.'),
         area('taste-lyrics', '작사 스타일', 'lyrics', '예: 직설적인 표현보다 이미지로 감정을 보여 준다. 영어는 훅에만 짧게.'),
         area('taste-sound', '좋아하는 사운드·편곡', 'sound', '예: 벌스는 비우고 코러스에서 확 터지는 구성, 808과 플럭 신스.'),
@@ -39,7 +40,7 @@ export function renderTaste(saveLabel) {
           h('button', { type: 'button', class: 'btn primary', disabled: busy || st.total < 3, onclick: () => runJob('취향 정리 중', async (signal) => {
             const res = await summarizeTaste(taste, { signal });
             ui.basis = res.basis;
-            mutateTaste((t) => { t.profile = { ...t.profile, lyrics: res.lyrics || t.profile.lyrics, sound: res.sound || t.profile.sound, avoid: res.avoid || t.profile.avoid, updatedAt: Date.now() }; });
+            mutateTaste((t) => { t.profile = { ...t.profile, lyrics: res.lyrics || t.profile.lyrics, sound: res.sound || t.profile.sound, avoid: res.avoid || t.profile.avoid, updatedAt: Date.now(), summarizedAt: Date.now() }; });
           }) }, '기록으로 AI가 정리하기'),
           busy ? h('button', { type: 'button', class: 'btn ghost', onclick: stopJob }, '중지') : null,
           busy ? h('span', { class: 'status' }, h('span', { class: 'dot' }), job.label) : null,

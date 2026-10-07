@@ -10,7 +10,7 @@ export const DISLIKE_REASONS = ['어색해요', '유치해요', '컨셉과 달�
 export function emptyTaste() {
   return {
     enabled: true,
-    profile: { lyrics: '', avoid: '', sound: '', updatedAt: 0 },
+    profile: { lyrics: '', avoid: '', sound: '', updatedAt: 0, summarizedAt: 0 },
     log: [],
   };
 }
@@ -87,4 +87,11 @@ export function toJsonl(taste) {
   return taste.log.map((e) => JSON.stringify({
     at: new Date(e.at).toISOString(), kind: e.kind, rating: e.rating, text: e.text, before: e.before, after: e.after, reasons: e.reasons, context: e.context,
   })).join('\n') + (taste.log.length ? '\n' : '');
+}
+
+// 마지막 AI 정리 이후 새로 쌓인 반응 수. SUMMARY_EVERY개를 넘으면 정리를 권한다.
+export const SUMMARY_EVERY = 10;
+export function newSinceSummary(taste) {
+  const since = taste.profile.summarizedAt || 0;
+  return taste.log.filter((e) => e.at > since).length;
 }

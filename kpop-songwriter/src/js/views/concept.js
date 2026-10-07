@@ -2,6 +2,7 @@
 import { h, field, uid, afterBlur } from '../dom.js';
 import { mutate } from '../state.js';
 import { GROUP_TYPES, MOODS, POSITIONS } from '../constants.js';
+import { VOICE_RANGES, defaultVoice, midiName } from '../music/range.js';
 
 export function renderConcept(song) {
   const c = song.concept;
@@ -49,6 +50,9 @@ function renderMembers(song) {
     h('input', { id: `m-name-${m.id}`, 'aria-label': '이름', value: m.name, placeholder: '이름', oninput: (e) => mutate((s) => { s.members.find((x) => x.id === m.id).name = e.target.value; }, 'quiet') }),
     h('select', { id: `m-pos-${m.id}`, 'aria-label': '포지션', onchange: (e) => mutate((s) => { s.members.find((x) => x.id === m.id).position = e.target.value; }) },
       POSITIONS.map((p) => h('option', { value: p, selected: m.position === p }, p))),
+    h('select', { id: `m-voice-${m.id}`, 'aria-label': '음역', onchange: (e) => mutate((s) => { s.members.find((x) => x.id === m.id).voice = e.target.value; }) },
+      Object.entries(VOICE_RANGES).map(([k, v]) => h('option', { value: k, selected: (m.voice || defaultVoice(song.concept.group, m.position)) === k },
+        v.low == null ? v.name : `${v.name} ${midiName(v.low)}~${midiName(v.high)}`))),
     h('input', { id: `m-tone-${m.id}`, 'aria-label': '보컬 톤 (영어, Suno 태그에 쓰임)', value: m.tone, placeholder: '보컬 톤 (영어) 예: husky low female vocal', oninput: (e) => mutate((s) => { s.members.find((x) => x.id === m.id).tone = e.target.value; }, 'quiet') }),
     h('button', { type: 'button', class: 'icon-btn', 'aria-label': `${m.name || '멤버'} 삭제`, onclick: () => mutate((s) => {
       s.members = s.members.filter((x) => x.id !== m.id);
@@ -61,7 +65,7 @@ function renderMembers(song) {
       h('button', { type: 'button', class: 'btn', onclick: () => mutate((s) => {
         s.members.push({ id: uid(), name: `멤버${s.members.length + 1}`, position: '서브보컬', tone: '' });
       }) }, '+ 멤버 추가')),
-    h('p', { class: 'muted' }, '보컬 톤은 영어로 적어 두면 Suno 내보내기에서 섹션 태그로 쓸 수 있어요. 솔로곡이면 1명만 두세요.'),
+    h('p', { class: 'muted' }, '음역은 멜로디가 부를 수 있는 높이인지 확인하는 데 써요. 보컬 톤은 영어로 적어 두면 Suno 섹션 태그로 쓰여요. 솔로곡이면 1명만 두세요.'),
     rows.length ? h('div', { class: 'member-list' }, rows) : h('p', { class: 'empty' }, '아직 멤버가 없어요. 멤버를 추가하면 구조 탭에서 파트를 나눌 수 있어요.'),
   );
 }

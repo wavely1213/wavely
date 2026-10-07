@@ -35,3 +35,14 @@ const lines = toJsonl(t).trim().split('\n');
 assert.equal(lines.length, MAX_LOG);
 assert.equal(JSON.parse(lines[0]).kind, 'hook');
 console.log('learn OK');
+
+// 정리 추천: 마지막 정리 뒤 새 반응 수
+import { newSinceSummary, SUMMARY_EVERY } from '../src/js/learn/taste.js';
+{
+  const t2 = emptyTaste();
+  for (let i = 0; i < SUMMARY_EVERY; i++) addEntry(t2, makeEntry({ kind: 'hook', rating: 1, text: `x${i}`, context: { ref: `r${i}` } }));
+  assert.equal(newSinceSummary(t2), SUMMARY_EVERY);
+  t2.profile.summarizedAt = Date.now() + 1;
+  assert.equal(newSinceSummary(t2), 0);
+  console.log('summary hint OK');
+}

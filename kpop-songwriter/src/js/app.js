@@ -4,6 +4,7 @@ import { openStore } from './store.js';
 import { init, subscribe, getState, current, currentAlbum, newSong, selectSong, setTab, deleteSong, refresh, newAlbum, selectAlbum, showTaste, importSong } from './state.js';
 import { renderAlbum } from './views/album/index.js';
 import { renderTaste } from './views/taste.js';
+import { newSinceSummary, SUMMARY_EVERY } from './learn/taste.js';
 import { songProgress } from './workflow/progress.js';
 import { restoreSong, restoreAlbum } from './album/session.js';
 import { getSample } from './ai.js';
@@ -83,7 +84,7 @@ function renderSidebar() {
     h('div', { class: 'side-head' }, h('span', { class: 'field-label' }, '학습')),
     h('button', { type: 'button', class: `song-item${st.mode === 'taste' ? ' active' : ''}`, onclick: () => { stopPlayer(); showTaste(); } },
       h('span', { class: 'song-title' }, '내 취향'),
-      h('span', { class: 'song-meta mono' }, `반응 ${st.taste.log.length}개${st.taste.enabled ? '' : ' · 꺼짐'}`)),
+      h('span', { class: 'song-meta mono' }, `반응 ${st.taste.log.length}개${st.taste.enabled ? '' : ' · 꺼짐'}${newSinceSummary(st.taste) >= SUMMARY_EVERY ? ' · 정리 추천' : ''}`)),
   );
 }
 

@@ -4,10 +4,10 @@ import { defaultMusic, defaultSectionMusic } from './music/arrangement.js';
 
 export function exampleSong() {
   const m = [
-    { id: uid(), name: '하린', position: '메인보컬', tone: 'airy high female vocal' },
-    { id: uid(), name: '서아', position: '리드보컬', tone: 'warm mid female vocal' },
-    { id: uid(), name: '유나', position: '메인래퍼', tone: 'crisp female rap' },
-    { id: uid(), name: '지우', position: '서브보컬', tone: 'soft breathy female vocal' },
+    { id: uid(), name: '하린', position: '메인보컬', tone: 'airy high female vocal', voice: 'f-high' },
+    { id: uid(), name: '서아', position: '리드보컬', tone: 'warm mid female vocal', voice: 'f-mid' },
+    { id: uid(), name: '유나', position: '메인래퍼', tone: 'crisp female rap', voice: 'rap' },
+    { id: uid(), name: '지우', position: '서브보컬', tone: 'soft breathy female vocal', voice: 'f-mid' },
   ];
   const all = m.map((x) => x.id);
   const sec = (type, members, text) => ({ id: uid(), type, members, text });
@@ -58,8 +58,8 @@ export function exampleSong() {
     s: start + lens.slice(0, i).reduce((a, b) => a + b, 0), l: lens[i], d: ds[i], syl,
   }));
   music.sections[chorus.id].melody = [
-    ...line(0, ['Mid', 'night', 'sig', 'nal', '너', '를', '불', '러'], [7, 7, 9, 7, 6, 5, 4, 4], [2, 2, 2, 2, 2, 2, 2, 10]),
-    ...line(32, ['새', '벽', '세', '시', '빛', '이', '번', '져'], [4, 4, 5, 6, 7, 6, 5, 4], [2, 2, 2, 2, 2, 2, 2, 10]),
+    ...line(0, ['Mid', 'night', 'sig', 'nal', '너', '를', '불', '러'], [3, 3, 5, 3, 2, 1, 0, 0], [2, 2, 2, 2, 2, 2, 2, 10]),
+    ...line(32, ['새', '벽', '세', '시', '빛', '이', '번', '져'], [0, 0, 1, 2, 3, 2, 1, 0], [2, 2, 2, 2, 2, 2, 2, 10]),
   ];
   song.music = music;
   return song;

@@ -17,6 +17,9 @@ function fakeClaude() {
     return m ? JSON.parse(m[1]) : [];
   };
   const answer = (p) => {
+    if (p.includes('점수가 낮은 섹션을 고친다') && window.__worse) {
+      return { sections: idsAfter(p, '가사를 쓸 섹션 id').map((id) => ({ id, lines: ['음'] })) };
+    }
     if (p.includes('점수가 낮은 섹션을 고친다')) {
       return { sections: idsAfter(p, '가사를 쓸 섹션 id').map((id) => ({ id, lines: ['새벽 거리 위 너를 불러', '멈춘 시계 앞 너를 불러', 'signal on 다시 불러', '이 밤 끝에 너를 불러'] })) };
     }
@@ -88,6 +91,14 @@ function fakeClaude() {
   await p.click('button:has-text("섹션 자동 개선")');
   await p.waitForSelector('.report li');
   results.improve = await p.$$eval('.report li', (els) => els.map((e) => e.textContent));
+  // 자동 개선 결과가 더 나쁘면 그대로 둔다
+  await p.locator('article.section.t-bridge').first().locator('textarea.lyrics').fill('언젠가 너도 이 밤을 보면\n같은 불빛을 찾게 될 거야');
+  await p.locator('article.section.t-bridge').first().locator('textarea.lyrics').press('Tab');
+  await p.evaluate(() => { window.__worse = true; });
+  await p.click('button:has-text("섹션 자동 개선")');
+  await p.waitForFunction(() => [...document.querySelectorAll('.report li')].some((li) => li.textContent.includes('그대로 둠')));
+  results.keptBridge = await p.locator('article.section.t-bridge textarea.lyrics').first().inputValue();
+  await p.evaluate(() => { window.__worse = false; });
   // 훅 👍
   await p.click('text=훅 6개 추천받기');
   await p.waitForSelector('.hooks li');
@@ -109,6 +120,7 @@ function fakeClaude() {
   await p.click('button:has-text("AI로"):has-text("멜로디")');
   await p.waitForSelector('.pr-note:has-text("멜")');
   results.melodyNotes = await p.locator('.roll-grid .pr-note').count();
+  results.melodyPromptRange = (await prompts()).filter((x) => x.includes('탑라이너')).pop().match(/"음역":"d -?\d+~-?\d+ \(/) !== null;
   await p.locator('text=👍 좋아요').first().click();
 
   // 스타일
@@ -163,7 +175,7 @@ function fakeClaude() {
   console.log(JSON.stringify(results, null, 1));
   const ok = results.lyricsApplied && results.review && results.improve.length > 0 && results.improve.every((t) => t.includes('반영')) && results.arrangeKey.includes('A minor') && results.melodyNotes === 3 && results.styleBpm === '140'
     && results.editRecorded && results.tasteLog.some((x) => x.startsWith('lyrics:-1(유치해요)')) && results.tasteLog.includes('hook:1') && results.tasteLog.includes('arrange:1')
-    && results.tasteLog.includes('melody:1') && results.promptHasTaste && results.promo && results.raceA === 133 && results.raceB === 120 && results.saved.includes('taste-feedback.zip') && !errs.length;
+    && results.tasteLog.includes('melody:1') && results.promptHasTaste && results.promo && results.keptBridge === '언젠가 너도 이 밤을 보면\n같은 불빛을 찾게 될 거야' && results.melodyPromptRange && results.raceA === 133 && results.raceB === 120 && results.saved.includes('taste-feedback.zip') && !errs.length;
   if (errs.length) console.log('ERRORS', errs);
   console.log(ok ? 'ai OK' : 'ai FAILED');
   if (!ok) process.exitCode = 1;

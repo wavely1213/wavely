@@ -1,5 +1,5 @@
 // 구조·가사 탭: 섹션 편집, 파트 분배, AI 작사, 라임·음절 표시, 훅 추천, AI 검토.
-import { h, uid } from '../dom.js';
+import { h, uid, afterBlur } from '../dom.js';
 import { mutate, mutateSong } from '../state.js';
 import { SECTION_TYPES, TEMPLATES } from '../constants.js';
 import { sectionLabels, makeSection, sectionsFromTemplate, autoDistribute, lineShare } from '../structure.js';
@@ -170,6 +170,8 @@ function renderSection(song, s, index, label, result) {
       if (origin) trackEdit({ kind: 'lyrics', ref: origin.gen, before: origin.text, after: e.target.value, context: { section: s.type, song: song.title } });
     },
     onscroll: (e) => { gutter.scrollTop = e.target.scrollTop; },
+    // 칸을 벗어나면 곡 점수·자동 개선 버튼·파트 분배를 새 가사로 다시 그린다
+    onchange: afterBlur(() => mutate(() => {})),
   });
 
   const memberChips = song.members.length ? h('div', { class: 'chips small' }, song.members.map((mem) => {

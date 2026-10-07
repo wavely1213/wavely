@@ -10,6 +10,7 @@ import { isBusy, runJob, stopJob, job } from '../aijob.js';
 import { playButton } from './playbar.js';
 import { uid } from '../dom.js';
 import { feedbackBar } from '../learn/feedback.js';
+import { sectionRange, outOfRange, foldIntoRange, midiName as rangeName } from '../music/range.js';
 
 const TOP = 10;
 const BOTTOM = -3;
@@ -64,6 +65,7 @@ export function renderMelody(song) {
           h('span', { class: 'mono muted' }, `음표 ${sm.melody.length} · 가사 음절 ${syl}`),
           playButton(song, { onlyIds: [s.id], label, text: '▶ 이 부분 듣기', cls: 'btn small primary' }))),
       s.text.trim() ? h('pre', { class: 'lyric-ref' }, s.text.trim()) : null,
+      renderRange(song, s, sm),
       renderRoll(song, s, sm),
       ui.gen[s.id] ? feedbackBar({ kind: 'melody', ref: ui.gen[s.id], text: `${label}: ${sm.melody.map((n) => n.syl).join('')}`.slice(0, 200), context: { section: s.type, song: song.title, range: sm.melody.length ? [Math.min(...sm.melody.map((n) => n.d)), Math.max(...sm.melody.map((n) => n.d))] : null }, label: 'AI 멜로디가 마음에 드나요?' }) : null,
       renderNoteTools(song, s, sm),
@@ -86,8 +88,26 @@ function shiftAll(id, d) {
   mutate((x) => { x.music.sections[id].melody.forEach((n) => { n.d = Math.max(BOTTOM, Math.min(TOP, n.d + d)); }); });
 }
 
+// 이 섹션을 부를 멤버의 음역과, 벗어난 음 고치기
+function renderRange(song, s, sm) {
+  const mu = song.music;
+  const range = sectionRange(song, s);
+  if (!range) return h('p', { class: 'muted small' }, s.members.length ? '랩 파트라 음역 제한이 없어요.' : '이 섹션을 부를 멤버를 구조·가사 탭에서 정하면 음역을 확인해 줘요.');
+  const out = outOfRange(sm.melody, mu.root, mu.mode, range);
+  return h('div', { class: 'row' },
+    h('span', { class: 'muted small' }, `${range.names.join('·')} 음역 ${rangeName(range.low)}~${rangeName(range.high)} (흐린 줄은 음역 밖)`),
+    range.conflict ? h('span', { class: 'warn' }, '함께 부르는 멤버들의 음역이 겹치지 않아요. 파트를 나누는 걸 권해요.') : null,
+    out.length ? h('span', { class: 'warn' }, `음역 밖 음 ${out.length}개`) : null,
+    out.length && !range.conflict ? h('button', { type: 'button', class: 'btn small', onclick: () => mutate((x) => {
+      const sec = x.music.sections[s.id];
+      sec.melody = foldIntoRange(sec.melody, mu.root, mu.mode, range);
+    }) }, '음역 안으로 옮기기') : null);
+}
+
 function renderRoll(song, s, sm) {
   const mu = song.music;
+  const range = sectionRange(song, s);
+  const out = new Set(outOfRange(sm.melody, mu.root, mu.mode, range));
   const steps = sm.bars * 16;
   const rows = TOP - BOTTOM + 1;
   // 마디마다 코드톤 줄을 연하게 칠한다 ("이 줄 음은 잘 어울려요")
@@ -101,8 +121,15 @@ function renderRoll(song, s, sm) {
       }
     }
   }
+  if (range) {
+    for (let d = BOTTOM; d <= TOP; d++) {
+      const midi = degreeToMidi(mu.root, mu.mode, d);
+      if (midi < range.low || midi > range.high) shades.push(h('span', { class: 'shade off', style: `left:0;top:${(TOP - d) * CELL_H}px;width:${steps * CELL_W}px;height:${CELL_H}px` }));
+    }
+  }
   const notes = sm.melody.map((n, i) => h('button', {
-    type: 'button', class: `pr-note${i === ui.selected ? ' sel' : ''}`,
+    type: 'button', class: `pr-note${i === ui.selected ? ' sel' : ''}${out.has(i) ? ' out' : ''}`,
+    title: out.has(i) ? '부를 멤버의 음역 밖이에요' : null,
     style: `left:${n.s * CELL_W}px;top:${(TOP - n.d) * CELL_H + 2}px;width:${n.l * CELL_W - 2}px;height:${CELL_H - 4}px`,
     'aria-label': `${n.syl || '음표'} ${midiName(degreeToMidi(mu.root, mu.mode, n.d))}`,
     onclick: (e) => { e.stopPropagation(); ui.selected = i; refresh(); },
