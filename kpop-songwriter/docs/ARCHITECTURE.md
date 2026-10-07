@@ -63,6 +63,7 @@
 | 앨범 화면 | views/album/* | 수록곡·정보·커버·일정·홍보·제출 탭 |
 | 취향 학습 | learn/taste.js, learn/context.js | 반응 기록·통계·프롬프트 블록·JSONL, AI 모듈이 취향을 읽는 연결점 |
 | 반응 UI | learn/feedback.js, learn/summarize.js, views/taste.js | 👍/👎 막대, 고친 내용 추적, AI 취향 정리, 내 취향 화면 |
+| 가사 최적화 | optimize/lyricscore.js, optimize/improve.js | 섹션·곡 채점과 고칠 점, 오른 것만 반영하는 자동 개선 |
 | 플랫폼 | platform/download.js | 파일 저장 (아티팩트 downloads / 웹 일반 다운로드) |
 | AI 작사 | ai.js | 가사·스타일·훅·검토 |
 | AI 작곡 | ai-music.js | 편곡·멜로디 (응답을 선택지 범위로 검사) |

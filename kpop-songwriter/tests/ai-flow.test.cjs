@@ -17,6 +17,9 @@ function fakeClaude() {
     return m ? JSON.parse(m[1]) : [];
   };
   const answer = (p) => {
+    if (p.includes('점수가 낮은 섹션을 고친다')) {
+      return { sections: idsAfter(p, '가사를 쓸 섹션 id').map((id) => ({ id, lines: ['새벽 거리 위 너를 불러', '멈춘 시계 앞 너를 불러', 'signal on 다시 불러', '이 밤 끝에 너를 불러'] })) };
+    }
     if (p.includes('가사를 쓸 섹션 id')) {
       return { sections: idsAfter(p, '가사를 쓸 섹션 id').map((id) => ({ id, lines: ['가짜 AI 첫 줄 너를 불러', '가짜 AI 둘째 줄 signal'] })) };
     }
@@ -81,6 +84,10 @@ function fakeClaude() {
   const ta = p.locator('article.section.t-verse').first().locator('textarea.lyrics');
   await ta.fill('내가 고친 첫 줄 새벽을 불러\n가짜 AI 둘째 줄 signal');
   await p.waitForTimeout(5500); // 고친 내용은 멈춘 지 4초 뒤 기록
+  // 자동 개선: 점수 낮은 섹션을 다시 쓰고 오른 것만 반영
+  await p.click('button:has-text("섹션 자동 개선")');
+  await p.waitForSelector('.report li');
+  results.improve = await p.$$eval('.report li', (els) => els.map((e) => e.textContent));
   // 훅 👍
   await p.click('text=훅 6개 추천받기');
   await p.waitForSelector('.hooks li');
@@ -139,7 +146,7 @@ function fakeClaude() {
   results.saved = await p.evaluate(() => window.__saved);
 
   console.log(JSON.stringify(results, null, 1));
-  const ok = results.lyricsApplied && results.review && results.arrangeKey.includes('A minor') && results.melodyNotes === 3 && results.styleBpm === '140'
+  const ok = results.lyricsApplied && results.review && results.improve.length > 0 && results.improve.every((t) => t.includes('반영')) && results.arrangeKey.includes('A minor') && results.melodyNotes === 3 && results.styleBpm === '140'
     && results.editRecorded && results.tasteLog.some((x) => x.startsWith('lyrics:-1(유치해요)')) && results.tasteLog.includes('hook:1') && results.tasteLog.includes('arrange:1')
     && results.tasteLog.includes('melody:1') && results.promptHasTaste && results.promo && results.saved.includes('taste-feedback.zip') && !errs.length;
   if (errs.length) console.log('ERRORS', errs);

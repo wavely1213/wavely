@@ -7,6 +7,8 @@ import { analyzeSection, languageRatio } from '../lyrictools.js';
 import { writeLyrics, suggestHooks, reviewLyrics } from '../ai.js';
 import { job, isBusy, runJob, stopJob } from '../aijob.js';
 import { feedbackBar, trackEdit } from '../learn/feedback.js';
+import { scoreSong, scoreSection } from '../optimize/lyricscore.js';
+import { improveLyrics, DEFAULT_THRESHOLD } from '../optimize/improve.js';
 
 // AI가 마지막으로 쓴 섹션 가사 (취향 학습용, 저장하지 않음): sectionId → { text, gen }
 const aiOrigin = {};
@@ -14,17 +16,20 @@ const aiOrigin = {};
 // 곡별 화면 메모 (저장하지 않음)
 const memo = {};
 function memoOf(id) {
-  if (!memo[id]) memo[id] = { request: '', hooks: [], review: '', confirmTemplate: '' };
+  if (!memo[id]) memo[id] = { request: '', hooks: [], review: '', confirmTemplate: '', report: null };
   return memo[id];
 }
 
 export function renderEditor(song) {
   const m = memoOf(song.id);
   const labels = sectionLabels(song.sections);
+  const scores = scoreSong(song);
+  const byId = Object.fromEntries(scores.sections.map((s) => [s.id, s.result]));
   return h('div', { class: 'stack' },
     renderToolbar(song, m),
+    renderScore(song, m, scores),
     renderShare(song),
-    h('div', { class: 'sections' }, song.sections.map((s, i) => renderSection(song, s, i, labels[i]))),
+    h('div', { class: 'sections' }, song.sections.map((s, i) => renderSection(song, s, i, labels[i], byId[s.id]))),
     h('button', { type: 'button', class: 'btn wide', onclick: () => mutate((x) => { x.sections.push(makeSection('Verse')); }) }, '+ 섹션 추가'),
     renderHooks(song, m),
     renderReview(song, m),
@@ -76,6 +81,39 @@ function renderToolbar(song, m) {
   );
 }
 
+function scoreClass(n) {
+  return n >= 80 ? 'good' : n >= DEFAULT_THRESHOLD ? '' : 'warn-pill';
+}
+
+function renderScore(song, m, scores) {
+  const busy = isBusy();
+  const low = scores.sections.filter((s) => s.result && s.result.score < DEFAULT_THRESHOLD);
+  return h('section', { class: 'card' },
+    h('div', { class: 'card-head' },
+      h('h2', null, '가사 점수'),
+      h('span', { class: `pill ${scoreClass(scores.score)}` }, `${scores.score}점`)),
+    h('p', { class: 'muted' }, '라임(줄 끝 모음), 줄 길이와 균형, 코러스 훅 반복, 분량으로 매긴 참고 점수예요. AI 없이 계산해요.'),
+    scores.tips.length ? h('ul', { class: 'warn-list' }, scores.tips.map((t) => h('li', null, t))) : null,
+    h('div', { class: 'row' },
+      h('button', { type: 'button', class: 'btn', disabled: busy || !low.length, onclick: () => runJob('자동 개선 중', async (signal, progress) => {
+        const res = await improveLyrics(song, { signal, onStep: progress });
+        m.report = res.report;
+        if (Object.keys(res.updates).length) {
+          mutate((x) => {
+            Object.entries(res.updates).forEach(([id, text]) => {
+              const sec = x.sections.find((y) => y.id === id);
+              if (sec) { sec.text = text; aiOrigin[id] = { text, gen: uid() }; }
+            });
+          });
+        }
+      }) }, low.length ? `${DEFAULT_THRESHOLD}점 미만 ${low.length}개 섹션 자동 개선` : `모든 섹션 ${DEFAULT_THRESHOLD}점 이상`),
+      h('span', { class: 'muted small' }, 'AI가 고칠 점을 받아 다시 쓰고, 점수가 오른 것만 반영해요 (최대 2회).')),
+    m.report ? h('ul', { class: 'report' }, m.report.length
+      ? m.report.map((r) => h('li', null, `${r.round}회차 [${r.label}] ${r.before} → ${r.after}점 · ${r.kept ? '반영' : '그대로 둠'}`))
+      : h('li', null, '고칠 섹션이 없었어요.')) : null,
+  );
+}
+
 function applyLyrics(out) {
   if (!out.length) throw { code: 'invalid_json' };
   mutate((s) => {
@@ -102,7 +140,7 @@ function renderShare(song) {
   );
 }
 
-function renderSection(song, s, index, label) {
+function renderSection(song, s, index, label, result) {
   const busy = isBusy();
   const analysis = analyzeSection(s.text);
   const gutter = h('div', { class: 'gutter', 'aria-hidden': 'true' });
@@ -123,6 +161,9 @@ function renderSection(song, s, index, label) {
       e.target.rows = Math.max(3, rows.length + 1);
       fillGutter(rows);
       mutate((x) => { x.sections.find((y) => y.id === s.id).text = e.target.value; }, 'quiet');
+      const pill = document.getElementById(`score-${s.id}`);
+      const live = pill && scoreSection({ ...s, text: e.target.value });
+      if (live) { pill.textContent = `${live.score}점`; pill.className = `pill ${scoreClass(live.score)}`; pill.title = live.tips.join(' '); }
       const origin = aiOrigin[s.id];
       if (origin) trackEdit({ kind: 'lyrics', ref: origin.gen, before: origin.text, after: e.target.value, context: { section: s.type, song: song.title } });
     },
@@ -151,6 +192,7 @@ function renderSection(song, s, index, label) {
       h('span', { class: 'tag mono' }, `[${label}]`),
       h('select', { id: `type-${s.id}`, 'aria-label': '섹션 종류', onchange: (e) => mutate((x) => { x.sections.find((y) => y.id === s.id).type = e.target.value; }) },
         SECTION_TYPES.map((t) => h('option', { value: t, selected: t === s.type }, t))),
+      result ? h('span', { class: `pill ${scoreClass(result.score)}`, id: `score-${s.id}`, title: result.tips.join(' ') }, `${result.score}점`) : null,
       h('span', { class: 'push' }),
       h('button', { type: 'button', class: 'icon-btn', 'aria-label': '위로', disabled: index === 0, onclick: () => move(-1) }, '↑'),
       h('button', { type: 'button', class: 'icon-btn', 'aria-label': '아래로', disabled: index === song.sections.length - 1, onclick: () => move(1) }, '↓'),
@@ -160,6 +202,7 @@ function renderSection(song, s, index, label) {
       h('button', { type: 'button', class: 'icon-btn', 'aria-label': '섹션 삭제', onclick: () => mutate((x) => { x.sections.splice(index, 1); }) }, '×')),
     memberChips,
     h('div', { class: 'lyric-box' }, ta, gutter),
+    result && result.tips.length && result.score < 90 ? h('ul', { class: 'tips' }, result.tips.map((t) => h('li', null, t))) : null,
     h('div', { class: 'row' },
       h('button', { type: 'button', class: 'btn small', disabled: busy, onclick: () => runJob(`${label} 쓰는 중`, async (signal, progress) => {
         const out = await writeLyrics(song, { targetIds: [s.id], request: memoOf(song.id).request, signal, onProgress: (n) => progress(`${n}자`) });
