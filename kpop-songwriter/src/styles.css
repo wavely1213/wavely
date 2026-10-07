@@ -465,3 +465,7 @@ input[type=radio] { accent-color: var(--accent); }
 .check-line.ok .check-mark { color: var(--r2); }
 .check-line.off { color: var(--danger); }
 .check-line.off .check-mark { color: var(--danger); }
+.lyric-check > summary { cursor: pointer; list-style: none; }
+.lyric-check > summary::-webkit-details-marker { display: none; }
+.lyric-check > summary h2::before { content: "▸ "; color: var(--muted); }
+.lyric-check[open] > summary h2::before { content: "▾ "; }

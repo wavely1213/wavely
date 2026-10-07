@@ -136,13 +136,15 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     const masterPill = await p.textContent('.pill');
     global.qcOk = (global.qcOk ?? true) && /^\d+곳$/.test(await p.textContent('#qc-clips')) && Number(await p.textContent('#qc-corr')) > 0;
     const stepHint = await p.textContent('.step-hint').catch(() => '');
-    // 가사 맞춰 듣기: 첫 줄 한 번 → ✓, 두 번 → ✗(다르게 부름), "모두 맞게 불렀음" → 완료
+    // 가사 맞춰 듣기: 처음엔 접혀 있음 → 펼쳐서 첫 줄 한 번 → ✓, 두 번 → ✗(다르게 부름), "모두 맞게 불렀음" → 완료
+    const lcClosed = !(await p.isVisible('#lc-line-0'));
+    await p.click('#lyric-check > summary');
     await p.click('#lc-line-0');
     const lcOk = (await p.textContent('#lc-line-0')).startsWith('✓');
     await p.click('#lc-line-0');
     const lcOff = (await p.textContent('#lyric-check-status')).includes('다르게 부른 줄');
     await p.click('#lc-all');
-    global.lyricCheckOk = (global.lyricCheckOk ?? true) && lcOk && lcOff && (await p.textContent('#lyric-check-status')).startsWith('모두 맞게 불렀음');
+    global.lyricCheckOk = (global.lyricCheckOk ?? true) && lcClosed && lcOk && lcOff && (await p.textContent('#lyric-check-status')).startsWith('모두 맞게 불렀음');
     // 숏폼 하이라이트: 15초로 바꿔 구간 표시 → 받기 (zip 안 WAV)
     await p.click('.highlight .chip:text-is("15초")');
     global.hlRange = await p.textContent('#hl-range');

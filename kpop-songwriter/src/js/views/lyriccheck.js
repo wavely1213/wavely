@@ -5,6 +5,8 @@ import { lyricLines } from '../album/lyrics.js';
 import { lyricCheckStatus, cycleLine, markAll } from '../album/lyriccheck.js';
 
 const LABEL = { none: '아직 확인 안 함', partial: '확인 중', done: '모두 맞게 불렀음', off: '다르게 부른 줄 있음', stale: '가사가 바뀜 — 다시 확인' };
+// 가사 목록이 길어 처음엔 접어 둔다. 펼친 곡은 기억하고, 확인을 시작했으면(확인 중·다름) 펼쳐 둔다.
+const opened = new Set();
 
 export function renderLyricCheck(song) {
   if (song.instOf) return null;
@@ -14,8 +16,9 @@ export function renderLyricCheck(song) {
   const c = status === 'stale' ? { ok: [], off: [] } : (song.lyricCheck || { ok: [], off: [] });
   const ok = new Set(c.ok);
   const off = new Set(c.off);
-  return h('section', { class: 'card', id: 'lyric-check' },
-    h('div', { class: 'card-head' },
+  const open = opened.has(song.id) || status === 'partial' || status === 'off';
+  return h('details', { class: 'card lyric-check', id: 'lyric-check', open, ontoggle: (e) => { if (e.target.open) opened.add(song.id); else opened.delete(song.id); } },
+    h('summary', { class: 'card-head' },
       h('h2', null, '가사 맞춰 듣기'),
       h('span', { class: `pill ${status === 'done' ? 'good' : 'warn-pill'}`, id: 'lyric-check-status' }, `${LABEL[status]} · ${ok.size}/${lines.length}줄`)),
     h('p', { class: 'muted small' }, 'Suno는 가사를 빼먹거나 바꿔 부르기도 해요. 완성곡을 들으며 줄을 눌러 표시하세요 (한 번: 맞음 ✓, 두 번: 다름 ✗, 세 번: 지움). 다르게 부른 줄은 가사를 부른 대로 고치거나 Suno에서 다시 만드세요 — 플랫폼 가사는 실제로 부른 대로여야 해요.'),
