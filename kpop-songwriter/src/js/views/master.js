@@ -5,6 +5,7 @@ import { decodeFile, master, masterWarnings, MASTER_PRESETS, LOUDNESS_TARGETS, O
 import { renderSong, stop as stopPlayer } from '../music/player.js';
 import { encodeWav, zip } from '../music/pack.js';
 import { saveFile } from '../platform/download.js';
+import { help } from '../help.js';
 import { getState, newAlbum } from '../state.js';
 import { setMaster, setSongMaster } from '../album/session.js';
 
@@ -206,7 +207,7 @@ export function renderMaster(song) {
           type: 'button', class: `chip${st.preset === k ? ' on' : ''}`, 'aria-pressed': st.preset === k ? 'true' : 'false',
           onclick: () => mutate((s) => { s.master = { ...settings(s), preset: k }; }),
         }, p.name)))),
-      h('div', { class: 'field' }, h('span', { class: 'field-label' }, '목표 음량'),
+      h('div', { class: 'field' }, h('span', { class: 'field-label' }, '목표 음량 ', help('lufs'), help('dbtp')),
         h('div', { class: 'chips' }, LOUDNESS_TARGETS.map((t) => h('button', {
           type: 'button', class: `chip${st.target === t.value ? ' on' : ''}`, 'aria-pressed': st.target === t.value ? 'true' : 'false',
           onclick: () => mutate((s) => { s.master = { ...settings(s), target: t.value }; }),

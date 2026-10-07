@@ -15,6 +15,7 @@ import { arrangeSong } from '../ai-music.js';
 import { isBusy, runJob, stopJob, job } from '../aijob.js';
 import { playBar, playButton } from './playbar.js';
 import { uid } from '../dom.js';
+import { help } from '../help.js';
 import { feedbackBar } from '../learn/feedback.js';
 
 const memo = {};
@@ -39,7 +40,7 @@ function renderGlobal(song, m) {
     playBar(song),
     h('div', { class: 'grid2' },
       h('div', { class: 'field' },
-        h('span', { class: 'field-label' }, '빠르기'),
+        h('span', { class: 'field-label' }, '빠르기 ', help('bpm')),
         h('input', { id: 'bpm', type: 'range', min: '60', max: '180', value: String(mu.bpm), oninput: (e) => {
           const v = Number(e.target.value);
           bpmOut.textContent = `${v} BPM · ${tempoWord(v)}`;
@@ -47,7 +48,7 @@ function renderGlobal(song, m) {
         }, onchange: () => refresh() }),
         bpmOut),
       h('div', { class: 'field' },
-        h('span', { class: 'field-label' }, '키 (노래 높이와 분위기)'),
+        h('span', { class: 'field-label' }, '키 (노래 높이와 분위기) ', help('key')),
         h('div', { class: 'row' },
           h('select', { id: 'root', 'aria-label': '으뜸음', onchange: (e) => mutate((s) => { s.music.root = Number(e.target.value); }) },
             NOTE_NAMES.map((n, i) => h('option', { value: String(i), selected: i === mu.root }, n))),
@@ -137,10 +138,10 @@ function renderSectionRow(song, s, label, m) {
         h('span', { class: 'mono' }, `${sm.bars}마디`),
         h('button', { type: 'button', class: 'icon-btn', 'aria-label': '마디 늘리기', onclick: () => set((x) => { x.bars = Math.min(16, x.bars + 1); }) }, '+')),
       h('span', { class: 'push' }),
-      h('span', { class: 'muted' }, '조용'), energy, h('span', { class: 'muted' }, '폭발'),
+      h('span', { class: 'muted' }, '조용'), energy, h('span', { class: 'muted' }, '폭발'), help('energy'),
       playButton(song, { onlyIds: [s.id], label, text: '▶ 이 부분', cls: 'btn small' })),
     h('div', { class: 'arr-grid' },
-      h('span', { class: 'field-label' }, '코드'),
+      h('span', { class: 'field-label' }, '코드', help('chords')),
       h('div', { class: 'stack-tight' },
         h('div', { class: 'row' },
           h('select', { id: `prog-${s.id}`, 'aria-label': '코드 진행 느낌', onchange: (e) => {
@@ -149,7 +150,7 @@ function renderSectionRow(song, s, label, m) {
           } },
           !prog ? h('option', { value: '', selected: true }, '직접 고른 진행') : null,
           PROGRESSIONS[mu.mode].map((p) => h('option', { value: p.id, selected: prog?.id === p.id }, p.name))),
-          h('label', { class: 'check' }, h('input', { type: 'checkbox', id: `sev-${s.id}`, checked: sm.seventh, onchange: (e) => set((x) => { x.seventh = e.target.checked; }) }), '세련되게 (7th)')),
+          h('label', { class: 'check' }, h('input', { type: 'checkbox', id: `sev-${s.id}`, checked: sm.seventh, onchange: (e) => set((x) => { x.seventh = e.target.checked; }) }), '세련되게 (7th)'), help('seventh')),
         h('div', { class: 'row' }, chordChips,
           h('button', { type: 'button', class: 'icon-btn', 'aria-label': '코드 빼기', disabled: sm.chords.length <= 1, onclick: () => set((x) => { x.chords.pop(); }) }, '−'),
           h('button', { type: 'button', class: 'icon-btn', 'aria-label': '코드 더하기', disabled: sm.chords.length >= 8, onclick: () => set((x) => { x.chords.push(x.chords[0]); }) }, '+'))),

@@ -66,6 +66,7 @@
 | 가사 최적화 | optimize/lyricscore.js, optimize/improve.js | 섹션·곡 채점과 고칠 점, 오른 것만 반영하는 자동 개선 |
 | 보컬 음역 | music/range.js | 멤버 음역, 섹션 음역(겹침), 음역 밖 음 찾기·옮기기 |
 | 원클릭 초안 | workflow/draft.js | 컨셉 → 가사·편곡·멜로디·Suno 스타일을 차례로 AI로 채움 (단계마다 바로 반영) |
+| 도움말 | help.js | 용어 설명 "?" (details 요소) |
 | 진행 단계 | workflow/progress.js | 곡 하나의 발매까지 7단계 완료 판단·다음 할 일 |
 | 플랫폼 | platform/download.js, platform/blobstore.js | 파일 저장 (아티팩트 downloads / 웹 일반 다운로드), 큰 파일 IndexedDB 보관 |
 | AI 작사 | ai.js | 가사·스타일·훅·검토 |

@@ -1,6 +1,7 @@
 // 앨범 > 정보·크레딧: 유통사에 넣을 메타데이터와 트랙별 크레딧.
 import { h, field, afterBlur } from '../../dom.js';
 import { mutateAlbum, getState } from '../../state.js';
+import { help } from '../../help.js';
 
 const LANGUAGES = ['한국어', '영어', '한국어·영어', '일본어', '연주곡(가사 없음)'];
 const GENRES = ['K-Pop', 'Pop', 'Dance', 'R&B/Soul', 'Hip-Hop/Rap', 'Ballad', 'Electronic', 'Rock', 'Indie'];
@@ -22,7 +23,7 @@ export function renderMeta(album) {
         field('작곡', h('input', { id: `com-${t.songId}`, value: t.composers, placeholder: '쉼표로 구분', oninput: set('composers') })),
         field('편곡', h('input', { id: `arr-${t.songId}`, value: t.arrangers, placeholder: '쉼표로 구분', oninput: set('arrangers') })),
         field('피처링 (선택)', h('input', { id: `feat-${t.songId}`, value: t.featuring, oninput: set('featuring') })),
-        field('ISRC (유통사 발급 후)', h('input', { id: `isrc-${t.songId}`, class: 'mono', value: t.isrc, placeholder: 'KRA0X2600001', oninput: set('isrc') }))),
+        field(['ISRC (유통사 발급 후) ', help('isrc')], h('input', { id: `isrc-${t.songId}`, class: 'mono', value: t.isrc, placeholder: 'KRA0X2600001', oninput: set('isrc') }))),
       h('label', { class: 'check' }, h('input', { type: 'checkbox', id: `exp-${t.songId}`, checked: t.explicit, onchange: set('explicit') }), '19금(Explicit) 가사'));
   });
 
@@ -39,9 +40,9 @@ export function renderMeta(album) {
         field('언어', h('select', { id: 'album-lang', onchange: (e) => mutateAlbum((a) => { a.language = e.target.value; }) },
           LANGUAGES.map((l) => h('option', { value: l, selected: album.language === l }, l)))),
         input('album-label', '레이블 (선택)', 'label', '없으면 비워 두기'),
-        input('album-upc', 'UPC (유통사 발급 후)', 'upc', ''),
-        input('album-cline', '© 표기 (작품 저작권자)', 'cLine', '2026 물결뮤직'),
-        input('album-pline', '℗ 표기 (음원 제작자)', 'pLine', '2026 물결뮤직')),
+        input('album-upc', ['UPC (유통사 발급 후) ', help('upc')], 'upc', ''),
+        input('album-cline', ['© 표기 (작품 저작권자) ', help('cline')], 'cLine', '2026 물결뮤직'),
+        input('album-pline', ['℗ 표기 (음원 제작자) ', help('pline')], 'pLine', '2026 물결뮤직')),
       field('앨범 소개 메모', h('textarea', { id: 'album-desc', rows: '3', value: album.description, placeholder: '앨범의 이야기, 컨셉. 홍보 문구를 만들 때 참고해요.', oninput: quiet((a, v) => { a.description = v; }) })),
       h('div', { class: 'field' },
         h('span', { class: 'field-label' }, 'AI 사용 표기 (유통사·플랫폼 정책 확인용)'),

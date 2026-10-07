@@ -23,7 +23,14 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     }
     // 편곡: 빠른 바꾸기, 드럼 직접 찍기, 재생/정지
     await p.click('.tab:text-is("편곡")');
+    const energyBefore = await p.locator('.sec-row >> nth=1 >> .energy button.on').count();
     await p.click('.sec-row >> nth=1 >> text=더 신나게');
+    const energyUp = await p.locator('.sec-row >> nth=1 >> .energy button.on').count();
+    await p.click('button[aria-label^="되돌리기"]');
+    const energyUndo = await p.locator('.sec-row >> nth=1 >> .energy button.on').count();
+    await p.keyboard.press('Control+Shift+Z');
+    const energyRedo = await p.locator('.sec-row >> nth=1 >> .energy button.on').count();
+    global.undoOk = (global.undoOk ?? true) && energyUp === energyBefore + 1 && energyUndo === energyBefore && energyRedo === energyUp;
     await p.click('.sec-row >> nth=1 >> text=드럼 직접 찍기');
     await p.click('.sec-row >> nth=1 >> .dg >> nth=3');
     const custom = await p.locator('.sec-row >> nth=1 >> option:text("직접 찍은 드럼")').count();
@@ -38,6 +45,17 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     await p.mouse.click(bb.x + 22 * 5 + 5, bb.y + 26 * 3 + 5);
     const after = await p.locator('.pr-note').count();
     await p.click('text=▲ 높게');
+    // 키보드: 선택한 음표를 ↑ 한 번, Delete로 지우기
+    const nBefore = await p.locator('.pr-note').count();
+    await p.keyboard.press('ArrowUp');
+    await p.keyboard.press('Delete');
+    const nAfter = await p.locator('.pr-note').count();
+    global.keysOk = (global.keysOk ?? true) && nAfter === nBefore - 1;
+    // 도움말 열기
+    await p.click('.tab:text-is("편곡")');
+    await p.click('details.help >> nth=0 >> summary');
+    global.helpOk = (global.helpOk ?? true) && (await p.locator('details.help[open] p').count()) === 1;
+    await p.click('.tab:text-is("멜로디")');
     // 사운드: 음색 바꾸기 + 미리듣기
     await p.click('.tab:text-is("사운드")');
     await p.selectOption('#var-drums', 'boom');
@@ -106,6 +124,9 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     await c.close();
   }
   if (!global.autoOk) errs.push('마스터 자동 연결 안 됨');
+  if (!global.undoOk) errs.push('되돌리기·다시 하기 안 됨');
+  if (!global.keysOk) errs.push('피아노롤 키보드 안 됨');
+  if (!global.helpOk) errs.push('도움말 안 열림');
   if (!global.persistOk) errs.push('새로고침 후 마스터·커버 유실');
   console.log('ERRORS:', errs);
   if (errs.length) process.exitCode = 1; else console.log('ui OK');

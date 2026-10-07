@@ -10,6 +10,7 @@ import { isBusy, runJob, stopJob, job } from '../aijob.js';
 import { playButton } from './playbar.js';
 import { uid } from '../dom.js';
 import { feedbackBar } from '../learn/feedback.js';
+import { help } from '../help.js';
 import { sectionRange, outOfRange, foldIntoRange, midiName as rangeName } from '../music/range.js';
 
 const TOP = 10;
@@ -22,6 +23,7 @@ const ui = { sectionId: '', selected: -1, confirmClear: false, request: '', scro
 function midiName(n) { return `${NOTE_NAMES[n % 12]}${Math.floor(n / 12) - 1}`; }
 
 export function renderMelody(song) {
+  bindMelodyKeys(() => song);
   const labels = sectionLabels(song.sections);
   if (!song.sections.some((s) => s.id === ui.sectionId)) {
     ui.sectionId = (song.sections.find((s) => song.music.sections[s.id]?.melody.length)
@@ -95,7 +97,7 @@ function renderRange(song, s, sm) {
   if (!range) return h('p', { class: 'muted small' }, s.members.length ? '랩 파트라 음역 제한이 없어요.' : '이 섹션을 부를 멤버를 구조·가사 탭에서 정하면 음역을 확인해 줘요.');
   const out = outOfRange(sm.melody, mu.root, mu.mode, range);
   return h('div', { class: 'row' },
-    h('span', { class: 'muted small' }, `${range.names.join('·')} 음역 ${rangeName(range.low)}~${rangeName(range.high)} (흐린 줄은 음역 밖)`),
+    h('span', { class: 'muted small' }, `${range.names.join('·')} 음역 ${rangeName(range.low)}~${rangeName(range.high)} (흐린 줄은 음역 밖)`), help('range'),
     range.conflict ? h('span', { class: 'warn' }, '함께 부르는 멤버들의 음역이 겹치지 않아요. 파트를 나누는 걸 권해요.') : null,
     out.length ? h('span', { class: 'warn' }, `음역 밖 음 ${out.length}개`) : null,
     out.length && !range.conflict ? h('button', { type: 'button', class: 'btn small', onclick: () => mutate((x) => {
@@ -171,7 +173,7 @@ function renderRoll(song, s, sm) {
 
 function renderNoteTools(song, s, sm) {
   const n = sm.melody[ui.selected];
-  if (!n) return h('p', { class: 'muted' }, '빈 칸을 누르면 음표가 생겨요. 음표를 누르면 옮기기·길이·가사를 바꿀 수 있어요. 색칠된 줄은 그 마디 코드와 잘 어울리는 음이에요.');
+  if (!n) return h('p', { class: 'muted' }, '빈 칸을 누르면 음표가 생겨요. 음표를 누르면 옮기기·길이·가사를 바꿀 수 있어요 (키보드: ↑↓ 높이, ←→ 위치, +/- 길이, Delete 지우기). 색칠된 줄은 그 마디 코드와 잘 어울리는 음이에요.');
   const edit = (fn) => mutate((x) => {
     const mel = x.music.sections[s.id].melody;
     const note = mel[ui.selected];
@@ -197,4 +199,44 @@ function renderNoteTools(song, s, sm) {
       onchange: () => refresh() }),
     h('button', { type: 'button', class: 'btn small danger', onclick: () => { mutate((x) => { x.music.sections[s.id].melody.splice(ui.selected, 1); }); ui.selected = -1; refresh(); } }, '삭제'),
   );
+}
+
+// 키보드로 음표 고치기: 음표를 고른 뒤 ↑↓ 높이, ←→ 위치, +/- 길이, Delete 지우기, Esc 선택 해제
+let keysBound = false;
+let currentSong = null;
+export function bindMelodyKeys(getSong) {
+  currentSong = getSong;
+  if (keysBound) return;
+  keysBound = true;
+  document.addEventListener('keydown', (e) => {
+    const song = currentSong?.();
+    if (!song || ui.selected < 0 || !document.querySelector('.roll-grid')) return;
+    const t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+    const sm = song.music.sections[ui.sectionId];
+    if (!sm?.melody[ui.selected]) return;
+    const moves = { ArrowUp: ['d', 1], ArrowDown: ['d', -1], ArrowLeft: ['s', -1], ArrowRight: ['s', 1], '+': ['l', 1], '=': ['l', 1], '-': ['l', -1] };
+    if (e.key === 'Escape') { ui.selected = -1; refresh(); e.preventDefault(); return; }
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+      e.preventDefault();
+      mutate((x) => { x.music.sections[ui.sectionId].melody.splice(ui.selected, 1); });
+      ui.selected = -1;
+      refresh();
+      return;
+    }
+    const mv = moves[e.key];
+    if (!mv) return;
+    e.preventDefault();
+    mutate((x) => {
+      const mel = x.music.sections[ui.sectionId].melody;
+      const note = mel[ui.selected];
+      const max = x.music.sections[ui.sectionId].bars * 16;
+      note[mv[0]] += mv[1];
+      note.s = Math.max(0, Math.min(max - 1, note.s));
+      note.l = Math.max(1, Math.min(max - note.s, note.l));
+      note.d = Math.max(BOTTOM, Math.min(TOP, note.d));
+      mel.sort((a, b) => a.s - b.s);
+      ui.selected = mel.indexOf(note);
+    });
+  });
 }

@@ -194,11 +194,74 @@ export function mutate(fn, scope = 'all') {
   mutateSong(state.currentId, fn, scope);
 }
 
+// ---------- 되돌리기 ----------
+// 곡마다 바꾸기 전 상태를 쌓아 둔다 (버전 목록 제외, 최근 UNDO_MAX개). 타이핑은 2초 단위로 묶는다.
+const UNDO_MAX = 40;
+const undoStacks = {};
+const redoStacks = {};
+const lastQuiet = {};
+
+function snapshot(song) {
+  const { versions, ...rest } = song;
+  return JSON.stringify(rest);
+}
+
+function remember(song, scope) {
+  const now = Date.now();
+  if (scope === 'quiet') {
+    if (now - (lastQuiet[song.id] || 0) < 2000) { lastQuiet[song.id] = now; return; }
+    lastQuiet[song.id] = now;
+  } else {
+    lastQuiet[song.id] = 0;
+  }
+  const stack = undoStacks[song.id] || (undoStacks[song.id] = []);
+  const snap = snapshot(song);
+  if (stack[stack.length - 1] === snap) return;
+  stack.push(snap);
+  if (stack.length > UNDO_MAX) stack.shift();
+  redoStacks[song.id] = [];
+}
+
+function restoreSnapshot(song, snap) {
+  const data = JSON.parse(snap);
+  Object.keys(song).forEach((k) => { if (!['id', 'versions', 'createdAt'].includes(k)) delete song[k]; });
+  Object.assign(song, data, { id: song.id, versions: song.versions });
+  normalizeMusic(song);
+  song.updatedAt = Date.now();
+  schedule(song.id);
+}
+
+export function canUndo(id = state.currentId) { return !!undoStacks[id]?.length; }
+export function canRedo(id = state.currentId) { return !!redoStacks[id]?.length; }
+
+export function undo(id = state.currentId) {
+  const song = state.songs.find((s) => s.id === id);
+  const snap = undoStacks[id]?.pop();
+  if (!song || !snap) return false;
+  (redoStacks[id] = redoStacks[id] || []).push(snapshot(song));
+  restoreSnapshot(song, snap);
+  lastQuiet[id] = 0;
+  emit('all');
+  return true;
+}
+
+export function redo(id = state.currentId) {
+  const song = state.songs.find((s) => s.id === id);
+  const snap = redoStacks[id]?.pop();
+  if (!song || !snap) return false;
+  (undoStacks[id] = undoStacks[id] || []).push(snapshot(song));
+  restoreSnapshot(song, snap);
+  lastQuiet[id] = 0;
+  emit('all');
+  return true;
+}
+
 // 특정 곡을 고친다. 오래 걸리는 작업(AI·복원·분석)은 시작할 때의 곡 id로 이걸 불러야
 // 그 사이 다른 곡을 열어도 엉뚱한 곡을 덮어쓰지 않는다.
 export function mutateSong(id, fn, scope = 'all') {
   const song = state.songs.find((s) => s.id === id);
   if (!song) return;
+  remember(song, scope);
   fn(song);
   normalizeMusic(song);
   song.example = false;
