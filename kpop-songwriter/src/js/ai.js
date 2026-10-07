@@ -27,7 +27,7 @@ export function errorCopy(e) {
   return ERROR_COPY[e.code] || '연결이 끊겼어요. 다시 눌러 주세요.';
 }
 
-function songBrief(song) {
+export function songBrief(song) {
   const labels = sectionLabels(song.sections);
   const memberName = (id) => song.members.find((m) => m.id === id);
   const c = song.concept;
@@ -49,7 +49,7 @@ function songBrief(song) {
   };
 }
 
-const LYRIC_RULES = `규칙:
+export const LYRIC_RULES = `규칙:
 - 한국어 중심 K-pop 가사. 영어는 전체의 약 {EN}%로, 훅·코러스·포인트 문장에 모아 쓴다.
 - 코러스는 바로 따라 부를 수 있는 반복 훅을 넣는다. 같은 Chorus는 같은 가사를 쓰고, Final Chorus만 변주한다.
 - 한 줄은 대략 6~12음절. 줄 끝 모음을 맞춰 라임을 만든다. 랩 섹션은 라임을 더 촘촘하게.

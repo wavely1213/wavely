@@ -17,6 +17,7 @@ function fakeClaude() {
     return m ? JSON.parse(m[1]) : [];
   };
   const answer = (p) => {
+    if (p.includes('섹션의 한 줄만 다르게')) return { lines: ['가짜 한 줄 A', '가짜 한 줄 B', '가짜 한 줄 A', '가짜 한 줄 C'] };
     if (p.includes('점수가 낮은 섹션을 고친다') && window.__worse) {
       return { sections: idsAfter(p, '가사를 쓸 섹션 id').map((id) => ({ id, lines: ['음'] })) };
     }
@@ -211,6 +212,23 @@ function fakeClaude() {
     && (await p.$$eval('textarea.lyrics', (els) => els.some((t) => t.value.includes('가짜 새 줄 signal'))))
     && !(await p.$$eval('textarea.lyrics', (els, l) => els.some((t) => t.value.split('\n').some((x) => x.trim() === l)), flaggedLine));
 
+  // 한 줄만 바꾸기: 벌스 첫 줄 → 후보 3개(겹친 것은 버림) → 둘째로 바꿈 → 원래 줄·나머지는 버린 것으로 취향에
+  const verseCard = p.locator('article.section.t-verse').first();
+  const verseBefore = await verseCard.locator('textarea.lyrics').inputValue();
+  const firstLine = verseBefore.split('\n').map((l) => l.trim()).find(Boolean);
+  await verseCard.locator('button[id^="ls-open-"]').click();
+  await verseCard.locator('button[id^="ls-run-"]').click();
+  await p.waitForSelector('button[id^="ls-pick-"]');
+  const lsOptions = await verseCard.locator('.line-option').allTextContents();
+  await verseCard.locator('button[id^="ls-pick-"] >> nth=1').click();
+  const verseAfter = await verseCard.locator('textarea.lyrics').inputValue();
+  const linePrompt = (await prompts()).filter((x) => x.includes('섹션의 한 줄만 다르게')).pop();
+  const lineTaste = await p.waitForFunction(() => (JSON.parse(localStorage.getItem('kpop-writer-taste') || '{"log":[]}').log || [])
+    .some((e) => e.kind === 'lyrics' && e.text === '가짜 한 줄 B' && e.context?.rejected?.length === 3), null, { timeout: 8000 }).then(() => true).catch(() => false);
+  results.lineSwap = lsOptions.join('|') === '가짜 한 줄 A|가짜 한 줄 B|가짜 한 줄 C'
+    && verseAfter.split('\n').some((l) => l.trim() === '가짜 한 줄 B') && !verseAfter.split('\n').some((l) => l.trim() === firstLine)
+    && linePrompt.includes(`바꿀 줄: ${JSON.stringify(firstLine)}`) && lineTaste;
+
   // 스타일 변형: 3개 만들기 → B로 정하기 → B만 "지금 스타일"
   await p.click('.tab:text-is("Suno 스타일")');
   await p.click('#variants-run');
@@ -322,7 +340,7 @@ function fakeClaude() {
   results.saved = await p.evaluate(() => window.__saved);
 
   console.log(JSON.stringify(results, null, 1));
-  const ok = results.lyricsApplied && results.review && results.improve.length > 0 && results.improve.every((t) => t.includes('반영')) && results.arrangeKey.includes('A minor') && results.melodyNotes === 3 && results.styleBpm === '140'
+  const ok = results.lineSwap && results.lyricsApplied && results.review && results.improve.length > 0 && results.improve.every((t) => t.includes('반영')) && results.arrangeKey.includes('A minor') && results.melodyNotes === 3 && results.styleBpm === '140'
     && results.editRecorded && results.tasteLog.some((x) => x.startsWith('lyrics:-1(유치해요)')) && results.tasteLog.includes('hook:1') && results.lineLiked === 1 && results.similarCount === 1 && results.similarFixed && results.trOff === 1 && results.trLyrics && results.trStyle && results.variantCount === 3 && results.variantChosen.join() === 'B' && results.variantStyle === 'bright synth-pop' && results.variantPair && results.orderTracks >= 2 && results.orderApplied && results.orderUndo && results.statLearn.startsWith('arrange') && results.ideasPromptHint && results.melodyEdit && results.melodyEditUndo && results.melodyEditRedo && results.melodyEditPrompt && results.pitch && results.spellCount === 2 && results.spellApplied && results.ideaTitle === '가짜 컨셉 둘' && results.ideaTheme === '둘 주제' && results.ideaKeywords === '밤, 거울, Mirror' && results.ideaMoods === '몽환,다크' && results.tasteLog.includes('arrange:1')
     && results.tasteLog.includes('melody:1') && results.promptHasTaste && results.promo && results.draft.arranged && results.draft.bpm === 128 && results.draft.styleBpm === 128 && results.draft.styleKey === 'A minor' && results.draft.melodySections > 0 && results.draft.lyrics.split('/')[0] === results.draft.lyrics.split('/')[1] && results.keptBridge === '언젠가 너도 이 밤을 보면\n같은 불빛을 찾게 될 거야' && results.melodyPromptRange && results.raceA === 133 && results.raceB === 120 && results.saved.includes('taste-feedback.zip') && !errs.length;
   if (errs.length) console.log('ERRORS', errs);

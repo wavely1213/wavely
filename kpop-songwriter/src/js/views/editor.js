@@ -12,6 +12,7 @@ import { scoreSong, scoreSection } from '../optimize/lyricscore.js';
 import { improveLyrics, DEFAULT_THRESHOLD } from '../optimize/improve.js';
 import { renderSimilarity } from './similarity.js';
 import { renderSpelling } from './spelling.js';
+import { lineSwapButton, lineSwapPanel } from './lineswap.js';
 
 // AI가 마지막으로 쓴 섹션 가사 (취향 학습용, 저장하지 않음): sectionId → { text, gen }
 const aiOrigin = {};
@@ -242,7 +243,9 @@ function renderSection(song, s, index, label, result) {
       h('button', { type: 'button', class: 'btn small', disabled: busy, onclick: () => runJob(`${label} 쓰는 중`, async (signal, progress) => {
         const out = await writeLyrics(song, { targetIds: [s.id], request: memoOf(song.id).request, signal, onProgress: (n) => progress(`${n}자`) });
         applyLyrics(song.id, out);
-      }) }, s.text.trim() ? 'AI로 다시 쓰기' : 'AI로 쓰기')),
+      }) }, s.text.trim() ? 'AI로 다시 쓰기' : 'AI로 쓰기'),
+      lineSwapButton(s)),
+    lineSwapPanel(song, s),
     aiOrigin[s.id] ? feedbackBar({ kind: 'lyrics', ref: aiOrigin[s.id].gen, text: aiOrigin[s.id].text, context: { section: s.type, song: song.title }, label: 'AI가 쓴 가사예요. 고치면 고친 방향도 배워요' }) : null,
     aiOrigin[s.id] ? lineLikes({ kind: 'lyrics', ref: aiOrigin[s.id].gen, text: s.text, context: { section: s.type, song: song.title } }) : null,
   );
