@@ -26,6 +26,12 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     await p.reload();
     await p.waitForSelector('.tab');
     global.welcomeOk = (global.welcomeOk ?? true) && welcome === 1 && welcomeClosed === 0 && welcomeFocus && (await p.locator('#welcome').count()) === 0;
+    // 작업 메모: 적으면 저장되고 새로고침해도 남음
+    await p.fill('#song-memo', 'Suno 3번째 생성이 좋음');
+    await p.waitForFunction(() => (localStorage.getItem('kpop-writer-songs') || '').includes('Suno 3번째 생성이 좋음'), null, { timeout: 10000 });
+    await p.reload();
+    await p.waitForSelector('.tab');
+    global.memoOk = (global.memoOk ?? true) && (await p.inputValue('#song-memo')) === 'Suno 3번째 생성이 좋음';
     // 가사·마디 맞춤: 벌스(8마디)에 가사를 잔뜩 넣으면 "빠듯해요", 원래대로 돌리면 사라짐
     await p.click('.tab:text-is("구조·가사")');
     const verse = p.locator('textarea.lyrics').nth(1);
@@ -435,6 +441,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
   if (!global.matchOk) errs.push('같은 멜로디 맞추기 안내 이상');
   if (global.tracklistOk === false || (global.tracklist && !global.tracklistOk)) errs.push(`트랙리스트 이미지 이상: ${JSON.stringify(global.tracklist)}`);
   if (!global.lyricCheckOk) errs.push('가사 맞춰 듣기 이상');
+  if (!global.memoOk) errs.push('작업 메모 저장 이상');
   if (!global.welcomeOk) errs.push('처음 안내 카드 이상');
   if (!global.transitionOk) errs.push(`곡 사이 듣기 이상: ${JSON.stringify(global.transition)}`);
   if (!global.albumNewSongOk) errs.push(`앨범의 새 곡 이상: ${JSON.stringify(global.albumNewSong)}`);

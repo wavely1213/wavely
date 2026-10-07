@@ -62,6 +62,10 @@ export function renderConcept(song) {
       h('div', { class: 'field' }, h('span', { class: 'field-label' }, '가사 언어 비율'), ratio, ratioOut),
     ),
     renderMembers(song),
+    h('section', { class: 'card' },
+      h('h2', null, '작업 메모'),
+      h('textarea', { id: 'song-memo', rows: '4', 'aria-label': '작업 메모', value: song.memo || '', placeholder: '나만 보는 메모예요. 예: Suno 3번째 생성 링크, 브릿지 다시 쓰기, 하린 파트 늘리기', oninput: quiet((s, v) => { s.memo = v; }) }),
+      h('p', { class: 'muted small' }, 'AI 요청·유통사 제출 패키지에는 들어가지 않아요. 버전·전체 백업에는 함께 저장돼요.')),
   );
 }
 
