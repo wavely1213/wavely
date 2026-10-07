@@ -4,6 +4,7 @@ import { mutate, mutateSong } from '../state.js';
 import { SECTION_TYPES, TEMPLATES } from '../constants.js';
 import { sectionLabels, makeSection, sectionsFromTemplate, autoDistribute, lineShare } from '../structure.js';
 import { analyzeSection, languageRatio } from '../lyrictools.js';
+import { lyricFit } from '../lyricfit.js';
 import { writeLyrics, suggestHooks, reviewLyrics } from '../ai.js';
 import { job, isBusy, runJob, stopJob } from '../aijob.js';
 import { feedbackBar, trackEdit, lineLikes } from '../learn/feedback.js';
@@ -156,6 +157,14 @@ function renderSection(song, s, index, label, result) {
       r.key ? h('span', { class: `rk${r.group >= 0 ? ` r${r.group}` : ''}` }, r.key) : null)));
   };
   fillGutter(analysis);
+  // 가사·마디 맞춤: 빠듯하거나 느슨할 때만 보인다 (입력할 때마다 다시 잼)
+  const fitOf = (text) => lyricFit(text, { bars: song.music.sections[s.id]?.bars, bpm: song.music.bpm, type: s.type });
+  const fitPill = h('span', { id: `fit-${s.id}`, class: 'pill warn-pill' });
+  const showFit = (fit) => {
+    fitPill.hidden = !fit || fit.level === 'ok';
+    if (fit) { fitPill.textContent = fit.label; fitPill.title = fit.tip; }
+  };
+  showFit(fitOf(s.text));
   const ta = h('textarea', {
     id: `lyr-${s.id}`, class: 'lyrics', wrap: 'off', spellcheck: 'false',
     rows: String(Math.max(3, analysis.length + 1)),
@@ -166,6 +175,7 @@ function renderSection(song, s, index, label, result) {
       const rows = analyzeSection(e.target.value);
       e.target.rows = Math.max(3, rows.length + 1);
       fillGutter(rows);
+      showFit(fitOf(e.target.value));
       mutate((x) => { x.sections.find((y) => y.id === s.id).text = e.target.value; }, 'quiet');
       const pill = document.getElementById(`score-${s.id}`);
       const live = pill && scoreSection({ ...s, text: e.target.value });
@@ -201,6 +211,7 @@ function renderSection(song, s, index, label, result) {
       h('select', { id: `type-${s.id}`, 'aria-label': '섹션 종류', onchange: (e) => mutate((x) => { x.sections.find((y) => y.id === s.id).type = e.target.value; }) },
         SECTION_TYPES.map((t) => h('option', { value: t, selected: t === s.type }, t))),
       result ? h('span', { class: `pill ${scoreClass(result.score)}`, id: `score-${s.id}`, title: result.tips.join(' ') }, `${result.score}점`) : null,
+      fitPill,
       h('span', { class: 'push' }),
       h('button', { type: 'button', class: 'icon-btn', 'aria-label': '위로', disabled: index === 0, onclick: () => move(-1) }, '↑'),
       h('button', { type: 'button', class: 'icon-btn', 'aria-label': '아래로', disabled: index === song.sections.length - 1, onclick: () => move(1) }, '↓'),

@@ -25,6 +25,16 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     await p.reload();
     await p.waitForSelector('.tab');
     global.welcomeOk = (global.welcomeOk ?? true) && welcome === 1 && welcomeClosed === 0 && (await p.locator('#welcome').count()) === 0;
+    // 가사·마디 맞춤: 벌스(8마디)에 가사를 잔뜩 넣으면 "빠듯해요", 원래대로 돌리면 사라짐
+    await p.click('.tab:text-is("구조·가사")');
+    const verse = p.locator('textarea.lyrics').nth(1);
+    const verseText = await verse.inputValue();
+    const fitId = (await verse.getAttribute('id')).replace(/^lyr-/, 'fit-');
+    const fitHiddenBefore = await p.isHidden(`#${fitId}`);
+    await verse.fill(Array(12).fill('가나다라마바사아자차카타').join('\n'));
+    const fitTight = (await p.isVisible(`#${fitId}`)) && (await p.textContent(`#${fitId}`)).includes('빠듯');
+    await verse.fill(verseText);
+    global.fitOk = (global.fitOk ?? true) && fitHiddenBefore && fitTight && await p.isHidden(`#${fitId}`);
     const tabs = await p.$$eval('.tab', els => els.map(e => e.textContent));
     for (const name of tabs) {
       await p.click(`.tab:text-is("${name}")`);
@@ -354,6 +364,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
   if (!global.diffSame) errs.push('버전 비교 이상');
   if (!global.qcOk) errs.push('소리 점검(QC) 표시 이상');
   if (!global.instOk) errs.push('Inst. 버전 추가 이상');
+  if (!global.fitOk) errs.push('가사·마디 맞춤 표시 이상');
   if (!global.welcomeOk) errs.push('처음 안내 카드 이상');
   if (!global.transitionOk) errs.push(`곡 사이 듣기 이상: ${JSON.stringify(global.transition)}`);
   if (!global.albumNewSongOk) errs.push(`앨범의 새 곡 이상: ${JSON.stringify(global.albumNewSong)}`);

@@ -131,3 +131,24 @@ import { storageUsage, isQuotaError, LOCAL_LIMIT } from '../src/js/storage-usage
   assert.ok(!isQuotaError(null));
   console.log('storage usage OK');
 }
+
+// 가사·마디 맞춤: 초당 음절로 빠듯함·느슨함 (애드립 제외, 랩은 더 빠르게)
+import { lyricFit } from '../src/js/lyricfit.js';
+{
+  const line = '가나다라마바사아'; // 8음절
+  const many = Array(8).fill(line).join('\n'); // 64음절
+  // 120 BPM 4마디 = 8초 → 초당 8음절: 노래는 빠듯, 랩은 괜찮음
+  assert.equal(lyricFit(many, { bars: 4, bpm: 120, type: 'Verse' }).level, 'tight');
+  assert.equal(lyricFit(many, { bars: 4, bpm: 120, type: 'Rap' }).level, 'ok');
+  assert.equal(lyricFit(many, { bars: 8, bpm: 120, type: 'Verse' }).level, 'ok');
+  // 8마디(16초)에 8음절 = 초당 0.5: 코러스는 느슨, 아웃트로는 안내 안 함
+  assert.equal(lyricFit(line, { bars: 8, bpm: 120, type: 'Chorus' }).level, 'loose');
+  assert.equal(lyricFit(line, { bars: 8, bpm: 120, type: 'Outro' }).level, 'ok');
+  assert.equal(lyricFit('(Oh yeah)\n(woo)', { bars: 4, bpm: 120, type: 'Verse' }), null, '애드립만 있으면 판단 안 함');
+  assert.equal(lyricFit(many, { bars: 0, bpm: 120, type: 'Verse' }), null);
+  const f = lyricFit(many, { bars: 4, bpm: 120, type: 'Verse' });
+  assert.equal(f.syl, 64);
+  assert.equal(f.seconds, 8);
+  assert.ok(f.tip.includes('4마디(8.0초)에 64음절') && f.label.includes('초당 8.0음절'));
+  console.log('lyric fit OK');
+}
