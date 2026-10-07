@@ -34,7 +34,7 @@ export function renderSound(song) {
             oninput: (e) => { const v = Number(e.target.value); set((x) => { x.vol = v; }, 'quiet'); liveVolume(inst.id, v, s.mute); } })),
         h('div', { class: 'row' },
           h('button', { type: 'button', class: `chip${s.mute ? ' on' : ''}`, 'aria-pressed': s.mute ? 'true' : 'false',
-            onclick: () => { set((x) => { x.mute = !x.mute; }); liveVolume(inst.id, s.vol, !s.mute); } }, s.mute ? '음소거됨' : '음소거'),
+            onclick: () => { const mute = !s.mute; set((x) => { x.mute = mute; }); liveVolume(inst.id, s.vol, mute); } }, s.mute ? '음소거됨' : '음소거'),
           h('button', { type: 'button', class: 'btn small', onclick: () => audition(song, inst.id) }, '미리듣기')));
     })),
   );

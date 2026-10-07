@@ -1,9 +1,11 @@
 // 편곡 탭: 빠르기·키, 섹션별 코드·에너지·악기·드럼·베이스. 음악 지식 없이 "느낌"으로 고른다.
 import { h } from '../dom.js';
-import { mutate as baseMutate, refresh } from '../state.js';
+import { mutate as baseMutate, mutateSong as baseMutateSong, refresh } from '../state.js';
 
 // 편곡 탭에서 바꾼 것은 진행 상황의 '편곡' 단계 완료로 친다
-const mutate = (fn, scope) => baseMutate((x) => { fn(x); x.progress = { ...(x.progress || {}), arranged: true }; }, scope);
+const arranged = (fn) => (x) => { fn(x); x.progress = { ...(x.progress || {}), arranged: true }; };
+const mutate = (fn, scope) => baseMutate(arranged(fn), scope);
+const mutateSong = (id, fn, scope) => baseMutateSong(id, arranged(fn), scope);
 import { sectionLabels } from '../structure.js';
 import { NOTE_NAMES, MODE_LABEL, PROGRESSIONS, DEGREE_FEEL, chordName, findProgression, tempoWord, keyName } from '../music/theory.js';
 import { ARRANGE_INSTRUMENTS, INSTRUMENT_BY_ID } from '../music/instruments.js';
@@ -58,7 +60,7 @@ function renderGlobal(song, m) {
     h('div', { class: 'row' },
       h('button', { type: 'button', class: 'btn primary', disabled: busy, onclick: () => runJob('편곡 초안 만드는 중', async (signal) => {
         const res = await arrangeSong(song, { request: m.request, signal });
-        applyArrangement(res);
+        applyArrangement(song.id, res);
         m.summary = res.summary;
         m.gen = uid();
       }) }, 'AI가 곡 전체 편곡하기'),
@@ -73,8 +75,9 @@ function renderGlobal(song, m) {
   );
 }
 
-function applyArrangement(res) {
-  mutate((s) => {
+// AI 결과는 요청한 곡에 넣는다 (그 사이 다른 곡을 열었어도)
+function applyArrangement(songId, res) {
+  mutateSong(songId, (s) => {
     if (res.bpm) s.music.bpm = res.bpm;
     if (res.root != null) s.music.root = res.root;
     if (res.mode) s.music.mode = res.mode;
@@ -166,7 +169,7 @@ function renderSectionRow(song, s, label, m) {
       Object.entries(QUICK_TWEAKS).map(([k, t]) => h('button', { type: 'button', class: 'btn small', onclick: () => set((x) => t.apply(x)) }, t.name)),
       h('button', { type: 'button', class: 'btn small ghost', disabled: busy, onclick: () => runJob(`${label} 편곡 중`, async (signal) => {
         const res = await arrangeSong(song, { targetIds: [s.id], request: m.request, signal });
-        applyArrangement(res);
+        applyArrangement(song.id, res);
         m.summary = res.summary;
         m.gen = uid();
       }) }, 'AI로 이 부분 다시')),

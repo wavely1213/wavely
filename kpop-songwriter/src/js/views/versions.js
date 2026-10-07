@@ -1,6 +1,6 @@
 // 버전 탭: 스냅샷 저장·미리보기·복원·삭제. 버전 본문은 따로 저장돼 있어 열 때 불러온다.
 import { h, formatTime, toast } from '../dom.js';
-import { saveVersion, restoreVersion, deleteVersion, loadVersion, refresh } from '../state.js';
+import { saveVersion, restoreVersion, deleteVersion, loadVersion, refresh, getState } from '../state.js';
 import { MAX_VERSIONS } from '../constants.js';
 import { buildLyrics } from '../suno.js';
 import { keyName } from '../music/theory.js';
@@ -21,7 +21,7 @@ export function renderVersions(song) {
           refresh();
           toast(ok ? '버전을 저장했어요' : '버전을 저장하지 못했어요');
         } }, '버전 저장')),
-      h('p', { class: 'muted' }, `곡마다 최근 ${MAX_VERSIONS}개까지 보관해요. 가사·편곡·멜로디·사운드가 모두 들어가요. 복원하면 복원 직전 상태도 자동으로 남아요.`)),
+      h('p', { class: 'muted' }, `곡마다 최근 ${getState().store?.maxVersions || MAX_VERSIONS}개까지 보관해요. 가사·편곡·멜로디·사운드가 모두 들어가요. 복원하면 복원 직전 상태도 자동으로 남아요.`)),
     song.versions.length
       ? h('ol', { class: 'versions' }, song.versions.map((v) => renderVersion(v)))
       : h('p', { class: 'empty card' }, '저장된 버전이 없어요. Suno에 넣기 전이나 크게 고치기 전에 저장해 두세요.'),

@@ -1,7 +1,7 @@
 // 멜로디 탭: 피아노롤. 스케일 안의 음만 보여서 틀린 음을 고를 일이 없다.
 // 빈 칸을 누르면 음표 추가, 음표를 누르면 선택 → 아래 버튼으로 옮기기·길이·가사 수정.
 import { h } from '../dom.js';
-import { mutate, refresh } from '../state.js';
+import { mutate, mutateSong, refresh } from '../state.js';
 import { sectionLabels } from '../structure.js';
 import { degreeToMidi, NOTE_NAMES } from '../music/theory.js';
 import { countSyllables } from '../lyrictools.js';
@@ -42,13 +42,13 @@ export function renderMelody(song) {
       h('textarea', { id: 'mel-request', rows: '2', value: ui.request, placeholder: '원하는 멜로디 느낌 (선택) 예: 코러스 첫 줄은 높게 시작, 벌스는 랩하듯 낮게', oninput: (e) => { ui.request = e.target.value; } }),
       h('div', { class: 'row' },
         h('button', { type: 'button', class: 'btn primary', disabled: busy, onclick: () => runJob(`${label} 멜로디 만드는 중`, async (signal) => {
-          applyMelody(await writeMelody(song, { targetIds: [s.id], request: ui.request, signal }));
+          applyMelody(song.id, await writeMelody(song, { targetIds: [s.id], request: ui.request, signal }));
         }) }, `AI로 ${label} 멜로디`),
         h('button', { type: 'button', class: 'btn', disabled: busy || !withLyrics.length, onclick: () => runJob('전체 멜로디 만드는 중', async (signal) => {
           // 한 번에 너무 길면 끊기므로 섹션 3개씩 나눠 요청
           for (let i = 0; i < withLyrics.length; i += 3) {
             if (signal.aborted) break;
-            applyMelody(await writeMelody(song, { targetIds: withLyrics.slice(i, i + 3), request: ui.request, signal }));
+            applyMelody(song.id, await writeMelody(song, { targetIds: withLyrics.slice(i, i + 3), request: ui.request, signal }));
           }
         }) }, '가사 있는 섹션 전부'),
         busy ? h('button', { type: 'button', class: 'btn ghost', onclick: stopJob }, '중지') : null,
@@ -77,9 +77,9 @@ export function renderMelody(song) {
   );
 }
 
-function applyMelody(out) {
+function applyMelody(songId, out) {
   out.forEach(({ id }) => { ui.gen[id] = uid(); });
-  mutate((x) => { out.forEach(({ id, notes }) => { if (x.music.sections[id]) x.music.sections[id].melody = notes; }); });
+  mutateSong(songId, (x) => { out.forEach(({ id, notes }) => { if (x.music.sections[id]) x.music.sections[id].melody = notes; }); });
 }
 
 function shiftAll(id, d) {

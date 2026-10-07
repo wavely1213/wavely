@@ -1,6 +1,6 @@
 // 구조·가사 탭: 섹션 편집, 파트 분배, AI 작사, 라임·음절 표시, 훅 추천, AI 검토.
 import { h, uid } from '../dom.js';
-import { mutate } from '../state.js';
+import { mutate, mutateSong } from '../state.js';
 import { SECTION_TYPES, TEMPLATES } from '../constants.js';
 import { sectionLabels, makeSection, sectionsFromTemplate, autoDistribute, lineShare } from '../structure.js';
 import { analyzeSection, languageRatio } from '../lyrictools.js';
@@ -72,7 +72,7 @@ function renderToolbar(song, m) {
         const empty = song.sections.filter((x) => !x.text.trim() && x.type !== 'Dance Break').map((x) => x.id);
         if (!empty.length) throw { code: 'nothing_empty' };
         const out = await writeLyrics(song, { targetIds: empty, request: m.request, signal, onProgress: (n) => progress(`${n}자 받는 중`) });
-        applyLyrics(out);
+        applyLyrics(song.id, out);
       }) }, '빈 섹션 전부 AI로 쓰기'),
       busy ? h('button', { type: 'button', class: 'btn ghost', onclick: stopJob }, '중지') : null,
       busy ? h('span', { class: 'status' }, h('span', { class: 'dot' }), job.label, ' ', h('span', { id: 'job-progress', class: 'mono' }, job.progress || '생각하는 중…')) : null,
@@ -99,7 +99,7 @@ function renderScore(song, m, scores) {
         const res = await improveLyrics(song, { signal, onStep: progress });
         m.report = res.report;
         if (Object.keys(res.updates).length) {
-          mutate((x) => {
+          mutateSong(song.id, (x) => {
             Object.entries(res.updates).forEach(([id, text]) => {
               const sec = x.sections.find((y) => y.id === id);
               if (sec) { sec.text = text; aiOrigin[id] = { text, gen: uid() }; }
@@ -114,9 +114,10 @@ function renderScore(song, m, scores) {
   );
 }
 
-function applyLyrics(out) {
+// AI 결과는 요청한 곡에 넣는다 (그 사이 다른 곡을 열었어도)
+function applyLyrics(songId, out) {
   if (!out.length) throw { code: 'invalid_json' };
-  mutate((s) => {
+  mutateSong(songId, (s) => {
     out.forEach(({ id, text }) => {
       const sec = s.sections.find((x) => x.id === id);
       if (sec) {
@@ -206,7 +207,7 @@ function renderSection(song, s, index, label, result) {
     h('div', { class: 'row' },
       h('button', { type: 'button', class: 'btn small', disabled: busy, onclick: () => runJob(`${label} 쓰는 중`, async (signal, progress) => {
         const out = await writeLyrics(song, { targetIds: [s.id], request: memoOf(song.id).request, signal, onProgress: (n) => progress(`${n}자`) });
-        applyLyrics(out);
+        applyLyrics(song.id, out);
       }) }, s.text.trim() ? 'AI로 다시 쓰기' : 'AI로 쓰기')),
     aiOrigin[s.id] ? feedbackBar({ kind: 'lyrics', ref: aiOrigin[s.id].gen, text: aiOrigin[s.id].text, context: { section: s.type, song: song.title }, label: 'AI가 쓴 가사예요. 고치면 고친 방향도 배워요' }) : null,
   );

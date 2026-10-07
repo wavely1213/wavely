@@ -8,7 +8,7 @@
     "test:unit": "node tests/unit.test.mjs",
     "test:engine": "node tests/engine.test.cjs",
     "test:ui": "node tests/ui-smoke.test.cjs",
-    "test": "npm run build && npm run build:web && npm run test:unit && npm run test:album && npm run test:learn && npm run test:optimize && npm run test:workflow && npm run test:engine && npm run test:master && npm run test:ai && npm run test:ui && npm run test:web",
+    "test": "npm run build && npm run build:web && npm run test:unit && npm run test:album && npm run test:learn && npm run test:optimize && npm run test:workflow && npm run test:state && npm run test:engine && npm run test:master && npm run test:ai && npm run test:ui && npm run test:web",
     "samples": "node tools/fetch-samples.mjs",
     "test:master": "node tests/master.test.cjs",
     "test:album": "node tests/album.test.mjs",
@@ -17,7 +17,8 @@
     "test:optimize": "node tests/optimize.test.mjs",
     "build:web": "node build.mjs web",
     "test:web": "node tests/web.test.cjs",
-    "test:workflow": "node tests/workflow.test.mjs"
+    "test:workflow": "node tests/workflow.test.mjs",
+    "test:state": "node tests/state.test.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.10"

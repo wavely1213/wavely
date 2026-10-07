@@ -25,7 +25,7 @@ function fakeClaude() {
     }
     if (p.includes('편곡할 섹션 id')) {
       const ids = idsAfter(p, '편곡할 섹션 id');
-      return { bpm: 124, root: 'A', mode: 'minor', summary: '가짜 편곡 요약', sections: ids.map((id) => ({ id, bars: 4, chords: [1, 6, 3, 7], seventh: false, energy: 4, instruments: ['drums', 'b808', 'pluck', 'nope'], drum: 'trap', bass: 'halftime' })) };
+      return { bpm: window.__arrBpm || 124, root: 'A', mode: 'minor', summary: '가짜 편곡 요약', sections: ids.map((id) => ({ id, bars: 4, chords: [1, 6, 3, 7], seventh: false, energy: 4, instruments: ['drums', 'b808', 'pluck', 'nope'], drum: 'trap', bass: 'halftime' })) };
     }
     if (p.includes('탑라이너(멜로디 작곡가)')) {
       const ids = [...p.matchAll(/"id":"([a-z0-9]+)","이름"/g)].map((x) => x[1]);
@@ -47,7 +47,7 @@ function fakeClaude() {
   sample.json = async (input) => {
     const p = typeof input === 'string' ? input : input.map((t) => t.content).join('\n');
     window.__prompts.push(p);
-    await new Promise((r) => setTimeout(r, 30));
+    await new Promise((r) => setTimeout(r, window.__delay || 30));
     return JSON.parse(JSON.stringify(answer(p)));
   };
   window.__saved = [];
@@ -137,6 +137,21 @@ function fakeClaude() {
   const last = (await prompts()).slice(-1)[0];
   results.promptHasTaste = last.includes('작곡가의 취향') && last.includes('가짜 정리: 이미지로') && last.includes('내가 고친 첫 줄') && last.includes('유치해요');
 
+  // 느린 AI 편곡 중 다른 곡으로 바꿔도 결과는 원래 곡에만
+  await p.locator('.song-item').first().click();
+  const songA = await p.evaluate(() => document.querySelector('h1').textContent);
+  await p.click('.tab:text-is("편곡")');
+  await p.evaluate(() => { window.__delay = 1500; window.__arrBpm = 133; });
+  await p.click('text=AI가 곡 전체 편곡하기');
+  await p.click('text=+ 새 곡');
+  await p.waitForTimeout(3500);
+  await p.evaluate(() => { window.__delay = 0; });
+  const songs = await p.evaluate(() => JSON.parse(localStorage.getItem('kpop-writer-songs')));
+  const songAData = songs.find((x) => x.title === songA);
+  const songBData = songs.find((x) => x.title === '제목 없는 곡');
+  results.raceA = songAData.music.bpm;
+  results.raceB = songBData.music.bpm;
+
   // 앨범 홍보
   await p.click('text=+ 새 앨범');
   await p.click('.tab:text-is("홍보")');
@@ -148,7 +163,7 @@ function fakeClaude() {
   console.log(JSON.stringify(results, null, 1));
   const ok = results.lyricsApplied && results.review && results.improve.length > 0 && results.improve.every((t) => t.includes('반영')) && results.arrangeKey.includes('A minor') && results.melodyNotes === 3 && results.styleBpm === '140'
     && results.editRecorded && results.tasteLog.some((x) => x.startsWith('lyrics:-1(유치해요)')) && results.tasteLog.includes('hook:1') && results.tasteLog.includes('arrange:1')
-    && results.tasteLog.includes('melody:1') && results.promptHasTaste && results.promo && results.saved.includes('taste-feedback.zip') && !errs.length;
+    && results.tasteLog.includes('melody:1') && results.promptHasTaste && results.promo && results.raceA === 133 && results.raceB === 120 && results.saved.includes('taste-feedback.zip') && !errs.length;
   if (errs.length) console.log('ERRORS', errs);
   console.log(ok ? 'ai OK' : 'ai FAILED');
   if (!ok) process.exitCode = 1;

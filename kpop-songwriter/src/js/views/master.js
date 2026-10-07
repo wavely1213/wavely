@@ -1,6 +1,6 @@
 // 마스터링 탭: Suno 완성곡(또는 앱 데모)을 발매 규격(음량·트루 피크·44.1kHz)으로 맞춰 WAV로 받는다.
 import { h, toast } from '../dom.js';
-import { mutate, refresh } from '../state.js';
+import { mutate, mutateSong, refresh } from '../state.js';
 import { decodeFile, master, masterWarnings, MASTER_PRESETS, LOUDNESS_TARGETS, OUTPUT_RATE } from '../music/master.js';
 import { renderSong, stop as stopPlayer } from '../music/player.js';
 import { encodeWav, zip } from '../music/pack.js';
@@ -106,7 +106,7 @@ async function run(song) {
       if (el) el.textContent = t;
     });
     ui.result.target = st.target;
-    mutate((x) => { x.progress = { ...(x.progress || {}), mastered: true }; }, 'quiet');
+    mutateSong(song.id, (x) => { x.progress = { ...(x.progress || {}), mastered: true }; }, 'quiet');
   } catch {
     toast('마스터링 중 문제가 생겼어요. 다른 파일로 시도해 주세요');
   } finally {

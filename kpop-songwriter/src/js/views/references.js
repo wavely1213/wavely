@@ -1,6 +1,6 @@
 // 레퍼런스 탭: 참고 곡 오디오 분석(브라우저 안에서만) + 좋았던 점 메모. AI 편곡이 이걸 참고한다.
 import { h, uid, toast } from '../dom.js';
-import { mutate, refresh } from '../state.js';
+import { mutate, mutateSong, refresh } from '../state.js';
 import { analyzeAudio, describeAnalysis } from '../music/analyze.js';
 import { keyName } from '../music/theory.js';
 
@@ -11,7 +11,7 @@ export function renderReferences(song) {
   const file = h('input', { type: 'file', id: 'ref-file', accept: 'audio/*', class: 'visually-hidden', onchange: (e) => {
     const f = e.target.files?.[0];
     e.target.value = '';
-    if (f) addAudio(f);
+    if (f) addAudio(song.id, f);
   } });
   return h('div', { class: 'stack' },
     h('section', { class: 'card' },
@@ -39,7 +39,7 @@ function newRef(name, analysis) {
   return { id: uid(), name, analysis, likes: [], note: '', use: true };
 }
 
-async function addAudio(f) {
+async function addAudio(songId, f) {
   ui.analyzing = '분석 준비 중';
   refresh();
   try {
@@ -48,7 +48,7 @@ async function addAudio(f) {
       const el = document.querySelector('.status');
       if (el) el.lastChild.textContent = step;
     });
-    mutate((s) => { s.references.unshift(newRef(f.name.replace(/\.[^.]+$/, ''), analysis)); });
+    mutateSong(songId, (s) => { s.references.unshift(newRef(f.name.replace(/\.[^.]+$/, ''), analysis)); });
     toast('분석했어요');
   } catch {
     toast('이 파일은 읽지 못했어요. mp3나 wav로 다시 시도해 주세요');

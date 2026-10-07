@@ -9,18 +9,18 @@ function readKey(key) {
   try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch { return []; }
 }
 function writeKey(key, list) {
-  try { localStorage.setItem(key, JSON.stringify(list)); } catch { /* 저장 불가: 메모리에만 */ }
+  localStorage.setItem(key, JSON.stringify(list));
 }
 
 function localStore() {
   const read = () => {
     try { return JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]'); } catch { return []; }
   };
-  const write = (songs) => {
-    try { localStorage.setItem(LOCAL_KEY, JSON.stringify(songs)); } catch { /* 저장 불가: 메모리에만 */ }
-  };
+  // 저장 실패(용량 초과 등)는 그대로 올려 보내 "저장 실패"로 보이게 한다
+  const write = (songs) => { localStorage.setItem(LOCAL_KEY, JSON.stringify(songs)); };
   return {
     kind: 'local',
+    maxVersions: 8, // 브라우저 저장 공간(약 5MB)이 작아 버전 사본을 적게 둔다
     async list() { return read(); },
     async save(song) {
       const songs = read().filter((s) => s.id !== song.id);
@@ -28,9 +28,7 @@ function localStore() {
       write(songs);
     },
     async remove(id) { write(read().filter((s) => s.id !== id)); },
-    async putVersion(songId, v) {
-      try { localStorage.setItem(`${LOCAL_KEY}-v-${songId}-${v.id}`, JSON.stringify(v)); } catch { /* 저장 불가 */ }
-    },
+    async putVersion(songId, v) { localStorage.setItem(`${LOCAL_KEY}-v-${songId}-${v.id}`, JSON.stringify(v)); },
     async getVersion(songId, vid) {
       try { return JSON.parse(localStorage.getItem(`${LOCAL_KEY}-v-${songId}-${vid}`) || 'null'); } catch { return null; }
     },
@@ -39,7 +37,7 @@ function localStore() {
     },
     async listAlbums() { return readKey(ALBUM_KEY); },
     async loadTaste() { try { return JSON.parse(localStorage.getItem(TASTE_KEY) || 'null'); } catch { return null; } },
-    async saveTaste(t) { try { localStorage.setItem(TASTE_KEY, JSON.stringify(t)); } catch { /* 저장 불가 */ } },
+    async saveTaste(t) { localStorage.setItem(TASTE_KEY, JSON.stringify(t)); },
     async saveAlbum(album) { writeKey(ALBUM_KEY, [...readKey(ALBUM_KEY).filter((a) => a.id !== album.id), album]); },
     async removeAlbum(id) { writeKey(ALBUM_KEY, readKey(ALBUM_KEY).filter((a) => a.id !== id)); },
   };

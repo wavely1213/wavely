@@ -32,6 +32,14 @@ function parseRoot(v, fallback) {
   return (base + acc + 12) % 12;
 }
 
+// 피아노롤에 보이는 범위(-3~10) 밖이면 옥타브(7)씩 옮겨 넣는다
+function foldRange(d) {
+  let x = d;
+  while (x > 10) x -= 7;
+  while (x < -3) x += 7;
+  return x;
+}
+
 const int = (v, lo, hi, d) => { const n = Math.round(Number(v)); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : d; };
 
 export async function arrangeSong(song, { targetIds, request, signal }) {
@@ -124,7 +132,7 @@ export async function writeMelody(song, { targetIds, request, signal }) {
     .map((x) => {
       const max = m.sections[String(x.id)].bars * 16;
       const notes = x.notes
-        .map((n) => ({ s: int(n.s, 0, max - 1, -1), l: int(n.l, 1, 32, 2), d: int(n.d, -7, 14, 0), syl: String(n.syl ?? '').slice(0, 8) }))
+        .map((n) => ({ s: int(n.s, 0, max - 1, -1), l: int(n.l, 1, 32, 2), d: foldRange(int(n.d, -14, 21, 0)), syl: String(n.syl ?? '').slice(0, 8) }))
         .filter((n) => n.s >= 0)
         .sort((a, b) => a.s - b.s);
       notes.forEach((n, i) => {

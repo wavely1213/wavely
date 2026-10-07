@@ -1,6 +1,6 @@
 // 앨범 > 일정 (발매일 기준 체크리스트) / 홍보 (AI 문구 초안).
 import { h, field, copyText } from '../../dom.js';
-import { mutateAlbum, getState } from '../../state.js';
+import { mutateAlbum, mutateAlbumById, getState } from '../../state.js';
 import { scheduleFor } from '../../album/model.js';
 import { writePromo } from '../../album/release.js';
 import { isBusy, runJob, stopJob, job } from '../../aijob.js';
@@ -44,7 +44,7 @@ export function renderPromo(album) {
           busy ? h('span', { class: 'status' }, h('span', { class: 'dot' }), job.label) : null,
           h('button', { type: 'button', class: 'btn primary', disabled: busy || !album.tracks.length, onclick: () => runJob('홍보 문구 쓰는 중', async (signal) => {
             const res = await writePromo(album, songs, { signal });
-            mutateAlbum((a) => { a.promo = { ...a.promo, ...res, tracks: { ...a.promo.tracks, ...res.tracks } }; });
+            mutateAlbumById(album.id, (a) => { a.promo = { ...a.promo, ...res, tracks: { ...a.promo.tracks, ...res.tracks } }; });
           }) }, p.intro ? 'AI로 다시 쓰기' : 'AI로 초안 쓰기'))),
       h('p', { class: 'muted' }, '정보 탭의 앨범 소개 메모와 각 곡의 컨셉·가사를 참고해요. 초안을 고쳐 쓰면 그대로 저장돼요.')),
     h('section', { class: 'card' },

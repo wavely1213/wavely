@@ -1,6 +1,6 @@
 // 앨범 > 수록곡: 곡 넣기·순서·타이틀곡, 트랙별 마스터 WAV 넣기와 규격 점검.
 import { h, toast } from '../../dom.js';
-import { mutateAlbum, refresh, selectSong, setTab, getState } from '../../state.js';
+import { mutateAlbum, refresh, selectSong, setTab, getState, keepSong } from '../../state.js';
 import { newTrack, ALBUM_TYPES } from '../../album/model.js';
 import { inspectMaster } from '../../album/release.js';
 import { mastersOf, setMaster, fillFromSongMasters } from '../../album/session.js';
@@ -89,6 +89,7 @@ export function renderTracks(album) {
         ? h('div', { class: 'row' }, addSel, h('button', { type: 'button', class: 'btn', onclick: () => {
           const id = addSel.value;
           if (!id) return;
+          keepSong(id);
           mutateAlbum((a) => {
             a.tracks.push(newTrack(id));
             if (a.tracks.length === 1) a.tracks[0].isTitle = true;

@@ -43,7 +43,13 @@ export async function init(store) {
   state.songs = songs;
   state.currentId = songs[0].id;
   try { state.albums = (await store.listAlbums()).map(normalizeAlbum); } catch { state.albums = []; }
-  try { state.taste = normalizeTaste(await store.loadTaste()); } catch { state.taste = emptyTaste(); }
+  try {
+    state.taste = normalizeTaste(await store.loadTaste());
+    state.tasteLoaded = true;
+  } catch {
+    state.taste = emptyTaste();
+    state.tasteLoaded = false;
+  }
   setTasteGetter(() => state.taste);
   state.albums.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
   emit('all');
@@ -78,13 +84,22 @@ export function selectSong(id) {
 }
 
 // ---------- 앨범 ----------
+// 아직 저장 안 된 예시 곡을 앨범에 넣으면 새로고침 때 사라지므로 내 곡으로 저장한다
+export function keepSong(id) {
+  const song = state.songs.find((s) => s.id === id);
+  if (song?.example) { song.example = false; song.updatedAt = Date.now(); schedule(id); }
+}
+
 // fromSong을 주면 그 곡 하나로 싱글 앨범을 만든다 (제목도 곡 제목으로)
 export function newAlbum({ fromSong } = {}) {
   const album = makeAlbum();
   // 지금 보고 있던 곡을 첫 트랙으로 넣어 준다 (예시 곡 제외)
   const song = fromSong || current();
   if (fromSong) album.title = fromSong.title.replace(/^예시:\s*/, '');
-  if (song && (fromSong || !song.example)) album.tracks.push({ songId: song.id, isTitle: true, isrc: '', lyricists: '', composers: '', arrangers: '', featuring: '', explicit: false });
+  if (song && (fromSong || !song.example)) {
+    album.tracks.push({ songId: song.id, isTitle: true, isrc: '', lyricists: '', composers: '', arrangers: '', featuring: '', explicit: false });
+    keepSong(song.id);
+  }
   state.albums.unshift(album);
   state.albumId = album.id;
   state.mode = 'album';
@@ -119,7 +134,11 @@ export function setAlbumTab(tab) {
 }
 
 export function mutateAlbum(fn, scope = 'all') {
-  const album = currentAlbum();
+  mutateAlbumById(state.albumId, fn, scope);
+}
+
+export function mutateAlbumById(id, fn, scope = 'all') {
+  const album = state.albums.find((a) => a.id === id);
   if (!album) return;
   fn(album);
   normalizeAlbum(album);
@@ -147,7 +166,13 @@ export function setTab(tab) {
 
 // fn이 현재 곡을 직접 고친다. scope: 'all'이면 화면 전체 다시 그림, 'quiet'면 저장만.
 export function mutate(fn, scope = 'all') {
-  const song = current();
+  mutateSong(state.currentId, fn, scope);
+}
+
+// 특정 곡을 고친다. 오래 걸리는 작업(AI·복원·분석)은 시작할 때의 곡 id로 이걸 불러야
+// 그 사이 다른 곡을 열어도 엉뚱한 곡을 덮어쓰지 않는다.
+export function mutateSong(id, fn, scope = 'all') {
+  const song = state.songs.find((s) => s.id === id);
   if (!song) return;
   fn(song);
   normalizeMusic(song);
@@ -171,21 +196,28 @@ async function flush() {
   flushing = true;
   const ids = [...pending];
   pending.clear();
-  try {
-    for (const id of ids) {
+  const failed = [];
+  // 하나가 실패해도 나머지는 저장한다
+  for (const id of ids) {
+    try {
       const song = state.songs.find((s) => s.id === id);
       if (song) await state.store.save(song);
       const album = state.albums.find((a) => a.id === id);
       if (album) await state.store.saveAlbum(album);
-      if (id === TASTE_ID) await state.store.saveTaste(state.taste);
+      // 취향을 불러오지 못한 채로 저장하면 기존 기록을 빈 값으로 덮어쓰게 되므로 막는다
+      if (id === TASTE_ID && state.tasteLoaded) await state.store.saveTaste(state.taste);
+    } catch {
+      failed.push(id);
     }
-    state.saveStatus = pending.size ? 'pending' : 'saved';
-  } catch {
-    ids.forEach((id) => pending.add(id));
+  }
+  if (failed.length) {
+    failed.forEach((id) => pending.add(id));
     state.saveStatus = 'error';
     // 일시적인 실패일 수 있으니 조금 뒤 다시 저장한다
     clearTimeout(saveTimer);
     saveTimer = setTimeout(flush, 5000);
+  } else {
+    state.saveStatus = pending.size ? 'pending' : 'saved';
   }
   flushing = false;
   emit('status');
@@ -219,8 +251,9 @@ async function storeVersion(song, note) {
   const meta = versionMeta(song, note);
   await state.store.putVersion(song.id, { ...meta, data: snapshotOf(song) });
   song.versions.unshift(meta);
-  const dropped = song.versions.slice(MAX_VERSIONS);
-  song.versions = song.versions.slice(0, MAX_VERSIONS);
+  const max = state.store.maxVersions || MAX_VERSIONS;
+  const dropped = song.versions.slice(max);
+  song.versions = song.versions.slice(0, max);
   dropped.forEach((v) => state.store.removeVersion(song.id, v.id).catch(() => {}));
 }
 
@@ -232,7 +265,7 @@ export async function saveVersion(note) {
   } catch {
     return false;
   }
-  mutate(() => {});
+  mutateSong(song.id, () => {});
   return true;
 }
 
@@ -243,11 +276,13 @@ export function loadVersion(versionId) {
 
 export async function restoreVersion(versionId) {
   const song = current();
-  const v = await loadVersion(versionId);
+  if (!song) return false;
+  const v = await state.store.getVersion(song.id, versionId).catch(() => null);
   if (!v?.data) return false;
+  // 복원 직전 상태를 먼저 남긴다. 이게 실패하면 복원하지 않는다 (덮어쓰면 되돌릴 수 없음).
   await storeVersion(song, '복원 전 자동 저장');
   const { id, createdAt, versions, ...data } = JSON.parse(JSON.stringify(v.data));
-  mutate((s) => { Object.assign(s, data); });
+  mutateSong(song.id, (s) => { Object.assign(s, data); });
   return true;
 }
 
@@ -270,4 +305,12 @@ async function migrateVersions(song) {
     total: data ? data.sections.length : meta.total,
   }));
   return true;
+}
+
+// 탭을 닫거나 다른 탭으로 갈 때 기다리지 않고 바로 저장한다. 저장 대기 중 닫으면 브라우저가 경고한다.
+if (typeof window !== 'undefined') {
+  const flushNow = () => { if (pending.size && state.store) { clearTimeout(saveTimer); flush(); } };
+  window.addEventListener('pagehide', flushNow);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushNow(); });
+  window.addEventListener('beforeunload', (e) => { if (pending.size) { flushNow(); e.preventDefault(); } });
 }

@@ -1,6 +1,6 @@
 // 스타일 탭: Suno 스타일 프롬프트 재료 입력 + AI 제안.
 import { h, field } from '../dom.js';
-import { mutate } from '../state.js';
+import { mutate, mutateSong } from '../state.js';
 import { GENRES, SUNO_LIMITS } from '../constants.js';
 import { buildStyle } from '../suno.js';
 import { suggestStyle } from '../ai.js';
@@ -40,7 +40,7 @@ export function renderStyle(song) {
           busy ? h('button', { type: 'button', class: 'btn ghost', onclick: stopJob }, '중지') : null,
           h('button', { type: 'button', class: 'btn primary', disabled: busy, onclick: () => runJob('스타일 제안 중', async (signal) => {
             const res = await suggestStyle(song, { signal });
-            mutate((s) => {
+            mutateSong(song.id, (s) => {
               ['genre', 'subgenre', 'key', 'vocals', 'instruments', 'production', 'extra', 'exclude'].forEach((k) => {
                 if (typeof res[k] === 'string' && res[k].trim()) s.style[k] = res[k].trim();
               });
