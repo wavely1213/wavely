@@ -100,6 +100,7 @@ export function scheduleFor(album, today = new Date()) {
 // ---------- 발매 전 점검표 ----------
 // masters: { [songId]: {sampleRate, bits, lufs, peak, name} } (화면 메모리), coverInfo: {width, height} | null
 const ISRC = /^[A-Z]{2}[A-Z0-9]{3}\d{7}$/;
+export const ALBUM_LOUDNESS_GAP = 3; // LU. 이보다 크게 차이 나면 경고
 
 export function releaseChecklist(album, songs, { masters = {}, coverInfo = null, today = new Date() } = {}) {
   const items = [];
@@ -141,6 +142,16 @@ export function releaseChecklist(album, songs, { masters = {}, coverInfo = null,
       if (Number.isFinite(m.lufs) && (m.lufs < -18 || m.lufs > -6)) add('warn', `${n}: 음량 ${m.lufs.toFixed(1)} LUFS — 일반적인 범위(-18~-6)를 벗어났어요.`, { tab: 'tracks' });
     }
   });
+
+  // 앨범으로 이어 들을 때 곡마다 크기가 달라지지 않게 (스트리밍 앨범 재생은 곡 사이 음량 차이를 그대로 둔다)
+  const loud = tracks.map((t, i) => ({ i, song: songs.find((s) => s.id === t.songId), lufs: masters[t.songId]?.lufs })).filter((x) => Number.isFinite(x.lufs));
+  if (loud.length > 1) {
+    const hi = loud.reduce((a, b) => (b.lufs > a.lufs ? b : a));
+    const lo = loud.reduce((a, b) => (b.lufs < a.lufs ? b : a));
+    const gap = hi.lufs - lo.lufs;
+    const name = (x) => `${x.i + 1}번 「${x.song.title.replace(/^예시:\s*/, '')}」`;
+    if (gap > ALBUM_LOUDNESS_GAP) add('warn', `곡마다 음량 차이가 ${gap.toFixed(1)} LU예요 (가장 큼 ${name(hi)} ${hi.lufs.toFixed(1)}, 가장 작음 ${name(lo)} ${lo.lufs.toFixed(1)} LUFS). 이어 들으면 크기가 튀어요 — 마스터링 탭에서 같은 목표 음량으로 맞추세요. 발라드를 일부러 작게 했다면 무시해도 돼요.`, { song: lo.song.id, tab: 'master' });
+  }
 
   if (!coverInfo) add('error', '커버 이미지를 만들거나 넣어 주세요.', { tab: 'cover' });
   else {

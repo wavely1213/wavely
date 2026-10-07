@@ -48,9 +48,10 @@ export const GENRES = [
   'synth-pop', 'UK garage', 'Jersey club', 'Afrobeats', 'house', 'pop rock', 'moombahton',
 ];
 
-// Suno 입력 한도 (v4.5 이상 Custom 모드 기준)
+// Suno 입력 한도 (v4.5 이상 Custom 모드 기준). 넘친 글자는 Suno가 경고 없이 자른다. V4 이하 가사 한도는 lyricsOld.
 export const SUNO_LIMITS = {
   lyrics: 5000,
+  lyricsOld: 3000,
   style: 1000,
   title: 80,
 };

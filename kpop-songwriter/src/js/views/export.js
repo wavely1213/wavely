@@ -51,7 +51,8 @@ export function renderExport(song) {
         h('div', { class: 'row' },
           limit ? h('span', { class: `mono muted${over ? ' over' : ''}` }, `${text.length} / ${limit}자`) : null,
           h('button', { type: 'button', class: 'btn primary', onclick: () => { copyText(ta.value, ta); markSuno(song.id); } }, '복사'))),
-      over ? h('p', { class: 'warn' }, '한도를 넘었어요. Suno가 뒷부분을 자를 수 있어요.') : null,
+      over ? h('p', { class: 'warn' }, '한도를 넘었어요. Suno가 뒷부분을 경고 없이 자를 수 있어요.') : null,
+      !over && id === 'out-lyrics' && text.length > SUNO_LIMITS.lyricsOld ? h('p', { class: 'muted small' }, `V4 이하 모델을 쓸 거라면 가사는 ${SUNO_LIMITS.lyricsOld.toLocaleString()}자까지예요 (V4.5 이후는 ${limit.toLocaleString()}자).`) : null,
       ta);
   };
 

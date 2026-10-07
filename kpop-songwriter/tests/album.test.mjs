@@ -39,6 +39,16 @@ album.tracks = [{ ...newTrack(song.id), isTitle: true, lyricists: '물결', comp
 const masters = { [song.id]: { name: 'a.wav', sampleRate: 44100, bits: 24, lufs: -14, peak: -1, duration: 200 } };
 check = releaseChecklist(album, [song], { masters, coverInfo: { width: 3000, height: 3000 }, today });
 assert.deepEqual(errs(check), []);
+// 트랙 간 음량 차이: 3 LU 넘으면 작은 곡 마스터링 탭으로 안내
+const song2 = { ...normalizeMusic(exampleSong()), id: 'song-2', title: '두 번째' };
+const two = { ...album, tracks: [...album.tracks, { ...newTrack('song-2'), lyricists: '물결', composers: '물결' }] };
+const gapMasters = { ...masters, 'song-2': { ...masters[song.id], lufs: -18.5 } };
+let gapWarn = releaseChecklist(two, [song, song2], { masters: gapMasters, coverInfo: { width: 3000, height: 3000 }, today }).find((i) => i.text.includes('음량 차이'));
+assert.ok(gapWarn && gapWarn.level === 'warn' && gapWarn.text.includes('4.5 LU') && gapWarn.text.includes('2번 「두 번째」'));
+assert.deepEqual(gapWarn.go, { song: 'song-2', tab: 'master' });
+gapMasters['song-2'].lufs = -15.5;
+gapWarn = releaseChecklist(two, [song, song2], { masters: gapMasters, coverInfo: { width: 3000, height: 3000 }, today }).find((i) => i.text.includes('음량 차이'));
+assert.equal(gapWarn, undefined, '1.5 LU 차이는 괜찮음');
 // 나쁜 마스터: mp3, 22kHz, 피크 0 → 오류·경고
 check = releaseChecklist(album, [song], { masters: { [song.id]: { name: 'a.mp3', sampleRate: 22050, bits: null, lufs: -5, peak: 0.2 } }, coverInfo: { width: 1000, height: 800 }, today });
 assert.ok(errs(check).some((t) => t.includes('WAV')));
