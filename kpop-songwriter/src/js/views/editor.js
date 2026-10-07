@@ -1,11 +1,15 @@
 // 구조·가사 탭: 섹션 편집, 파트 분배, AI 작사, 라임·음절 표시, 훅 추천, AI 검토.
-import { h } from '../dom.js';
+import { h, uid } from '../dom.js';
 import { mutate } from '../state.js';
 import { SECTION_TYPES, TEMPLATES } from '../constants.js';
 import { sectionLabels, makeSection, sectionsFromTemplate, autoDistribute, lineShare } from '../structure.js';
 import { analyzeSection, languageRatio } from '../lyrictools.js';
 import { writeLyrics, suggestHooks, reviewLyrics } from '../ai.js';
 import { job, isBusy, runJob, stopJob } from '../aijob.js';
+import { feedbackBar, trackEdit } from '../learn/feedback.js';
+
+// AI가 마지막으로 쓴 섹션 가사 (취향 학습용, 저장하지 않음): sectionId → { text, gen }
+const aiOrigin = {};
 
 // 곡별 화면 메모 (저장하지 않음)
 const memo = {};
@@ -77,7 +81,10 @@ function applyLyrics(out) {
   mutate((s) => {
     out.forEach(({ id, text }) => {
       const sec = s.sections.find((x) => x.id === id);
-      if (sec) sec.text = text;
+      if (sec) {
+        sec.text = text;
+        aiOrigin[id] = { text, gen: uid() };
+      }
     });
   });
 }
@@ -116,6 +123,8 @@ function renderSection(song, s, index, label) {
       e.target.rows = Math.max(3, rows.length + 1);
       fillGutter(rows);
       mutate((x) => { x.sections.find((y) => y.id === s.id).text = e.target.value; }, 'quiet');
+      const origin = aiOrigin[s.id];
+      if (origin) trackEdit({ kind: 'lyrics', ref: origin.gen, before: origin.text, after: e.target.value, context: { section: s.type, song: song.title } });
     },
     onscroll: (e) => { gutter.scrollTop = e.target.scrollTop; },
   });
@@ -156,6 +165,7 @@ function renderSection(song, s, index, label) {
         const out = await writeLyrics(song, { targetIds: [s.id], request: memoOf(song.id).request, signal, onProgress: (n) => progress(`${n}자`) });
         applyLyrics(out);
       }) }, s.text.trim() ? 'AI로 다시 쓰기' : 'AI로 쓰기')),
+    aiOrigin[s.id] ? feedbackBar({ kind: 'lyrics', ref: aiOrigin[s.id].gen, text: aiOrigin[s.id].text, context: { section: s.type, song: song.title }, label: 'AI가 쓴 가사예요. 고치면 고친 방향도 배워요' }) : null,
   );
 }
 
@@ -171,7 +181,8 @@ function renderHooks(song, m) {
       ? h('ul', { class: 'hooks' }, m.hooks.map((x) => h('li', null,
         h('strong', null, String(x.hook)),
         h('span', { class: 'muted' }, ` ${x.meaning || ''}`),
-        h('p', null, String(x.use || '')))))
+        h('p', null, String(x.use || '')),
+        feedbackBar({ kind: 'hook', ref: `hook:${song.id}:${x.hook}`, text: `${x.hook} (${x.meaning || ''})`, label: '' }))))
       : h('p', { class: 'empty' }, '컨셉과 키워드를 보고 코러스에 쓸 영어 훅을 추천해요.'),
   );
 }

@@ -6,6 +6,7 @@ import { ARRANGE_INSTRUMENTS } from './music/instruments.js';
 import { DRUM_PATTERNS, BASS_PATTERNS } from './music/patterns.js';
 import { describeAnalysis } from './music/analyze.js';
 import { countSyllables } from './lyrictools.js';
+import { tasteBlock } from './learn/context.js';
 
 function referenceBrief(song) {
   return song.references.filter((r) => r.use).map((r) => {
@@ -50,6 +51,7 @@ export async function arrangeSong(song, { targetIds, request, signal }) {
     `곡 컨셉: ${JSON.stringify(conceptBrief(song))}`,
     `현재 설정: BPM ${m.bpm}, 키 ${keyName(m.root, m.mode)}`,
     `레퍼런스(반영할 것): ${JSON.stringify(referenceBrief(song))}`,
+    tasteBlock('arrange'),
     request ? `작곡가 요청: ${request}` : '',
     `섹션: ${JSON.stringify(song.sections.map((s, i) => ({ id: s.id, 이름: labels[i], 가사줄수: s.text.split('\n').filter((l) => l.trim()).length, 현재: m.sections[s.id] })))}`,
     `편곡할 섹션 id: ${JSON.stringify(ids)}${whole ? ' (곡 전체이므로 bpm·root·mode도 정한다)' : ' (bpm·root·mode는 바꾸지 말고 생략)'}`,
@@ -110,6 +112,7 @@ export async function writeMelody(song, { targetIds, request, signal }) {
     '강박(마디의 0, 4, 8, 12칸)에는 코드톤을 우선 쓴다. 줄 끝 음은 길게(4칸 이상) 끌어 숨 쉴 자리를 둔다. 줄은 대략 1~2마디씩 차지한다.',
     '코러스는 음역을 높이고 반복되는 훅 리듬을 만든다. 벌스는 낮고 말하듯. 랩 섹션은 음 변화 적게 16분 리듬 위주.',
     '가사가 없는 섹션이면 "우-", "오-" 같은 허밍 멜로디를 짧게 만든다. 실존 곡 멜로디를 베끼지 않는다.',
+    tasteBlock('melody'),
     request ? `작곡가 요청: ${request}` : '',
     `곡 분위기: ${JSON.stringify(conceptBrief(song))}`,
     `섹션: ${JSON.stringify(info)}`,

@@ -3,6 +3,7 @@
 
 const LOCAL_KEY = 'kpop-writer-songs';
 const ALBUM_KEY = 'kpop-writer-albums';
+const TASTE_KEY = 'kpop-writer-taste';
 
 function readKey(key) {
   try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch { return []; }
@@ -37,6 +38,8 @@ function localStore() {
       try { localStorage.removeItem(`${LOCAL_KEY}-v-${songId}-${vid}`); } catch { /* 무시 */ }
     },
     async listAlbums() { return readKey(ALBUM_KEY); },
+    async loadTaste() { try { return JSON.parse(localStorage.getItem(TASTE_KEY) || 'null'); } catch { return null; } },
+    async saveTaste(t) { try { localStorage.setItem(TASTE_KEY, JSON.stringify(t)); } catch { /* 저장 불가 */ } },
     async saveAlbum(album) { writeKey(ALBUM_KEY, [...readKey(ALBUM_KEY).filter((a) => a.id !== album.id), album]); },
     async removeAlbum(id) { writeKey(ALBUM_KEY, readKey(ALBUM_KEY).filter((a) => a.id !== id)); },
   };
@@ -53,11 +56,12 @@ async function accountStore() {
   if (!id) return null;
   const col = db.collection(`data/users/${id}`);
   const albums = col.doc('_albums').collection('items');
+  const tasteDoc = col.doc('_taste').collection('items').doc('taste');
   return {
     kind: 'account',
     async list() {
       const snap = await col.get();
-      return snap.docs.map((d) => d.data()).filter(Boolean);
+      return snap.docs.filter((d) => !d.id.startsWith('_')).map((d) => d.data()).filter(Boolean);
     },
     async save(song) { await col.doc(song.id).set(JSON.parse(JSON.stringify(song))); },
     async remove(songId) { await col.doc(songId).delete(); },
@@ -75,6 +79,9 @@ async function accountStore() {
     },
     async saveAlbum(album) { await albums.doc(album.id).set(JSON.parse(JSON.stringify(album))); },
     async removeAlbum(id) { await albums.doc(id).delete(); },
+    // 취향 프로필·기록은 문서 하나 (기록은 최근 150개로 제한)
+    async loadTaste() { const s = await tasteDoc.get(); return s.exists ? s.data() : null; },
+    async saveTaste(t) { await tasteDoc.set(JSON.parse(JSON.stringify(t))); },
   };
 }
 

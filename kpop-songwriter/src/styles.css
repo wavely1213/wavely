@@ -234,11 +234,11 @@ select.chord { width: auto; max-width: 100%; font-family: var(--font-mono); font
 }
 .shade { position: absolute; background: color-mix(in srgb, var(--accent) 7%, transparent); pointer-events: none; }
 .shade.root { background: color-mix(in srgb, var(--accent) 13%, transparent); }
-.note {
+.pr-note {
   position: absolute; border: 0; border-radius: 4px; background: var(--ink); color: var(--surface);
   font-size: 11px; padding: 0 4px; text-align: left; overflow: hidden; white-space: nowrap; cursor: pointer;
 }
-.note.sel { background: var(--accent); color: var(--on-accent); outline: 2px solid var(--ink); }
+.pr-note.sel { background: var(--accent); color: var(--on-accent); outline: 2px solid var(--ink); }
 .playhead { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--accent); pointer-events: none; }
 .note-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 10px; background: var(--accent-soft); border-radius: 8px; }
 .syl-input { width: 90px !important; }
@@ -303,6 +303,13 @@ input[type=radio] { accent-color: var(--accent); }
 .checklist .lv-warn .lv { color: var(--warn); }
 .checklist .lv-info .lv { color: var(--muted); }
 .ck-text { overflow-wrap: anywhere; }
+
+/* 취향 학습 */
+.feedback { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 8px 10px; border-radius: 8px; background: var(--paper); }
+.fb { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 3px 12px; font-size: 13px; cursor: pointer; }
+.fb.on { border-color: var(--accent); background: var(--accent-soft); font-weight: 700; }
+.feedback .chips { flex-basis: 100%; }
+.hooks .feedback { margin-top: 6px; background: none; padding: 0; }
 
 @media (max-width: 820px) {
   #app { grid-template-columns: minmax(0, 1fr); gap: 16px; }

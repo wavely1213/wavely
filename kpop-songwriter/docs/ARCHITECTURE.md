@@ -61,6 +61,8 @@
 | 커버 | album/cover.js | 3000×3000 템플릿 캔버스 → JPG |
 | 발매 준비 | album/release.js, album/session.js | 마스터 규격 점검, 가사지·크레딧, 제출 zip, AI 홍보 문구 |
 | 앨범 화면 | views/album/* | 수록곡·정보·커버·일정·홍보·제출 탭 |
+| 취향 학습 | learn/taste.js, learn/context.js | 반응 기록·통계·프롬프트 블록·JSONL, AI 모듈이 취향을 읽는 연결점 |
+| 반응 UI | learn/feedback.js, learn/summarize.js, views/taste.js | 👍/👎 막대, 고친 내용 추적, AI 취향 정리, 내 취향 화면 |
 | 플랫폼 | platform/download.js | 파일 저장 (아티팩트 downloads / 웹 일반 다운로드) |
 | AI 작사 | ai.js | 가사·스타일·훅·검토 |
 | AI 작곡 | ai-music.js | 편곡·멜로디 (응답을 선택지 범위로 검사) |

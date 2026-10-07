@@ -1,8 +1,9 @@
 // 진입점: 저장소 열기 → 상태 초기화 → 화면 그리기.
 import { h, formatTime } from './dom.js';
 import { openStore } from './store.js';
-import { init, subscribe, getState, current, currentAlbum, newSong, selectSong, setTab, deleteSong, refresh, newAlbum, selectAlbum } from './state.js';
+import { init, subscribe, getState, current, currentAlbum, newSong, selectSong, setTab, deleteSong, refresh, newAlbum, selectAlbum, showTaste } from './state.js';
 import { renderAlbum } from './views/album/index.js';
+import { renderTaste } from './views/taste.js';
 import { getSample } from './ai.js';
 import { renderConcept } from './views/concept.js';
 import { renderEditor } from './views/editor.js';
@@ -64,6 +65,10 @@ function renderSidebar() {
             h('span', { class: 'song-meta mono' }, `${a.tracks.length}곡 · ${a.releaseDate || '발매일 미정'}`)));
       }))
       : h('p', { class: 'muted small' }, '곡을 묶어 발매 준비(메타데이터·커버·제출 패키지·일정)를 해요.'),
+    h('div', { class: 'side-head' }, h('span', { class: 'field-label' }, '학습')),
+    h('button', { type: 'button', class: `song-item${st.mode === 'taste' ? ' active' : ''}`, onclick: () => { stopPlayer(); showTaste(); } },
+      h('span', { class: 'song-title' }, '내 취향'),
+      h('span', { class: 'song-meta mono' }, `반응 ${st.taste.log.length}개${st.taste.enabled ? '' : ' · 꺼짐'}`)),
   );
 }
 
@@ -116,6 +121,11 @@ function draw() {
   const song = current();
   if (!song) return;
   const y = window.scrollY;
+  if (st.mode === 'taste') {
+    root.replaceChildren(renderSidebar(), renderTaste(saveLabel));
+    window.scrollTo(0, y);
+    return;
+  }
   const album = st.mode === 'album' ? currentAlbum() : null;
   if (album) {
     root.replaceChildren(renderSidebar(), renderAlbum(album, saveLabel));

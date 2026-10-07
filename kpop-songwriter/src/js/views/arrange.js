@@ -9,6 +9,8 @@ import { QUICK_TWEAKS } from '../music/arrangement.js';
 import { arrangeSong } from '../ai-music.js';
 import { isBusy, runJob, stopJob, job } from '../aijob.js';
 import { playBar, playButton } from './playbar.js';
+import { uid } from '../dom.js';
+import { feedbackBar } from '../learn/feedback.js';
 
 const memo = {};
 const memoOf = (id) => (memo[id] = memo[id] || { request: '', summary: '', grids: {} });
@@ -55,11 +57,13 @@ function renderGlobal(song, m) {
         const res = await arrangeSong(song, { request: m.request, signal });
         applyArrangement(res);
         m.summary = res.summary;
+        m.gen = uid();
       }) }, 'AI가 곡 전체 편곡하기'),
       busy ? h('button', { type: 'button', class: 'btn ghost', onclick: stopJob }, '중지') : null,
       busy ? h('span', { class: 'status' }, h('span', { class: 'dot' }), job.label) : null,
       h('span', { class: 'muted push' }, refs ? `레퍼런스 ${refs}곡 반영` : '레퍼런스 탭에서 참고 곡을 넣으면 반영돼요')),
     m.summary ? h('p', { class: 'note' }, m.summary) : null,
+    m.gen ? feedbackBar({ kind: 'arrange', ref: m.gen, text: m.summary, context: arrangeContext(song), label: 'AI 편곡이 마음에 드나요? (들어 보고 눌러 주세요)' }) : null,
     h('div', { class: 'row' },
       h('button', { type: 'button', class: 'btn', onclick: () => mutate((s) => applyToStyle(s)) }, '편곡을 Suno 스타일에 반영'),
       h('span', { class: 'muted' }, `현재 ${keyName(mu.root, mu.mode)} · 스타일 탭의 BPM·키·악기가 바뀌어요`)),
@@ -77,6 +81,12 @@ function applyArrangement(res) {
       Object.assign(sm, { bars: x.bars, chords: x.chords, seventh: x.seventh, energy: x.energy, instruments: x.instruments, drum: x.drum, bass: x.bass, drumGrid: null });
     });
   });
+}
+
+function arrangeContext(song) {
+  const inst = new Set();
+  Object.values(song.music.sections).forEach((sm) => sm.instruments.forEach((i) => inst.add(i)));
+  return { bpm: song.music.bpm, key: keyName(song.music.root, song.music.mode), instruments: [...inst], song: song.title };
 }
 
 export function applyToStyle(s) {
@@ -155,6 +165,7 @@ function renderSectionRow(song, s, label, m) {
         const res = await arrangeSong(song, { targetIds: [s.id], request: m.request, signal });
         applyArrangement(res);
         m.summary = res.summary;
+        m.gen = uid();
       }) }, 'AI로 이 부분 다시')),
   );
 }

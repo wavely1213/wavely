@@ -13,6 +13,7 @@
 - 단일 실행: `npm run test:unit` / `test:engine` / `test:ui` (ui는 먼저 `npm run build`)
 - 테스트 파일 위치·네이밍: `tests/*.test.{mjs,cjs}`, 산출물은 `tests/.tmp/` (커밋 안 함)
 - 마스터링 테스트(`tests/master.test.cjs`)는 로컬 웹서버로 샘플을 실제로 불러오고, 마스터 결과를 ffmpeg ebur128로 재측정한다 (±0.5 LU, ≤ -0.8 dBTP).
+- AI 흐름 테스트(`tests/ai-flow.test.cjs`)는 `window.claude`에 가짜 Claude를 넣어 작사·훅·편곡·멜로디·스타일·홍보·취향 정리 응답 반영과 프롬프트 내용을 확인한다. 실제 Claude 응답 품질은 claude.ai에서 수동 확인.
 - 엔진 테스트는 합성 레퍼런스(128 BPM, A minor)로 분석 정확도를, 렌더 결과로 무음·NaN·클리핑을 확인한다.
 - AI 호출·계정 저장·다운로드 창은 claude.ai 안에서만 동작해 자동 테스트 불가 — 발행 후 수동 확인 대상.
 

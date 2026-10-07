@@ -8,13 +8,15 @@ import { countSyllables } from '../lyrictools.js';
 import { writeMelody } from '../ai-music.js';
 import { isBusy, runJob, stopJob, job } from '../aijob.js';
 import { playButton } from './playbar.js';
+import { uid } from '../dom.js';
+import { feedbackBar } from '../learn/feedback.js';
 
 const TOP = 10;
 const BOTTOM = -3;
 const CELL_W = 22;
 const CELL_H = 26;
 
-const ui = { sectionId: '', selected: -1, confirmClear: false, request: '', scroll: 0 };
+const ui = { sectionId: '', selected: -1, confirmClear: false, request: '', scroll: 0, gen: {} };
 
 function midiName(n) { return `${NOTE_NAMES[n % 12]}${Math.floor(n / 12) - 1}`; }
 
@@ -63,6 +65,7 @@ export function renderMelody(song) {
           playButton(song, { onlyIds: [s.id], label, text: '▶ 이 부분 듣기', cls: 'btn small primary' }))),
       s.text.trim() ? h('pre', { class: 'lyric-ref' }, s.text.trim()) : null,
       renderRoll(song, s, sm),
+      ui.gen[s.id] ? feedbackBar({ kind: 'melody', ref: ui.gen[s.id], text: `${label}: ${sm.melody.map((n) => n.syl).join('')}`.slice(0, 200), context: { section: s.type, song: song.title, range: sm.melody.length ? [Math.min(...sm.melody.map((n) => n.d)), Math.max(...sm.melody.map((n) => n.d))] : null }, label: 'AI 멜로디가 마음에 드나요?' }) : null,
       renderNoteTools(song, s, sm),
       h('div', { class: 'row' },
         h('button', { type: 'button', class: 'btn small', onclick: () => shiftAll(s.id, 1) }, '전체 한 음 올리기'),
@@ -75,6 +78,7 @@ export function renderMelody(song) {
 }
 
 function applyMelody(out) {
+  out.forEach(({ id }) => { ui.gen[id] = uid(); });
   mutate((x) => { out.forEach(({ id, notes }) => { if (x.music.sections[id]) x.music.sections[id].melody = notes; }); });
 }
 
@@ -98,7 +102,7 @@ function renderRoll(song, s, sm) {
     }
   }
   const notes = sm.melody.map((n, i) => h('button', {
-    type: 'button', class: `note${i === ui.selected ? ' sel' : ''}`,
+    type: 'button', class: `pr-note${i === ui.selected ? ' sel' : ''}`,
     style: `left:${n.s * CELL_W}px;top:${(TOP - n.d) * CELL_H + 2}px;width:${n.l * CELL_W - 2}px;height:${CELL_H - 4}px`,
     'aria-label': `${n.syl || '음표'} ${midiName(degreeToMidi(mu.root, mu.mode, n.d))}`,
     onclick: (e) => { e.stopPropagation(); ui.selected = i; refresh(); },

@@ -5,6 +5,8 @@ import { MAX_VERSIONS } from './constants.js';
 import { exampleSong } from './example.js';
 import { normalizeMusic } from './music/arrangement.js';
 import { newAlbum as makeAlbum, normalizeAlbum } from './album/model.js';
+import { emptyTaste, normalizeTaste } from './learn/taste.js';
+import { setTasteGetter } from './learn/context.js';
 
 const state = {
   store: null,
@@ -14,7 +16,8 @@ const state = {
   albums: [],
   albumId: null,
   albumTab: 'tracks',
-  mode: 'song', // song | album
+  mode: 'song', // song | album | taste
+  taste: emptyTaste(),
   saveStatus: 'saved', // saved | pending | error
 };
 const listeners = new Set();
@@ -40,6 +43,8 @@ export async function init(store) {
   state.songs = songs;
   state.currentId = songs[0].id;
   try { state.albums = (await store.listAlbums()).map(normalizeAlbum); } catch { state.albums = []; }
+  try { state.taste = normalizeTaste(await store.loadTaste()); } catch { state.taste = emptyTaste(); }
+  setTasteGetter(() => state.taste);
   state.albums.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
   emit('all');
 }
@@ -90,6 +95,20 @@ export function selectAlbum(id) {
   state.albumId = id;
   state.mode = 'album';
   emit('all');
+}
+
+// ---------- 취향 ----------
+const TASTE_ID = '_taste';
+
+export function showTaste() {
+  state.mode = 'taste';
+  emit('all');
+}
+
+export function mutateTaste(fn, scope = 'all') {
+  fn(state.taste);
+  schedule(TASTE_ID);
+  emit(scope);
 }
 
 export function setAlbumTab(tab) {
@@ -156,6 +175,7 @@ async function flush() {
       if (song) await state.store.save(song);
       const album = state.albums.find((a) => a.id === id);
       if (album) await state.store.saveAlbum(album);
+      if (id === TASTE_ID) await state.store.saveTaste(state.taste);
     }
     state.saveStatus = pending.size ? 'pending' : 'saved';
   } catch {

@@ -33,10 +33,10 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     await p.click('text=■ 정지');
     // 멜로디: 빈 칸 클릭 → 음표 추가 → 선택 후 높게
     await p.click('.tab:text-is("멜로디")');
-    const before = await p.locator('.note').count();
+    const before = await p.locator('.pr-note').count();
     const g = await p.$('.roll-grid'); await g.scrollIntoViewIfNeeded(); const bb = await g.boundingBox();
     await p.mouse.click(bb.x + 22 * 5 + 5, bb.y + 26 * 3 + 5);
-    const after = await p.locator('.note').count();
+    const after = await p.locator('.pr-note').count();
     await p.click('text=▲ 높게');
     // 사운드: 음색 바꾸기 + 미리듣기
     await p.click('.tab:text-is("사운드")');

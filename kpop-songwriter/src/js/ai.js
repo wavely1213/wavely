@@ -1,6 +1,7 @@
 // Claude 호출 (sample capability: 보는 사람의 Claude 사용량을 씀). API 키 없음.
 import { sectionLabels } from './structure.js';
 import { GROUP_TYPES } from './constants.js';
+import { tasteBlock } from './learn/context.js';
 
 let samplePromise;
 export function getSample() {
@@ -65,6 +66,7 @@ export async function writeLyrics(song, { targetIds, request, signal, onProgress
   const prompt = [
     '너는 K-pop 전문 작사가다. 아래 곡 정보를 보고 지정된 섹션의 가사를 쓴다.',
     LYRIC_RULES.replace('{EN}', String(100 - song.concept.koRatio)),
+    tasteBlock('lyrics'),
     request ? `작곡가의 추가 요청: ${request}` : '',
     `곡 정보(JSON):\n${JSON.stringify(brief, null, 1)}`,
     `가사를 쓸 섹션 id: ${JSON.stringify(ids)}`,
@@ -88,9 +90,10 @@ export async function suggestStyle(song, { signal }) {
   const prompt = [
     '너는 K-pop 프로듀서다. 아래 곡 컨셉에 맞는 Suno 스타일 프롬프트 재료를 영어로 제안한다.',
     '실존 아티스트·곡 이름은 쓰지 않는다 (Suno가 거부함). 각 값은 짧은 영어 구문.',
+    tasteBlock('style'),
     `곡 정보(JSON):\n${JSON.stringify(songBrief(song), null, 1)}`,
     '출력은 JSON 하나만: {"genre":"","subgenre":"","bpm":120,"key":"","vocals":"","instruments":"","production":"","extra":"","exclude":"","why":"한국어로 한두 문장"}',
-  ].join('\n\n');
+  ].filter(Boolean).join('\n\n');
   return sample.json(prompt, { signal, cache: false });
 }
 
@@ -100,9 +103,10 @@ export async function suggestHooks(song, { signal }) {
   const prompt = [
     '너는 K-pop 탑라이너다. 아래 곡에 쓸 영어 훅 후보 6개를 제안한다.',
     '조건: 2~6단어, 발음이 쉽고 반복하기 좋을 것, 컨셉·키워드와 연결될 것, 기존 히트곡 훅과 겹치지 않을 것.',
+    tasteBlock('hook'),
     `곡 정보(JSON):\n${JSON.stringify(songBrief(song), null, 1)}`,
     '출력은 JSON 배열 하나만: [{"hook":"영어 훅","meaning":"한국어 뜻","use":"어디에 어떻게 쓰면 좋은지 한 문장"}]',
-  ].join('\n\n');
+  ].filter(Boolean).join('\n\n');
   const res = await sample.json(prompt, { signal, cache: false });
   return Array.isArray(res) ? res.filter((r) => r && r.hook) : [];
 }
@@ -114,7 +118,8 @@ export async function reviewLyrics(song, { signal, onText }) {
     '너는 K-pop A&R 디렉터다. 아래 가사를 검토하고 한국어로 짧게 피드백한다.',
     '항목: 1) 훅의 중독성 2) 파트 분배 균형 3) 라임·음절 흐름이 어색한 줄(줄을 인용) 4) 컨셉과 맞지 않는 표현 5) 바로 고칠 수 있는 제안 3개.',
     '각 항목 2~3줄, 마크다운 없이 번호와 줄바꿈만.',
+    tasteBlock('lyrics'),
     `곡 정보(JSON):\n${JSON.stringify(songBrief(song), null, 1)}`,
-  ].join('\n\n');
+  ].filter(Boolean).join('\n\n');
   return sample(prompt, { signal, cache: false, onText });
 }
