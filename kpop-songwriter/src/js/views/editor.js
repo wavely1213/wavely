@@ -5,6 +5,7 @@ import { SECTION_TYPES, TEMPLATES } from '../constants.js';
 import { sectionLabels, makeSection, sectionsFromTemplate, autoDistribute, lineShare, syllableShare } from '../structure.js';
 import { analyzeSection, languageRatio } from '../lyrictools.js';
 import { lyricFit } from '../lyricfit.js';
+import { matchFirst, matchNote } from '../lyricmatch.js';
 import { writeLyrics, suggestHooks, reviewLyrics } from '../ai.js';
 import { job, isBusy, runJob, stopJob } from '../aijob.js';
 import { feedbackBar, trackEdit, lineLikes } from '../learn/feedback.js';
@@ -174,6 +175,16 @@ function renderSection(song, s, index, label, result) {
     if (fit) { fitPill.textContent = fit.label; fitPill.title = fit.tip; fitTip.textContent = fit.tip; }
   };
   showFit(fitOf(s.text));
+  // 같은 종류 첫 섹션(1절)과 줄 수·음절 수 비교 (다를 때만 보임)
+  const allLabels = sectionLabels(song.sections);
+  const matchTip = h('p', { id: `match-${s.id}`, class: 'muted small match-tip' });
+  const showMatch = (text) => {
+    const m = matchFirst(song.sections, index, text);
+    const note = m ? matchNote(m, allLabels[m.ref]) : '';
+    matchTip.hidden = !note;
+    matchTip.textContent = note;
+  };
+  showMatch(s.text);
   const ta = h('textarea', {
     id: `lyr-${s.id}`, class: 'lyrics', wrap: 'off', spellcheck: 'false',
     rows: String(Math.max(3, analysis.length + 1)),
@@ -185,6 +196,7 @@ function renderSection(song, s, index, label, result) {
       e.target.rows = Math.max(3, rows.length + 1);
       fillGutter(rows);
       showFit(fitOf(e.target.value));
+      showMatch(e.target.value);
       mutate((x) => { x.sections.find((y) => y.id === s.id).text = e.target.value; }, 'quiet');
       const pill = document.getElementById(`score-${s.id}`);
       const live = pill && scoreSection({ ...s, text: e.target.value });
@@ -238,6 +250,7 @@ function renderSection(song, s, index, label, result) {
     memberChips,
     h('div', { class: 'lyric-box' }, ta, gutter),
     fitTip,
+    matchTip,
     result && result.tips.length && result.score < 90 ? h('ul', { class: 'tips' }, result.tips.map((t) => h('li', null, t))) : null,
     h('div', { class: 'row' },
       h('button', { type: 'button', class: 'btn small', disabled: busy, onclick: () => runJob(`${label} 쓰는 중`, async (signal, progress) => {

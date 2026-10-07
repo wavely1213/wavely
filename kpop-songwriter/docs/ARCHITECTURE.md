@@ -88,6 +88,7 @@
 | 가사 카드 | album/lyriccard.js, views/album/lyriccard.js | 홍보 탭에서 가사 몇 줄 + 흐린 커버 배경으로 1080×1350 PNG |
 | 곡 길이 예상 | music/length.js, views/arrange.js | 섹션 마디 합 × 4박 / BPM, 4분↑·2분↓ 안내 |
 | 한 줄만 바꾸기 | ai-line.js, views/lineswap.js (editor.js) | 한 줄 AI 후보 3개 → 바꾸기(되돌리기 가능), 고른 것·버린 것은 취향 선호 쌍 |
+| 같은 멜로디 맞추기 | lyricmatch.js, views/editor.js | 반복 섹션을 첫 섹션과 줄 수·줄별 음절로 비교, 다를 때만 가사 칸 아래 안내 |
 | 취향 학습 | learn/taste.js, learn/context.js | 반응 기록·통계·프롬프트 블록·JSONL, AI 모듈이 취향을 읽는 연결점 |
 | 반응 UI | learn/feedback.js, learn/summarize.js, views/taste.js, music/melodytext.js | 👍/👎 막대, 줄 단위 ♥, 멜로디 고침 기록, 선호 쌍 내보내기(learn/taste.js preferencePairs), 고친 내용 추적, AI 취향 정리, 내 취향 화면 |
 | 가사 최적화 | optimize/lyricscore.js, optimize/improve.js, optimize/calibrate.js | 섹션·곡 채점과 고칠 점, 오른 것만 반영하는 자동 개선, 내 가사로 줄 길이 기준 보정 |

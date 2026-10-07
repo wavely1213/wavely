@@ -196,3 +196,25 @@ import { lineShare, syllableShare } from '../src/js/structure.js';
   assert.deepEqual(syllableShare(sections, members), { a: 10, b: 8 });
   console.log('part share OK');
 }
+
+// 같은 멜로디 맞추기: 둘째 벌스를 첫 벌스와 줄 수·줄마다 음절(±2)로 비교, 애드립 줄은 빼고, 브릿지 등은 안 봄
+import { matchFirst, matchNote } from '../src/js/lyricmatch.js';
+{
+  const sec = (type, text) => ({ type, text });
+  const sections = [
+    sec('Verse', '가나다라마바\n가나다라마바사아\n(oh)'),
+    sec('Chorus', '훅 훅'),
+    sec('Verse', '가나다라마바\n가나다\n가나다라마\n(yeah)'),
+    sec('Bridge', '하나'),
+    sec('Bridge', '하나 둘 셋 넷 다섯 여섯'),
+  ];
+  const m = matchFirst(sections, 2);
+  assert.equal(m.ref, 0);
+  assert.deepEqual(m.lines, [{ n: 2, have: 3, want: 8 }]);
+  assert.deepEqual([m.countHave, m.countWant], [3, 2]);
+  assert.equal(matchNote(m, 'Verse 1'), 'Verse 1의 멜로디로 부르려면 맞춰 보세요: 줄 수 3줄 (Verse 1 2줄) · 2번째 줄 3음절(8)');
+  assert.equal(matchFirst(sections, 0), null, '첫 벌스는 비교 대상 없음');
+  assert.equal(matchFirst(sections, 4), null, '브릿지는 안 봄');
+  assert.equal(matchNote(matchFirst(sections, 2, '가나다라마바\n가나다라마바사'), 'Verse 1'), '', '±2 안이면 안내 없음');
+  console.log('lyric match OK');
+}
