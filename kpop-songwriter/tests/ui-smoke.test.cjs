@@ -18,6 +18,13 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     const navToggle = await p.locator('.nav-toggle').isVisible();
     const h1Top = await p.$eval('h1', (e) => e.getBoundingClientRect().top);
     global.navOk = (global.navOk ?? true) && (tag === 'phone' ? navToggle && h1Top < 200 : !navToggle);
+    // 처음 온 사람 안내: 예시 곡 위에 보이고, 닫으면 새로고침해도 안 보임
+    const welcome = await p.locator('#welcome').count();
+    await p.click('#welcome-close');
+    const welcomeClosed = await p.locator('#welcome').count();
+    await p.reload();
+    await p.waitForSelector('.tab');
+    global.welcomeOk = (global.welcomeOk ?? true) && welcome === 1 && welcomeClosed === 0 && (await p.locator('#welcome').count()) === 0;
     const tabs = await p.$$eval('.tab', els => els.map(e => e.textContent));
     for (const name of tabs) {
       await p.click(`.tab:text-is("${name}")`);
@@ -335,6 +342,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
   if (!global.diffSame) errs.push('버전 비교 이상');
   if (!global.qcOk) errs.push('소리 점검(QC) 표시 이상');
   if (!global.instOk) errs.push('Inst. 버전 추가 이상');
+  if (!global.welcomeOk) errs.push('처음 안내 카드 이상');
   if (!global.albumNewSongOk) errs.push(`앨범의 새 곡 이상: ${JSON.stringify(global.albumNewSong)}`);
   if (!global.memberImportOk) errs.push(`멤버 불러오기 이상: ${JSON.stringify(global.memberImport)}`);
   if (!global.coverPickOk) errs.push('커버 추천·모양 미리보기 이상');

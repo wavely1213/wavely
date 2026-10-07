@@ -78,25 +78,32 @@ server.listen(0, async () => {
     p.on('pageerror', (e) => errs.push(`storage ${e.message}`));
     await p.goto(`http://localhost:${port}/music/`);
     await p.waitForSelector('.tab');
+    // 처음 안내: 웹은 AI가 없으니 직접 쓰는 안내, "내 첫 곡 만들기"로 새 곡
+    const welcomeNoAi = await p.waitForSelector('#welcome:has-text("AI를 쓸 수 없어요")', { timeout: 10000 }).then(() => true).catch(() => false);
+    await p.click('#welcome-new');
+    const firstSong = await p.waitForSelector('h1:text-is("제목 없는 곡")', { timeout: 5000 }).then(() => true).catch(() => false);
     const warnBefore = await p.locator('#storage-warn').count();
     await p.evaluate(() => localStorage.setItem('fill-0', 'a'.repeat(3_700_000)));
     await p.reload();
     await p.waitForSelector('.tab');
     const warnText = await p.textContent('#storage-warn').catch(() => '');
     await p.evaluate(() => {
-      const chunk = 'a'.repeat(20_000);
-      try { for (let i = 1; i < 200; i++) localStorage.setItem(`fill-${i}`, chunk); } catch { /* 꽉 참 */ }
+      // 큰 조각 → 작은 조각 순서로 빈틈 없이 채운다
+      let i = 1;
+      for (const size of [20_000, 1_000, 50]) {
+        try { for (let k = 0; k < 400; k++) localStorage.setItem(`fill-${i++}`, 'a'.repeat(size)); } catch { /* 이 크기로는 꽉 참 */ }
+      }
     });
     await p.click('.tab:text-is("구조·가사")');
-    await p.locator('textarea.lyrics').first().fill('꽉 찬 저장 공간에서 고친 가사'.repeat(50));
+    await p.locator('textarea.lyrics').first().fill('꽉 찬 저장 공간에서 고친 가사'.repeat(300));
     const fullLabel = await p.waitForFunction(() => /꽉 차서/.test(document.getElementById('save-status')?.textContent || ''), null, { timeout: 10000 }).then(() => true).catch(() => false);
-    out.storage = { warnBefore, warnText: warnText.slice(0, 30), fullLabel, fullWarn: await p.locator('#storage-warn:has-text("100%")').count() };
+    out.storage = { welcomeNoAi, firstSong, warnBefore, warnText: warnText.slice(0, 30), fullLabel, fullWarn: await p.locator('#storage-warn:has-text("100%")').count() };
     await ctx.close();
   }
   console.log(JSON.stringify(out, null, 1));
   const storage = out.storage;
   delete out.storage;
-  if (!(storage.warnBefore === 0 && /약 7\d%/.test(storage.warnText) && storage.fullLabel && storage.fullWarn === 1)) errs.push(`저장 공간 경고 이상: ${JSON.stringify(storage)}`);
+  if (!(storage.welcomeNoAi && storage.firstSong && storage.warnBefore === 0 && /약 7\d%/.test(storage.warnText) && storage.fullLabel && storage.fullWarn === 1)) errs.push(`저장 공간 경고 이상: ${JSON.stringify(storage)}`);
   const pwa = out.pwa;
   delete out.pwa;
   const pwaOk = pwa.start === '/music/' && pwa.scope === '/music/' && pwa.display === 'standalone' && pwa.icons.every((st) => st === 200) && pwa.offlineTabs > 5;

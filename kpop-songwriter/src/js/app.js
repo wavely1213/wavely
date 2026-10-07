@@ -5,6 +5,7 @@ import { init, subscribe, getState, current, currentAlbum, newSong, selectSong, 
 import { undoButtons } from './views/undo-buttons.js';
 import { backupSection, importFile, updateStorageWarn } from './views/backup.js';
 import { songSearch } from './views/song-search.js';
+import { renderWelcome } from './views/welcome.js';
 import { renderAlbum } from './views/album/index.js';
 import { renderTaste } from './views/taste.js';
 import { newSinceSummary, SUMMARY_EVERY } from './learn/taste.js';
@@ -210,7 +211,7 @@ function draw() {
     renderSidebar(),
     h('main', { class: 'main' },
       renderHeader(song),
-      song.example ? null : renderProgress(song),
+      song.example ? renderWelcome(song, { aiAvailable: ui.aiAvailable }) : renderProgress(song),
       ui.aiAvailable ? null : h('p', { class: 'warn card' }, WEB
         ? '웹사이트에서는 AI 기능(작사·편곡·멜로디·홍보 문구)을 아직 쓸 수 없어요. 작곡·편곡·마스터링·앨범 발매 준비는 모두 쓸 수 있고, 작업은 이 브라우저에 저장돼요.'
         : '이 화면에서는 Claude를 부를 수 없어요. claude.ai에서 열면 AI 기능이 켜져요. 나머지 기능은 그대로 쓸 수 있어요.'),
