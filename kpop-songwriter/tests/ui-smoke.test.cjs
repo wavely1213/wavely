@@ -93,6 +93,18 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
       await p.click('text=마스터링 하기');
       await p.waitForSelector('.compare', { timeout: 120000 });
     }
+    // 레퍼런스 음색 맞추기: 오디오 레퍼런스(앱 데모 마스터)를 분석해 두고 → 마스터링에서 맞추기 → 설명 표시
+    if (fs.existsSync(demoTake)) {
+      await p.click('.tab:text-is("레퍼런스")');
+      const refsBefore = await p.locator('.ref-name').count();
+      await p.setInputFiles('#ref-file', demoTake);
+      await p.waitForFunction((n) => document.querySelectorAll('.ref-name').length > n, refsBefore, { timeout: 60000 });
+      await p.click('.tab:text-is("마스터링")');
+      await p.click('#tone-match');
+      await p.waitForSelector('#tone-note', { timeout: 60000 });
+      global.toneNote = await p.textContent('#tone-note');
+      global.toneOk = (global.toneOk ?? true) && /저음 .+ · 고음 /.test(global.toneNote) && (await p.locator('.chip.on:has-text("레퍼런스에 맞춤")').count()) === 1;
+    }
     // 버전 저장/보기
     await p.click('.tab:text-is("버전")');
     await p.fill('#version-note', 'v1');
@@ -177,7 +189,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
       global.backupOk = /^kpop-backup-\d{8}-\d{4}\.json$/.test(bdl.suggestedFilename()) && restoredSongs >= 2 && restoredExample === 0;
       await c2.close();
     }
-    console.log(tag, { custom, prog, before, after, refs, masterPill, takeBest: global.takeBest, sync: global.syncInfo, stepHint, autoMaster, keptMaster, keptCover, errorsLeft, zip: fs.statSync(zipPath).size, vbodyStart: vbody.slice(0, 30), vcount });
+    console.log(tag, { custom, prog, before, after, refs, masterPill, takeBest: global.takeBest, toneNote: global.toneNote, sync: global.syncInfo, stepHint, autoMaster, keptMaster, keptCover, errorsLeft, zip: fs.statSync(zipPath).size, vbodyStart: vbody.slice(0, 30), vcount });
     await c.close();
   }
   if (!global.autoOk) errs.push('마스터 자동 연결 안 됨');
@@ -185,6 +197,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
   if (!global.albumUndoOk) errs.push('앨범 되돌리기 안 됨');
   if (!global.syncOk) errs.push('싱크 가사 맞추기 안 됨');
   if (!global.navOk) errs.push('폰 목록 접기 이상');
+  if (global.toneOk === false) errs.push(`레퍼런스 음색 맞추기 이상: ${global.toneNote}`);
   if (!global.backupOk) errs.push(`백업·복원 이상: ${JSON.stringify(global.backupInfo)}`);
   if (!global.zipLrc) errs.push('제출 패키지에 .lrc 없음');
   if (global.takeBest !== undefined && global.takeBest !== 'master-14') errs.push(`테이크 비교 결과 이상: ${global.takeBest}`);

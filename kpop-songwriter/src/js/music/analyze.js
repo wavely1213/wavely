@@ -5,20 +5,18 @@ import { NOTE_NAMES } from './theory.js';
 const RATE = 11025;
 const MAX_SECONDS = 240;
 
-async function resample(file, lowpassHz) {
-  const raw = await file.arrayBuffer();
-  const tmp = new OfflineAudioContext(1, 1, 44100);
-  const decoded = await tmp.decodeAudioData(raw);
+// 대역별로 거른 신호 (11025Hz 모노): 전체, 저음(150Hz 아래), 고음(2.5kHz 위)
+async function bands(decoded) {
   const dur = Math.min(decoded.duration, MAX_SECONDS);
-  const render = async (lp) => {
+  const render = async (type, hz) => {
     const off = new OfflineAudioContext(1, Math.ceil(dur * RATE), RATE);
     const src = off.createBufferSource();
     src.buffer = decoded;
     let node = src;
-    if (lp) {
+    if (type) {
       const f = off.createBiquadFilter();
-      f.type = 'lowpass';
-      f.frequency.value = lp;
+      f.type = type;
+      f.frequency.value = hz;
       node = src.connect(f);
     }
     node.connect(off.destination);
@@ -26,8 +24,14 @@ async function resample(file, lowpassHz) {
     const out = await off.startRendering();
     return out.getChannelData(0);
   };
-  const [full, low] = await Promise.all([render(0), render(lowpassHz)]);
-  return { full, low, duration: decoded.duration };
+  const [full, low, high] = await Promise.all([render(null), render('lowpass', 150), render('highpass', 2500)]);
+  return { full, low, high, duration: decoded.duration };
+}
+
+async function resample(file) {
+  const raw = await file.arrayBuffer();
+  const tmp = new OfflineAudioContext(1, 1, 44100);
+  return bands(await tmp.decodeAudioData(raw));
 }
 
 function rms(x, from, to) {
@@ -138,7 +142,7 @@ function zeroCrossRate(x) {
 
 export async function analyzeAudio(file, onStep = () => {}) {
   onStep('파일 읽는 중');
-  const { full, low, duration } = await resample(file, 150);
+  const { full, low, high, duration } = await resample(file);
   onStep('빠르기 찾는 중');
   await new Promise((r) => setTimeout(r, 0));
   const bpm = estimateBpm(full);
@@ -146,7 +150,7 @@ export async function analyzeAudio(file, onStep = () => {}) {
   await new Promise((r) => setTimeout(r, 0));
   const key = estimateKey(full);
   const curve = energyCurve(full);
-  const bassRatio = rms(low, 0, low.length) / Math.max(1e-6, rms(full, 0, full.length));
+  const { bass: bassRatio, high: highRatio } = ratios(full, low, high);
   const zcr = zeroCrossRate(full);
   return {
     duration: Math.round(duration),
@@ -158,7 +162,20 @@ export async function analyzeAudio(file, onStep = () => {}) {
     drops: jumps(curve),
     bass: Math.round(bassRatio * 100) / 100,
     brightness: Math.round(zcr * 1000) / 1000,
+    high: highRatio,
   };
+}
+
+// 저음·고음 대역이 전체에서 차지하는 비율 (RMS 비)
+function ratios(full, low, high) {
+  const all = Math.max(1e-6, rms(full, 0, full.length));
+  return { bass: Math.round((rms(low, 0, low.length) / all) * 1000) / 1000, high: Math.round((rms(high, 0, high.length) / all) * 1000) / 1000 };
+}
+
+// 이미 디코딩한 소리의 음색(저음·고음 비율)만 빠르게 (마스터링 탭의 원본용)
+export async function toneOf(buffer) {
+  const { full, low, high } = await bands(buffer);
+  return ratios(full, low, high);
 }
 
 // 숫자를 쉬운 말로

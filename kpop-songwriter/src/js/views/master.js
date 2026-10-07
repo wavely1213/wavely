@@ -1,7 +1,9 @@
 // 마스터링 탭: Suno 완성곡(또는 앱 데모)을 발매 규격(음량·트루 피크·44.1kHz)으로 맞춰 WAV로 받는다.
 import { h, toast } from '../dom.js';
 import { mutate, mutateSong, refresh } from '../state.js';
-import { decodeFile, master, masterWarnings, MASTER_PRESETS, LOUDNESS_TARGETS, OUTPUT_RATE } from '../music/master.js';
+import { decodeFile, master, masterWarnings, MASTER_PRESETS, LOUDNESS_TARGETS, OUTPUT_RATE, presetOf } from '../music/master.js';
+import { referenceTone, matchEq } from '../music/tonematch.js';
+import { toneOf } from '../music/analyze.js';
 import { renderSong, stop as stopPlayer } from '../music/player.js';
 import { encodeWav, zip } from '../music/pack.js';
 import { saveFile } from '../platform/download.js';
@@ -144,7 +146,7 @@ async function download(song) {
     const wav = encodeWav({ channels: r.channels, sampleRate: r.rate }, { bits: ui.bits, normalize: false });
     const report = [
       `원본: ${ui.sourceName}`,
-      `프리셋: ${MASTER_PRESETS[st.preset].name}`,
+      `프리셋: ${presetOf(st).name}${st.preset === 'ref' && st.eqNote ? ` (${st.eqNote})` : ''}`,
       `목표 음량: ${st.target} LUFS / 트루 피크 한도: -1 dBTP`,
       `결과: ${r.after.lufs.toFixed(1)} LUFS, ${r.after.peak.toFixed(1)} dBTP, ${OUTPUT_RATE} Hz ${ui.bits}bit 스테레오 WAV`,
       `원본 측정: ${Number.isFinite(r.before.lufs) ? r.before.lufs.toFixed(1) : '무음'} LUFS, ${r.before.peak.toFixed(1)} dBTP`,
@@ -181,6 +183,35 @@ async function useInAlbums(song) {
   albums.forEach((a) => { setMaster(a.id, song.id, info); });
   ui.linked = albums.length;
   return albums.length;
+}
+
+// ---------- 레퍼런스 음색 맞추기 ----------
+async function matchReference(song) {
+  const ui = uiFor(song.id);
+  const ref = referenceTone(song);
+  if (!ui.source || !ref) return;
+  ui.busy = '원본 음색 재는 중';
+  refresh();
+  try {
+    const src = await toneOf(ui.source);
+    const m = matchEq(src, ref);
+    mutateSong(song.id, (x) => { x.master = { ...settings(x), preset: 'ref', eq: m.eq, eqNote: m.note }; });
+  } catch {
+    toast('음색을 재지 못했어요. 다시 눌러 주세요');
+  } finally {
+    ui.busy = '';
+    refresh();
+  }
+}
+
+function renderToneMatch(song, st) {
+  const ref = referenceTone(song);
+  if (!ref) return h('span', { class: 'muted small' }, '레퍼런스 탭에서 곡 파일을 분석해 두면, 그 곡의 저음·고음 균형에 맞춘 설정을 추천해요.');
+  return h('div', { class: 'row' },
+    h('button', { type: 'button', class: 'btn small', id: 'tone-match', disabled: !ui.source || !!ui.busy, onclick: () => matchReference(song) },
+      `레퍼런스(${ref.names.slice(0, 2).join(', ')}${ref.n > 2 ? ` 외 ${ref.n - 2}` : ''})에 음색 맞추기`),
+    !ui.source ? h('span', { class: 'muted small' }, '완성곡을 먼저 넣어 주세요') : null,
+    st.preset === 'ref' && st.eqNote ? h('span', { class: 'muted small', id: 'tone-note' }, st.eqNote) : null);
 }
 
 // ---------- Suno 테이크 비교 ----------
@@ -287,7 +318,12 @@ export function renderMaster(song) {
         h('div', { class: 'chips' }, Object.entries(MASTER_PRESETS).map(([k, p]) => h('button', {
           type: 'button', class: `chip${st.preset === k ? ' on' : ''}`, 'aria-pressed': st.preset === k ? 'true' : 'false',
           onclick: () => mutate((s) => { s.master = { ...settings(s), preset: k }; }),
-        }, p.name)))),
+        }, p.name)),
+        st.eq ? h('button', {
+          type: 'button', class: `chip${st.preset === 'ref' ? ' on' : ''}`, 'aria-pressed': st.preset === 'ref' ? 'true' : 'false',
+          onclick: () => mutate((s) => { s.master = { ...settings(s), preset: 'ref' }; }),
+        }, '레퍼런스에 맞춤') : null),
+        renderToneMatch(song, st)),
       h('div', { class: 'field' }, h('span', { class: 'field-label' }, '목표 음량 ', help('lufs'), help('dbtp')),
         h('div', { class: 'chips' }, LOUDNESS_TARGETS.map((t) => h('button', {
           type: 'button', class: `chip${st.target === t.value ? ' on' : ''}`, 'aria-pressed': st.target === t.value ? 'true' : 'false',

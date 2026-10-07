@@ -46,4 +46,25 @@ assert.equal(variantFromName('Basic mix.wav', vsong), '', '단어 안의 글자�
 assert.equal(variantFromName('demo.wav', vsong), '');
 assert.equal(variantFromName('x B.wav', { style: {} }), '', '변형을 안 만들었으면 없음');
 console.log('variants OK');
+// 레퍼런스 음색: 쓰는 레퍼런스만 평균, 예전 분석(high 없음)은 저음만 맞춤, 범위 묶기
+const { referenceTone, matchEq } = await import('../src/js/music/tonematch.js');
+assert.equal(referenceTone({ references: [{ use: true, name: 'x' }] }), null, '분석 없으면 없음');
+const rt = referenceTone({ references: [
+  { use: true, name: 'A', analysis: { bass: 0.5, high: 0.2 } },
+  { use: true, name: 'B', analysis: { bass: 0.3 } },
+  { use: false, name: 'C', analysis: { bass: 0.9, high: 0.9 } },
+] });
+assert.deepEqual([rt.bass, rt.high, rt.n, rt.names.join()], [0.4, 0.2, 2, 'A,B']);
+const same = matchEq({ bass: 0.4, high: 0.2 }, { bass: 0.4, high: 0.2 });
+assert.deepEqual([same.lowDb, same.highDb, same.note], [0, 0, '저음 비슷 · 고음 비슷']);
+const up = matchEq({ bass: 0.2, high: 0.1 }, { bass: 0.4, high: 0.141 });
+assert.equal(up.lowDb, 4, '+6dB는 4로 묶음');
+assert.equal(up.highDb, 3);
+assert.equal(up.eq.mud, -1, '저음을 많이 올리면 웅웅 대역을 덜어 냄');
+assert.equal(up.eq.air, 3);
+const noHigh = matchEq({ bass: 0.4, high: 0.2 }, { bass: 0.2, high: null });
+assert.equal(noHigh.highDb, null);
+assert.equal(noHigh.lowDb, -4);
+assert.ok(noHigh.note.includes('다시 분석'));
+console.log('tone OK');
 console.log('takes OK');

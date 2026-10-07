@@ -106,8 +106,13 @@ async function tonal(buffer, preset) {
 
 
 // 반환: { channels: [L, R], rate, before, after, maxReduction(dB), reached, trimmedStart, trimmedEnd }
-export async function master(buffer, { preset = 'kpop', target = -14, trim = true, fadeOut = 0 } = {}, onStep = () => {}) {
-  const p = MASTER_PRESETS[preset] || MASTER_PRESETS.natural;
+// preset 'ref'면 eq(레퍼런스 맞춤 설정, music/tonematch.js)를 쓴다
+export function presetOf({ preset, eq }) {
+  return preset === 'ref' && eq ? eq : MASTER_PRESETS[preset] || MASTER_PRESETS.natural;
+}
+
+export async function master(buffer, { preset = 'kpop', eq = null, target = -14, trim = true, fadeOut = 0 } = {}, onStep = () => {}) {
+  const p = presetOf({ preset, eq });
   onStep('톤 보정·컴프레서');
   await tick();
   const toned = channelsOf(await tonal(buffer, p));

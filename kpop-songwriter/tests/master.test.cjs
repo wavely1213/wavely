@@ -110,6 +110,23 @@ server.listen(0, async () => {
     ok = ok && pass;
     console.log(`target ${target}: app ${m.after.lufs.toFixed(2)} LUFS ${m.after.peak.toFixed(2)} dBTP | ffmpeg ${ff.I} LUFS ${ff.TP} dBTP | GR ${m.gr.toFixed(1)}dB reached=${m.reached} via=${m.via} | ${m.ms}ms | ${pass ? 'OK' : 'FAIL'}`);
   }
+  // 레퍼런스 음색 맞추기: 저음 많은 소리 vs 고음 많은 소리 → 저음 올리고 고음 내리는 추천, 'ref' 설정으로 마스터링 됨
+  const tone = await p.evaluate(async () => {
+    const sr = 44100; const n = sr * 4;
+    const make = (lowAmp, highAmp) => {
+      const buf = new AudioBuffer({ numberOfChannels: 2, length: n, sampleRate: sr });
+      for (let c = 0; c < 2; c++) { const d = buf.getChannelData(c); for (let i = 0; i < n; i++) d[i] = lowAmp * Math.sin(2 * Math.PI * 60 * i / sr) + highAmp * Math.sin(2 * Math.PI * 5000 * i / sr) + 0.05 * Math.sin(2 * Math.PI * 800 * i / sr); }
+      return buf;
+    };
+    const ref = await T.toneOf(make(0.4, 0.05));
+    const src = await T.toneOf(make(0.1, 0.2));
+    const m = T.matchEq(src, ref);
+    const res = await T.master(make(0.1, 0.2), { preset: 'ref', eq: m.eq, target: -14 });
+    return { ref, src, lowDb: m.lowDb, highDb: m.highDb, note: m.note, lufs: res.after.lufs };
+  });
+  const toneOk = tone.ref.bass > tone.src.bass && tone.ref.high < tone.src.high && tone.lowDb > 2 && tone.highDb < -2 && Math.abs(tone.lufs + 14) < 0.6;
+  console.log('tone match', JSON.stringify(tone), toneOk ? 'OK' : 'FAIL');
+  ok = ok && toneOk;
   console.log(ok ? 'master OK' : 'master FAILED');
   if (!ok) process.exitCode = 1;
   await b.close();
