@@ -106,7 +106,7 @@ function fakeClaude() {
 
   // 멜로디: AI → 범위 밖 음(d=30)은 10으로 잘림
   await p.click('.tab:text-is("멜로디")');
-  await p.click('button:has-text("멜로디"):not(.tab) >> nth=0');
+  await p.click('button:has-text("AI로"):has-text("멜로디")');
   await p.waitForSelector('.pr-note:has-text("멜")');
   results.melodyNotes = await p.locator('.roll-grid .pr-note').count();
   await p.locator('text=👍 좋아요').first().click();
