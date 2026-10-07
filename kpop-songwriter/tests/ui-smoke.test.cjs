@@ -85,6 +85,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     await p.click('text=마스터링 하기');
     await p.waitForSelector('.compare', { timeout: 120000 });
     const masterPill = await p.textContent('.pill');
+    global.qcOk = (global.qcOk ?? true) && /^\d+곳$/.test(await p.textContent('#qc-clips')) && Number(await p.textContent('#qc-corr')) > 0;
     const stepHint = await p.textContent('.step-hint').catch(() => '');
     // 숏폼 하이라이트: 15초로 바꿔 구간 표시 → 받기 (zip 안 WAV)
     await p.click('.highlight .chip:text-is("15초")');
@@ -264,6 +265,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
   if (!global.navOk) errs.push('폰 목록 접기 이상');
   if (!global.icsOk) errs.push('캘린더 파일 이상');
   if (!global.diffSame) errs.push('버전 비교 이상');
+  if (!global.qcOk) errs.push('소리 점검(QC) 표시 이상');
   if (global.sylOk !== true) errs.push('가사 음절 넣기 이상');
   if (!global.statOk) errs.push('성과 기록 이상');
   if (!global.bookletOk) errs.push('가사집 이상');

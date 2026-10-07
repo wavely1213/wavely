@@ -88,3 +88,20 @@ console.log('takes OK');
   assert.deepEqual(bestWindow([L.slice(0, rate * 10), L.slice(0, rate * 10)], rate, 30), { start: 0, end: 10 });
   console.log('highlight OK');
 }
+
+// 소리 점검: 스테레오 상관(같음 1, 반대 -1, 무관 ~0), 잘린 파형 구간 수
+{
+  const { stereoCorrelation, clippedRuns } = await import('../src/js/music/qc.js');
+  const n = 48000;
+  const a = new Float32Array(n).map((_, i) => Math.sin(i / 7));
+  const inv = a.map((x) => -x);
+  const other = new Float32Array(n).map((_, i) => Math.sin(i / 3.3 + 1));
+  assert.ok(stereoCorrelation(a, a) > 0.999);
+  assert.ok(stereoCorrelation(a, inv) < -0.999);
+  assert.ok(Math.abs(stereoCorrelation(a, other)) < 0.1);
+  assert.equal(stereoCorrelation(a, null), 1, '모노 파일');
+  const clip = new Float32Array(100);
+  clip.set([1, 1, 1, 1], 10); clip.set([-1, -1, -1], 50); clip.set([1, 1], 80); clip.set([1, 1, 1], 97);
+  assert.equal(clippedRuns([clip]), 3, '2개 이어진 것은 빼고, 끝에 걸친 것도 셈');
+  console.log('qc OK');
+}

@@ -1,5 +1,6 @@
 // 마스터링: 톤 보정(EQ) → 글루 컴프레서 → 목표 음량(LUFS)으로 맞춤 → 트루 피크 리미터 → 44.1kHz.
 import { processMaster, measure, OUTPUT_RATE } from './dsp.js';
+import { CLIP_WARN } from './qc.js';
 
 export const MASTER_PRESETS = {
   natural: { name: '자연스럽게', low: 0, mud: 0, presence: 0.5, air: 1, comp: { threshold: -20, ratio: 1.6 } },
@@ -130,7 +131,10 @@ export function masterWarnings(res, target) {
   if (res.reached === false) w.push(`목표 ${target} LUFS까지 올리려면 소리가 뭉개져서 ${res.after.lufs.toFixed(1)} LUFS에서 멈췄어요. 원곡이 이미 압축된 Suno 결과물은 대부분 목표까지 올라가요.`);
   if (res.reached !== false && res.maxReduction > 6) w.push(`리미터가 최대 ${res.maxReduction.toFixed(1)}dB까지 눌렀어요. 소리가 답답하면 목표 음량을 낮춰 보세요.`);
   if (res.before.lufs > target + 2) w.push('원본이 이미 목표보다 커서 음량을 줄였어요. Suno 결과물은 이미 크게 나오는 경우가 많아요.');
-  if (res.before.peak > 0) w.push(`원본에 클리핑(피크 ${res.before.peak.toFixed(1)} dBTP)이 있었어요. 가능하면 Suno에서 WAV로 받아 다시 해 보세요.`);
+  if (res.qc) {
+    if (res.qc.clips >= CLIP_WARN) w.push(`원본 파형이 ${res.qc.clips}곳에서 잘려 있어요(하드 클리핑). 마스터링으로는 되살릴 수 없어요 — 가능하면 Suno에서 WAV로 다시 받아 오세요.`);
+    if (res.qc.corr < 0) w.push(`좌우 소리의 위상이 반대인 부분이 많아요 (스테레오 상관 ${res.qc.corr.toFixed(2)}). 모노 스피커(폰·블루투스 스피커 하나)에서 소리가 작아지거나 빠질 수 있어요. 다른 테이크를 써 보세요.`);
+  } else if (res.before.peak > 0) w.push(`원본에 클리핑(피크 ${res.before.peak.toFixed(1)} dBTP)이 있었어요. 가능하면 Suno에서 WAV로 받아 다시 해 보세요.`);
   if (!Number.isFinite(res.before.lufs)) w.push('원본이 거의 무음이에요. 파일을 확인해 주세요.');
   return w;
 }

@@ -79,6 +79,7 @@
 | 가사 최적화 | optimize/lyricscore.js, optimize/improve.js, optimize/calibrate.js | 섹션·곡 채점과 고칠 점, 오른 것만 반영하는 자동 개선, 내 가사로 줄 길이 기준 보정 |
 | 보컬 음역 | music/range.js | 멤버 음역, 섹션 음역(겹침), 음역 밖 음 찾기·옮기기 |
 | 레퍼런스 음색 맞추기 | music/tonematch.js, music/analyze.js(toneOf), views/master.js | 레퍼런스·원본의 저음(150Hz↓)·고음(2.5kHz↑) 비율 차이 → 마스터링 EQ('ref' 설정) |
+| 소리 점검 | music/qc.js, music/master.js(masterWarnings), views/master.js | 원본 하드 클리핑 구간 수, 결과 스테레오 상관 |
 | 숏폼 하이라이트 | music/highlight.js, views/master.js | 0.25초 음량으로 가장 신나는 15·30초(터지는 지점 가산), 시작은 직전 조용한 순간, 페이드 넣어 WAV |
 | 테이크 비교 | music/takes.js | Suno 테이크의 BPM·키·길이를 편곡과 비교해 점수 매기기 |
 | 스타일 변형 | variants.js, views/variants.js | Suno 스타일 A/B/C (BPM·키 고정) 만들기·복사·정하기, 테이크 파일 이름에서 변형 찾기 |

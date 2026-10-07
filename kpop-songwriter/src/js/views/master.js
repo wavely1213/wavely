@@ -12,6 +12,7 @@ import { analyzeAudio } from '../music/analyze.js';
 import { compareTake } from '../music/takes.js';
 import { variantFromName } from '../variants.js';
 import { bestWindow, cutClip } from '../music/highlight.js';
+import { stereoCorrelation, clippedRuns, CLIP_WARN } from '../music/qc.js';
 import { uid } from '../dom.js';
 import { getState, newAlbum } from '../state.js';
 import { setMaster, setSongMaster } from '../album/session.js';
@@ -128,6 +129,9 @@ async function run(song) {
       const el = document.getElementById('master-status');
       if (el) el.textContent = t;
     });
+    // 발매 전 점검: 원본의 하드 클리핑, 결과의 좌우 위상 상관
+    const src = Array.from({ length: ui.source.numberOfChannels }, (_, i) => ui.source.getChannelData(i));
+    ui.result.qc = { clips: clippedRuns(src), corr: stereoCorrelation(ui.result.channels[0], ui.result.channels[1]) };
     ui.result.target = st.target;
     ui.result.settings = { ...st }; // 받기·보고서는 실제로 마스터링한 설정으로
     mutateSong(song.id, (x) => { x.progress = { ...(x.progress || {}), mastered: true }; }, 'quiet');
@@ -156,6 +160,7 @@ async function download(song) {
       `결과: ${r.after.lufs.toFixed(1)} LUFS, ${r.after.peak.toFixed(1)} dBTP, ${OUTPUT_RATE} Hz ${ui.bits}bit 스테레오 WAV`,
       `원본 측정: ${Number.isFinite(r.before.lufs) ? r.before.lufs.toFixed(1) : '무음'} LUFS, ${r.before.peak.toFixed(1)} dBTP`,
       `리미터 최대 감소: ${r.maxReduction.toFixed(1)} dB`,
+      ...(r.qc ? [`원본 잘린 파형: ${r.qc.clips}곳 / 스테레오 상관: ${r.qc.corr.toFixed(2)} (1=모노, 0 아래=위상 반대)`] : []),
       '',
       ...masterWarnings(r, st.target),
       '',
@@ -400,6 +405,8 @@ function renderResult(song, r) {
         h('tr', null, h('th', null, '트루 피크'), h('td', { class: 'mono' }, fmt(r.before.peak, 'dBTP')), h('td', { class: 'mono' }, fmt(r.after.peak, 'dBTP'))),
         h('tr', null, h('th', null, '샘플레이트'), h('td', { class: 'mono' }, `${ui.source.sampleRate} Hz`), h('td', { class: 'mono' }, `${r.rate} Hz`)),
         h('tr', null, h('th', null, '리미터 최대 감소'), h('td', null, ''), h('td', { class: 'mono' }, `${r.maxReduction.toFixed(1)} dB`)),
+        r.qc ? h('tr', null, h('th', null, '잘린 파형 (원본)'), h('td', { class: `mono${r.qc.clips >= CLIP_WARN ? ' over' : ''}`, id: 'qc-clips' }, `${r.qc.clips}곳`), h('td', null, '')) : null,
+        r.qc ? h('tr', null, h('th', { title: '1이면 모노, 0 아래면 좌우 위상이 반대' }, '스테레오 상관'), h('td', null, ''), h('td', { class: `mono${r.qc.corr < 0 ? ' over' : ''}`, id: 'qc-corr' }, r.qc.corr.toFixed(2))) : null,
         h('tr', null, h('th', null, '길이'), h('td', { class: 'mono' }, `${ui.source.duration.toFixed(1)}초`), h('td', { class: 'mono' }, `${(r.channels[0].length / r.rate).toFixed(1)}초${r.trimmedStart + r.trimmedEnd > 0.05 ? ` (앞 ${r.trimmedStart.toFixed(1)}초·뒤 ${r.trimmedEnd.toFixed(1)}초 정리)` : ''}`)))),
     warnings.length ? h('ul', { class: 'warn-list' }, warnings.map((w) => h('li', null, w))) : null,
     h('div', { class: 'row' },
