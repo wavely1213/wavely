@@ -6,6 +6,7 @@ import { undoButtons } from './views/undo-buttons.js';
 import { backupSection, importFile, updateStorageWarn } from './views/backup.js';
 import { songSearch } from './views/song-search.js';
 import { renderWelcome } from './views/welcome.js';
+import { initInstall, installSection } from './views/install.js';
 import { renderAlbum } from './views/album/index.js';
 import { renderTaste } from './views/taste.js';
 import { newSinceSummary, SUMMARY_EVERY } from './learn/taste.js';
@@ -47,6 +48,7 @@ const WEB = typeof __WEB__ !== 'undefined' && __WEB__;
 if (WEB && 'serviceWorker' in navigator && window.isSecureContext) {
   window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
 }
+if (WEB) initInstall();
 
 function saveLabel() {
   const st = getState();
@@ -108,6 +110,7 @@ function renderSidebar() {
       h('span', { class: 'song-title' }, '내 취향'),
       h('span', { class: 'song-meta mono' }, `반응 ${st.taste.log.length}개${st.taste.enabled ? '' : ' · 꺼짐'}${newSinceSummary(st.taste) >= SUMMARY_EVERY ? ' · 정리 추천' : ''}`)),
     backupSection(),
+    WEB ? installSection() : null,
   );
 }
 

@@ -71,6 +71,26 @@ server.listen(0, async () => {
     out.pwa = { ...manifest, offlineTabs };
     await ctx.close();
   }
+  // 앱으로 설치: 브라우저가 설치 창을 줄 수 있다고 알리면(beforeinstallprompt) 목록에 버튼 → 누르면 설치 창, 설치하면 사라짐
+  {
+    const ctx = await b.newContext({ viewport: { width: 1280, height: 900 } });
+    const p = await ctx.newPage();
+    p.on('pageerror', (e) => errs.push(`install ${e.message}`));
+    await p.goto(`http://localhost:${port}/music/`);
+    await p.waitForSelector('.tab');
+    const before = await p.locator('#install-app').count();
+    await p.evaluate(() => {
+      const e = new Event('beforeinstallprompt', { cancelable: true });
+      e.prompt = () => { window.__installPrompted = true; return Promise.resolve(); };
+      e.userChoice = Promise.resolve({ outcome: 'accepted' });
+      window.dispatchEvent(e);
+    });
+    await p.click('#install-app');
+    const prompted = await p.evaluate(() => window.__installPrompted === true);
+    await p.waitForTimeout(200);
+    out.install = { before, prompted, after: await p.locator('#install-app').count() };
+    await ctx.close();
+  }
   // 저장 공간: 70% 넘게 차면 목록 아래 경고, 꽉 차서 저장이 안 되면 머리말에 "꽉 차서" (다시 시도하라는 말 대신)
   {
     const ctx = await b.newContext({ viewport: { width: 1280, height: 900 } });
@@ -103,6 +123,9 @@ server.listen(0, async () => {
   console.log(JSON.stringify(out, null, 1));
   const storage = out.storage;
   delete out.storage;
+  const inst = out.install;
+  delete out.install;
+  if (!(inst.before === 0 && inst.prompted && inst.after === 0)) errs.push(`앱 설치 버튼 이상: ${JSON.stringify(inst)}`);
   if (!(storage.welcomeNoAi && storage.firstSong && storage.warnBefore === 0 && /약 7\d%/.test(storage.warnText) && storage.fullLabel && storage.fullWarn === 1)) errs.push(`저장 공간 경고 이상: ${JSON.stringify(storage)}`);
   const pwa = out.pwa;
   delete out.pwa;
