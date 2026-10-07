@@ -18,3 +18,13 @@ assert.equal(countSyllables('불 꺼진 거리 위 혼자 깨어 있어'), 12);
 assert.equal(rhymeKey('보내지 못한 말 별처럼 쌓여'), 'eo');
 assert.match(buildLyrics(s, { keepAdlibs: true }), /\[Chorus 2\]\nMidnight signal/);
 console.log('unit OK');
+
+// 줄 단위 비교
+{
+  const { lineDiff } = await import('../src/js/textdiff.js');
+  const d = lineDiff('a\nb\nc\nd', 'a\nc\nx\nd');
+  assert.deepEqual(d.map((r) => `${r.type}:${r.text}`), ['same:a', 'del:b', 'same:c', 'add:x', 'same:d']);
+  assert.deepEqual(lineDiff('', 'z').map((r) => r.type), ['del', 'add'], '빈 줄 → z');
+  assert.ok(lineDiff('x\ny', 'x\ny').every((r) => r.type === 'same'));
+  console.log('diff OK');
+}

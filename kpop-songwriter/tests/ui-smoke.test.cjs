@@ -118,6 +118,9 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     await p.click('.version >> text=보기');
     await p.waitForTimeout(300);
     const vbody = await p.textContent('.version-body');
+    await p.click('button[id^="diff-"]');
+    global.diffSame = (global.diffSame ?? true) && (await p.locator('.version p.muted:text-is("지금과 같아요.")').count()) === 1;
+    await p.click('button[id^="diff-"]');
     await p.click('.version >> text=복원');
     await p.waitForTimeout(300);
     const vcount = await p.locator('.version').count();
@@ -245,6 +248,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
   if (!global.syncOk) errs.push('싱크 가사 맞추기 안 됨');
   if (!global.navOk) errs.push('폰 목록 접기 이상');
   if (!global.icsOk) errs.push('캘린더 파일 이상');
+  if (!global.diffSame) errs.push('버전 비교 이상');
   if (!global.bookletOk) errs.push('가사집 이상');
   if (!global.splitOk) errs.push(`지분 이상: ${global.splitSum}`);
   if (!global.hlOk) errs.push(`하이라이트 이상: ${global.hlRange}`);
