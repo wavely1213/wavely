@@ -71,6 +71,7 @@
 | 가사집 | album/booklet.js, views/album/submit.js | 커버·트랙 목록·곡마다 가사·크레딧을 인쇄용 HTML(A4, 쪽 나눔)로, 제출 패키지에 booklet.html |
 | 캘린더 파일 | album/ics.js, views/album/plan.js | 발매 일정 → .ics (하루 종일 + 9시 알림, 끝낸 일정 제외, 75바이트 접기) |
 | 싱크 가사 | album/lrc.js, album/lyrics.js, views/album/sync.js | 마스터를 들으며 줄마다 탭 → song.sync 저장, LRC 파일·제출 패키지 포함, 가사 변경 감지 |
+| 웹 설치·오프라인 | src/web/(manifest·sw·icon), assets/web/(PNG 아이콘), build.mjs, app.js | 웹 빌드만: 홈 화면 추가, 서비스 워커(화면 네트워크 먼저·샘플 보관본 먼저), D-016 |
 | 전체 백업·복원 | backup.js, views/backup.js, music/pack.js(unzip) | 곡(버전 포함)·앨범·취향을 파일 하나로, 덮어쓰지 않고 합치는 복원, 가져오기(json·zip) |
 | 버전 비교 | textdiff.js, views/versions.js | 줄 단위 LCS 비교로 버전 → 지금 빠진 줄·새 줄 표시 |
 | 되돌리기 | state.js (undo/redo), views/undo-buttons.js | 곡·앨범마다 최근 40단계, 타이핑은 2초 묶음. 머리말 ↶↷ + Ctrl+Z |

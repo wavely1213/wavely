@@ -40,6 +40,11 @@ const ui = { confirmDelete: '', aiAvailable: true, navOpen: false };
 // 빌드 대상: 웹사이트(mulgyeol.kr/music) 빌드에서만 true (build.mjs의 define)
 const WEB = typeof __WEB__ !== 'undefined' && __WEB__;
 
+// 웹사이트에서만: 오프라인·홈 화면 추가용 서비스 워커 (https 또는 localhost에서만 동작)
+if (WEB && 'serviceWorker' in navigator && window.isSecureContext) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+}
+
 function saveLabel() {
   const st = getState();
   const song = current();

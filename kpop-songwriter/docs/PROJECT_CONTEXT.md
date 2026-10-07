@@ -71,6 +71,7 @@
        `{ "source": "/music", "destination": "https://<새 프로젝트>.vercel.app/music/" }`,
        `{ "source": "/music/:path*", "destination": "https://<새 프로젝트>.vercel.app/music/:path*" }`
      - 웹에서는 AI 기능이 꺼져 있다 (서버 키 결정 전, ROADMAP 4번)
+     - 설치형(PWA): `dist-web/music/`의 `manifest.webmanifest`·`sw.js`·아이콘이 같이 배포돼야 한다. 리라이트 뒤에서도 `/music/sw.js`가 mulgyeol.kr 같은 출처로 보이므로 동작한다. 배포 뒤 폰 브라우저에서 "홈 화면에 추가"로 확인 (D-016)
 
 ## 6. 외부 서비스·연동
 

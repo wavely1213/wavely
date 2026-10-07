@@ -53,4 +53,13 @@ if (target === 'web') {
 mkdirSync(outDir, { recursive: true });
 writeFileSync(`${outDir}index.html`, html);
 cpSync('assets/samples', `${outDir}samples`, { recursive: true, filter: (p) => !p.endsWith('.md') });
+if (target === 'web') {
+  // 홈 화면에 추가·오프라인 (PWA): 아이콘, 매니페스트, 서비스 워커(버전마다 새 보관함)
+  cpSync('assets/web', outDir, { recursive: true });
+  cpSync('src/web/icon.svg', `${outDir}icon.svg`);
+  writeFileSync(`${outDir}manifest.webmanifest`, readFileSync('src/web/manifest.webmanifest', 'utf8').replace(/__BASE__/g, BASE));
+  const version = JSON.parse(readFileSync('package.json', 'utf8')).version;
+  const shell = ['./', 'manifest.webmanifest', 'icon.svg', 'icon-192.png', 'icon-512.png'];
+  writeFileSync(`${outDir}sw.js`, readFileSync('src/web/sw.js', 'utf8').replace('__VERSION__', version).replace('__FILES__', JSON.stringify(shell)));
+}
 console.log(`${outDir}index.html ${(html.length / 1024).toFixed(1)} KB (${target})`);
