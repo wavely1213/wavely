@@ -155,6 +155,15 @@ function fakeClaude() {
   results.melodyNotes = await p.locator('.roll-grid .pr-note').count();
   results.melodyPromptRange = (await prompts()).filter((x) => x.includes('탑라이너')).pop().match(/"음역":"d -?\d+~-?\d+ \(/) !== null;
   await p.locator('text=👍 좋아요').first().click();
+  // AI 멜로디를 고치면(음표 하나 높이기) 4초 뒤 취향 기록에 전·후, 다음 멜로디 요청에 들어감
+  await p.locator('.roll-grid .pr-note').first().click();
+  await p.keyboard.press('ArrowUp');
+  await p.waitForTimeout(5500);
+  results.melodyEdit = (await taste()).log.some((e) => e.kind === 'melody' && e.rating === 0 && e.before && e.after && e.before !== e.after);
+  await p.click('button:has-text("AI로"):has-text("멜로디")');
+  await p.waitForFunction(() => window.__prompts.filter((x) => x.includes('탑라이너')).length >= 2);
+  const melPrompt = (await prompts()).filter((x) => x.includes('탑라이너')).pop();
+  results.melodyEditPrompt = melPrompt.includes('멜로디 표기') && melPrompt.includes('AI 초안을 작곡가가 이렇게 고쳤다');
 
   // 스타일
   await p.click('.tab:text-is("Suno 스타일")');
@@ -202,8 +211,9 @@ function fakeClaude() {
   await p.locator('.variant >> nth=1 >> text=이걸로 정하기').click();
   results.variantChosen = await p.locator('.variant.chosen .tag').allTextContents();
   results.variantStyle = await p.inputValue('#style-subgenre');
-  await p.waitForTimeout(1600); // 취향 저장(1.2초 뒤) 기다림
-  results.variantPair = (await taste()).log.some((e) => e.kind === 'style' && e.context?.variant === 'B' && e.context?.rejected?.length === 2);
+  // 취향 저장(1.2초 뒤, 다른 저장이 이어지면 더 늦어짐)을 기다림
+  results.variantPair = await p.waitForFunction(() => (JSON.parse(localStorage.getItem('kpop-writer-taste') || '{"log":[]}').log || [])
+    .some((e) => e.kind === 'style' && e.context?.variant === 'B' && e.context?.rejected?.length === 2), null, { timeout: 8000 }).then(() => true).catch(() => false);
   // 맞춤법: 점검 → 고칠 곳 2개(같은 줄은 버림) → 모두 고치기 → 가사에 반영
   await p.click('.tab:text-is("구조·가사")');
   await p.click('#spell-run');
@@ -305,7 +315,7 @@ function fakeClaude() {
 
   console.log(JSON.stringify(results, null, 1));
   const ok = results.lyricsApplied && results.review && results.improve.length > 0 && results.improve.every((t) => t.includes('반영')) && results.arrangeKey.includes('A minor') && results.melodyNotes === 3 && results.styleBpm === '140'
-    && results.editRecorded && results.tasteLog.some((x) => x.startsWith('lyrics:-1(유치해요)')) && results.tasteLog.includes('hook:1') && results.lineLiked === 1 && results.similarCount === 1 && results.similarFixed && results.trOff === 1 && results.trLyrics && results.trStyle && results.variantCount === 3 && results.variantChosen.join() === 'B' && results.variantStyle === 'bright synth-pop' && results.variantPair && results.orderTracks >= 2 && results.orderApplied && results.orderUndo && results.statLearn.startsWith('arrange') && results.ideasPromptHint && results.pitch && results.spellCount === 2 && results.spellApplied && results.ideaTitle === '가짜 컨셉 둘' && results.ideaTheme === '둘 주제' && results.ideaKeywords === '밤, 거울, Mirror' && results.ideaMoods === '몽환,다크' && results.tasteLog.includes('arrange:1')
+    && results.editRecorded && results.tasteLog.some((x) => x.startsWith('lyrics:-1(유치해요)')) && results.tasteLog.includes('hook:1') && results.lineLiked === 1 && results.similarCount === 1 && results.similarFixed && results.trOff === 1 && results.trLyrics && results.trStyle && results.variantCount === 3 && results.variantChosen.join() === 'B' && results.variantStyle === 'bright synth-pop' && results.variantPair && results.orderTracks >= 2 && results.orderApplied && results.orderUndo && results.statLearn.startsWith('arrange') && results.ideasPromptHint && results.melodyEdit && results.melodyEditPrompt && results.pitch && results.spellCount === 2 && results.spellApplied && results.ideaTitle === '가짜 컨셉 둘' && results.ideaTheme === '둘 주제' && results.ideaKeywords === '밤, 거울, Mirror' && results.ideaMoods === '몽환,다크' && results.tasteLog.includes('arrange:1')
     && results.tasteLog.includes('melody:1') && results.promptHasTaste && results.promo && results.draft.arranged && results.draft.bpm === 128 && results.draft.styleBpm === 128 && results.draft.styleKey === 'A minor' && results.draft.melodySections > 0 && results.draft.lyrics.split('/')[0] === results.draft.lyrics.split('/')[1] && results.keptBridge === '언젠가 너도 이 밤을 보면\n같은 불빛을 찾게 될 거야' && results.melodyPromptRange && results.raceA === 133 && results.raceB === 120 && results.saved.includes('taste-feedback.zip') && !errs.length;
   if (errs.length) console.log('ERRORS', errs);
   console.log(ok ? 'ai OK' : 'ai FAILED');

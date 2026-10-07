@@ -9,7 +9,8 @@ import { writeMelody } from '../ai-music.js';
 import { isBusy, runJob, stopJob, job } from '../aijob.js';
 import { playButton } from './playbar.js';
 import { uid } from '../dom.js';
-import { feedbackBar } from '../learn/feedback.js';
+import { feedbackBar, trackEdit } from '../learn/feedback.js';
+import { melodyText } from '../music/melodytext.js';
 import { help } from '../help.js';
 import { sectionRange, outOfRange, foldIntoRange, midiName as rangeName } from '../music/range.js';
 
@@ -18,7 +19,7 @@ const BOTTOM = -3;
 const CELL_W = 22;
 const CELL_H = 26;
 
-const ui = { sectionId: '', selected: -1, confirmClear: false, request: '', scroll: 0, gen: {} };
+const ui = { sectionId: '', selected: -1, confirmClear: false, request: '', scroll: 0, gen: {}, origin: {} };
 
 function midiName(n) { return `${NOTE_NAMES[n % 12]}${Math.floor(n / 12) - 1}`; }
 
@@ -37,6 +38,8 @@ export function renderMelody(song) {
   const busy = isBusy();
   const withLyrics = song.sections.filter((x) => x.text.trim()).map((x) => x.id);
   const syl = s.text.split('\n').filter((l) => l.trim()).reduce((a, l) => a + countSyllables(l), 0);
+  // AI가 만든 멜로디를 고치면 (멈춘 지 4초 뒤) 전·후를 취향 기록에 남긴다
+  if (ui.origin[s.id]) trackEdit({ kind: 'melody', ref: ui.gen[s.id], before: ui.origin[s.id], after: melodyText(sm.melody), context: { section: s.type, song: song.title } });
 
   return h('div', { class: 'stack' },
     h('section', { class: 'card' },
@@ -86,7 +89,7 @@ export function renderMelody(song) {
 }
 
 function applyMelody(songId, out) {
-  out.forEach(({ id }) => { ui.gen[id] = uid(); });
+  out.forEach(({ id, notes }) => { ui.gen[id] = uid(); ui.origin[id] = melodyText(notes); });
   mutateSong(songId, (x) => { out.forEach(({ id, notes }) => { if (x.music.sections[id]) x.music.sections[id].melody = notes; }); });
 }
 

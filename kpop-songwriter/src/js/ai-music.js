@@ -8,6 +8,7 @@ import { describeAnalysis } from './music/analyze.js';
 import { countSyllables } from './lyrictools.js';
 import { tasteBlock } from './learn/context.js';
 import { sectionRange, degreeRange, foldIntoRange, midiName } from './music/range.js';
+import { MELODY_TEXT_NOTE } from './music/melodytext.js';
 
 function referenceBrief(song) {
   return song.references.filter((r) => r.use).map((r) => {
@@ -127,7 +128,7 @@ export async function writeMelody(song, { targetIds, request, signal }) {
     '강박(마디의 0, 4, 8, 12칸)에는 코드톤을 우선 쓴다. 줄 끝 음은 길게(4칸 이상) 끌어 숨 쉴 자리를 둔다. 줄은 대략 1~2마디씩 차지한다.',
     '코러스는 음역을 높이고 반복되는 훅 리듬을 만든다. 벌스는 낮고 말하듯. 랩 섹션은 음 변화 적게 16분 리듬 위주.',
     '가사가 없는 섹션이면 "우-", "오-" 같은 허밍 멜로디를 짧게 만든다. 실존 곡 멜로디를 베끼지 않는다.',
-    tasteBlock('melody'),
+    tasteBlock('melody') ? `${MELODY_TEXT_NOTE}\n${tasteBlock('melody')}` : '',
     request ? `작곡가 요청: ${request}` : '',
     `곡 분위기: ${JSON.stringify(conceptBrief(song))}`,
     `섹션: ${JSON.stringify(info)}`,
