@@ -312,6 +312,10 @@ input[type=radio] { accent-color: var(--accent); }
 .fb.on { border-color: var(--accent); background: var(--accent-soft); font-weight: 700; }
 .feedback .chips { flex-basis: 100%; }
 .hooks .feedback { margin-top: 6px; background: none; padding: 0; }
+.line-likes summary { cursor: pointer; font-size: 13px; color: var(--muted); padding: 2px 0; }
+.line-likes ul { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 4px; }
+.line-likes li { display: flex; align-items: baseline; gap: 8px; font-size: 14px; overflow-wrap: anywhere; }
+.line-likes .fb { padding: 0 9px; flex: none; }
 
 /* 가사 점수 */
 .pill:not(.good):not(.warn-pill) { background: var(--paper); color: var(--muted); }

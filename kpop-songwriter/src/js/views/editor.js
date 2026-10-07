@@ -6,7 +6,7 @@ import { sectionLabels, makeSection, sectionsFromTemplate, autoDistribute, lineS
 import { analyzeSection, languageRatio } from '../lyrictools.js';
 import { writeLyrics, suggestHooks, reviewLyrics } from '../ai.js';
 import { job, isBusy, runJob, stopJob } from '../aijob.js';
-import { feedbackBar, trackEdit } from '../learn/feedback.js';
+import { feedbackBar, trackEdit, lineLikes } from '../learn/feedback.js';
 import { scoreSong, scoreSection } from '../optimize/lyricscore.js';
 import { improveLyrics, DEFAULT_THRESHOLD } from '../optimize/improve.js';
 
@@ -220,6 +220,7 @@ function renderSection(song, s, index, label, result) {
         applyLyrics(song.id, out);
       }) }, s.text.trim() ? 'AI로 다시 쓰기' : 'AI로 쓰기')),
     aiOrigin[s.id] ? feedbackBar({ kind: 'lyrics', ref: aiOrigin[s.id].gen, text: aiOrigin[s.id].text, context: { section: s.type, song: song.title }, label: 'AI가 쓴 가사예요. 고치면 고친 방향도 배워요' }) : null,
+    aiOrigin[s.id] ? lineLikes({ kind: 'lyrics', ref: aiOrigin[s.id].gen, text: s.text, context: { section: s.type, song: song.title } }) : null,
   );
 }
 

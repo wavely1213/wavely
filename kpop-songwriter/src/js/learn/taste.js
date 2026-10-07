@@ -73,9 +73,11 @@ export function promptBlock(taste, kind = 'lyrics') {
   const stats = tasteStats(taste);
   if (stats.reasons.length) lines.push(`예전에 싫다고 한 이유: ${stats.reasons.slice(0, 4).map(([r, n]) => `${r}(${n})`).join(', ')}`);
   const sameKind = taste.log.filter((e) => e.kind === kind);
-  const liked = sameKind.filter((e) => e.rating === 1 && e.text).slice(-4).map((e) => e.text);
+  const liked = sameKind.filter((e) => e.rating === 1 && e.text && !e.context?.line).slice(-4).map((e) => e.text);
+  const likedLines = sameKind.filter((e) => e.rating === 1 && e.text && e.context?.line).slice(-8).map((e) => e.text);
   const edits = sameKind.filter((e) => e.rating === 0 && e.before && e.after).slice(-3);
   if (liked.length) lines.push(`좋아한 예시 (말투·결을 참고, 그대로 베끼지 말 것):\n${liked.map((t) => `- ${t.replace(/\n/g, ' / ')}`).join('\n')}`);
+  if (likedLines.length) lines.push(`작곡가가 특히 좋다고 고른 줄 (이런 표현·말맛을 살릴 것, 그대로 베끼지 말 것):\n${likedLines.map((t) => `- ${t}`).join('\n')}`);
   if (edits.length) lines.push(`AI 초안을 작곡가가 이렇게 고쳤다 (고친 방향을 따를 것):\n${edits.map((e) => `- 전: ${e.before.replace(/\n/g, ' / ')}\n  후: ${e.after.replace(/\n/g, ' / ')}`).join('\n')}`);
   if (kind === 'arrange' && stats.bpmRange) lines.push(`좋아한 편곡의 BPM 범위: ${stats.bpmRange[0]}~${stats.bpmRange[1]}`);
   if (kind === 'arrange' && stats.instruments.length) lines.push(`좋아한 편곡에 자주 쓴 악기 id: ${stats.instruments.join(', ')}`);

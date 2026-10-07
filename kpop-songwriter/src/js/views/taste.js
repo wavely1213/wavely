@@ -64,7 +64,7 @@ export function renderTaste(saveLabel) {
           h('div', { class: 'version-head' },
             h('span', { class: 'mono muted' }, formatTime(e.at)),
             h('span', { class: 'pill' }, KIND[e.kind] || e.kind),
-            h('strong', null, e.rating === 1 ? '👍' : e.rating === -1 ? '👎' : '고침'),
+            h('strong', null, e.rating === 1 ? (e.context?.line ? '♥ 줄' : '👍') : e.rating === -1 ? '👎' : '고침'),
             e.reasons.length ? h('span', { class: 'muted small' }, e.reasons.join(', ')) : null,
             h('span', { class: 'push' }),
             h('button', { type: 'button', class: 'icon-btn', 'aria-label': '기록 지우기', onclick: () => mutateTaste((t) => removeEntry(t, e.id)) }, '×')),

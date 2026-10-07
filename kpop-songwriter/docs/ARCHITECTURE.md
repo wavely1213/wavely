@@ -63,7 +63,7 @@
 | 앨범 화면 | views/album/* | 수록곡·정보·커버·일정·홍보·제출 탭 |
 | 되돌리기 | state.js (undo/redo), views/undo-buttons.js | 곡·앨범마다 최근 40단계, 타이핑은 2초 묶음. 머리말 ↶↷ + Ctrl+Z |
 | 취향 학습 | learn/taste.js, learn/context.js | 반응 기록·통계·프롬프트 블록·JSONL, AI 모듈이 취향을 읽는 연결점 |
-| 반응 UI | learn/feedback.js, learn/summarize.js, views/taste.js | 👍/👎 막대, 고친 내용 추적, AI 취향 정리, 내 취향 화면 |
+| 반응 UI | learn/feedback.js, learn/summarize.js, views/taste.js | 👍/👎 막대, 줄 단위 ♥, 고친 내용 추적, AI 취향 정리, 내 취향 화면 |
 | 가사 최적화 | optimize/lyricscore.js, optimize/improve.js | 섹션·곡 채점과 고칠 점, 오른 것만 반영하는 자동 개선 |
 | 보컬 음역 | music/range.js | 멤버 음역, 섹션 음역(겹침), 음역 밖 음 찾기·옮기기 |
 | 테이크 비교 | music/takes.js | Suno 테이크의 BPM·키·길이를 편곡과 비교해 점수 매기기 |

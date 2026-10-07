@@ -84,6 +84,11 @@ function fakeClaude() {
   results.lyricsApplied = true;
   await p.locator('article.section.t-verse').first().locator('text=👎 별로').click();
   await p.locator('article.section.t-verse').first().locator('.feedback .chip:text-is("유치해요")').click();
+  // 줄 단위 ♥: 펼쳐서 한 줄만 좋아요 → 다시 그려도 펼친 채 ♥ 표시
+  await p.locator('article.section.t-verse').first().locator('.line-likes summary').click();
+  await p.locator('article.section.t-verse').first().locator('.line-likes button').first().click();
+  results.lineLiked = await p.locator('article.section.t-verse').first().locator('.line-likes[open] button[aria-pressed="true"]').count();
+  await p.locator('article.section.t-verse').first().screenshot({ path: path.join(TMP, 'line-likes.png') });
   const ta = p.locator('article.section.t-verse').first().locator('textarea.lyrics');
   await ta.fill('내가 고친 첫 줄 새벽을 불러\n가짜 AI 둘째 줄 signal');
   await p.waitForTimeout(5500); // 고친 내용은 멈춘 지 4초 뒤 기록
@@ -147,7 +152,7 @@ function fakeClaude() {
   await p.locator('article.section.t-chorus').first().locator('text=AI로 다시 쓰기').click();
   await p.waitForFunction((n) => window.__prompts.length > n, before);
   const last = (await prompts()).slice(-1)[0];
-  results.promptHasTaste = last.includes('작곡가의 취향') && last.includes('가짜 정리: 이미지로') && last.includes('내가 고친 첫 줄') && last.includes('유치해요');
+  results.promptHasTaste = last.includes('작곡가의 취향') && last.includes('가짜 정리: 이미지로') && last.includes('내가 고친 첫 줄') && last.includes('유치해요') && last.includes('특히 좋다고 고른 줄');
 
   // 느린 AI 편곡 중 다른 곡으로 바꿔도 결과는 원래 곡에만
   await p.locator('.song-item').first().click();
@@ -193,7 +198,7 @@ function fakeClaude() {
 
   console.log(JSON.stringify(results, null, 1));
   const ok = results.lyricsApplied && results.review && results.improve.length > 0 && results.improve.every((t) => t.includes('반영')) && results.arrangeKey.includes('A minor') && results.melodyNotes === 3 && results.styleBpm === '140'
-    && results.editRecorded && results.tasteLog.some((x) => x.startsWith('lyrics:-1(유치해요)')) && results.tasteLog.includes('hook:1') && results.tasteLog.includes('arrange:1')
+    && results.editRecorded && results.tasteLog.some((x) => x.startsWith('lyrics:-1(유치해요)')) && results.tasteLog.includes('hook:1') && results.lineLiked === 1 && results.tasteLog.includes('arrange:1')
     && results.tasteLog.includes('melody:1') && results.promptHasTaste && results.promo && results.draft.arranged && results.draft.bpm === 128 && results.draft.styleBpm === 128 && results.draft.styleKey === 'A minor' && results.draft.melodySections > 0 && results.draft.lyrics.split('/')[0] === results.draft.lyrics.split('/')[1] && results.keptBridge === '언젠가 너도 이 밤을 보면\n같은 불빛을 찾게 될 거야' && results.melodyPromptRange && results.raceA === 133 && results.raceB === 120 && results.saved.includes('taste-feedback.zip') && !errs.length;
   if (errs.length) console.log('ERRORS', errs);
   console.log(ok ? 'ai OK' : 'ai FAILED');

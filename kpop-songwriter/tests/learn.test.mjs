@@ -24,6 +24,11 @@ t.profile.lyrics = '이미지로 말하기';
 const lyr = promptBlock(t, 'lyrics');
 assert.ok(lyr.includes('이미지로 말하기') && lyr.includes('마음에 든 가사') && lyr.includes('내가 고침') && lyr.includes('유치해요'));
 assert.ok(!lyr.includes('BPM'), '가사 요청엔 편곡 통계를 넣지 않는다');
+// 줄 단위 ♥: 통째 예시와 따로 "고른 줄"로 들어간다
+addEntry(t, makeEntry({ kind: 'lyrics', rating: 1, text: '네온 아래 숨을 고르고', context: { ref: 'g1#네온 아래 숨을 고르고', line: true } }));
+const lyr2 = promptBlock(t, 'lyrics');
+assert.ok(lyr2.includes('특히 좋다고 고른 줄') && lyr2.includes('- 네온 아래 숨을 고르고'));
+assert.ok(!lyr2.split('특히 좋다고 고른 줄')[0].includes('네온 아래'), '줄 반응은 통째 예시에 섞이지 않음');
 assert.ok(promptBlock(t, 'arrange').includes('96~120'));
 t.enabled = false;
 assert.equal(promptBlock(t, 'lyrics'), '', '끄면 반영 안 함');
