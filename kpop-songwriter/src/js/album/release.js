@@ -5,6 +5,7 @@ import { getSample } from '../ai.js';
 import { ALBUM_TYPES, scheduleFor, releaseChecklist, metadataRows, albumRows, toCsv, trackFileName, extOf } from './model.js';
 import { plainLyrics } from './lyrics.js';
 import { syncStatus, toLrc } from './lrc.js';
+import { bookletHtml, blobToDataUrl } from './booklet.js';
 
 export { plainLyrics };
 
@@ -83,6 +84,8 @@ export async function buildReleasePackage(album, songs, masters, cover, onStep =
     }
   }
   if (cover?.blob) files.push({ name: `${root}/cover.${cover.blob.type === 'image/png' ? 'png' : 'jpg'}`, data: cover.blob });
+  onStep('가사집 만드는 중');
+  files.push({ name: `${root}/booklet.html`, data: bookletHtml({ ...album, tracks }, songs, cover?.blob ? await blobToDataUrl(cover.blob) : '') });
   onStep('메타데이터 정리 중');
   files.push({ name: `${root}/metadata_tracks.csv`, data: toCsv(metadataRows({ ...album, tracks }, songs, masters)) });
   files.push({ name: `${root}/metadata_album.csv`, data: toCsv(albumRows(album)) });
@@ -107,6 +110,7 @@ export async function buildReleasePackage(album, songs, masters, cover, onStep =
     '- metadata_album.csv / metadata_tracks.csv: 유통사 입력 화면에 옮겨 적을 값',
     '- lyrics/: 트랙별 가사 .txt (플랫폼 가사 등록용), 싱크 가사 .lrc (맞춘 곡만, 가사 따라가기용)',
     '- credits.txt: 크레딧 시트, release_schedule.txt: 발매 일정, checklist.txt: 제출 전 점검 결과',
+    '- booklet.html: 가사집 (브라우저로 열어 인쇄 → PDF로 저장하면 디지털 부클릿)',
     '',
     'ISRC·UPC는 보통 유통사가 발급한다. 받은 뒤 앱의 앨범 메타데이터에 적어 두면 다음 패키지에 들어간다.',
   ].join('\n') });

@@ -210,3 +210,19 @@ import { extOf } from '../src/js/album/model.js';
   assert.deepEqual([r3.order[0], r3.order[1], r3.order[4]], ['qintro', 'title', 'ballad']);
   console.log('order OK');
 }
+
+// 가사집: 표지·트랙 목록·곡마다 한 쪽·크레딧, HTML 이스케이프, 커버 없으면 글자 표지
+{
+  const { bookletHtml } = await import('../src/js/album/booklet.js');
+  const al = { ...newAlbum(), title: '<b>Midnight</b> & Co', artist: '물결', cLine: '2026 물결뮤직', pLine: '2026 물결뮤직',
+    tracks: [{ ...newTrack(song.id), isTitle: true, lyricists: '물결', composers: '물결 "A"' }, newTrack('gone')] };
+  const html = bookletHtml(al, [song], '');
+  assert.ok(html.startsWith('<!doctype html>'));
+  assert.ok(html.includes('&lt;b&gt;Midnight&lt;/b&gt; &amp; Co') && !html.includes('<b>Midnight'), '제목 이스케이프');
+  assert.equal((html.match(/class="page lyrics"/g) || []).length, 1, '지워진 곡은 빠짐');
+  assert.ok(html.includes('작곡 물결 &quot;A&quot;'));
+  assert.ok(html.includes('class="plain"'), '커버 없으면 글자 표지');
+  assert.ok(html.includes('© 2026 물결뮤직'));
+  assert.ok(bookletHtml(al, [song], 'data:image/jpeg;base64,AAAA').includes('<img src="data:image/jpeg;base64,AAAA"'));
+  console.log('booklet OK');
+}

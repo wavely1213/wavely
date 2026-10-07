@@ -1,10 +1,12 @@
-// 앨범 > 제출: 발매 전 점검표 + 유통사 제출 패키지(zip) 받기.
+// 앨범 > 제출: 발매 전 점검표 + 유통사 제출 패키지(zip) 받기 + 가사집.
 import { h, toast } from '../../dom.js';
 import { refresh, getState, setAlbumTab, selectSong, setTab } from '../../state.js';
 import { releaseChecklist } from '../../album/model.js';
 import { buildReleasePackage } from '../../album/release.js';
 import { mastersOf, coverOf, fillFromSongMasters } from '../../album/session.js';
-import { saveFile } from '../../platform/download.js';
+import { saveFile, isArtifact } from '../../platform/download.js';
+import { bookletHtml, blobToDataUrl } from '../../album/booklet.js';
+import { zip } from '../../music/pack.js';
 
 const ui = { busy: '' };
 const LEVEL = { error: '꼭 고치기', warn: '확인', info: '참고' };
@@ -60,5 +62,23 @@ export function renderSubmit(album) {
       h('div', { class: 'row' },
         h('button', { type: 'button', class: 'btn primary', disabled: !!ui.busy || !album.tracks.length, onclick: () => download(album) }, '제출 패키지 받기 (zip)'),
         ui.busy ? h('span', { class: 'status' }, h('span', { class: 'dot' }), h('span', { id: 'submit-status' }, ui.busy)) : null)),
+    h('section', { class: 'card' },
+      h('h2', null, '가사집 (디지털 부클릿)'),
+      h('p', { class: 'muted' }, '커버·트랙 목록·곡마다 가사와 크레딧을 한 쪽씩 담은 인쇄용 파일이에요. 브라우저로 열어 인쇄 → "PDF로 저장"하면 가사집 PDF가 돼요. 제출 패키지에도 들어 있어요.'),
+      h('div', { class: 'row' },
+        h('button', { type: 'button', class: 'btn', id: 'booklet-download', disabled: !album.tracks.length, onclick: () => downloadBooklet(album) }, '가사집 받기 (HTML)'))),
   );
+}
+
+async function downloadBooklet(album) {
+  const { songs } = getState();
+  const cover = coverOf(album.id);
+  const html = bookletHtml(album, songs, cover?.blob ? await blobToDataUrl(cover.blob) : '');
+  const name = `${(album.title || 'album').replace(/[\\/:*?"<>|]+/g, '').trim() || 'album'} 가사집`;
+  // 아티팩트 다운로드는 허용 확장자만 받으므로 zip으로 감싼다
+  const res = isArtifact()
+    ? await saveFile(`${name}.zip`, zip([{ name: `${name}.html`, data: html }]))
+    : await saveFile(`${name}.html`, new Blob([html], { type: 'text/html;charset=utf-8' }));
+  if (res === 'saved') toast('받았어요. 열어서 인쇄 → PDF로 저장하세요');
+  else if (res === 'unavailable') toast('이 화면에서는 파일을 받을 수 없어요');
 }

@@ -169,6 +169,18 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     const zipPath = path.join(TMP, `${tag}-release.zip`);
     await download.saveAs(zipPath);
     global.zipLrc = (global.zipLrc ?? true) && fs.readFileSync(zipPath).includes(Buffer.from('.lrc'));
+    // 가사집: 제출 패키지에 booklet.html, 따로 받기도 됨 → 열어서 화면 확인
+    const [bkDl] = await Promise.all([p.waitForEvent('download', { timeout: 30000 }), p.click('#booklet-download')]);
+    const bkPath = path.join(TMP, `${tag}-booklet.html`);
+    await bkDl.saveAs(bkPath);
+    const bk = fs.readFileSync(bkPath, 'utf8');
+    global.bookletOk = (global.bookletOk ?? true) && fs.readFileSync(zipPath).includes(Buffer.from('booklet.html')) && bkDl.suggestedFilename().endsWith('가사집.html') && bk.includes('<img src="data:image/');
+    if (tag === 'desk') {
+      const pb = await c.newPage();
+      await pb.goto('file://' + bkPath);
+      await pb.screenshot({ path: path.join(TMP, 'booklet.png') });
+      await pb.close();
+    }
     // 새로고침해도 마스터·커버가 남는지 (IndexedDB)
     await p.waitForTimeout(1500);
     await p.reload();
@@ -221,6 +233,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
   if (!global.syncOk) errs.push('싱크 가사 맞추기 안 됨');
   if (!global.navOk) errs.push('폰 목록 접기 이상');
   if (!global.icsOk) errs.push('캘린더 파일 이상');
+  if (!global.bookletOk) errs.push('가사집 이상');
   if (!global.hlOk) errs.push(`하이라이트 이상: ${global.hlRange}`);
   if (global.toneOk === false) errs.push(`레퍼런스 음색 맞추기 이상: ${global.toneNote}`);
   if (!global.backupOk) errs.push(`백업·복원 이상: ${JSON.stringify(global.backupInfo)}`);
