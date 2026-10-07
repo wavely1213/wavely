@@ -77,7 +77,7 @@ export const QUICK_TWEAKS = {
       sm.energy = Math.max(1, sm.energy - 1);
       if (sm.energy <= 2) sm.instruments = sm.instruments.filter((i) => !['pluck', 'arp', 'b808'].includes(i));
       if (sm.energy <= 1) sm.instruments = sm.instruments.filter((i) => i !== 'drums');
-      if (sm.drum === 'four' || sm.drum === 'jersey' || sm.drum === 'trap') sm.drum = 'pop';
+      if (['four', 'jersey', 'trap', 'dembow', 'funk'].includes(sm.drum)) sm.drum = 'pop';
       else if (sm.drum === 'pop') sm.drum = 'ballad';
       sm.bass = 'long';
       if (!sm.instruments.includes('pad') && !sm.instruments.includes('piano')) sm.instruments.push('pad');

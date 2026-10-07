@@ -45,3 +45,20 @@ console.log('unit OK');
   assert.equal(melodyText([]), '');
   console.log('melodytext OK');
 }
+
+// 새 리듬: 뎀보(스네어 3·6·11·14칸)·펑크 드럼, 엇박 하우스 베이스(뒷박만)
+{
+  const { normalizeMusic } = await import('../src/js/music/arrangement.js');
+  const { buildTimeline } = await import('../src/js/music/timeline.js');
+  const { exampleSong } = await import('../src/js/example.js');
+  const { DRUM_PATTERNS, BASS_PATTERNS } = await import('../src/js/music/patterns.js');
+  assert.ok(DRUM_PATTERNS.dembow && DRUM_PATTERNS.funk && BASS_PATTERNS.offbeat);
+  const song = normalizeMusic(exampleSong());
+  const sec = song.sections.find((s) => s.type === 'Verse');
+  Object.assign(song.music.sections[sec.id], { drum: 'dembow', bass: 'offbeat', energy: 3, instruments: ['drums', 'bass'], drumGrid: null });
+  const tl = buildTimeline(song, [sec.id]);
+  const bar0 = (inst, note) => tl.events.filter((e) => e.inst === inst && (!note || e.note === note) && e.step < 16).map((e) => e.step).sort((a, b) => a - b);
+  assert.deepEqual(bar0('drums', 'snare'), [3, 6, 11, 14]);
+  assert.deepEqual(bar0('bass'), [2, 6, 10, 14]);
+  console.log('patterns OK');
+}
