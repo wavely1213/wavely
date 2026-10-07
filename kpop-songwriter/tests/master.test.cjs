@@ -12,7 +12,8 @@ const { chromium } = require(execSync('npm root -g').toString().trim() + '/playw
 const ROOT = path.join(__dirname, '..');
 const TMP = path.join(__dirname, '.tmp');
 fs.mkdirSync(TMP, { recursive: true });
-buildSync({ entryPoints: [path.join(__dirname, 'engine-entry.js')], bundle: true, format: 'iife', tsconfigRaw: '{}', outfile: path.join(TMP, 'bundle.js') });
+const worker = buildSync({ entryPoints: [path.join(ROOT, 'src/js/music/dsp-worker.js')], bundle: true, format: 'iife', write: false, tsconfigRaw: '{}' }).outputFiles[0].text;
+buildSync({ entryPoints: [path.join(__dirname, 'engine-entry.js')], bundle: true, format: 'iife', tsconfigRaw: '{}', define: { __DSP_WORKER__: JSON.stringify(worker) }, outfile: path.join(TMP, 'bundle.js') });
 fs.writeFileSync(path.join(TMP, 'index.html'), '<meta charset=utf-8><script src=bundle.js></script>');
 
 const server = http.createServer((req, res) => {
@@ -80,7 +81,7 @@ server.listen(0, async () => {
     for (const target of [-14, -8]) {
       const t2 = performance.now();
       const m = await T.master(buf, { preset: 'kpop', target });
-      out[target] = { ms: Math.round(performance.now() - t2), before: m.before, after: m.after, gr: m.maxReduction, reached: m.reached,
+      out[target] = { ms: Math.round(performance.now() - t2), before: m.before, after: m.after, gr: m.maxReduction, reached: m.reached, via: m.via,
         wav: await toB64(T.encodeWav({ channels: m.channels, sampleRate: m.rate }, { bits: 24, normalize: false })) };
     }
     return { sineLufs, allPacks, loadMs, packs, renderMs, rms: Math.sqrt(sum / ch.length), nan, out };
@@ -94,9 +95,9 @@ server.listen(0, async () => {
     const ff = ebur128(file);
     // 목표에 닿았다고 하면 ffmpeg로도 ±0.5 LU, 못 닿았다고 하면 리미터가 한계(12dB)까지 갔어야 한다. 피크는 항상 지킨다.
     const loud = m.reached ? Math.abs(ff.I - Number(target)) <= 0.5 : m.gr >= 11.5 && Math.abs(ff.I - m.after.lufs) <= 0.5;
-    const pass = loud && ff.TP <= -0.8 && (Number(target) !== -14 || m.reached);
+    const pass = loud && ff.TP <= -0.8 && (Number(target) !== -14 || m.reached) && m.via === 'worker';
     ok = ok && pass;
-    console.log(`target ${target}: app ${m.after.lufs.toFixed(2)} LUFS ${m.after.peak.toFixed(2)} dBTP | ffmpeg ${ff.I} LUFS ${ff.TP} dBTP | GR ${m.gr.toFixed(1)}dB reached=${m.reached} | ${m.ms}ms | ${pass ? 'OK' : 'FAIL'}`);
+    console.log(`target ${target}: app ${m.after.lufs.toFixed(2)} LUFS ${m.after.peak.toFixed(2)} dBTP | ffmpeg ${ff.I} LUFS ${ff.TP} dBTP | GR ${m.gr.toFixed(1)}dB reached=${m.reached} via=${m.via} | ${m.ms}ms | ${pass ? 'OK' : 'FAIL'}`);
   }
   console.log(ok ? 'master OK' : 'master FAILED');
   if (!ok) process.exitCode = 1;

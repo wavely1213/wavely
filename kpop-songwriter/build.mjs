@@ -8,6 +8,18 @@ import { readFileSync, writeFileSync, mkdirSync, cpSync, rmSync } from 'node:fs'
 const target = process.argv[2] === 'web' ? 'web' : 'artifact';
 const BASE = '/music/';
 
+// 마스터링 계산 워커를 먼저 묶어 문자열로 만든다 (blob URL로 띄움)
+const workerBuild = await build({
+  entryPoints: ['src/js/music/dsp-worker.js'],
+  bundle: true,
+  format: 'iife',
+  target: 'es2020',
+  write: false,
+  minify: true,
+  legalComments: 'none',
+  tsconfigRaw: '{}',
+});
+
 const result = await build({
   entryPoints: ['src/js/app.js'],
   bundle: true,
@@ -16,7 +28,7 @@ const result = await build({
   write: false,
   legalComments: 'none',
   minify: target === 'web',
-  define: { __WEB__: String(target === 'web') },
+  define: { __WEB__: String(target === 'web'), __DSP_WORKER__: JSON.stringify(workerBuild.outputFiles[0].text) },
   tsconfigRaw: '{}', // 상위 폴더(wavely)의 tsconfig를 읽지 않게
 });
 const script = result.outputFiles[0].text.replace(/<\/script/gi, '<\\/script');

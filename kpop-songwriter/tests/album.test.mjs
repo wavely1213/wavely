@@ -60,3 +60,21 @@ const lyr = plainLyrics(song);
 assert.ok(!lyr.includes('['));
 assert.equal(lyr.split('Midnight signal 너를 불러').length - 1, 2);
 console.log('album OK');
+
+// 마스터링 앞뒤 정리: 앞 1초·뒤 2초 무음이 정리되고, 페이드 아웃 끝은 0에 가깝다
+import { finishEdges } from '../src/js/music/master.js';
+{
+  const rate = 1000;
+  const n = 5000;
+  const make = () => { const c = new Float32Array(n); for (let i = 1000; i < 3000; i++) c[i] = 0.5; return c; };
+  const res = finishEdges([make(), make()], rate, { trim: true, fadeOut: 0.5 });
+  assert.ok(Math.abs(res.trimmedStart - 0.95) < 0.01, `앞 ${res.trimmedStart}`);
+  assert.ok(Math.abs(res.trimmedEnd - 1.501) < 0.01, `뒤 ${res.trimmedEnd}`);
+  const c = res.channels[0];
+  assert.equal(c.length, 2549); // 950 ~ 3499
+  assert.ok(Math.abs(c[c.length - 1]) < 0.01, '페이드 끝');
+  assert.equal(c[0], 0, '페이드 인 시작');
+  const none = finishEdges([make()], rate, { trim: false, fadeOut: 0 });
+  assert.equal(none.channels[0].length, n, '끄면 길이 그대로');
+  console.log('master edges OK');
+}

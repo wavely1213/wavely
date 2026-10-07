@@ -56,7 +56,7 @@
 | 분석 | music/analyze.js | 레퍼런스 BPM·키·에너지·저음·밝기 |
 | 샘플 | music/samples.js | samples/*.json 불러오기·디코딩, 악기·음색 → 묶음 매핑 |
 | 음량 측정 | music/loudness.js | BS.1770 통합 LUFS, 4배 오버샘플링 트루 피크 |
-| 마스터링 | music/master.js, views/master.js | EQ·컴프 → LUFS 맞춤 → 트루 피크 리미터 → WAV |
+| 마스터링 | music/master.js, music/dsp.js, music/dsp-worker.js, views/master.js | master.js: 디코딩·EQ·컴프(오디오 API) + 워커 호출. dsp.js: 리미터·음량 맞춤·앞뒤 정리(숫자만, 워커에서 실행) |
 | 앨범 모델 | album/model.js | 앨범·트랙, 발매 일정표, 발매 전 점검표, 메타데이터 CSV |
 | 커버 | album/cover.js | 3000×3000 템플릿 캔버스 → JPG |
 | 발매 준비 | album/release.js, album/session.js | 마스터 규격 점검, 가사지·크레딧, 제출 zip, AI 홍보 문구 |

@@ -1,6 +1,6 @@
 // 발매 준비: 마스터 파일 점검, 가사지·크레딧, 유통사 제출 패키지(zip), AI 홍보 문구.
 import { zip } from '../music/pack.js';
-import { measure } from '../music/master.js';
+import { measureAsync } from '../music/master.js';
 import { getSample } from '../ai.js';
 import { ALBUM_TYPES, scheduleFor, releaseChecklist, metadataRows, albumRows, toCsv, trackFileName } from './model.js';
 
@@ -26,7 +26,7 @@ export async function inspectMaster(file) {
   const ctx = new OfflineAudioContext(2, 1, 44100);
   const buf = await ctx.decodeAudioData(bytes.slice().buffer);
   const ch = [buf.getChannelData(0), buf.numberOfChannels > 1 ? buf.getChannelData(1) : buf.getChannelData(0)];
-  const m = measure(ch, buf.sampleRate);
+  const m = await measureAsync(ch, buf.sampleRate);
   return { file, name: file.name, sampleRate: head?.sampleRate || buf.sampleRate, bits: head?.bits || null, lufs: m.lufs, peak: m.peak, duration: buf.duration };
 }
 

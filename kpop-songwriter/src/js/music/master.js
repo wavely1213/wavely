@@ -1,5 +1,5 @@
 // 마스터링: 톤 보정(EQ) → 글루 컴프레서 → 목표 음량(LUFS)으로 맞춤 → 트루 피크 리미터 → 44.1kHz.
-import { integratedLoudness, truePeakEnvelope, maxOf, toDb, fromDb } from './loudness.js';
+import { processMaster, measure, OUTPUT_RATE } from './dsp.js';
 
 export const MASTER_PRESETS = {
   natural: { name: '자연스럽게', low: 0, mud: 0, presence: 0.5, air: 1, comp: { threshold: -20, ratio: 1.6 } },
@@ -14,15 +14,46 @@ export const LOUDNESS_TARGETS = [
   { value: -8, name: '-8 LUFS · 아주 크게', note: '최근 K-pop 음반처럼 큰 소리. 리미터가 많이 눌러 타격감이 줄 수 있어요.' },
 ];
 
-export const OUTPUT_RATE = 44100;
-const CEILING_DB = -1; // 트루 피크 한도 (dBTP)
-const MAX_PASSES = 8;
-const MAX_REDUCTION_DB = 12; // 이보다 많이 누르면 목표 음량을 포기하고 알린다
+export { OUTPUT_RATE, finishEdges, measure } from './dsp.js';
 
-function maxReductionDb(curve) {
-  let m = 1;
-  for (let i = 0; i < curve.length; i++) if (curve[i] < m) m = curve[i];
-  return -toDb(m);
+// 워커 소스: 웹·아티팩트 빌드에서 build.mjs가 넣는다. 없으면(테스트 번들 등) 화면 스레드에서 계산.
+const WORKER_SRC = typeof __DSP_WORKER__ !== 'undefined' ? __DSP_WORKER__ : null;
+let worker = null;
+let seq = 0;
+const waiting = new Map();
+
+function getWorker() {
+  if (!WORKER_SRC || typeof Worker === 'undefined') return null;
+  if (!worker) {
+    try {
+      worker = new Worker(URL.createObjectURL(new Blob([WORKER_SRC], { type: 'text/javascript' })));
+      worker.onmessage = (e) => {
+        const w = waiting.get(e.data.id);
+        if (!w) return;
+        if (e.data.step) { w.onStep(e.data.step); return; }
+        waiting.delete(e.data.id);
+        if (e.data.error) w.reject(new Error(e.data.error)); else w.resolve(e.data.result);
+      };
+      worker.onerror = () => { waiting.forEach((w) => w.reject(new Error('worker'))); waiting.clear(); worker = null; };
+    } catch {
+      worker = null;
+    }
+  }
+  return worker;
+}
+
+function inWorker(kind, payload, onStep = () => {}) {
+  const w = getWorker();
+  if (!w) return null;
+  const id = ++seq;
+  return new Promise((resolve, reject) => {
+    waiting.set(id, { resolve, reject, onStep });
+    w.postMessage({ id, kind, payload });
+  });
+}
+
+export async function measureAsync(channels, rate) {
+  return (await inWorker('measure', { channels, rate })) || measure(channels, rate);
 }
 
 const tick = () => new Promise((r) => setTimeout(r, 0));
@@ -66,112 +97,23 @@ async function tonal(buffer, preset) {
   return off.startRendering();
 }
 
-// 앞뒤 lookahead만큼의 최솟값 (단조 덱)
-function slidingMin(x, radius) {
-  const n = x.length;
-  const out = new Float32Array(n);
-  const dq = new Int32Array(n);
-  let head = 0; let tail = 0;
-  for (let i = 0; i < n + radius; i++) {
-    if (i < n) {
-      while (tail > head && x[dq[tail - 1]] >= x[i]) tail--;
-      dq[tail++] = i;
-    }
-    const c = i - radius;
-    if (c >= 0) {
-      while (dq[head] < c - radius) head++;
-      out[c] = x[dq[head]];
-    }
-  }
-  return out;
-}
 
-function boxAverage(x, width) {
-  const n = x.length;
-  const half = Math.floor(width / 2);
-  const pre = new Float64Array(n + 1);
-  for (let i = 0; i < n; i++) pre[i + 1] = pre[i] + x[i];
-  const out = new Float32Array(n);
-  for (let i = 0; i < n; i++) {
-    const a = Math.max(0, i - half);
-    const b = Math.min(n, i + half + 1);
-    out[i] = (pre[b] - pre[a]) / (b - a);
-  }
-  return out;
-}
 
-// 리미터 게인 곡선: 어느 샘플도 한도를 넘지 않게, 미리 보고(1.5ms) 부드럽게 줄이고 80ms에 걸쳐 풀어 준다
-function limiterGain(tpPre, gain, ceiling, rate) {
-  const n = tpPre.length;
-  const req = new Float32Array(n);
-  for (let i = 0; i < n; i++) {
-    const p = tpPre[i] * gain;
-    req[i] = p > ceiling ? ceiling / p : 1;
-  }
-  const look = Math.round(0.0015 * rate);
-  const smooth = boxAverage(slidingMin(req, look), look);
-  const rel = 1 - Math.exp(-1 / (0.08 * rate));
-  let env = 1;
-  for (let i = 0; i < n; i++) {
-    const target = smooth[i];
-    env = target < env ? target : env + (target - env) * rel;
-    smooth[i] = env;
-  }
-  return smooth;
-}
 
-function applyGain(channels, gain, curve) {
-  return channels.map((c) => {
-    const out = new Float32Array(c.length);
-    for (let i = 0; i < c.length; i++) out[i] = c[i] * gain * curve[i];
-    return out;
-  });
-}
 
-export function measure(channels, rate) {
-  return { lufs: integratedLoudness(channels, rate), peak: toDb(maxOf(truePeakEnvelope(channels))) };
-}
 
-// 반환: { channels: [L, R], rate, before, after, maxReduction(dB) }
-export async function master(buffer, { preset = 'kpop', target = -14 } = {}, onStep = () => {}) {
+
+// 반환: { channels: [L, R], rate, before, after, maxReduction(dB), reached, trimmedStart, trimmedEnd }
+export async function master(buffer, { preset = 'kpop', target = -14, trim = true, fadeOut = 0 } = {}, onStep = () => {}) {
   const p = MASTER_PRESETS[preset] || MASTER_PRESETS.natural;
-  onStep('원본 음량 재는 중');
-  await tick();
-  const srcCh = channelsOf(buffer);
-  const before = measure(srcCh, buffer.sampleRate);
   onStep('톤 보정·컴프레서');
   await tick();
   const toned = channelsOf(await tonal(buffer, p));
-  onStep('피크 분석 중');
+  const payload = { src: channelsOf(buffer), srcRate: buffer.sampleRate, toned, target, trim, fadeOut };
+  const viaWorker = inWorker('master', payload, onStep);
+  if (viaWorker) return { ...(await viaWorker), via: 'worker' };
   await tick();
-  const tpPre = truePeakEnvelope(toned);
-  const ceiling = fromDb(CEILING_DB);
-  let gainDb = target - integratedLoudness(toned, OUTPUT_RATE);
-  let out;
-  let curve;
-  let reached = false;
-  // 리미터가 음량을 깎으므로 여러 번 다시 맞춘다. 리미터가 12dB 넘게 눌러야 하면 소리가 뭉개지므로 거기서 멈춘다.
-  for (let pass = 0; pass < MAX_PASSES; pass++) {
-    onStep(`음량 맞추는 중 (${pass + 1})`);
-    await tick();
-    curve = limiterGain(tpPre, fromDb(gainDb), ceiling, OUTPUT_RATE);
-    out = applyGain(toned, fromDb(gainDb), curve);
-    const l = integratedLoudness(out, OUTPUT_RATE);
-    if (!Number.isFinite(l) || Math.abs(l - target) < 0.2) { reached = Number.isFinite(l); break; }
-    if (l < target && maxReductionDb(curve) >= MAX_REDUCTION_DB) break;
-    gainDb += target - l;
-  }
-  onStep('최종 확인');
-  await tick();
-  let peak = maxOf(truePeakEnvelope(out));
-  if (peak > ceiling) {
-    const trim = ceiling / peak;
-    out.forEach((c) => { for (let i = 0; i < c.length; i++) c[i] *= trim; });
-    peak = ceiling;
-  }
-  const after = { lufs: integratedLoudness(out, OUTPUT_RATE), peak: toDb(peak) };
-  if (Math.abs(after.lufs - target) < 0.5) reached = true;
-  return { channels: out, rate: OUTPUT_RATE, before, after, maxReduction: maxReductionDb(curve), gainDb, reached };
+  return { ...processMaster(payload, onStep), via: 'main' };
 }
 
 export function masterWarnings(res, target) {

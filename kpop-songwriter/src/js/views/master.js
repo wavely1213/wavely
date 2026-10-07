@@ -19,7 +19,7 @@ let audioCtx = null;
 let playing = null;
 
 function settings(song) {
-  return { preset: 'kpop', target: -14, ...(song.master || {}) };
+  return { preset: 'kpop', target: -14, trim: true, fadeOut: 0, ...(song.master || {}) };
 }
 
 function stopListen() {
@@ -200,6 +200,11 @@ export function renderMaster(song) {
         }, t.name))),
         targetNote ? h('span', { class: 'muted' }, targetNote) : null),
       h('div', { class: 'row' },
+        h('label', { class: 'check' }, h('input', { type: 'checkbox', id: 'master-trim', checked: st.trim, onchange: (e) => mutate((s) => { s.master = { ...settings(s), trim: e.target.checked }; }) }), '앞뒤 무음 정리'),
+        h('label', { class: 'check' }, '끝 페이드 아웃',
+          h('select', { id: 'master-fade', onchange: (e) => mutate((s) => { s.master = { ...settings(s), fadeOut: Number(e.target.value) }; }) },
+            [[0, '없음'], [2, '2초'], [4, '4초'], [8, '8초']].map(([v, t]) => h('option', { value: String(v), selected: st.fadeOut === v }, t))))),
+      h('div', { class: 'row' },
         h('button', { type: 'button', class: 'btn primary', disabled: busy || !ui.source, onclick: () => run(song) }, '마스터링 하기'),
         busy ? h('span', { class: 'status' }, h('span', { class: 'dot' }), h('span', { id: 'master-status' }, ui.busy)) : null,
         !ui.source && !busy ? h('span', { class: 'muted' }, '먼저 파일을 넣어 주세요') : null)),
@@ -220,7 +225,8 @@ function renderResult(song, r) {
         h('tr', null, h('th', null, '음량 (통합 LUFS)'), h('td', { class: 'mono' }, fmt(r.before.lufs, 'LUFS')), h('td', { class: 'mono' }, fmt(r.after.lufs, 'LUFS'))),
         h('tr', null, h('th', null, '트루 피크'), h('td', { class: 'mono' }, fmt(r.before.peak, 'dBTP')), h('td', { class: 'mono' }, fmt(r.after.peak, 'dBTP'))),
         h('tr', null, h('th', null, '샘플레이트'), h('td', { class: 'mono' }, `${ui.source.sampleRate} Hz`), h('td', { class: 'mono' }, `${r.rate} Hz`)),
-        h('tr', null, h('th', null, '리미터 최대 감소'), h('td', null, ''), h('td', { class: 'mono' }, `${r.maxReduction.toFixed(1)} dB`)))),
+        h('tr', null, h('th', null, '리미터 최대 감소'), h('td', null, ''), h('td', { class: 'mono' }, `${r.maxReduction.toFixed(1)} dB`)),
+        h('tr', null, h('th', null, '길이'), h('td', { class: 'mono' }, `${ui.source.duration.toFixed(1)}초`), h('td', { class: 'mono' }, `${(r.channels[0].length / r.rate).toFixed(1)}초${r.trimmedStart + r.trimmedEnd > 0.05 ? ` (앞 ${r.trimmedStart.toFixed(1)}초·뒤 ${r.trimmedEnd.toFixed(1)}초 정리)` : ''}`)))),
     warnings.length ? h('ul', { class: 'warn-list' }, warnings.map((w) => h('li', null, w))) : null,
     h('div', { class: 'row' },
       h('button', { type: 'button', class: `btn${ui.listen === 'before' ? ' primary' : ''}`, onclick: () => listen('before') }, ui.listen === 'before' ? '■ 원본 정지' : '▶ 원본 듣기'),
