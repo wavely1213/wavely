@@ -76,6 +76,16 @@ server.listen(0, async () => {
     let sum = 0; let nan = false;
     for (let i = 0; i < ch.length; i++) { sum += ch[i] * ch[i]; if (Number.isNaN(ch[i])) nan = true; }
 
+    // 긴 패드(60 BPM 한 마디 = 4초, 샘플 길이 약 3초)가 끝까지 이어지는지
+    const pad = T.normalizeMusic(T.exampleSong());
+    pad.music.bpm = 60;
+    pad.sections = [pad.sections.find((s) => s.type === 'Intro')];
+    Object.assign(pad.music.sections[pad.sections[0].id], { bars: 2, instruments: ['pad'], chords: [1], energy: 3, melody: [] });
+    Object.keys(pad.music.sounds).forEach((k) => { pad.music.sounds[k].mute = k !== 'pad'; });
+    const pb = (await T.renderSong(pad)).getChannelData(0);
+    const prms = (a, b2) => { let s = 0; for (let i = Math.floor(a * 44100); i < Math.floor(b2 * 44100); i++) s += pb[i] * pb[i]; return Math.sqrt(s / ((b2 - a) * 44100)); };
+    const sustain = { early: prms(0.5, 1.5), late: prms(3.2, 3.9) };
+
     const toB64 = (bytes) => new Promise((res) => { const fr = new FileReader(); fr.onload = () => res(fr.result.split(',')[1]); fr.readAsDataURL(new Blob([bytes])); });
     const out = {};
     for (const target of [-14, -8]) {
@@ -84,10 +94,11 @@ server.listen(0, async () => {
       out[target] = { ms: Math.round(performance.now() - t2), before: m.before, after: m.after, gr: m.maxReduction, reached: m.reached, via: m.via,
         wav: await toB64(T.encodeWav({ channels: m.channels, sampleRate: m.rate }, { bits: 24, normalize: false })) };
     }
-    return { sineLufs, allPacks, loadMs, packs, renderMs, rms: Math.sqrt(sum / ch.length), nan, out };
+    return { sineLufs, sustain, allPacks, loadMs, packs, renderMs, rms: Math.sqrt(sum / ch.length), nan, out };
   });
-  let ok = Math.abs(r.sineLufs + 20) < 0.1 && Object.values(r.allPacks).every(Boolean) && Object.values(r.packs).every(Boolean) && !r.nan && r.rms > 0.01;
+  let ok = r.sustain.late > r.sustain.early * 0.5 && Math.abs(r.sineLufs + 20) < 0.1 && Object.values(r.allPacks).every(Boolean) && Object.values(r.packs).every(Boolean) && !r.nan && r.rms > 0.01;
   console.log('all packs', r.allPacks);
+  console.log('long pad sustain', r.sustain);
   console.log('sine LUFS', r.sineLufs.toFixed(2), '| samples', r.packs, `load ${r.loadMs}ms render ${r.renderMs}ms rms ${r.rms.toFixed(3)}`);
   for (const [target, m] of Object.entries(r.out)) {
     const file = path.join(TMP, `master${target}.wav`);

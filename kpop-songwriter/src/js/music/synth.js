@@ -203,6 +203,50 @@ function playSample(ctx, out, buffer, rate, t, dur, gain, a, r) {
   }
 }
 
+// 지속음(패드·스트링·가이드 멜로디)이 샘플 길이(약 3초)보다 길면, 샘플 가운데 부분을 겹쳐 이어 붙여 끊기지 않게 한다
+const SUSTAIN = ['pad', 'strings', 'lead'];
+const XFADE = 0.25;
+function playSustained(ctx, out, buffer, rate, t, dur, gain, a, r) {
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(gain, t + a);
+  g.gain.setValueAtTime(gain, t + Math.max(a, dur));
+  g.gain.exponentialRampToValueAtTime(0.0001, t + Math.max(a, dur) + r);
+  g.connect(out);
+  const end = t + Math.max(a, dur) + r;
+  const natural = buffer.duration / rate;
+  const ofs = buffer.duration * 0.35; // 어택이 끝난 뒤 지속 구간
+  const loopLen = (buffer.duration - ofs) / rate;
+  let start = t;
+  let offset = 0;
+  let len = natural;
+  let first = true;
+  while (start < end) {
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+    src.playbackRate.value = rate;
+    const x = ctx.createGain();
+    if (first) x.gain.setValueAtTime(1, start);
+    else {
+      x.gain.setValueAtTime(0.0001, start);
+      x.gain.linearRampToValueAtTime(1, start + XFADE);
+    }
+    const stopAt = Math.min(start + len, end + 0.02);
+    if (stopAt < end) {
+      x.gain.setValueAtTime(1, stopAt - XFADE);
+      x.gain.linearRampToValueAtTime(0.0001, stopAt);
+    }
+    src.connect(x).connect(g);
+    src.start(start, offset);
+    src.stop(stopAt);
+    if (stopAt >= end) break; // 마지막 조각
+    start = stopAt - XFADE;
+    offset = ofs;
+    len = loopLen;
+    first = false;
+  }
+}
+
 function sampled(ctx, out, pack, inst, variant, e, t, dur, fx) {
   const cfg = SAMPLER[inst] || { trim: 0.7, attack: 0.01, release: 0.2 };
   const gain = cfg.trim * e.vel ** 1.4;
@@ -215,7 +259,9 @@ function sampled(ctx, out, pack, inst, variant, e, t, dur, fx) {
   if (inst === 'piano' && variant === 'lofi') dest = fx('lofi', () => filter(ctx, 'lowpass', 1800));
   const { buffer, rate } = nearestNote(pack, e.note);
   const st = t + (e.strum || 0) * 0.015;
-  playSample(ctx, dest, buffer, variant === 'lofi' ? rate * 0.997 : rate, st, dur, gain, cfg.attack, cfg.release);
+  const r = variant === 'lofi' ? rate * 0.997 : rate;
+  if (SUSTAIN.includes(inst) && dur + cfg.release > buffer.duration / r - 0.1) playSustained(ctx, dest, buffer, r, st, dur, gain, cfg.attack, cfg.release);
+  else playSample(ctx, dest, buffer, r, st, dur, gain, cfg.attack, cfg.release);
 }
 
 // 악기별 볼륨 노드를 만들고 이벤트를 소리로 바꾸는 함수를 돌려준다
