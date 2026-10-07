@@ -3,6 +3,7 @@ import { h, field, afterBlur } from '../../dom.js';
 import { mutateAlbum, getState, refresh } from '../../state.js';
 import { help } from '../../help.js';
 import { splitsFor } from '../../album/splits.js';
+import { fillCredits } from '../../album/model.js';
 
 const LANGUAGES = ['한국어', '영어', '한국어·영어', '일본어', '연주곡(가사 없음)'];
 const GENRES = ['K-Pop', 'Pop', 'Dance', 'R&B/Soul', 'Hip-Hop/Rap', 'Ballad', 'Electronic', 'Rock', 'Indie'];
@@ -80,13 +81,7 @@ export function renderMeta(album) {
     h('section', { class: 'card' },
       h('div', { class: 'card-head' },
         h('h2', null, '트랙별 크레딧'),
-        album.artist.trim() ? h('button', { type: 'button', class: 'btn small', onclick: () => mutateAlbum((a) => {
-          a.tracks.forEach((t) => {
-            if (!t.lyricists) t.lyricists = a.artist;
-            if (!t.composers) t.composers = a.artist;
-            if (!t.arrangers) t.arrangers = a.artist;
-          });
-        }) }, `빈 크레딧을 "${album.artist}"로 채우기`) : null),
+        album.artist.trim() ? h('button', { type: 'button', class: 'btn small', id: 'fill-credits', onclick: () => mutateAlbum((a) => { fillCredits(a, songs, a.artist); }) }, `빈 크레딧을 "${album.artist}"로 채우기`) : null),
       h('p', { class: 'muted' }, '저작권 신고와 정산 기준이 되니 실제로 작업한 사람을 적어 주세요.')),
     album.tracks.length ? h('div', { class: 'sections' }, trackRows) : h('p', { class: 'empty card' }, '수록곡을 먼저 넣어 주세요.'),
   );

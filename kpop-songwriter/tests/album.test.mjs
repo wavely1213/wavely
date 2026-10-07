@@ -1,6 +1,6 @@
 // 앨범 발매 로직 점검: 일정표, 발매 전 점검표, 메타데이터 CSV, 파일 이름. 실행: npm run test:album
 import assert from 'node:assert/strict';
-import { newAlbum, newTrack, scheduleFor, releaseChecklist, metadataRows, albumRows, toCsv, trackFileName, daysUntil } from '../src/js/album/model.js';
+import { newAlbum, newTrack, scheduleFor, releaseChecklist, metadataRows, albumRows, toCsv, trackFileName, daysUntil, fillCredits } from '../src/js/album/model.js';
 import { plainLyrics } from '../src/js/album/release.js';
 import { exampleSong } from '../src/js/example.js';
 import { normalizeMusic } from '../src/js/music/arrangement.js';
@@ -332,4 +332,15 @@ import { extOf } from '../src/js/album/model.js';
   const items = releaseChecklist(al, [inst], { today });
   assert.ok(!items.some((i) => i.text.includes('작사 크레딧') || i.text.includes('가사가 없어요')));
   console.log('inst OK');
+}
+
+// 빈 크레딧 채우기: Inst. 곡은 작사를 비워 두고, 이미 적은 칸은 그대로
+{
+  const vocal = { id: 'v1', sections: [] };
+  const inst = { id: 'i1', instOf: 'v1', sections: [] };
+  const al = { ...newAlbum(), tracks: [{ ...newTrack('v1'), composers: '다른 사람' }, newTrack('i1')] };
+  fillCredits(al, [vocal, inst], '물결');
+  assert.deepEqual([al.tracks[0].lyricists, al.tracks[0].composers, al.tracks[0].arrangers], ['물결', '다른 사람', '물결']);
+  assert.deepEqual([al.tracks[1].lyricists, al.tracks[1].composers, al.tracks[1].arrangers], ['', '물결', '물결']);
+  console.log('credits fill OK');
 }

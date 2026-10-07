@@ -89,3 +89,26 @@ import { mmss, parseMmss } from '../src/js/timefmt.js';
   assert.equal(mmss(5.5, { tenths: true }), '0:05.5');
   console.log('timefmt OK');
 }
+
+// 멤버 불러오기: 같은 구성은 최근 곡 하나만, 새 id, 파트가 비어 있으면 자동 분배
+import { memberSources, importMembers } from '../src/js/members.js';
+{
+  const mem = (id, name, position) => ({ id, name, position, tone: '', voice: '' });
+  const A = { id: 'A', title: '예시: 첫 곡', updatedAt: 3, concept: { group: 'boy' }, members: [mem('a1', '준', '메인보컬'), mem('a2', '하늘', '메인래퍼')] };
+  const B = { id: 'B', title: '옛 곡', updatedAt: 1, concept: { group: 'boy' }, members: [mem('b1', '준', '메인보컬'), mem('b2', '하늘', '메인래퍼')] };
+  const D = { id: 'D', title: '솔로', updatedAt: 2, concept: { group: 'solo-f' }, members: [mem('d1', '유나', '메인보컬')] };
+  const C = { id: 'C', title: '새 곡', updatedAt: 4, concept: { group: 'girl' }, members: [], sections: [{ id: 's1', type: 'Verse', members: [], text: '가' }, { id: 's2', type: 'Chorus', members: [], text: '나' }, { id: 's3', type: 'Rap', members: [], text: '다' }] };
+  const list = memberSources([A, B, C, D], C);
+  assert.deepEqual(list.map((x) => x.id), ['A', 'D']);
+  assert.equal(list[0].label, '첫 곡 — 준·하늘');
+  importMembers(C, A);
+  assert.deepEqual(C.members.map((m) => m.name), ['준', '하늘']);
+  assert.ok(C.members.every((m) => m.id !== 'a1' && m.id !== 'a2'));
+  assert.equal(C.concept.group, 'boy');
+  const [v, ch, rap] = C.sections;
+  assert.equal(ch.members.length, 2, '코러스는 전원');
+  assert.deepEqual(rap.members, [C.members[1].id], '랩은 래퍼');
+  assert.deepEqual(v.members, [C.members[0].id]);
+  assert.equal(v.text, '가', '가사는 그대로');
+  console.log('member import OK');
+}

@@ -188,6 +188,16 @@ export function releaseChecklist(album, songs, { masters = {}, coverInfo = null,
   return items;
 }
 
+// 빈 크레딧을 이름 하나로 채운다 (혼자 만든 경우). 연주곡(Inst.)은 작사가 없으므로 작사는 비워 둔다.
+export function fillCredits(album, songs, name) {
+  album.tracks.forEach((t) => {
+    const inst = songs.find((s) => s.id === t.songId)?.instOf;
+    if (!t.lyricists && !inst) t.lyricists = name;
+    if (!t.composers) t.composers = name;
+    if (!t.arrangers) t.arrangers = name;
+  });
+}
+
 // ---------- 메타데이터 CSV ----------
 function csvCell(v) {
   const s = String(v ?? '');

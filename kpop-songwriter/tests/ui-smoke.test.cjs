@@ -299,6 +299,14 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
       const tracksAfter = await p.locator('.track-title').count();
       global.albumNewSong = { tracksBefore, tracksAfter, newMembers, onConcept };
       global.albumNewSongOk = tracksAfter === tracksBefore + 1 && newMembers === 4 && onConcept === 1;
+      // 앨범 화면에서 "+ 새 곡" → 새 곡으로 이동, 멤버가 없으니 다른 곡 멤버 불러오기 (같은 구성은 하나만)
+      await p.click('text=+ 새 곡');
+      await p.waitForSelector('h1:text-is("제목 없는 곡")');
+      const importChoices = await p.locator('#member-import option').count();
+      await p.click('#member-import-run');
+      const imported = await p.locator('.member-row').count();
+      global.memberImport = { importChoices, imported };
+      global.memberImportOk = importChoices === 1 && imported === 4 && (await p.locator('#member-import').count()) === 0;
     }
     console.log(tag, { custom, prog, before, after, refs, masterPill, albumSteps: [global.albumStep1, global.albumStepTab, global.albumStep2], sylOk: global.sylOk, hlRange: global.hlRange, takeBest: global.takeBest, takeLufs: global.takeLufs, toneNote: global.toneNote, sync: global.syncInfo, stepHint, autoMaster, keptMaster, keptCover, errorsLeft, zip: fs.statSync(zipPath).size, vbodyStart: vbody.slice(0, 30), vcount });
     await c.close();
@@ -326,6 +334,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
   if (!global.qcOk) errs.push('소리 점검(QC) 표시 이상');
   if (!global.instOk) errs.push('Inst. 버전 추가 이상');
   if (!global.albumNewSongOk) errs.push(`앨범의 새 곡 이상: ${JSON.stringify(global.albumNewSong)}`);
+  if (!global.memberImportOk) errs.push(`멤버 불러오기 이상: ${JSON.stringify(global.memberImport)}`);
   if (!global.coverPickOk) errs.push('커버 추천·모양 미리보기 이상');
   if (!/^-1[34]\.\d LUFS$/.test(global.takeLufs || '')) errs.push(`테이크 음량 표시 이상: ${global.takeLufs}`);
   if (global.albumStep1 !== '다음: 정보·크레딧' || global.albumStepTab !== '정보·크레딧' || global.albumStep2 !== '다음: 발매 후 기록') errs.push(`앨범 진행 단계 이상: ${global.albumStep1} / ${global.albumStepTab} / ${global.albumStep2}`);

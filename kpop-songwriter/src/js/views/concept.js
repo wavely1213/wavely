@@ -1,11 +1,12 @@
 // 컨셉 탭: 제목, 주제, 분위기, 한/영 비율, 멤버.
 import { h, field, uid, afterBlur, toast } from '../dom.js';
-import { mutate, setTab } from '../state.js';
+import { mutate, setTab, getState } from '../state.js';
 import { makeDraft } from '../workflow/draft.js';
 import { suggestConcepts } from '../ai-concept.js';
 import { isBusy, runJob, stopJob, job } from '../aijob.js';
 import { GROUP_TYPES, MOODS, POSITIONS } from '../constants.js';
 import { VOICE_RANGES, defaultVoice, midiName } from '../music/range.js';
+import { memberSources, importMembers } from '../members.js';
 
 export function renderConcept(song) {
   const c = song.concept;
@@ -113,5 +114,22 @@ function renderMembers(song) {
       }) }, '+ 멤버 추가')),
     h('p', { class: 'muted' }, '음역은 멜로디가 부를 수 있는 높이인지 확인하는 데 써요. 보컬 톤은 영어로 적어 두면 Suno 섹션 태그로 쓰여요. 솔로곡이면 1명만 두세요.'),
     rows.length ? h('div', { class: 'member-list' }, rows) : h('p', { class: 'empty' }, '아직 멤버가 없어요. 멤버를 추가하면 구조 탭에서 파트를 나눌 수 있어요.'),
+    rows.length ? null : renderMemberImport(song),
   );
+}
+
+// 멤버가 없을 때만: 다른 곡의 멤버 구성 불러오기 (같은 그룹으로 여러 곡)
+function renderMemberImport(song) {
+  const { songs } = getState();
+  const list = memberSources(songs, song);
+  if (!list.length) return null;
+  const sel = h('select', { id: 'member-import', 'aria-label': '멤버를 불러올 곡' }, list.map((x) => h('option', { value: x.id }, x.label)));
+  return h('div', { class: 'row' },
+    sel,
+    h('button', { type: 'button', class: 'btn', id: 'member-import-run', onclick: () => {
+      const from = songs.find((x) => x.id === sel.value);
+      if (!from) return;
+      mutate((s) => importMembers(s, from));
+      toast(`멤버 ${from.members.length}명을 불러왔어요`);
+    } }, '이 곡의 멤버 불러오기'));
 }
