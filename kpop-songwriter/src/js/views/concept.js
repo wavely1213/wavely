@@ -1,6 +1,8 @@
 // 컨셉 탭: 제목, 주제, 분위기, 한/영 비율, 멤버.
-import { h, field, uid, afterBlur } from '../dom.js';
-import { mutate } from '../state.js';
+import { h, field, uid, afterBlur, toast } from '../dom.js';
+import { mutate, setTab } from '../state.js';
+import { makeDraft } from '../workflow/draft.js';
+import { isBusy, runJob, stopJob, job } from '../aijob.js';
 import { GROUP_TYPES, MOODS, POSITIONS } from '../constants.js';
 import { VOICE_RANGES, defaultVoice, midiName } from '../music/range.js';
 
@@ -27,7 +29,22 @@ export function renderConcept(song) {
     },
   });
 
+  const ready = !!(c.theme.trim() || c.story.trim() || c.keywords.trim());
+  const busy = isBusy();
   return h('div', { class: 'stack' },
+    h('section', { class: 'card draft-card' },
+      h('div', { class: 'card-head' },
+        h('h2', null, 'AI로 곡 초안 한 번에'),
+        h('div', { class: 'row' },
+          busy ? h('button', { type: 'button', class: 'btn ghost', onclick: stopJob }, '중지') : null,
+          busy ? h('span', { class: 'status' }, h('span', { class: 'dot' }), h('span', { id: 'job-progress' }, job.progress || job.label)) : null,
+          h('button', { type: 'button', class: 'btn primary', disabled: busy || !ready, onclick: () => runJob('초안 만드는 중', async (signal, progress) => {
+            const done = await makeDraft(song.id, { signal, onStep: progress });
+            if (done.length) { toast(`초안 완성: ${done.join(', ')}`); setTab('editor'); }
+          }) }, '초안 만들기'))),
+      h('p', { class: 'muted' }, ready
+        ? '아래 컨셉으로 빈 섹션 가사 → 편곡 → 멜로디 → Suno 스타일을 차례로 채워요. 이미 쓴 가사는 그대로 둬요. 몇 분 걸리고, 중간에 멈춰도 거기까지는 남아요.'
+        : '먼저 아래에 주제·스토리·키워드 중 하나를 적어 주세요. 그걸로 가사부터 멜로디까지 초안을 만들어요.')),
     h('section', { class: 'card' },
       h('h2', null, '곡 컨셉'),
       h('div', { class: 'grid2' },
@@ -35,9 +52,9 @@ export function renderConcept(song) {
         field('그룹 형태', h('select', { id: 'group', onchange: (e) => mutate((s) => { s.concept.group = e.target.value; }) },
           Object.entries(GROUP_TYPES).map(([k, v]) => h('option', { value: k, selected: c.group === k }, v)))),
       ),
-      field('주제 한 줄', h('input', { id: 'theme', value: c.theme, placeholder: '예: 연락이 끊긴 사람에게 새벽마다 보내는 신호', oninput: quiet((s, v) => { s.concept.theme = v; }) })),
-      field('스토리·화자 상황', h('textarea', { id: 'story', rows: '3', value: c.story, placeholder: '누가, 언제, 어떤 감정으로 부르는 노래인지', oninput: quiet((s, v) => { s.concept.story = v; }) })),
-      field('키워드', h('input', { id: 'keywords', value: c.keywords, placeholder: '쉼표로 구분: 새벽 3시, 신호, 창문 불빛', oninput: quiet((s, v) => { s.concept.keywords = v; }) })),
+      field('주제 한 줄', h('input', { id: 'theme', value: c.theme, placeholder: '예: 연락이 끊긴 사람에게 새벽마다 보내는 신호', oninput: quiet((s, v) => { s.concept.theme = v; }), onchange: afterBlur(() => mutate(() => {})) })),
+      field('스토리·화자 상황', h('textarea', { id: 'story', rows: '3', value: c.story, placeholder: '누가, 언제, 어떤 감정으로 부르는 노래인지', oninput: quiet((s, v) => { s.concept.story = v; }), onchange: afterBlur(() => mutate(() => {})) })),
+      field('키워드', h('input', { id: 'keywords', value: c.keywords, placeholder: '쉼표로 구분: 새벽 3시, 신호, 창문 불빛', oninput: quiet((s, v) => { s.concept.keywords = v; }), onchange: afterBlur(() => mutate(() => {})) })),
       h('div', { class: 'field' }, h('span', { class: 'field-label' }, '분위기'), moods),
       h('div', { class: 'field' }, h('span', { class: 'field-label' }, '가사 언어 비율'), ratio, ratioOut),
     ),

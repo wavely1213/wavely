@@ -164,6 +164,25 @@ function fakeClaude() {
   results.raceA = songAData.music.bpm;
   results.raceB = songBData.music.bpm;
 
+  // 원클릭 초안: 주제만 적은 새 곡 → 가사·편곡·멜로디·스타일
+  await p.evaluate(() => { window.__arrBpm = 128; });
+  await p.click('text=+ 새 곡');
+  await p.fill('#theme', '첫눈 오는 날 고백');
+  await p.press('#theme', 'Tab');
+  await p.click('button:text-is("초안 만들기")');
+  await p.waitForSelector('.tab.on:text-is("구조·가사")', { timeout: 60000 });
+  await p.waitForTimeout(1600);
+  const draft = (await p.evaluate(() => JSON.parse(localStorage.getItem('kpop-writer-songs')))).find((x) => x.concept.theme === '첫눈 오는 날 고백');
+  const lyricSecs = draft.sections.filter((x) => !['Intro', 'Outro', 'Dance Break'].includes(x.type));
+  results.draft = {
+    lyrics: lyricSecs.filter((x) => x.text.trim()).length + '/' + lyricSecs.length,
+    arranged: !!draft.progress?.arranged,
+    bpm: draft.music.bpm,
+    melodySections: Object.values(draft.music.sections).filter((x) => x.melody.length).length,
+    styleBpm: draft.style.bpm,
+    styleKey: draft.style.key,
+  };
+
   // 앨범 홍보
   await p.click('text=+ 새 앨범');
   await p.click('.tab:text-is("홍보")');
@@ -175,7 +194,7 @@ function fakeClaude() {
   console.log(JSON.stringify(results, null, 1));
   const ok = results.lyricsApplied && results.review && results.improve.length > 0 && results.improve.every((t) => t.includes('반영')) && results.arrangeKey.includes('A minor') && results.melodyNotes === 3 && results.styleBpm === '140'
     && results.editRecorded && results.tasteLog.some((x) => x.startsWith('lyrics:-1(유치해요)')) && results.tasteLog.includes('hook:1') && results.tasteLog.includes('arrange:1')
-    && results.tasteLog.includes('melody:1') && results.promptHasTaste && results.promo && results.keptBridge === '언젠가 너도 이 밤을 보면\n같은 불빛을 찾게 될 거야' && results.melodyPromptRange && results.raceA === 133 && results.raceB === 120 && results.saved.includes('taste-feedback.zip') && !errs.length;
+    && results.tasteLog.includes('melody:1') && results.promptHasTaste && results.promo && results.draft.arranged && results.draft.bpm === 128 && results.draft.styleBpm === 128 && results.draft.styleKey === 'A minor' && results.draft.melodySections > 0 && results.draft.lyrics.split('/')[0] === results.draft.lyrics.split('/')[1] && results.keptBridge === '언젠가 너도 이 밤을 보면\n같은 불빛을 찾게 될 거야' && results.melodyPromptRange && results.raceA === 133 && results.raceB === 120 && results.saved.includes('taste-feedback.zip') && !errs.length;
   if (errs.length) console.log('ERRORS', errs);
   console.log(ok ? 'ai OK' : 'ai FAILED');
   if (!ok) process.exitCode = 1;
