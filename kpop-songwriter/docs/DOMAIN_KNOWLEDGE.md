@@ -31,6 +31,7 @@
 | 마스터 파일 | `masters[songId]` | 트랙에 넣은 발매용 WAV와 점검값 (방문 중 메모리만) |
 | 취향 | `taste` | `{enabled, profile{lyrics, sound, avoid}, log[]}` — 사용자 단위 |
 | 반응 기록 | `taste.log[]` | `{kind, rating(1/-1/0=고침), text, before, after, reasons, context{ref}}` |
+| 진행 플래그 | `song.progress` | `{arranged, suno, mastered}` — 저절로 판단할 수 없는 단계의 완료 표시 |
 | 샘플 묶음 | `pack` | 악기·음색별 샘플 모음 (`samples/<key>.json`) |
 
 ## 2. 사용자 권한 체계
@@ -56,6 +57,7 @@
 - **BR-012**: 같은 대상(context.ref)에 대한 평가는 마지막 것만 남는다. 고친 기록은 평가와 따로 남는다. 고친 기록은 입력이 4초 멈춘 뒤 남긴다.
 - **BR-013**: 취향 블록은 해당 종류(kind)의 좋아한 예시 최대 4개, 고친 예 최대 3개, 싫다는 이유 상위 4개만 넣는다. "AI 요청에 반영"을 끄면 넣지 않는다.
 - **BR-014**: 가사 점수 — 코러스류(Chorus·Hook·Post-Chorus): 라임 30·음절 30·훅 반복 30·분량 10, 그 외: 라임 45·음절 40·분량 15. Intro·Outro·Dance Break와 비워 둔 반복 섹션은 채점하지 않는다. 자동 개선 기준 70점.
+- **BR-015**: 발매 진행 7단계 완료 기준 — 컨셉(주제·스토리·키워드 중 하나), 가사(빈 섹션 없음 + 점수 70↑), 편곡(편곡 탭에서 무엇이든 바꿈, `progress.arranged`), 멜로디(음표 1개↑), Suno 생성(가사·스타일 복사 또는 패키지 받기, `progress.suno`), 마스터링(마스터 결과·앨범 마스터·`progress.mastered`), 발매 준비(앨범의 꼭 고칠 것 0개).
 - **BR-009**: CC BY 샘플을 쓴 데모를 공개할 때는 출처를 표기한다 (사운드 탭·패키지 README).
 
 ## 4. 불변식 (Invariants) — 절대 깨지면 안 되는 조건

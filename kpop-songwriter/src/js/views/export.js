@@ -1,10 +1,14 @@
 // 내보내기 탭: Suno Custom 모드 칸별 복사 + 제작 패키지(zip) 받기.
 import { h, copyText, toast } from '../dom.js';
-import { refresh } from '../state.js';
+import { refresh, mutate } from '../state.js';
+
 import { buildLyrics, buildStyle } from '../suno.js';
 import { SUNO_LIMITS } from '../constants.js';
 import { buildPackage } from '../package.js';
 import { saveFile } from '../platform/download.js';
+
+// 가사·스타일을 복사하거나 패키지를 받으면 진행 상황의 'Suno 생성' 단계 완료로 친다
+const markSuno = () => mutate((x) => { x.progress = { ...(x.progress || {}), suno: true }; }, 'quiet');
 
 const opts = { memberTags: true, arrangeHints: false, keepAdlibs: true };
 const pkg = { includeWav: true, busy: '' };
@@ -21,7 +25,7 @@ async function downloadPackage(song) {
     pkg.busy = '저장 확인 창을 확인해 주세요';
     refresh();
     const res = await saveFile(filename, blob);
-    if (res === 'saved') toast('받았어요');
+    if (res === 'saved') { toast('받았어요'); markSuno(); }
     else if (res === 'unavailable') toast('이 화면에서는 파일을 받을 수 없어요');
   } catch {
     toast('파일을 만들지 못했어요. 다시 눌러 주세요');
@@ -44,7 +48,7 @@ export function renderExport(song) {
         h('h2', null, label),
         h('div', { class: 'row' },
           limit ? h('span', { class: `mono muted${over ? ' over' : ''}` }, `${text.length} / ${limit}자`) : null,
-          h('button', { type: 'button', class: 'btn primary', onclick: () => copyText(ta.value, ta) }, '복사'))),
+          h('button', { type: 'button', class: 'btn primary', onclick: () => { copyText(ta.value, ta); markSuno(); } }, '복사'))),
       over ? h('p', { class: 'warn' }, '한도를 넘었어요. Suno가 뒷부분을 자를 수 있어요.') : null,
       ta);
   };

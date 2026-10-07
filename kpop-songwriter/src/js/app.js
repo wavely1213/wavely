@@ -4,6 +4,7 @@ import { openStore } from './store.js';
 import { init, subscribe, getState, current, currentAlbum, newSong, selectSong, setTab, deleteSong, refresh, newAlbum, selectAlbum, showTaste } from './state.js';
 import { renderAlbum } from './views/album/index.js';
 import { renderTaste } from './views/taste.js';
+import { songProgress } from './workflow/progress.js';
 import { getSample } from './ai.js';
 import { renderConcept } from './views/concept.js';
 import { renderEditor } from './views/editor.js';
@@ -94,6 +95,27 @@ function renderHeader(song) {
   );
 }
 
+// 발매까지 진행 단계: 끝난 단계 ✓, 다음 할 일 강조 + 바로 가기
+function renderProgress(song) {
+  const st = getState();
+  const { steps, next, album } = songProgress(song, { albums: st.albums, songs: st.songs });
+  const go = (s) => {
+    if (s.id === 'release') {
+      if (album) selectAlbum(album.id); else newAlbum({ fromSong: song });
+    } else setTab(s.tab);
+  };
+  const done = steps.filter((s) => s.done).length;
+  return h('section', { class: 'progress-steps', 'aria-label': '발매까지 진행 상황' },
+    h('ol', { class: 'steps-row' }, steps.map((s, i) => h('li', null,
+      h('button', { type: 'button', class: `step${s.done ? ' done' : ''}${next?.id === s.id ? ' next' : ''}`, onclick: () => go(s), 'aria-current': next?.id === s.id ? 'step' : null },
+        h('span', { class: 'step-mark', 'aria-hidden': 'true' }, s.done ? '✓' : String(i + 1)),
+        s.name)))),
+    next
+      ? h('p', { class: 'step-hint' }, h('strong', null, `다음: ${next.name}`), ` — ${next.hint} `,
+        h('button', { type: 'button', class: 'btn small primary', onclick: () => go(next) }, '하러 가기'))
+      : h('p', { class: 'step-hint' }, h('strong', null, `${done}/${steps.length} 단계 완료`), ' — 유통사에 제출할 준비가 끝났어요.'));
+}
+
 function renderTabs(active) {
   return h('div', { class: 'tabs-wrap' },
     h('div', { class: 'tabs', role: 'tablist' }, TABS.map(([key, label]) => h('button', {
@@ -143,6 +165,7 @@ function draw() {
     renderSidebar(),
     h('main', { class: 'main' },
       renderHeader(song),
+      song.example ? null : renderProgress(song),
       ui.aiAvailable ? null : h('p', { class: 'warn card' }, WEB
         ? '웹사이트에서는 AI 기능(작사·편곡·멜로디·홍보 문구)을 아직 쓸 수 없어요. 작곡·편곡·마스터링·앨범 발매 준비는 모두 쓸 수 있고, 작업은 이 브라우저에 저장돼요.'
         : '이 화면에서는 Claude를 부를 수 없어요. claude.ai에서 열면 AI 기능이 켜져요. 나머지 기능은 그대로 쓸 수 있어요.'),

@@ -55,6 +55,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     await p.click('text=마스터링 하기');
     await p.waitForSelector('.compare', { timeout: 120000 });
     const masterPill = await p.textContent('.pill');
+    const stepHint = await p.textContent('.step-hint').catch(() => '');
     // 버전 저장/보기
     await p.click('.tab:text-is("버전")');
     await p.fill('#version-note', 'v1');
@@ -101,7 +102,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     await p.waitForSelector('.cover-thumb', { timeout: 15000 }).catch(() => {});
     const keptCover = await p.locator('.cover-thumb').count();
     global.persistOk = (global.persistOk ?? true) && keptMaster === 1 && keptCover === 1;
-    console.log(tag, { custom, prog, before, after, refs, masterPill, autoMaster, keptMaster, keptCover, errorsLeft, zip: fs.statSync(zipPath).size, vbodyStart: vbody.slice(0, 30), vcount });
+    console.log(tag, { custom, prog, before, after, refs, masterPill, stepHint, autoMaster, keptMaster, keptCover, errorsLeft, zip: fs.statSync(zipPath).size, vbodyStart: vbody.slice(0, 30), vcount });
     await c.close();
   }
   if (!global.autoOk) errs.push('마스터 자동 연결 안 됨');

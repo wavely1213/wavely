@@ -106,6 +106,7 @@ async function run(song) {
       if (el) el.textContent = t;
     });
     ui.result.target = st.target;
+    mutate((x) => { x.progress = { ...(x.progress || {}), mastered: true }; }, 'quiet');
   } catch {
     toast('마스터링 중 문제가 생겼어요. 다른 파일로 시도해 주세요');
   } finally {

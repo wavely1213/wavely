@@ -1,6 +1,9 @@
 // 편곡 탭: 빠르기·키, 섹션별 코드·에너지·악기·드럼·베이스. 음악 지식 없이 "느낌"으로 고른다.
 import { h } from '../dom.js';
-import { mutate, refresh } from '../state.js';
+import { mutate as baseMutate, refresh } from '../state.js';
+
+// 편곡 탭에서 바꾼 것은 진행 상황의 '편곡' 단계 완료로 친다
+const mutate = (fn, scope) => baseMutate((x) => { fn(x); x.progress = { ...(x.progress || {}), arranged: true }; }, scope);
 import { sectionLabels } from '../structure.js';
 import { NOTE_NAMES, MODE_LABEL, PROGRESSIONS, DEGREE_FEEL, chordName, findProgression, tempoWord, keyName } from '../music/theory.js';
 import { ARRANGE_INSTRUMENTS, INSTRUMENT_BY_ID } from '../music/instruments.js';
