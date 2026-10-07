@@ -390,3 +390,18 @@ import { edgesOf, joinClips, transitionPairs } from '../src/js/album/transition.
   assert.deepEqual([pairs[0].ready, pairs[0].gap, pairs[1].ready, pairs[1].gap], [true, 4.5, false, null]);
   console.log('transition OK');
 }
+
+// 가사 카드 글자 배치: 빈칸에서 나누고, 빈칸 없는 긴 말은 글자 단위로, 상자에 들어가는 가장 큰 크기
+import { wrapLine, layoutLyrics } from '../src/js/album/lyriccard.js';
+{
+  const m = (t) => t.length * 10; // 글자당 10px
+  assert.deepEqual(wrapLine(m, '새벽 세 시 빛이 번져', 60), ['새벽 세 시', '빛이 번져']);
+  assert.deepEqual(wrapLine(m, '가나다라마바사아자차', 40), ['가나다라', '마바사아', '자차']);
+  assert.deepEqual(wrapLine(m, '짧은 줄', 1000), ['짧은 줄']);
+  const at = (size, t) => t.length * size * 0.5;
+  const big = layoutLyrics(at, ['짧은 한 줄'], 800, 600);
+  assert.equal(big.size, 76, '짧으면 가장 큰 글씨');
+  const many = layoutLyrics(at, Array(4).fill('Midnight signal 너를 불러 새벽 세 시 빛이 번져'), 860, 830);
+  assert.ok(many.size < 76 && many.rows.length * many.size * 1.5 <= 830, `줄여서 들어감 ${many.size}`);
+  console.log('lyric card layout OK');
+}

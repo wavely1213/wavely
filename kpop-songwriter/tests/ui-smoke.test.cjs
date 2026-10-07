@@ -265,6 +265,18 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     const statCell = await p.textContent('.stat-table tbody td.mono');
     const statOverflow = await p.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
     global.statOk = (global.statOk ?? true) && statCell.replace(/\D/g, '') === '3100000' && !statOverflow;
+    // 가사 카드: 홍보 탭에서 첫 코러스 첫 줄이 기본, 3줄로 바꿔 PNG 받기 → 1080×1350
+    if (tag === 'desk') {
+      await p.click('.tab:text-is("홍보")');
+      const lcFirst = await p.$eval('#lc-start', (e) => e.selectedOptions[0].textContent);
+      await p.selectOption('#lc-count', '3');
+      const [lcDl] = await Promise.all([p.waitForEvent('download', { timeout: 30000 }), p.click('#lc-download')]);
+      const lcPath = path.join(TMP, 'lyric-card.png');
+      await lcDl.saveAs(lcPath);
+      const png = fs.readFileSync(lcPath);
+      global.lyricCard = { lcFirst, name: lcDl.suggestedFilename(), w: png.readUInt32BE(16), h: png.readUInt32BE(20) };
+      global.lyricCardOk = lcFirst.startsWith('Midnight signal 너를 불러') && global.lyricCard.name.endsWith('_가사카드.png') && global.lyricCard.w === 1080 && global.lyricCard.h === 1350;
+    } else global.lyricCardOk = true;
     // Inst. 버전 추가: 원곡 바로 뒤에 (Inst.) 트랙, 같은 곡에는 버튼이 다시 안 보임
     await p.click('.tab:text-is("수록곡")');
     await p.click('button[id^="inst-"]');
@@ -365,6 +377,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
   if (!global.qcOk) errs.push('소리 점검(QC) 표시 이상');
   if (!global.instOk) errs.push('Inst. 버전 추가 이상');
   if (!global.fitOk) errs.push('가사·마디 맞춤 표시 이상');
+  if (!global.lyricCardOk) errs.push(`가사 카드 이상: ${JSON.stringify(global.lyricCard)}`);
   if (!global.welcomeOk) errs.push('처음 안내 카드 이상');
   if (!global.transitionOk) errs.push(`곡 사이 듣기 이상: ${JSON.stringify(global.transition)}`);
   if (!global.albumNewSongOk) errs.push(`앨범의 새 곡 이상: ${JSON.stringify(global.albumNewSong)}`);

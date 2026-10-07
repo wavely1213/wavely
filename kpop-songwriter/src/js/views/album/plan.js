@@ -8,6 +8,7 @@ import { scheduleIcs } from '../../album/ics.js';
 import { help } from '../../help.js';
 import { zip } from '../../music/pack.js';
 import { saveFile, isArtifact } from '../../platform/download.js';
+import { renderLyricCard } from './lyriccard.js';
 
 async function downloadIcs(album) {
   const text = scheduleIcs(album);
@@ -85,5 +86,6 @@ export function renderPromo(album) {
       h('p', { class: 'muted small' }, `발매 최소 7일 전(일정의 D-14 단계 권장)에 미발매 타이틀곡 한 곡을 에디터에게 소개하는 글이에요. ${PITCH_LIMIT}자까지 들어가요.`),
       copyable('promo-pitch', '영어', p.pitch || '', 5, (v) => mutateAlbum((a) => { a.promo.pitch = v; }, 'quiet'), PITCH_LIMIT),
       copyable('promo-pitch-ko', '한국어', p.pitchKo || '', 5, (v) => mutateAlbum((a) => { a.promo.pitchKo = v; }, 'quiet'), PITCH_LIMIT)),
+    renderLyricCard(album, songs),
   );
 }
