@@ -41,7 +41,7 @@ function renderGlobal(song, m) {
     h('div', { class: 'grid2' },
       h('div', { class: 'field' },
         h('span', { class: 'field-label' }, '빠르기 ', help('bpm')),
-        h('input', { id: 'bpm', type: 'range', min: '60', max: '180', value: String(mu.bpm), oninput: (e) => {
+        h('input', { id: 'bpm', 'aria-label': '빠르기 (BPM)', type: 'range', min: '60', max: '180', value: String(mu.bpm), oninput: (e) => {
           const v = Number(e.target.value);
           bpmOut.textContent = `${v} BPM · ${tempoWord(v)}`;
           mutate((s) => { s.music.bpm = v; }, 'quiet');
@@ -57,7 +57,7 @@ function renderGlobal(song, m) {
             onclick: () => mutate((s) => { s.music.mode = md; }),
           }, MODE_LABEL[md]))),
         h('span', { class: 'muted' }, '노래하기 편한 높이를 모르면 그대로 두고, 멜로디를 들어 보며 바꿔 보세요.'))),
-    h('textarea', { id: 'arr-request', rows: '2', value: m.request, placeholder: '원하는 느낌을 말로 적어 주세요. 예: 코러스에서 확 터지게, 레트로 신스 느낌, 브릿지는 피아노만', oninput: (e) => { m.request = e.target.value; } }),
+    h('textarea', { id: 'arr-request', 'aria-label': 'AI 편곡 요청', rows: '2', value: m.request, placeholder: '원하는 느낌을 말로 적어 주세요. 예: 코러스에서 확 터지게, 레트로 신스 느낌, 브릿지는 피아노만', oninput: (e) => { m.request = e.target.value; } }),
     h('div', { class: 'row' },
       h('button', { type: 'button', class: 'btn primary', disabled: busy, onclick: () => runJob('편곡 초안 만드는 중', async (signal) => {
         const res = await arrangeSong(song, { request: m.request, signal });

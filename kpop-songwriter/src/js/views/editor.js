@@ -63,7 +63,7 @@ function renderToolbar(song, m) {
       h('button', { type: 'button', class: 'btn', disabled: !song.members.length, onclick: () => mutate((s) => { s.sections = autoDistribute(s.sections, s.members); }) }, '파트 자동 분배'));
 
   const request = h('textarea', {
-    id: 'ai-request', rows: '2', value: m.request,
+    id: 'ai-request', 'aria-label': 'AI 작사 추가 요청', rows: '2', value: m.request,
     placeholder: '추가 요청 (선택) 예: 코러스에 "signal" 반복, 랩은 더 공격적으로',
     oninput: (e) => { m.request = e.target.value; },
   });

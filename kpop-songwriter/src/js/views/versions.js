@@ -9,7 +9,7 @@ import { lineDiff } from '../textdiff.js';
 const ui = { open: '', confirm: '', body: {}, busy: false, diff: '' };
 
 export function renderVersions(song) {
-  const note = h('input', { id: 'version-note', placeholder: '메모 예: Suno 3번째 생성본이 좋음, 코러스 수정 전' });
+  const note = h('input', { id: 'version-note', 'aria-label': '버전 메모', placeholder: '메모 예: Suno 3번째 생성본이 좋음, 코러스 수정 전' });
   return h('div', { class: 'stack' },
     h('section', { class: 'card' },
       h('h2', null, '지금 상태를 버전으로 저장'),

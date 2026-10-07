@@ -44,7 +44,7 @@ export function renderExport(song) {
   const title = song.title.replace(/^예시:\s*/, '');
 
   const block = (id, label, text, limit, rows) => {
-    const ta = h('textarea', { id, class: 'out mono', rows: String(rows), readonly: true, value: text });
+    const ta = h('textarea', { id, 'aria-label': label, class: 'out mono', rows: String(rows), readonly: true, value: text });
     const over = limit && text.length > limit;
     return h('section', { class: 'card' },
       h('div', { class: 'card-head' },

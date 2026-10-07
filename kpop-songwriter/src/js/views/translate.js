@@ -26,7 +26,7 @@ export function renderTranslate(song, lyricOpts) {
   const lyrics = status === 'none' ? '' : buildLyrics(translatedSong(song, lang), lyricOpts);
   const style = [buildStyle(song.style), L.suno].filter(Boolean).join(', ');
   const copyBlock = (id, label, text, limit, n) => {
-    const ta = h('textarea', { id, class: 'out mono', rows: String(n), readonly: true, value: text });
+    const ta = h('textarea', { id, 'aria-label': label, class: 'out mono', rows: String(n), readonly: true, value: text });
     return h('div', { class: 'stack' },
       h('div', { class: 'row' },
         h('strong', null, label),

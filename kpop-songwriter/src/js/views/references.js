@@ -22,7 +22,7 @@ export function renderReferences(song) {
         h('label', { for: 'ref-file', class: `btn primary${ui.analyzing ? ' disabled' : ''}` }, '오디오 파일로 추가 (mp3·wav·m4a)'),
         ui.analyzing ? h('span', { class: 'status' }, h('span', { class: 'dot' }), ui.analyzing) : null),
       h('div', { class: 'row' },
-        h('input', { id: 'ref-name', value: ui.textName, placeholder: '파일 없이 곡 이름만 적어 추가 (예: 좋아하는 곡 제목)', oninput: (e) => { ui.textName = e.target.value; } }),
+        h('input', { id: 'ref-name', 'aria-label': '레퍼런스 곡 이름', value: ui.textName, placeholder: '파일 없이 곡 이름만 적어 추가 (예: 좋아하는 곡 제목)', oninput: (e) => { ui.textName = e.target.value; } }),
         h('button', { type: 'button', class: 'btn', onclick: () => {
           const name = ui.textName.trim();
           if (!name) { toast('곡 이름을 적어 주세요'); return; }

@@ -50,7 +50,7 @@ export function renderPromo(album) {
   const copyable = (id, label, value, rows, onInput, limit = 0) => {
     const count = limit ? h('span', { class: 'mono muted small', id: `${id}-count` }) : null;
     const show = (v) => { if (count) { count.textContent = `${v.length} / ${limit}자`; count.classList.toggle('over', v.length > limit); } };
-    const ta = h('textarea', { id, rows: String(rows), value, oninput: (e) => { onInput(e.target.value); show(e.target.value); } });
+    const ta = h('textarea', { id, 'aria-label': Array.isArray(label) ? label.join('') : label, rows: String(rows), value, oninput: (e) => { onInput(e.target.value); show(e.target.value); } });
     show(value || '');
     return h('div', { class: 'field' },
       h('div', { class: 'card-head' }, h('span', { class: 'field-label' }, label),

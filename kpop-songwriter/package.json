@@ -1,7 +1,7 @@
 {
   "name": "kpop-songwriter",
   "type": "module",
-  "version": "0.40.0",
+  "version": "0.41.0",
   "description": "K-pop 작사·작곡·편곡 노트 (claude.ai 아티팩트 앱)",
   "scripts": {
     "build": "node build.mjs",
@@ -9,7 +9,7 @@
     "test:unit": "node tests/unit.test.mjs",
     "test:engine": "node tests/engine.test.cjs",
     "test:ui": "node tests/ui-smoke.test.cjs",
-    "test": "npm run check && npm run build && npm run build:web && npm run test:unit && npm run test:album && npm run test:learn && npm run test:optimize && npm run test:workflow && npm run test:state && npm run test:range && npm run test:takes && npm run test:lrc && npm run test:translate && npm run test:backup && npm run test:engine && npm run test:master && npm run test:ai && npm run test:ui && npm run test:web && npm run test:perf",
+    "test": "npm run check && npm run build && npm run build:web && npm run test:unit && npm run test:album && npm run test:learn && npm run test:optimize && npm run test:workflow && npm run test:state && npm run test:range && npm run test:takes && npm run test:lrc && npm run test:translate && npm run test:backup && npm run test:engine && npm run test:master && npm run test:ai && npm run test:ui && npm run test:web && npm run test:a11y && npm run test:perf",
     "samples": "node tools/fetch-samples.mjs",
     "test:master": "node tests/master.test.cjs",
     "test:album": "node tests/album.test.mjs",
@@ -25,7 +25,8 @@
     "test:lrc": "node tests/lrc.test.mjs",
     "test:translate": "node tests/translate.test.mjs",
     "test:backup": "node tests/backup.test.mjs",
-    "test:perf": "node tests/perf.test.cjs"
+    "test:perf": "node tests/perf.test.cjs",
+    "test:a11y": "node tests/a11y.test.cjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.10"

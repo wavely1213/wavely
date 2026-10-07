@@ -76,7 +76,7 @@ export function renderMeta(album) {
         h('div', { class: 'row' },
           [['lyrics', '가사'], ['composition', '작곡·편곡'], ['vocals', '보컬(Suno 등)']].map(([k, label]) => h('label', { class: 'check' },
             h('input', { type: 'checkbox', id: `ai-${k}`, checked: album.ai[k], onchange: (e) => mutateAlbum((a) => { a.ai[k] = e.target.checked; }) }), label))),
-        h('input', { id: 'ai-note', value: album.ai.note, placeholder: '메모 (예: 가사는 직접 수정, 보컬은 Suno 생성)', oninput: quiet((a, v) => { a.ai.note = v; }) }))),
+        h('input', { id: 'ai-note', 'aria-label': 'AI 사용 메모', value: album.ai.note, placeholder: '메모 (예: 가사는 직접 수정, 보컬은 Suno 생성)', oninput: quiet((a, v) => { a.ai.note = v; }) }))),
     h('section', { class: 'card' },
       h('div', { class: 'card-head' },
         h('h2', null, '트랙별 크레딧'),

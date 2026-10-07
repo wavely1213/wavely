@@ -22,7 +22,7 @@ export function renderConcept(song) {
 
   const ratioOut = h('output', { class: 'mono' }, `한국어 ${c.koRatio}% · 영어 ${100 - c.koRatio}%`);
   const ratio = h('input', {
-    id: 'ko-ratio', type: 'range', min: '30', max: '100', step: '5', value: String(c.koRatio),
+    id: 'ko-ratio', 'aria-label': '가사 한국어 비율', type: 'range', min: '30', max: '100', step: '5', value: String(c.koRatio),
     oninput: (e) => {
       const v = Number(e.target.value);
       ratioOut.textContent = `한국어 ${v}% · 영어 ${100 - v}%`;
@@ -74,7 +74,7 @@ function renderIdeas(song, busy) {
       h('button', { type: 'button', class: 'btn', id: 'ideas-run', disabled: busy, onclick: () => runJob('컨셉 아이디어 찾는 중', async (signal) => {
         m.list = await suggestConcepts(song, { hint: m.hint, signal });
       }) }, m.list.length ? '다른 아이디어' : '컨셉 아이디어 3개 받기')),
-    h('input', { id: 'ideas-hint', value: m.hint, placeholder: '원하는 방향이 있으면 (선택) 예: 여름, 이별 뒤 홀가분함, 걸크러시', oninput: (e) => { m.hint = e.target.value; } }),
+    h('input', { id: 'ideas-hint', 'aria-label': '컨셉 아이디어 방향 (선택)', value: m.hint, placeholder: '원하는 방향이 있으면 (선택) 예: 여름, 이별 뒤 홀가분함, 걸크러시', oninput: (e) => { m.hint = e.target.value; } }),
     m.list.length ? h('div', { class: 'ideas' }, m.list.map((c, i) => h('article', { class: 'idea' },
       h('strong', null, c.title),
       h('p', null, c.theme),

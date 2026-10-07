@@ -42,7 +42,7 @@ export function renderMelody(song) {
     h('section', { class: 'card' },
       h('h2', null, '멜로디 만들기'),
       h('p', { class: 'muted' }, '가사에 맞춰 AI가 멜로디 초안을 만들고, 마음에 안 드는 음만 손으로 고치세요. 가이드 멜로디는 WAV 데모에 들어가서 Suno에 올리면 그 멜로디를 따라 부르게 할 수 있어요.'),
-      h('textarea', { id: 'mel-request', rows: '2', value: ui.request, placeholder: '원하는 멜로디 느낌 (선택) 예: 코러스 첫 줄은 높게 시작, 벌스는 랩하듯 낮게', oninput: (e) => { ui.request = e.target.value; } }),
+      h('textarea', { id: 'mel-request', 'aria-label': 'AI 멜로디 요청', rows: '2', value: ui.request, placeholder: '원하는 멜로디 느낌 (선택) 예: 코러스 첫 줄은 높게 시작, 벌스는 랩하듯 낮게', oninput: (e) => { ui.request = e.target.value; } }),
       h('div', { class: 'row' },
         h('button', { type: 'button', class: 'btn primary', disabled: busy, onclick: () => runJob(`${label} 멜로디 만드는 중`, async (signal) => {
           applyMelody(song.id, await writeMelody(song, { targetIds: [s.id], request: ui.request, signal }));
