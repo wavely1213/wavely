@@ -65,7 +65,7 @@ function fakeClaude() {
       const first = (p.split('가사 (줄마다):\n')[1] || '').split('\n')[0].replace(/^- /, '');
       return { summary: '가짜 점검 요약', items: [{ line: first, like: '가짜 곡 - 가짜 가수', why: '훅 구절이 같음', level: 'high', fix: '가짜 새 줄 signal' }, { line: '가사에 없는 줄', like: 'x', why: 'x', level: 'check', fix: 'x' }] };
     }
-    if (p.includes('레이블 홍보 담당자')) return { intro: '가짜 앨범 소개', tracks: [], sns: ['가짜 공지', '가짜 티저', '가짜 하이'], hashtags: '#가짜' };
+    if (p.includes('레이블 홍보 담당자')) return { intro: '가짜 앨범 소개', tracks: [], sns: ['가짜 공지', '가짜 티저', '가짜 하이'], hashtags: '#가짜', pitch: 'Fake pitch', pitchKo: '가'.repeat(520) };
     return {};
   };
   const sample = async (input, opts = {}) => {
@@ -273,6 +273,9 @@ function fakeClaude() {
   await p.click('text=AI로 초안 쓰기');
   await p.waitForFunction(() => document.querySelector('#promo-intro')?.value === '가짜 앨범 소개');
   results.promo = true;
+  results.pitch = (await p.inputValue('#promo-pitch')) === 'Fake pitch'
+    && (await p.textContent('#promo-pitch-count')) === '10 / 500자'
+    && (await p.getAttribute('#promo-pitch-ko-count', 'class')).includes('over');
   // 트랙 순서 추천: 곡을 더 넣고 → 제안이 있으면 바꾸기 → 자연스럽다고 바뀜 → ↶로 되돌림
   await p.click('.tab:text-is("수록곡")');
   for (let k = 0; k < 2; k++) {
@@ -302,7 +305,7 @@ function fakeClaude() {
 
   console.log(JSON.stringify(results, null, 1));
   const ok = results.lyricsApplied && results.review && results.improve.length > 0 && results.improve.every((t) => t.includes('반영')) && results.arrangeKey.includes('A minor') && results.melodyNotes === 3 && results.styleBpm === '140'
-    && results.editRecorded && results.tasteLog.some((x) => x.startsWith('lyrics:-1(유치해요)')) && results.tasteLog.includes('hook:1') && results.lineLiked === 1 && results.similarCount === 1 && results.similarFixed && results.trOff === 1 && results.trLyrics && results.trStyle && results.variantCount === 3 && results.variantChosen.join() === 'B' && results.variantStyle === 'bright synth-pop' && results.variantPair && results.orderTracks >= 2 && results.orderApplied && results.orderUndo && results.statLearn.startsWith('arrange') && results.ideasPromptHint && results.spellCount === 2 && results.spellApplied && results.ideaTitle === '가짜 컨셉 둘' && results.ideaTheme === '둘 주제' && results.ideaKeywords === '밤, 거울, Mirror' && results.ideaMoods === '몽환,다크' && results.tasteLog.includes('arrange:1')
+    && results.editRecorded && results.tasteLog.some((x) => x.startsWith('lyrics:-1(유치해요)')) && results.tasteLog.includes('hook:1') && results.lineLiked === 1 && results.similarCount === 1 && results.similarFixed && results.trOff === 1 && results.trLyrics && results.trStyle && results.variantCount === 3 && results.variantChosen.join() === 'B' && results.variantStyle === 'bright synth-pop' && results.variantPair && results.orderTracks >= 2 && results.orderApplied && results.orderUndo && results.statLearn.startsWith('arrange') && results.ideasPromptHint && results.pitch && results.spellCount === 2 && results.spellApplied && results.ideaTitle === '가짜 컨셉 둘' && results.ideaTheme === '둘 주제' && results.ideaKeywords === '밤, 거울, Mirror' && results.ideaMoods === '몽환,다크' && results.tasteLog.includes('arrange:1')
     && results.tasteLog.includes('melody:1') && results.promptHasTaste && results.promo && results.draft.arranged && results.draft.bpm === 128 && results.draft.styleBpm === 128 && results.draft.styleKey === 'A minor' && results.draft.melodySections > 0 && results.draft.lyrics.split('/')[0] === results.draft.lyrics.split('/')[1] && results.keptBridge === '언젠가 너도 이 밤을 보면\n같은 불빛을 찾게 될 거야' && results.melodyPromptRange && results.raceA === 133 && results.raceB === 120 && results.saved.includes('taste-feedback.zip') && !errs.length;
   if (errs.length) console.log('ERRORS', errs);
   console.log(ok ? 'ai OK' : 'ai FAILED');

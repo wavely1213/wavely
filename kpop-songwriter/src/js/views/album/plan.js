@@ -2,7 +2,7 @@
 import { h, field, copyText, toast } from '../../dom.js';
 import { mutateAlbum, mutateAlbumById, getState } from '../../state.js';
 import { scheduleFor } from '../../album/model.js';
-import { writePromo } from '../../album/release.js';
+import { writePromo, PITCH_LIMIT } from '../../album/release.js';
 import { isBusy, runJob, stopJob, job } from '../../aijob.js';
 import { scheduleIcs } from '../../album/ics.js';
 import { zip } from '../../music/pack.js';
@@ -46,11 +46,15 @@ export function renderPromo(album) {
   const { songs } = getState();
   const busy = isBusy();
   const p = album.promo;
-  const copyable = (id, label, value, rows, onInput) => {
-    const ta = h('textarea', { id, rows: String(rows), value, oninput: (e) => onInput(e.target.value) });
+  // limit이 있으면 글자 수를 보여 주고 넘으면 빨갛게 (입력할 때마다 숫자만 바꿈)
+  const copyable = (id, label, value, rows, onInput, limit = 0) => {
+    const count = limit ? h('span', { class: 'mono muted small', id: `${id}-count` }) : null;
+    const show = (v) => { if (count) { count.textContent = `${v.length} / ${limit}자`; count.classList.toggle('over', v.length > limit); } };
+    const ta = h('textarea', { id, rows: String(rows), value, oninput: (e) => { onInput(e.target.value); show(e.target.value); } });
+    show(value || '');
     return h('div', { class: 'field' },
       h('div', { class: 'card-head' }, h('span', { class: 'field-label' }, label),
-        h('button', { type: 'button', class: 'btn small ghost', onclick: () => copyText(ta.value, ta) }, '복사')),
+        h('span', { class: 'row' }, count, h('button', { type: 'button', class: 'btn small ghost', onclick: () => copyText(ta.value, ta) }, '복사'))),
       ta);
   };
   return h('div', { class: 'stack' },
@@ -75,5 +79,10 @@ export function renderPromo(album) {
       ...[0, 1, 2].map((k) => copyable(`promo-sns-${k}`, ['SNS · 발매 공지', 'SNS · 티저', 'SNS · 하이라이트'][k], p.sns[k] || '', 3,
         (v) => mutateAlbum((a) => { const sns = [...a.promo.sns]; sns[k] = v; a.promo.sns = sns; }, 'quiet'))),
       copyable('promo-tags', '해시태그', p.hashtags, 2, (v) => mutateAlbum((a) => { a.promo.hashtags = v; }, 'quiet'))),
+    h('section', { class: 'card' },
+      h('h2', null, '플레이리스트 피칭 (Spotify for Artists)'),
+      h('p', { class: 'muted small' }, `발매 최소 7일 전(일정의 D-14 단계 권장)에 미발매 타이틀곡 한 곡을 에디터에게 소개하는 글이에요. ${PITCH_LIMIT}자까지 들어가요.`),
+      copyable('promo-pitch', '영어', p.pitch || '', 5, (v) => mutateAlbum((a) => { a.promo.pitch = v; }, 'quiet'), PITCH_LIMIT),
+      copyable('promo-pitch-ko', '한국어', p.pitchKo || '', 5, (v) => mutateAlbum((a) => { a.promo.pitchKo = v; }, 'quiet'), PITCH_LIMIT)),
   );
 }

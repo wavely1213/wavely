@@ -95,12 +95,13 @@ export async function buildReleasePackage(album, songs, masters, cover, onStep =
   files.push({ name: `${root}/release_schedule.txt`, data: scheduleText(album) });
   const check = releaseChecklist(album, songs, { masters, coverInfo: cover });
   files.push({ name: `${root}/checklist.txt`, data: check.length ? check.map((c) => `[${c.level}] ${c.text}`).join('\n') : '점검 항목 없음 — 제출 준비 완료' });
-  if (album.promo.intro || album.promo.sns.length) {
+  if (album.promo.intro || album.promo.sns.length || album.promo.pitch || album.promo.pitchKo) {
     const promo = [
       '[앨범 소개]', album.promo.intro, '',
       '[트랙 소개]', ...tracks.map((t, i) => `${i + 1}. ${songs.find((s) => s.id === t.songId)?.title.replace(/^예시:\s*/, '')}: ${album.promo.tracks[t.songId] || ''}`), '',
       '[SNS]', ...album.promo.sns.map((p, i) => `${i + 1}) ${p}`), '',
       album.promo.hashtags,
+      ...(album.promo.pitch || album.promo.pitchKo ? ['', '[플레이리스트 피칭 · Spotify for Artists]', album.promo.pitch || '', '', album.promo.pitchKo || ''] : []),
     ].join('\n');
     files.push({ name: `${root}/promo.txt`, data: promo });
   }
@@ -122,6 +123,9 @@ export async function buildReleasePackage(album, songs, masters, cover, onStep =
   return { blob, filename: `${root}.zip`, checklist: check };
 }
 
+// Spotify for Artists 피칭 글자 수 한도
+export const PITCH_LIMIT = 500;
+
 // AI 홍보 문구 초안
 export async function writePromo(album, songs, { signal }) {
   const sample = await getSample();
@@ -136,7 +140,8 @@ export async function writePromo(album, songs, { signal }) {
     '과장된 수식어 남발 금지, 구체적인 이미지와 감정으로. 실존 아티스트와 비교하지 않는다.',
     `앨범: ${JSON.stringify({ 제목: album.title, 아티스트: album.artist, 종류: ALBUM_TYPES[album.type].name, 발매일: album.releaseDate, 소개메모: album.description })}`,
     `트랙: ${JSON.stringify(tracks)}`,
-    '출력은 JSON 하나만: {"intro":"앨범 소개 3~5문장","tracks":[{"id":"","blurb":"트랙 소개 1~2문장"}],"sns":["발매 공지 글","티저 글","하이라이트 글"],"hashtags":"#해시태그 5~8개 공백 구분"}',
+    `플레이리스트 피칭(Spotify for Artists 에디터에게, 타이틀곡 하나): 각 ${PITCH_LIMIT}자 이내, 장르·분위기·눈에 띄는 악기나 사운드·곡의 이야기·어울리는 플레이리스트를 담백하게. 영어(pitch)와 한국어(pitchKo) 둘 다.`,
+    '출력은 JSON 하나만: {"intro":"앨범 소개 3~5문장","tracks":[{"id":"","blurb":"트랙 소개 1~2문장"}],"sns":["발매 공지 글","티저 글","하이라이트 글"],"hashtags":"#해시태그 5~8개 공백 구분","pitch":"English pitch","pitchKo":"한국어 피칭"}',
   ].join('\n\n');
   const res = await sample.json(prompt, { signal, cache: false });
   const ids = new Set(tracks.map((t) => t.id));
@@ -145,5 +150,7 @@ export async function writePromo(album, songs, { signal }) {
     tracks: Object.fromEntries((Array.isArray(res?.tracks) ? res.tracks : []).filter((t) => ids.has(String(t.id))).map((t) => [String(t.id), String(t.blurb || '')])),
     sns: (Array.isArray(res?.sns) ? res.sns : []).map(String).slice(0, 5),
     hashtags: String(res?.hashtags || ''),
+    pitch: String(res?.pitch || '').trim(),
+    pitchKo: String(res?.pitchKo || '').trim(),
   };
 }
