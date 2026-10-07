@@ -6,6 +6,7 @@ import { inspectMaster } from '../../album/release.js';
 import { mastersOf, setMaster, fillFromSongMasters } from '../../album/session.js';
 import { keyName } from '../../music/theory.js';
 import { suggestOrder } from '../../album/order.js';
+import { renderTransitions } from './transitions.js';
 
 const busy = {};
 
@@ -111,6 +112,7 @@ export function renderTracks(album) {
       h('p', { class: 'muted' }, `마스터 WAV는 곡의 마스터링 탭에서 받은 파일을 넣으세요. 파일은 이 브라우저에 보관했다가 제출 패키지에 넣어요 (다른 기기에서는 다시 넣어야 해요). ${type.name}은 보통 ${type.min}~${type.max}곡이에요.`)),
     album.tracks.length > 1 ? renderOrder(album, songs) : null,
     album.tracks.length ? h('div', { class: 'sections' }, rows) : h('p', { class: 'empty card' }, '아직 수록곡이 없어요. 위에서 곡을 넣어 주세요.'),
+    renderTransitions(album, songs),
   );
 }
 

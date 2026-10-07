@@ -82,6 +82,8 @@
 | 멤버 불러오기 | members.js, views/concept.js | 멤버 없는 곡에 다른 곡의 멤버 구성(새 id)·그룹 종류를 넣고 빈 파트는 자동 분배 |
 | 저장 공간 경고 | storage-usage.js, state.js (measureStorage), views/backup.js (updateStorageWarn) | 이 브라우저에 저장할 때 사용량 70%↑ 경고, 용량 초과 저장 실패를 따로 안내 |
 | 처음 안내 | views/welcome.js | 예시 곡만 있을 때 4단계 안내 카드, 닫으면 localStorage에 기억(못 쓰면 이번만 닫힘) |
+| 제목 표기 점검 | album/titlecheck.js, album/model.js | 앨범·트랙 제목의 feat.·Prod.·홍보 문구·이모지·겹친 빈칸 경고 |
+| 곡 사이 듣기 | album/transition.js, views/album/transitions.js | 이웃 트랙 끝·처음 6초 이어 재생 + 음량 차이. 다른 탭으로 가면 멈춤(app.js) |
 | 취향 학습 | learn/taste.js, learn/context.js | 반응 기록·통계·프롬프트 블록·JSONL, AI 모듈이 취향을 읽는 연결점 |
 | 반응 UI | learn/feedback.js, learn/summarize.js, views/taste.js, music/melodytext.js | 👍/👎 막대, 줄 단위 ♥, 멜로디 고침 기록, 선호 쌍 내보내기(learn/taste.js preferencePairs), 고친 내용 추적, AI 취향 정리, 내 취향 화면 |
 | 가사 최적화 | optimize/lyricscore.js, optimize/improve.js, optimize/calibrate.js | 섹션·곡 채점과 고칠 점, 오른 것만 반영하는 자동 개선, 내 가사로 줄 길이 기준 보정 |

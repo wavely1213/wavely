@@ -296,8 +296,20 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
       global.backupInfo = { name: bdl.suggestedFilename(), restoredSongs, restoredExample, toast: await p2.textContent('#toast') };
       global.backupOk = /^kpop-backup-\d{8}-\d{4}\.json$/.test(bdl.suggestedFilename()) && restoredSongs >= 2 && restoredExample === 0;
       await c2.close();
-      // 앨범의 새 곡: 수록곡 탭 → 새 곡의 컨셉 탭으로, 타이틀곡 멤버 4명 이어받음, 앨범 트랙 하나 늘어남
+      // 곡 사이 듣기: 둘째 트랙(Inst.)에도 마스터를 넣으면 1→2 이어 듣기가 생기고 재생·정지됨
       await p.click('.tab:text-is("수록곡")');
+      // (master-14.wav는 npm run test:master가 만든다 — 없으면 건너뜀)
+      if (fs.existsSync(path.join(TMP, 'master-14.wav'))) {
+        const transBefore = await p.locator('#transitions').count();
+        await p.setInputFiles('input[type=file][id^="master-"] >> nth=1', path.join(TMP, 'master-14.wav'));
+        await p.waitForSelector('#tr-0', { timeout: 30000 });
+        await p.click('#tr-0');
+        const transPlaying = await p.waitForSelector('#tr-0:has-text("정지")', { timeout: 30000 }).then(() => true).catch(() => false);
+        await p.click('#tr-0');
+        global.transition = { transBefore, transPlaying, stopped: (await p.textContent('#tr-0')).includes('이어 듣기') };
+        global.transitionOk = transBefore === 0 && transPlaying && global.transition.stopped;
+      } else global.transitionOk = true;
+      // 앨범의 새 곡: 수록곡 탭 → 새 곡의 컨셉 탭으로, 타이틀곡 멤버 4명 이어받음, 앨범 트랙 하나 늘어남
       const tracksBefore = await p.locator('.track-title').count();
       await p.click('#album-new-song');
       await p.waitForSelector('h1:text-is("제목 없는 곡")');
@@ -343,6 +355,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
   if (!global.qcOk) errs.push('소리 점검(QC) 표시 이상');
   if (!global.instOk) errs.push('Inst. 버전 추가 이상');
   if (!global.welcomeOk) errs.push('처음 안내 카드 이상');
+  if (!global.transitionOk) errs.push(`곡 사이 듣기 이상: ${JSON.stringify(global.transition)}`);
   if (!global.albumNewSongOk) errs.push(`앨범의 새 곡 이상: ${JSON.stringify(global.albumNewSong)}`);
   if (!global.memberImportOk) errs.push(`멤버 불러오기 이상: ${JSON.stringify(global.memberImport)}`);
   if (!global.coverPickOk) errs.push('커버 추천·모양 미리보기 이상');

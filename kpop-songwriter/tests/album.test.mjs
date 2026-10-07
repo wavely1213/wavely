@@ -370,3 +370,23 @@ import { titleIssues } from '../src/js/album/titlecheck.js';
   assert.ok(items.some((i) => i.level === 'warn' && i.text.includes('1번 「Signal (feat. JUN)」: 제목에 피처링') && i.go.tab === 'concept'));
   console.log('title check OK');
 }
+
+// 곡 사이 넘어가는 부분: 앞뒤 자르기, 이어 붙이기(모노는 양쪽), 이웃 쌍과 음량 차이
+import { edgesOf, joinClips, transitionPairs } from '../src/js/album/transition.js';
+{
+  const rate = 10;
+  const ramp = Float32Array.from({ length: 100 }, (_, i) => i);
+  const e = edgesOf([ramp, ramp], rate, 3);
+  assert.deepEqual([...e.head[0]], [...Array(30).keys()]);
+  assert.equal(e.tail[1][0], 70);
+  assert.equal(edgesOf([ramp.slice(0, 5)], rate, 3).head[0].length, 5, '짧은 곡은 있는 만큼');
+  const j = joinClips([Float32Array.of(1, 2)], [Float32Array.of(3), Float32Array.of(4)], rate, 0.2);
+  assert.deepEqual([...j[0]], [1, 2, 0, 0, 3]);
+  assert.deepEqual([...j[1]], [1, 2, 0, 0, 4], '모노 앞 곡은 오른쪽에도');
+  const tracks = [{ songId: 'a' }, { songId: 'b' }, { songId: 'c' }];
+  const file = {};
+  const pairs = transitionPairs(tracks, { a: { file, lufs: -14 }, b: { file, lufs: -9.5 } });
+  assert.equal(pairs.length, 2);
+  assert.deepEqual([pairs[0].ready, pairs[0].gap, pairs[1].ready, pairs[1].gap], [true, 4.5, false, null]);
+  console.log('transition OK');
+}
