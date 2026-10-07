@@ -10,7 +10,7 @@ import { initInstall, installSection } from './views/install.js';
 import { renderAlbum } from './views/album/index.js';
 import { renderTaste } from './views/taste.js';
 import { newSinceSummary, SUMMARY_EVERY } from './learn/taste.js';
-import { songProgress } from './workflow/progress.js';
+import { songProgress, progressCount, STEPS } from './workflow/progress.js';
 import { restoreSong, restoreAlbum } from './album/session.js';
 import { getSample } from './ai.js';
 import { renderConcept } from './views/concept.js';
@@ -91,7 +91,7 @@ function renderSidebar() {
       return find.item(s, h('li', null,
         h('button', { type: 'button', class: `song-item${active ? ' active' : ''}`, 'aria-current': active ? 'true' : null, onclick: pick(() => selectSong(s.id)) },
           h('span', { class: 'song-title' }, s.title || '제목 없음'),
-          h('span', { class: 'song-meta mono' }, s.example ? '예시' : formatTime(s.updatedAt)))));
+          h('span', { class: 'song-meta mono' }, s.example ? '예시' : `${progressCount(s, st)}/${STEPS.length}단계 · ${formatTime(s.updatedAt)}`))));
     })),
     find.field ? find.none : null,
     h('div', { class: 'side-head' }, h('span', { class: 'field-label' }, '앨범·발매'),

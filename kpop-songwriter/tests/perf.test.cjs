@@ -53,7 +53,9 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
   await p.click('.song-item:has-text("내 취향")');
   const trend = await p.textContent('#taste-trend');
   await p.locator('.song-item').first().click();
-  const searchOk = trend === '처음 6개 33% → 최근 6개 83% (좋아지고 있어요)' && !noneAtStart && found === 11 && kept && none && (await visible()) === 50 && !(await p.isVisible('#song-none'));
+  // 곡 목록에 곡마다 진행 단계 수
+  const metaOk = (await p.$$eval('#song-list .song-meta', (els) => els.map((e) => e.textContent))).every((t) => /^\d\/7단계 · /.test(t));
+  const searchOk = metaOk && trend === '처음 6개 33% → 최근 6개 83% (좋아지고 있어요)' && !noneAtStart && found === 11 && kept && none && (await visible()) === 50 && !(await p.isVisible('#song-none'));
   // 탭 전환: 클릭부터 다음 그리기까지
   const tabs = await p.$$eval('.tab', (els) => els.map((e) => e.textContent));
   const times = {};

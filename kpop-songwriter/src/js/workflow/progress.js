@@ -45,3 +45,17 @@ export function songProgress(song, { albums = [], songs = [] } = {}) {
   }
   return { steps, next: steps.find((s) => !s.done) || null, album };
 }
+
+// 곡 목록에 보일 "끝난 단계 수". 가사 채점·점검표가 들어 있어 곡이 많으면 무거우므로,
+// 곡·앨범 수정 시각과 마스터·커버 유무가 같으면 지난 값을 쓴다.
+const countCache = new Map();
+export function progressCount(song, { albums = [], songs = [] } = {}) {
+  const album = albums.find((a) => a.tracks.some((t) => t.songId === song.id));
+  const key = [song.updatedAt, album?.id, album?.updatedAt, !!songMaster(song.id),
+    album ? !!mastersOf(album.id)[song.id] : '', album ? !!coverOf(album.id) : ''].join('|');
+  const hit = countCache.get(song.id);
+  if (hit?.key === key) return hit.done;
+  const done = songProgress(song, { albums, songs }).steps.filter((s) => s.done).length;
+  countCache.set(song.id, { key, done });
+  return done;
+}
