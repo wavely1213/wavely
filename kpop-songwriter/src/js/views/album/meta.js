@@ -51,7 +51,7 @@ export function renderMeta(album) {
         field('편곡', h('input', { id: `arr-${t.songId}`, value: t.arrangers, placeholder: '쉼표로 구분', oninput: set('arrangers'), onchange: rerender })),
         field('피처링 (선택)', h('input', { id: `feat-${t.songId}`, value: t.featuring, oninput: set('featuring') })),
         field(['ISRC (유통사 발급 후) ', help('isrc')], h('input', { id: `isrc-${t.songId}`, class: 'mono', value: t.isrc, placeholder: 'KRA0X2600001', oninput: set('isrc') }))),
-      h('label', { class: 'check' }, h('input', { type: 'checkbox', id: `exp-${t.songId}`, checked: t.explicit, onchange: set('explicit') }), '19금(Explicit) 가사'),
+      h('div', { class: 'row' }, h('label', { class: 'check' }, h('input', { type: 'checkbox', id: `exp-${t.songId}`, checked: t.explicit, onchange: set('explicit') }), '19금(Explicit) 가사'), help('explicit')),
       renderSplits(t, i));
   });
 

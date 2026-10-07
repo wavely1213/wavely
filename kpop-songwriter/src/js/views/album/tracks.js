@@ -7,6 +7,7 @@ import { mastersOf, setMaster, fillFromSongMasters } from '../../album/session.j
 import { keyName } from '../../music/theory.js';
 import { suggestOrder } from '../../album/order.js';
 import { renderTransitions } from './transitions.js';
+import { help } from '../../help.js';
 
 const busy = {};
 
@@ -85,7 +86,8 @@ export function renderTracks(album) {
             if (!inst) return;
             toast('Inst. 트랙을 더했어요. Suno에서 연주곡으로 만든 파일을 마스터로 넣어 주세요');
             document.getElementById(`track-${inst.id}`)?.focus({ preventScroll: true }); // 누른 버튼이 사라지므로 새 트랙으로
-          } }, 'Inst. 버전 추가') : null),
+          } }, 'Inst. 버전 추가') : null,
+        !song.instOf ? help('inst') : null),
     );
   });
 
