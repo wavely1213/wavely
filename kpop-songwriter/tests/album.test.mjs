@@ -249,3 +249,29 @@ import { extOf } from '../src/js/album/model.js';
   assert.deepEqual(rows.find((r) => r[3] === '별'), [1, '새벽 신호', '편곡', '별', 33.34, 'equal (not set)']);
   console.log('splits OK');
 }
+
+// 발매 후 성과: 같은 날짜는 덮어씀·빈 값 무시, 늘어난 수·비중, 눈에 띄는 곡, 취향 기록으로
+{
+  const { addSnapshot, trackSummary, standout, learnFromRelease } = await import('../src/js/album/stats.js');
+  const { emptyTaste, promptBlock, tasteStats } = await import('../src/js/learn/taste.js');
+  const s2 = { ...normalizeMusic(exampleSong()), id: 'song-b', title: '둘째 곡' };
+  const al = { ...newAlbum(), tracks: [{ ...newTrack(song.id), isTitle: true }, newTrack('song-b')] };
+  assert.equal(addSnapshot(al, '2026-12-01', { [song.id]: '', 'song-b': '' }), false, '빈 값만이면 기록 안 함');
+  addSnapshot(al, '2026-12-08', { [song.id]: '1000', 'song-b': '3000' });
+  addSnapshot(al, '2026-12-01', { [song.id]: 400, 'song-b': ' ' });
+  addSnapshot(al, '2026-12-08', { [song.id]: '1200', 'song-b': '3800' });
+  assert.deepEqual(al.stats.map((d) => d.date), ['2026-12-01', '2026-12-08'], '날짜순, 같은 날짜는 하나');
+  const rows = trackSummary(al, [song, s2]);
+  assert.deepEqual(rows.map((r) => [r.latest, r.growth, r.share]), [[1200, 800, 24], [3800, null, 76]]);
+  const best = standout(rows);
+  assert.equal(best.songId, 'song-b');
+  assert.equal(standout(rows.slice(0, 1)), null, '한 곡뿐이면 비교 안 함');
+  const t = emptyTaste();
+  learnFromRelease(t, al, s2);
+  assert.deepEqual(t.log.map((e) => [e.kind, e.rating, e.context.source]), [['arrange', 1, 'release'], ['lyrics', 1, 'release']]);
+  assert.deepEqual(tasteStats(t).bpmRange, [s2.music.bpm, s2.music.bpm], '편곡 BPM 통계에 들어감');
+  assert.ok(promptBlock(t, 'lyrics').includes('좋아한 예시'), '코러스가 좋아한 가사 예시로 들어감');
+  learnFromRelease(t, al, s2);
+  assert.equal(t.log.length, 2, '같은 곡을 두 번 넣어도 하나씩');
+  console.log('stats OK');
+}

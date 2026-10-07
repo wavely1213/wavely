@@ -33,6 +33,7 @@ export function newAlbum() {
     cover: { template: 'gradient', palette: 0, subtitle: '' },
     schedule: {},
     promo: { intro: '', tracks: {}, sns: [], hashtags: '' },
+    stats: [], // 발매 후 성과 기록 [{ date, plays: { songId: 누적 재생 수 } }]
     createdAt: Date.now(),
     updatedAt: Date.now(),
   };

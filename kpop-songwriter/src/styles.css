@@ -415,3 +415,10 @@ input[type=radio] { accent-color: var(--accent); }
 .split-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
 .split-person { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; }
 .split-person input { width: 76px; }
+
+/* 발매 후 성과 */
+.stat-form { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; align-items: end; }
+.stat-form .row { grid-column: 1 / -1; }
+.stat-table td, .stat-table th { vertical-align: middle; }
+.stat-spark { width: 90px; height: 24px; }
+.compare .stat-best th { color: var(--accent); font-weight: 700; }

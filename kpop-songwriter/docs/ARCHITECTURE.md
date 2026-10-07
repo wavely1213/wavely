@@ -64,6 +64,7 @@
 | 번안 가사 | translate/mora.js, translate/translate.js, views/translate.js | 일본어·영어 버전: 줄 수·음 수(음절·모라)를 원문에 맞춘 AI 번안, 원문 비교, Suno용 가사·스타일 |
 | 유사 표현 점검 | optimize/similarity.js, views/similarity.js | AI가 유명 곡과 비슷한 줄을 짚음(참고용), 제안으로 바꾸기·괜찮음 표시, 가사 변경 감지 |
 | 트랙 순서 추천 | album/order.js, views/album/tracks.js | BPM·평균 에너지·키·길이로 순서 점수, 8곡까지 전수 탐색(그 이상은 두 곡 바꾸기 반복), 지금보다 나을 때만 제안 |
+| 발매 후 성과 | album/stats.js, views/album/stats.js | 날짜별 트랙 누적 재생 기록, 늘어난 수·비중·그래프, 반응 좋은 곡을 취향 기록(편곡·코러스)으로 넣어 다음 곡에 반영 |
 | 지분 시트 | album/splits.js, views/album/meta.js | 역할(작사·작곡·편곡)마다 여러 명이면 % 입력, 안 적으면 똑같이, 합 100% 점검, split_sheet.csv |
 | 가사집 | album/booklet.js, views/album/submit.js | 커버·트랙 목록·곡마다 가사·크레딧을 인쇄용 HTML(A4, 쪽 나눔)로, 제출 패키지에 booklet.html |
 | 캘린더 파일 | album/ics.js, views/album/plan.js | 발매 일정 → .ics (하루 종일 + 9시 알림, 끝낸 일정 제외, 75바이트 접기) |

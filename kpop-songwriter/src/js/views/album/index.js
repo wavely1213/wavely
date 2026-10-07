@@ -8,6 +8,7 @@ import { renderCover } from './cover.js';
 import { renderSchedule, renderPromo } from './plan.js';
 import { renderSubmit } from './submit.js';
 import { renderSync, syncSongId } from './sync.js';
+import { renderStats } from './stats.js';
 import { restoreAlbum, forgetAlbum } from '../../album/session.js';
 import { undoButtons } from '../undo-buttons.js';
 
@@ -19,6 +20,7 @@ const TABS = [
   ['schedule', '일정', renderSchedule],
   ['promo', '홍보', renderPromo],
   ['submit', '제출', renderSubmit],
+  ['stats', '성과', renderStats],
 ];
 
 const ui = { confirmDelete: '' };
