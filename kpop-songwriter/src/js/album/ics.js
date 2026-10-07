@@ -1,7 +1,7 @@
 // 발매 일정 → 캘린더 파일(.ics). 날짜마다 하루 종일 일정 + 그날 아침 9시 알림. 폰·PC 캘린더에서 열면 들어간다.
 import { scheduleFor } from './model.js';
 
-const esc = (s) => String(s ?? '').replace(/\\/g, '\\\\').replace(/;/g, '\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+const esc = (s) => String(s ?? '').replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
 
 // 한 줄 75바이트마다 접는다 (RFC 5545). 한글이 깨지지 않게 글자 단위로 자른다.
 export function fold(line) {

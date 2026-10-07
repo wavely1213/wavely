@@ -4,7 +4,9 @@ import { getState, mutateAlbum, mutateTaste, refresh } from '../../state.js';
 import { addSnapshot, trackSummary, standout, learnFromRelease } from '../../album/stats.js';
 import { isoDate } from '../../album/model.js';
 
-const ui = { date: '', values: {} };
+// 앨범마다 따로 (적다 만 숫자가 다른 앨범에 따라가지 않게)
+const uis = {};
+const uiOf = (albumId) => uis[albumId] || (uis[albumId] = { date: '', values: {} });
 
 // 날짜별 누적 재생 수 작은 그래프 (점이 하나면 그리지 않음)
 function spark(series) {
@@ -27,14 +29,18 @@ const fmtN = (n) => (n == null ? '—' : n.toLocaleString('ko-KR'));
 
 export function renderStats(album) {
   const { songs, taste } = getState();
+  const ui = uiOf(album.id);
   const rows = trackSummary(album, songs);
   const best = standout(rows);
   const learned = best && taste.log.some((e) => e.context?.ref === `release:${album.id}:${best.songId}`);
   if (!ui.date) ui.date = isoDate(new Date());
   const save = () => {
-    if (!addSnapshot({ stats: [] }, ui.date, ui.values)) { toast('날짜와 재생 수를 하나 이상 적어 주세요'); return; }
-    mutateAlbum((a) => { addSnapshot(a, ui.date, ui.values); });
+    // 이 앨범 트랙의 값만, 다시 그리기 전에 꺼내고 비운다 (그려진 칸에 옛 숫자가 남지 않게)
+    const ids = new Set(album.tracks.map((t) => t.songId));
+    const values = Object.fromEntries(Object.entries(ui.values).filter(([id]) => ids.has(id)));
+    if (!addSnapshot({ stats: [] }, ui.date, values)) { toast('날짜와 재생 수를 하나 이상 적어 주세요'); return; }
     ui.values = {};
+    mutateAlbum((a) => { addSnapshot(a, ui.date, values); });
     toast('기록했어요');
   };
   return h('div', { class: 'stack' },
@@ -50,14 +56,14 @@ export function renderStats(album) {
         : h('p', { class: 'empty' }, '수록곡을 먼저 넣어 주세요.')),
     (album.stats || []).length ? h('section', { class: 'card' },
       h('div', { class: 'card-head' }, h('h2', null, '곡별 반응'), h('span', { class: 'muted small' }, `기록 ${album.stats.length}번 · 마지막 ${album.stats[album.stats.length - 1].date}`)),
-      h('table', { class: 'compare stat-table' },
-        h('thead', null, h('tr', null, h('th', null, '곡'), h('th', null, '누적'), h('th', null, '지난 기록보다'), h('th', null, '비중'), h('th', null, ''))),
+      h('div', { class: 'table-scroll' }, h('table', { class: 'compare stat-table' },
+        h('thead', null, h('tr', null, h('th', null, '곡'), h('th', null, '누적'), h('th', null, '지난 기록보다'), h('th', null, '비중'), h('th', { class: 'stat-graph' }, ''))),
         h('tbody', null, rows.map((r) => h('tr', { class: best?.songId === r.songId ? 'stat-best' : '' },
           h('th', null, r.title, r.isTitle ? h('span', { class: 'muted small' }, ' (타이틀)') : null),
           h('td', { class: 'mono' }, fmtN(r.latest)),
-          h('td', { class: 'mono' }, r.growth == null ? '—' : `+${fmtN(r.growth)}`),
+          h('td', { class: 'mono' }, r.growth == null ? '—' : `${r.growth >= 0 ? '+' : ''}${fmtN(r.growth)}`),
           h('td', { class: 'mono' }, r.share == null ? '—' : `${r.share}%`),
-          h('td', null, spark(r.series)))))),
+          h('td', { class: 'stat-graph' }, spark(r.series))))))),
       best ? h('div', { class: 'note' },
         h('p', null, `「${best.title}」의 반응이 가장 좋아요 (전체의 ${best.share}%).${best.isTitle ? '' : ' 타이틀곡이 아닌데 반응이 좋다면 다음 활동곡 후보예요.'}`),
         learned ? h('p', { class: 'muted small', id: 'stat-learned' }, '이 곡의 편곡·코러스를 취향 기록에 넣었어요. 다음 AI 작사·편곡에 반영돼요.')

@@ -55,12 +55,23 @@ function permutations(xs) {
   return out;
 }
 
+// 같은 입력이면 다시 계산하지 않는다 (수록곡 탭을 그릴 때마다 불림, 8곡이면 4만 가지)
+let memo = { key: '', value: null };
+
 // tracks: 앨범 트랙(순서대로), songs: 곡 목록. 반환: { order: [songId], why, better(지금보다 나은지), current, best }
 export function suggestOrder(tracks, songs) {
   const items = tracks.map((t) => {
     const s = songs.find((x) => x.id === t.songId);
     return s ? { id: t.songId, isTitle: !!t.isTitle, t: trackTraits(s) } : null;
   }).filter(Boolean);
+  const key = JSON.stringify(items);
+  if (memo.key === key) return memo.value;
+  const value = search(items);
+  memo = { key, value };
+  return value;
+}
+
+function search(items) {
   const current = orderScore(items);
   if (items.length < 2) return { order: items.map((x) => x.id), why: current.why, better: false, current: current.score, best: current.score };
   // 8곡까지는 모든 순서를 본다(8! = 40320), 그 이상은 지금 순서에서 두 곡씩 바꿔 가며 나아지는 동안 반복

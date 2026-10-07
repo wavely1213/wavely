@@ -85,7 +85,7 @@ async function loadFile(f, songId) {
   const ui = uiFor(songId);
   stopListen();
   ui.busy = '파일 읽는 중';
-  ui.result = null;
+  ui.result = null; ui.hl = null;
   refresh();
   try {
     ui.source = await decodeFile(f);
@@ -102,7 +102,7 @@ async function loadDemo(song) {
   const ui = uiFor(song.id);
   stopListen();
   ui.busy = '앱 데모 녹음 중';
-  ui.result = null;
+  ui.result = null; ui.hl = null;
   refresh();
   try {
     ui.source = await renderSong(song);
@@ -119,7 +119,7 @@ async function run(song) {
   const ui = uiFor(song.id);
   stopListen();
   const st = settings(song);
-  ui.result = null;
+  ui.result = null; ui.hl = null;
   ui.busy = '준비 중';
   refresh();
   try {

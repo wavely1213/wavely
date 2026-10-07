@@ -11,7 +11,7 @@ export function spellingStatus(song) {
 
 // 지금 가사에 있는 줄만, 고친 줄이 원래 줄과 다른 것만
 export function parseSpelling(res, song) {
-  const match = lineMatcher(song);
+  const match = lineMatcher(song, { exact: true });
   const seen = new Set();
   const items = (Array.isArray(res?.items) ? res.items : []).map((x) => {
     const line = match(x?.line);

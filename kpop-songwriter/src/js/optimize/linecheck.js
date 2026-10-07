@@ -3,11 +3,13 @@ import { lyricLines, lyricsKey } from '../album/lyrics.js';
 
 const norm = (s) => String(s ?? '').replace(/\s+/g, ' ').trim().toLowerCase();
 
-// AI가 적은 줄 → 가사의 실제 줄 (띄어쓰기·대소문자 무시, 4글자 넘으면 일부만 맞아도). 못 찾으면 null
-export function lineMatcher(song) {
+// AI가 적은 줄 → 가사의 실제 줄 (띄어쓰기·대소문자 무시). 못 찾으면 null.
+// exact가 아니면 4글자 넘는 일부만 맞아도 찾는다 (유사 표현처럼 줄을 가리키기만 할 때).
+// 고친 줄로 통째로 바꾸는 점검(맞춤법)은 exact로 — 일부만 맞춰 바꾸면 나머지 단어가 사라진다.
+export function lineMatcher(song, { exact = false } = {}) {
   const lines = lyricLines(song);
   const byNorm = new Map(lines.map((l) => [norm(l), l]));
-  return (text) => byNorm.get(norm(text)) || lines.find((l) => norm(text).length > 3 && norm(l).includes(norm(text))) || null;
+  return (text) => byNorm.get(norm(text)) || (exact ? null : lines.find((l) => norm(text).length > 3 && norm(l).includes(norm(text)))) || null;
 }
 
 // 결과 { key, items: [{ ok }] } → 'none' 안 함 | 'stale' 점검 뒤 가사가 바뀜 | 'flagged' 확인할 줄 남음 | 'clear'

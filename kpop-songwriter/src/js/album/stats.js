@@ -4,12 +4,13 @@ import { makeEntry, addEntry } from '../learn/taste.js';
 import { keyName } from '../music/theory.js';
 import { plainLyrics } from './lyrics.js';
 
-// 같은 날짜는 덮어쓴다. values: { songId: 숫자 } (빈 값은 빼고)
+// 같은 날짜에 다시 적으면 그 곡들만 고친다 (안 적은 곡의 그날 숫자는 그대로). values: { songId: 숫자 } (빈 값은 빼고)
 export function addSnapshot(album, date, values) {
   const plays = {};
   Object.entries(values).forEach(([id, v]) => { const n = Number(v); if (Number.isFinite(n) && n >= 0 && String(v).trim() !== '') plays[id] = Math.round(n); });
   if (!date || !Object.keys(plays).length) return false;
-  album.stats = [...(album.stats || []).filter((s) => s.date !== date), { date, plays }].sort((a, b) => a.date.localeCompare(b.date));
+  const old = (album.stats || []).find((s) => s.date === date);
+  album.stats = [...(album.stats || []).filter((s) => s.date !== date), { date, plays: { ...(old?.plays || {}), ...plays } }].sort((a, b) => a.date.localeCompare(b.date));
   return true;
 }
 

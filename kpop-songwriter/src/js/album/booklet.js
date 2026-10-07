@@ -14,7 +14,10 @@ export function bookletHtml(album, songs, coverDataUrl = '') {
     t.arrangers && `편곡 ${esc(t.arrangers)}`,
     t.featuring && `Feat. ${esc(t.featuring)}`,
   ].filter(Boolean).join(' · ');
-  const lyricHtml = (s) => plainLyrics(s).split('\n\n').map((block) => `<p>${block.split('\n').map(esc).join('<br>')}</p>`).join('');
+  const lyricHtml = (s) => {
+    const text = plainLyrics(s);
+    return text ? text.split('\n\n').map((block) => `<p>${block.split('\n').map(esc).join('<br>')}</p>`).join('') : '';
+  };
   return `<!doctype html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(album.artist)} - ${esc(album.title)} 가사집</title>

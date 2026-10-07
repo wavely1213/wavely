@@ -53,8 +53,9 @@ console.log('similarity OK');
     { line: '괜찮아', fixed: '괜찮아' },
     { line: '없는 줄', fixed: 'x' },
     { line: '할수  있어', fixed: '중복' },
+    { line: '괜찮', fixed: '괜찬' },
   ] }, sp);
-  assert.deepEqual(r.items.map((i) => [i.line, i.fixed]), [['할수 있어', '할 수 있어']]);
+  assert.deepEqual(r.items.map((i) => [i.line, i.fixed]), [['할수 있어', '할 수 있어']], '줄 일부만 짚은 것은 버림 (바꾸면 단어가 사라짐)');
   sp.spelling = r;
   assert.equal(spellingStatus(sp), 'flagged');
   r.items[0].ok = true;

@@ -196,6 +196,15 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
       await pb.screenshot({ path: path.join(TMP, 'booklet.png') });
       await pb.close();
     }
+    // 성과: 큰 숫자를 같은 날 두 번 기록해도 남고, 폰에서 가로로 넘치지 않음
+    await p.click('.tab:text-is("성과")');
+    await p.fill('input[id^="stat-"][type=number]', '3000000');
+    await p.click('#stat-save');
+    await p.fill('input[id^="stat-"][type=number]', '3100000');
+    await p.click('#stat-save');
+    const statCell = await p.textContent('.stat-table tbody td.mono');
+    const statOverflow = await p.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
+    global.statOk = (global.statOk ?? true) && statCell.replace(/\D/g, '') === '3100000' && !statOverflow;
     // 새로고침해도 마스터·커버가 남는지 (IndexedDB)
     await p.waitForTimeout(1500);
     await p.reload();
@@ -249,6 +258,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
   if (!global.navOk) errs.push('폰 목록 접기 이상');
   if (!global.icsOk) errs.push('캘린더 파일 이상');
   if (!global.diffSame) errs.push('버전 비교 이상');
+  if (!global.statOk) errs.push('성과 기록 이상');
   if (!global.bookletOk) errs.push('가사집 이상');
   if (!global.splitOk) errs.push(`지분 이상: ${global.splitSum}`);
   if (!global.hlOk) errs.push(`하이라이트 이상: ${global.hlRange}`);

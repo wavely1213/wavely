@@ -26,15 +26,16 @@ export function splitsFor(track) {
     const people = names(track[r.field]);
     const saved = track.splits?.[r.key] || {};
     const custom = people.length > 1 && people.some((p) => Number.isFinite(saved[p]));
-    const list = custom ? people.map((name) => ({ name, share: Number.isFinite(saved[name]) ? saved[name] : 0 })) : equalShares(people);
+    // 직접 적은 뒤 새로 더한 사람은 0%로 두고 missing에 넣는다 (점검표가 알려 줌)
+    const list = custom ? people.map((name) => ({ name, share: Number.isFinite(saved[name]) ? saved[name] : 0, missing: !Number.isFinite(saved[name]) })) : equalShares(people);
     const sum = round2(list.reduce((a, x) => a + x.share, 0));
-    return { ...r, people: list, custom, sum };
+    return { ...r, people: list, custom, sum, missing: list.filter((x) => x.missing).map((x) => x.name) };
   });
 }
 
-// 합이 100이 아닌 역할 (직접 적은 것만)
+// 합이 100이 아니거나, 지분을 안 적은 사람이 있는 역할 (직접 적은 것만)
 export function splitIssues(track) {
-  return splitsFor(track).filter((r) => r.custom && Math.abs(r.sum - 100) > 0.01);
+  return splitsFor(track).filter((r) => r.custom && (Math.abs(r.sum - 100) > 0.01 || r.missing.length));
 }
 
 // 지분 시트 CSV 행
@@ -43,7 +44,8 @@ export function splitRows(album, songs) {
   album.tracks.forEach((t, i) => {
     const s = songs.find((x) => x.id === t.songId);
     if (!s) return;
-    splitsFor(t).forEach((r) => r.people.forEach((p) => rows.push([i + 1, s.title.replace(/^예시:\s*/, ''), r.name, p.name, p.share, r.people.length === 1 || r.custom ? 'Y' : 'equal (not set)'])));
+    splitsFor(t).forEach((r) => r.people.forEach((p) => rows.push([i + 1, s.title.replace(/^예시:\s*/, ''), r.name, p.name, p.share,
+      r.people.length === 1 ? 'Y' : !r.custom ? 'equal (not set)' : p.missing ? 'not set' : 'Y'])));
   });
   return rows;
 }

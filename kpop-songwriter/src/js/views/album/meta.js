@@ -1,6 +1,6 @@
 // 앨범 > 정보·크레딧: 유통사에 넣을 메타데이터와 트랙별 크레딧.
 import { h, field, afterBlur } from '../../dom.js';
-import { mutateAlbum, getState } from '../../state.js';
+import { mutateAlbum, getState, refresh } from '../../state.js';
 import { help } from '../../help.js';
 import { splitsFor } from '../../album/splits.js';
 
@@ -40,7 +40,7 @@ export function renderMeta(album) {
   const trackRows = album.tracks.map((t, i) => {
     const song = songs.find((s) => s.id === t.songId);
     if (!song) return null;
-    const rerender = afterBlur(() => mutateAlbum(() => {})); // 이름이 바뀌면 지분 칸이 생기거나 사라짐
+    const rerender = afterBlur(refresh); // 이름이 바뀌면 지분 칸이 생기거나 사라짐 (저장은 입력 때 이미 함, 빈 되돌리기 단계를 만들지 않게)
     const set = (k) => (e) => mutateAlbum((a) => { a.tracks[i][k] = e.target.type === 'checkbox' ? e.target.checked : e.target.value; }, e.target.type === 'checkbox' ? 'all' : 'quiet');
     return h('article', { class: 'section' },
       h('header', { class: 'section-head' }, h('span', { class: 'tag mono' }, String(i + 1).padStart(2, '0')), h('strong', null, song.title)),

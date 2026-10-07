@@ -437,3 +437,7 @@ input[type=radio] { accent-color: var(--accent); }
 .diff span { display: block; white-space: pre-wrap; }
 .diff-add { background: color-mix(in srgb, var(--r2) 16%, transparent); }
 .diff-del { background: color-mix(in srgb, var(--danger) 14%, transparent); text-decoration: line-through; color: var(--muted); }
+
+.table-scroll { overflow-x: auto; max-width: 100%; }
+.stat-table th:first-child { min-width: 7em; overflow-wrap: anywhere; }
+@media (max-width: 640px) { .stat-graph { display: none; } }

@@ -44,8 +44,9 @@ function save(snap = capture()) {
   if (JSON.stringify(s.sync?.lines) === JSON.stringify(sync.lines)) return;
   // 다 맞춘 싱크가 있는데 처음부터 다시 맞추다 멈췄으면 덮어쓰지 않는다
   if (sync.lines.some((l) => !Number.isFinite(l.t)) && syncStatus(s) === 'ok') {
-    ui.key = ''; // 다음에 그릴 때 저장된 싱크를 다시 보여 줌
+    ui.key = ''; // 저장된 싱크를 다시 보여 줌
     toast('끝까지 맞추지 않아서 전에 맞춘 싱크를 그대로 뒀어요');
+    refresh();
     return;
   }
   mutateSong(s.id, (x) => { x.sync = sync; });

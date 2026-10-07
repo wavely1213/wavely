@@ -169,7 +169,7 @@ import { extOf } from '../src/js/album/model.js';
   assert.ok(ics.includes('UID:alb1-release@kpop-songwriter'));
   assert.ok(ics.includes('DTSTAMP:20261007T010203Z'));
   assert.ok(ics.includes('TRIGGER:PT9H'));
-  assert.ok(ics.replace(/\r\n /g, '').includes('SUMMARY:[새벽\\, 신호\; 테스트] 발매 (D+0)'), '쉼표·세미콜론 이스케이프');
+  assert.ok(ics.replace(/\r\n /g, '').includes('SUMMARY:[새벽\\, 신호\\; 테스트] 발매 (D+0)'), '쉼표·세미콜론 이스케이프');
   const enc = new TextEncoder();
   assert.ok(rows.every((r) => enc.encode(r).length <= 75), '모든 줄 75바이트 이하');
   assert.equal(fold('가'.repeat(30)).split('\r\n ').join(''), '가'.repeat(30), '접어도 글자가 안 깨짐');
@@ -224,6 +224,8 @@ import { extOf } from '../src/js/album/model.js';
   assert.ok(html.includes('class="plain"'), '커버 없으면 글자 표지');
   assert.ok(html.includes('© 2026 물결뮤직'));
   assert.ok(bookletHtml(al, [song], 'data:image/jpeg;base64,AAAA').includes('<img src="data:image/jpeg;base64,AAAA"'));
+  const inst = { ...song, sections: song.sections.map((x) => ({ ...x, text: '' })) };
+  assert.ok(bookletHtml(al, [inst], '').includes('(연주곡)'), '가사 없는 곡은 (연주곡)');
   console.log('booklet OK');
 }
 
@@ -234,7 +236,12 @@ import { extOf } from '../src/js/album/model.js';
   assert.equal(equalShares(['a', 'b', 'c']).reduce((x, y) => x + y.share, 0).toFixed(2), '100.00');
   const t = { ...newTrack(song.id), lyricists: '물결, 하늘', composers: '물결', arrangers: '바다 & 하늘 & 별', splits: { lyric: { 물결: 60, 하늘: 30 } } };
   const sp = splitsFor(t);
-  assert.deepEqual(sp[0].people, [{ name: '물결', share: 60 }, { name: '하늘', share: 30 }]);
+  assert.deepEqual(sp[0].people.map(({ name, share }) => ({ name, share })), [{ name: '물결', share: 60 }, { name: '하늘', share: 30 }]);
+  // 지분을 적은 뒤 사람을 더하면: 새 사람 0%, 합이 100이어도 경고, 시트에 'not set'
+  const added = { ...t, lyricists: '물결, 하늘, 별', splits: { lyric: { 물결: 60, 하늘: 40 } } };
+  assert.deepEqual(splitsFor(added)[0].missing, ['별']);
+  assert.equal(splitsFor(added)[0].sum, 100);
+  assert.deepEqual(splitIssues(added).map((r) => r.name), ['작사'], '합이 100이어도 빠진 사람이 있으면 경고');
   assert.equal(sp[0].sum, 90);
   assert.deepEqual(splitIssues(t).map((r) => r.name), ['작사']);
   assert.equal(sp[2].custom, false);
@@ -247,6 +254,8 @@ import { extOf } from '../src/js/album/model.js';
   assert.deepEqual(rows[0], ['Track', 'Title', 'Role', 'Name', 'Share %', 'Agreed']);
   assert.equal(rows.length, 1 + 2 + 1 + 3);
   assert.deepEqual(rows.find((r) => r[3] === '별'), [1, '새벽 신호', '편곡', '별', 33.34, 'equal (not set)']);
+  const rowsAdded = splitRows({ ...al, tracks: [{ ...added, isTitle: true }] }, [song]);
+  assert.deepEqual(rowsAdded.filter((r) => r[2] === '작사').map((r) => [r[3], r[5]]), [['물결', 'Y'], ['하늘', 'Y'], ['별', 'not set']]);
   console.log('splits OK');
 }
 
@@ -261,6 +270,9 @@ import { extOf } from '../src/js/album/model.js';
   addSnapshot(al, '2026-12-01', { [song.id]: 400, 'song-b': ' ' });
   addSnapshot(al, '2026-12-08', { [song.id]: '1200', 'song-b': '3800' });
   assert.deepEqual(al.stats.map((d) => d.date), ['2026-12-01', '2026-12-08'], '날짜순, 같은 날짜는 하나');
+  addSnapshot(al, '2026-12-01', { 'song-b': '900' });
+  assert.deepEqual(al.stats[0].plays, { [song.id]: 400, 'song-b': 900 }, '같은 날 다시 적으면 그 곡만 고침');
+  al.stats[0].plays = { [song.id]: 400 };
   const rows = trackSummary(al, [song, s2]);
   assert.deepEqual(rows.map((r) => [r.latest, r.growth, r.share]), [[1200, 800, 24], [3800, null, 76]]);
   const best = standout(rows);
