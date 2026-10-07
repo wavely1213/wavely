@@ -178,5 +178,21 @@ import { songLength, lengthNote } from '../src/js/music/length.js';
   assert.ok(lengthNote({ bars: 40, seconds: 80 }).includes('짧아요'));
   assert.ok(!lengthNote({ bars: 72, seconds: 144 }).includes('짧아요'), '기본 구조(2:24)는 경고 없음');
   assert.equal(lengthNote({ bars: 0, seconds: 0 }), '');
+  assert.ok(lengthNote({ bars: 48, seconds: 97.6 }).startsWith('편곡 기준 길이 1:38'), '재생 막대(반올림)와 같은 표시');
   console.log('song length OK');
+}
+
+// 파트 분배: 비워 둔 반복 코러스도 다시 부르는 것으로, 같이 부르는 섹션은 나눠서, 음절(애드립 제외) 기준도
+import { lineShare, syllableShare } from '../src/js/structure.js';
+{
+  const members = [{ id: 'a' }, { id: 'b' }];
+  const sections = [
+    { type: 'Verse', members: ['a'], text: '가나다라\n마바사아 (oh)' }, // 2줄 8음절
+    { type: 'Chorus', members: ['a', 'b'], text: '자차카타' }, // 1줄 4음절, 반씩
+    { type: 'Verse', members: ['b'], text: '가나' }, // 1줄 2음절
+    { type: 'Chorus', members: ['b'], text: '' }, // 앞 코러스 다시: 1줄 4음절 → b
+  ];
+  assert.deepEqual(lineShare(sections, members), { a: 2.5, b: 2.5 });
+  assert.deepEqual(syllableShare(sections, members), { a: 10, b: 8 });
+  console.log('part share OK');
 }

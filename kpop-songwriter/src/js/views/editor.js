@@ -2,7 +2,7 @@
 import { h, uid, afterBlur } from '../dom.js';
 import { mutate, mutateSong } from '../state.js';
 import { SECTION_TYPES, TEMPLATES } from '../constants.js';
-import { sectionLabels, makeSection, sectionsFromTemplate, autoDistribute, lineShare } from '../structure.js';
+import { sectionLabels, makeSection, sectionsFromTemplate, autoDistribute, lineShare, syllableShare } from '../structure.js';
 import { analyzeSection, languageRatio } from '../lyrictools.js';
 import { lyricFit } from '../lyricfit.js';
 import { writeLyrics, suggestHooks, reviewLyrics } from '../ai.js';
@@ -134,16 +134,20 @@ function applyLyrics(songId, out) {
   });
 }
 
+// 막대는 부르는 양(음절) 비율, 옆에 줄 수. 같이 부르는 섹션은 나눠 세고, 비워 둔 반복 섹션도 다시 부르는 것으로 센다.
 function renderShare(song) {
   if (!song.members.length) return null;
-  const share = lineShare(song.sections, song.members);
-  const max = Math.max(1, ...Object.values(share));
+  const lines = lineShare(song.sections, song.members);
+  const syl = syllableShare(song.sections, song.members);
+  const total = Object.values(syl).reduce((a, b) => a + b, 0) || 1;
+  const max = Math.max(1, ...Object.values(syl));
   return h('section', { class: 'card' },
-    h('h2', null, '파트 분배 (줄 수)'),
+    h('h2', null, '파트 분배 (부르는 양)'),
     h('div', { class: 'share' }, song.members.map((mem) => h('div', { class: 'share-row' },
       h('span', { class: 'share-name' }, mem.name || '이름 없음'),
-      h('span', { class: 'share-bar' }, h('span', { style: `width:${(share[mem.id] / max) * 100}%` })),
-      h('span', { class: 'mono share-num' }, share[mem.id].toFixed(1))))),
+      h('span', { class: 'share-bar' }, h('span', { style: `width:${(syl[mem.id] / max) * 100}%` })),
+      h('span', { class: 'mono share-num', id: `share-${mem.id}` }, `${Math.round((syl[mem.id] / total) * 100)}% · ${lines[mem.id].toFixed(1)}줄`)))),
+    h('p', { class: 'muted small' }, '음절 수 기준이에요. 여럿이 같이 부르는 섹션은 나눠 세고, 비워 둔 반복 코러스도 다시 부르는 것으로 쳐요.'),
   );
 }
 

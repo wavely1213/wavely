@@ -37,6 +37,10 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
       && (await p.textContent(`#${fitId.replace('fit-', 'fit-tip-')}`)).includes('마디');
     await verse.fill(verseText);
     global.fitOk = (global.fitOk ?? true) && fitHiddenBefore && fitTight && await p.isHidden(`#${fitId}`);
+    // 파트 분배: 멤버마다 "N% · N줄", 합이 100% 안팎
+    const shares = await p.$$eval('.share-num', (els) => els.map((e) => e.textContent));
+    const pctSum = shares.reduce((n, t) => n + Number((t.match(/^(\d+)%/) || [0, 0])[1]), 0);
+    global.shareOk = (global.shareOk ?? true) && shares.length === 4 && shares.every((t) => /^\d+% · [\d.]+줄$/.test(t)) && pctSum >= 98 && pctSum <= 102;
     const tabs = await p.$$eval('.tab', els => els.map(e => e.textContent));
     for (const name of tabs) {
       await p.click(`.tab:text-is("${name}")`);
@@ -399,6 +403,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
   if (!global.lyricCardOk) errs.push(`가사 카드 이상: ${JSON.stringify(global.lyricCard)}`);
   if (!global.lengthOk) errs.push('곡 길이 표시 이상');
   if (!global.spaceOk) errs.push('스페이스바 재생 이상');
+  if (!global.shareOk) errs.push('파트 분배 표시 이상');
   if (!global.welcomeOk) errs.push('처음 안내 카드 이상');
   if (!global.transitionOk) errs.push(`곡 사이 듣기 이상: ${JSON.stringify(global.transition)}`);
   if (!global.albumNewSongOk) errs.push(`앨범의 새 곡 이상: ${JSON.stringify(global.albumNewSong)}`);

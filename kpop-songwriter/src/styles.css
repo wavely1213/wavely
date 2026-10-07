@@ -134,7 +134,7 @@ input[type=range] { accent-color: var(--accent); width: 100%; }
 
 /* 파트 분배 */
 .share { display: flex; flex-direction: column; gap: 6px; }
-.share-row { display: grid; grid-template-columns: 80px minmax(0, 1fr) 44px; gap: 10px; align-items: center; font-size: 14px; }
+.share-row { display: grid; grid-template-columns: 80px minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 14px; }
 .share-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .share-bar { height: 8px; background: var(--paper); border-radius: 4px; overflow: hidden; }
 .share-bar span { display: block; height: 100%; background: var(--accent); }

@@ -1,6 +1,7 @@
 // 곡 구조: 섹션 생성, 템플릿 적용, 번호 매기기, 멤버 자동 분배.
 import { TEMPLATES, INSTRUMENTAL_TYPES, ALL_MEMBER_TYPES } from './constants.js';
 import { uid } from './dom.js';
+import { countSyllables } from './lyrictools.js';
 
 export function makeSection(type, text = '') {
   return { id: uid(), type, members: [], text };
@@ -45,14 +46,26 @@ export function autoDistribute(sections, members) {
   });
 }
 
-// 멤버별 담당 줄 수 (파트 분배 균형 확인용). 여러 명이 맡은 섹션은 줄을 나눠 센다.
-export function lineShare(sections, members) {
+// 비워 둔 반복 섹션은 앞의 같은 종류 가사를 다시 부른다 (Suno 가사·가사지와 같은 규칙)
+function sungText(sections, i) {
+  const s = sections[i];
+  if (s.text.trim()) return s.text;
+  return sections.slice(0, i).reverse().find((p) => p.type === s.type && p.text.trim())?.text || '';
+}
+
+// 멤버별 몫: 섹션마다 measure(가사)를 그 섹션 멤버 수로 나눠 더한다
+function shareBy(sections, members, measure) {
   const share = Object.fromEntries(members.map((m) => [m.id, 0]));
-  sections.forEach((s) => {
-    const lines = s.text.split('\n').filter((l) => l.trim()).length;
+  sections.forEach((s, i) => {
+    const amount = measure(sungText(sections, i));
     const ms = s.members.filter((id) => id in share);
-    if (!ms.length || !lines) return;
-    ms.forEach((id) => { share[id] += lines / ms.length; });
+    if (!ms.length || !amount) return;
+    ms.forEach((id) => { share[id] += amount / ms.length; });
   });
   return share;
 }
+
+// 멤버별 담당 줄 수 (파트 분배 균형 확인용). 여러 명이 맡은 섹션은 줄을 나눠 센다.
+export const lineShare = (sections, members) => shareBy(sections, members, (t) => t.split('\n').filter((l) => l.trim()).length);
+// 부르는 양 (애드립 괄호를 뺀 음절 수) — 줄 길이가 달라도 실제 분량에 가깝다
+export const syllableShare = (sections, members) => shareBy(sections, members, (t) => t.split('\n').reduce((n, l) => n + countSyllables(l), 0));

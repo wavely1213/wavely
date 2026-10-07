@@ -14,7 +14,7 @@ export function songLength(song, bpm = song.music.bpm) {
 
 export function lengthNote({ bars, seconds }) {
   if (!bars) return '';
-  const base = `편곡 기준 길이 ${mmss(seconds)} (${bars}마디)`;
+  const base = `편곡 기준 길이 ${mmss(Math.round(seconds))} (${bars}마디)`; // 재생 막대처럼 반올림
   if (seconds > LONG) return `${base} — 길어요. 요즘 K-pop은 대개 2분 30초~3분 30초예요. 반복 코러스·브릿지를 줄여 볼 만해요.`;
   if (seconds < SHORT) return `${base} — 짧아요. 숏폼용이 아니면 코러스를 한 번 더 넣거나 마디를 늘려 볼 만해요.`;
   return base;

@@ -1,6 +1,6 @@
 // 가사 자동 채점 (AI 없이). 섹션마다 0~100점과 고칠 점을 낸다. 자동 개선 루프의 기준이 된다.
 import { analyzeSection, languageRatio } from '../lyrictools.js';
-import { lineShare, sectionLabels } from '../structure.js';
+import { syllableShare, sectionLabels } from '../structure.js';
 import { DEFAULT_SYLLABLES, FALLBACK_SYLLABLES, cachedRanges } from './calibrate.js';
 import { currentTaste } from '../learn/context.js';
 
@@ -96,7 +96,7 @@ export function scoreSong(song, ranges) {
   const titleWords = title.split(/\s+/).filter((w) => w.length > 1);
   if (chorus && titleWords.length && !titleWords.some((w) => chorus.text.toLowerCase().includes(w))) tips.push('곡 제목의 단어가 코러스에 없어요. 제목과 훅을 맞추면 기억되기 쉬워요.');
   if (song.members.length > 1) {
-    const share = Object.values(lineShare(song.sections, song.members));
+    const share = Object.values(syllableShare(song.sections, song.members)); // 화면의 파트 분배 막대와 같은 기준
     const total = share.reduce((a, b) => a + b, 0);
     if (total) {
       const max = Math.max(...share) / total;
