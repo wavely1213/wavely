@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: blob: https://*.trycloudflare.com; media-src 'self' blob: https://*.trycloudflare.com; connect-src 'self' https://*.trycloudflare.com https://ntfy.sh; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0f7a3d" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d1117" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="풋살 스튜디오">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>풋살 스튜디오 원격</title>
+<link rel="manifest" href="/futsal/manifest.webmanifest">
+<link rel="icon" type="image/png" href="/futsal/icon-192.png">
+<link rel="apple-touch-icon" href="/futsal/icon-192.png">
+<link rel="stylesheet" href="/futsal/app.css">
+<script type="module" src="/futsal/app.js"></script>
+</head>
+<body>
+<header class="top">
+  <div class="mark" aria-hidden="true">FS</div>
+  <div class="ttl"><b>풋살사관학교 스튜디오</b><small id="pcName">휴대폰으로 보기</small></div>
+  <span class="dot" id="netDot" title=""></span>
+</header>
+<main id="view" class="view" aria-live="polite">
+  <section class="card center"><div class="spin"></div><p>불러오는 중이에요…</p></section>
+</main>
+<nav class="tabs" id="tabs" hidden>
+  <button data-tab="progress" class="on"><span class="ic" aria-hidden="true">▶</span>진행</button>
+  <button data-tab="library"><span class="ic" aria-hidden="true">▤</span>보관함</button>
+  <button data-tab="outputs"><span class="ic" aria-hidden="true">★</span>완성본</button>
+  <button data-tab="more"><span class="ic" aria-hidden="true">⋯</span>더보기</button>
+</nav>
+<div class="sheet-mask" id="sheetMask" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+<div class="toast" id="toast" role="status"></div>
+<noscript><p class="card">자바스크립트를 켜야 쓸 수 있어요.</p></noscript>
+</body>
+</html>
