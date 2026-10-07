@@ -447,4 +447,4 @@ input[type=radio] { accent-color: var(--accent); }
 .cover-mini-btn { border: 2px solid transparent; background: none; padding: 4px; border-radius: 10px; cursor: pointer; display: grid; gap: 4px; justify-items: center; }
 .cover-mini-btn.on { border-color: var(--accent); }
 .cover-mini { width: 100%; aspect-ratio: 1; border-radius: 6px; display: block; }
-.row input.end-input { width: 9ch; }
+.row > input.end-input { flex: 0 0 9ch; width: 9ch; }

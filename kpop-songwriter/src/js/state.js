@@ -4,7 +4,7 @@ import { sectionsFromTemplate, autoDistribute } from './structure.js';
 import { MAX_VERSIONS } from './constants.js';
 import { exampleSong } from './example.js';
 import { normalizeMusic } from './music/arrangement.js';
-import { newAlbum as makeAlbum, normalizeAlbum } from './album/model.js';
+import { newAlbum as makeAlbum, normalizeAlbum, newTrack } from './album/model.js';
 import { emptyTaste, normalizeTaste, MAX_LOG } from './learn/taste.js';
 import { setTasteGetter } from './learn/context.js';
 import { forgetSong } from './album/session.js';
@@ -56,15 +56,16 @@ export async function init(store) {
   emit('all');
 }
 
-export function newSong() {
-  const members = [];
+// from: 그룹 종류·멤버·한국어 비율·보컬 설명을 이어받을 곡 (앨범의 새 곡). 없으면 빈 곡.
+export function newSong({ from = null } = {}) {
+  const members = (from?.members || []).map((m) => ({ ...m, id: uid() }));
   const song = {
     id: uid(),
     title: '제목 없는 곡',
-    concept: { group: 'girl', theme: '', story: '', moods: [], keywords: '', koRatio: 70 },
+    concept: { group: from?.concept?.group || 'girl', theme: '', story: '', moods: [], keywords: '', koRatio: from?.concept?.koRatio ?? 70 },
     members,
     sections: autoDistribute(sectionsFromTemplate('standard'), members),
-    style: { genre: 'K-pop dance pop', subgenre: '', bpm: 120, key: '', vocals: '', instruments: '', production: '', extra: '', exclude: '' },
+    style: { genre: 'K-pop dance pop', subgenre: '', bpm: 120, key: '', vocals: from?.style?.vocals || '', instruments: '', production: '', extra: '', exclude: '' },
     versions: [],
     references: [],
     createdAt: Date.now(),
@@ -73,9 +74,28 @@ export function newSong() {
   normalizeMusic(song);
   state.songs.unshift(song);
   state.currentId = song.id;
+  state.mode = 'song'; // 앨범·취향 화면에서 눌러도 새 곡으로 간다
   state.tab = 'concept';
   schedule(song.id);
   emit('all');
+  return song;
+}
+
+// 앨범의 새 곡: 타이틀곡(없으면 첫 트랙)의 그룹·멤버를 이어받아 만들고 트랙 끝에 넣은 뒤 그 곡으로 간다.
+// 크레딧은 곡마다 다를 수 있어 이어받지 않는다.
+export function newSongInAlbum(albumId) {
+  const album = state.albums.find((a) => a.id === albumId);
+  if (!album) return null;
+  const t = album.tracks.find((x) => x.isTitle) || album.tracks[0];
+  const from = t ? state.songs.find((x) => x.id === t.songId) : null;
+  remember(album, 'all');
+  const song = newSong({ from });
+  album.tracks.push({ ...newTrack(song.id), isTitle: !album.tracks.length });
+  normalizeAlbum(album);
+  album.updatedAt = Date.now();
+  schedule(album.id);
+  emit('all');
+  return song;
 }
 
 export function selectSong(id) {

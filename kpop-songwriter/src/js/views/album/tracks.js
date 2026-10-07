@@ -1,6 +1,6 @@
 // 앨범 > 수록곡: 곡 넣기·순서·타이틀곡, 트랙별 마스터 WAV 넣기와 규격 점검.
 import { h, toast } from '../../dom.js';
-import { mutateAlbum, refresh, selectSong, setTab, getState, keepSong, addInstVersion } from '../../state.js';
+import { mutateAlbum, refresh, selectSong, setTab, getState, keepSong, addInstVersion, newSongInAlbum } from '../../state.js';
 import { newTrack, ALBUM_TYPES } from '../../album/model.js';
 import { inspectMaster } from '../../album/release.js';
 import { mastersOf, setMaster, fillFromSongMasters } from '../../album/session.js';
@@ -89,8 +89,8 @@ export function renderTracks(album) {
         h('h2', null, `수록곡 ${album.tracks.length}곡`),
         h('select', { id: 'album-type', 'aria-label': '앨범 종류', onchange: (e) => mutateAlbum((a) => { a.type = e.target.value; }) },
           Object.entries(ALBUM_TYPES).map(([k, v]) => h('option', { value: k, selected: album.type === k }, `${v.name} (${v.min}~${v.max}곡)`)))),
-      available.length
-        ? h('div', { class: 'row' }, addSel, h('button', { type: 'button', class: 'btn', onclick: () => {
+      h('div', { class: 'row' },
+        available.length ? [addSel, h('button', { type: 'button', class: 'btn', onclick: () => {
           const id = addSel.value;
           if (!id) return;
           keepSong(id);
@@ -98,8 +98,11 @@ export function renderTracks(album) {
             a.tracks.push(newTrack(id));
             if (a.tracks.length === 1) a.tracks[0].isTitle = true;
           });
-        } }, '+ 곡 넣기'))
-        : h('p', { class: 'muted' }, '넣을 곡이 없어요. 곡 목록에서 새 곡을 만들어 주세요.'),
+        } }, '+ 곡 넣기')] : h('span', { class: 'muted' }, '넣을 곡이 없어요.'),
+        h('button', { type: 'button', class: 'btn', id: 'album-new-song', title: '타이틀곡의 그룹·멤버를 이어받은 새 곡을 만들어 이 앨범에 넣어요', onclick: () => {
+          const song = newSongInAlbum(album.id);
+          toast(song?.members.length ? `타이틀곡의 멤버 ${song.members.length}명을 이어받아 새 곡을 만들고 앨범에 넣었어요` : '새 곡을 만들고 앨범에 넣었어요');
+        } }, '+ 이 앨범의 새 곡')),
       h('p', { class: 'muted' }, `마스터 WAV는 곡의 마스터링 탭에서 받은 파일을 넣으세요. 파일은 이 브라우저에 보관했다가 제출 패키지에 넣어요 (다른 기기에서는 다시 넣어야 해요). ${type.name}은 보통 ${type.min}~${type.max}곡이에요.`)),
     album.tracks.length > 1 ? renderOrder(album, songs) : null,
     album.tracks.length ? h('div', { class: 'sections' }, rows) : h('p', { class: 'empty card' }, '아직 수록곡이 없어요. 위에서 곡을 넣어 주세요.'),

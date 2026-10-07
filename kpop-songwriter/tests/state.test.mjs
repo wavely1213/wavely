@@ -199,5 +199,51 @@ assert.ok(AL.cover && AL.promo && Array.isArray(AL.tracks), '되돌린 뒤에도
   assert.equal(S.getState().mode, 'album');
   assert.equal(S.addInstVersion(al.id, 'none'), null);
 }
+
+// 앨범·취향 화면에서 새 곡을 만들면 그 곡으로 간다 / 앨범의 새 곡은 타이틀곡의 그룹·멤버를 이어받아 트랙 끝에 들어간다
+{
+  await S.init(fakeStore());
+  S.newSong();
+  const T = S.current();
+  S.mutate((s) => {
+    s.title = '타이틀';
+    s.concept.group = 'boy';
+    s.concept.koRatio = 50;
+    s.style.vocals = 'powerful boy group vocals';
+    s.members = [{ id: 'm1', name: '준', position: '메인보컬', tone: '', voice: 'm-high' }, { id: 'm2', name: '하늘', position: '메인래퍼', tone: '', voice: 'rap' }];
+  });
+  S.newAlbum({ fromSong: T });
+  const al = S.currentAlbum();
+  assert.equal(S.getState().mode, 'album');
+  S.newSong();
+  assert.equal(S.getState().mode, 'song', '앨범 화면에서 + 새 곡 → 새 곡으로');
+  S.showTaste();
+  S.newSong();
+  assert.equal(S.getState().mode, 'song', '취향 화면에서 + 새 곡 → 새 곡으로');
+  const n = S.newSongInAlbum(al.id);
+  assert.equal(S.getState().mode, 'song');
+  assert.equal(S.current().id, n.id);
+  assert.deepEqual(n.members.map((m) => m.name), ['준', '하늘']);
+  assert.ok(n.members.every((m) => !['m1', 'm2'].includes(m.id)), '멤버 id는 새로');
+  assert.equal(n.concept.group, 'boy');
+  assert.equal(n.concept.koRatio, 50);
+  assert.equal(n.style.vocals, 'powerful boy group vocals');
+  assert.equal(n.concept.theme, '');
+  assert.ok(n.sections.some((x) => x.members.length), '파트 자동 분배');
+  assert.equal(al.tracks.at(-1).songId, n.id);
+  assert.equal(al.tracks.at(-1).isTitle, false);
+  assert.equal(al.tracks.at(-1).composers, '', '크레딧은 이어받지 않음');
+  S.newAlbum();
+  S.mutateAlbum((a) => { a.tracks = []; });
+  const first = S.newSongInAlbum(S.currentAlbum().id);
+  assert.equal(first.members.length, 0);
+  assert.equal(S.currentAlbum().tracks.length, 1);
+  assert.equal(S.currentAlbum().tracks[0].isTitle, true, '빈 앨범의 첫 곡은 타이틀');
+  S.selectAlbum(S.currentAlbum().id);
+  S.undo();
+  assert.equal(S.currentAlbum().tracks.length, 0, '앨범 되돌리기로 트랙 빠짐');
+  console.log('new song in album OK');
+}
+
 console.log('state OK');
 process.exit(0);
