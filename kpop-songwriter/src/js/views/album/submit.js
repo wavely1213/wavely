@@ -3,7 +3,7 @@ import { h, toast } from '../../dom.js';
 import { refresh, getState, setAlbumTab } from '../../state.js';
 import { releaseChecklist } from '../../album/model.js';
 import { buildReleasePackage } from '../../album/release.js';
-import { mastersOf, coverOf } from '../../album/session.js';
+import { mastersOf, coverOf, fillFromSongMasters } from '../../album/session.js';
 import { saveFile } from '../../platform/download.js';
 
 const ui = { busy: '' };
@@ -34,6 +34,7 @@ async function download(album) {
 
 export function renderSubmit(album) {
   const { songs } = getState();
+  fillFromSongMasters(album);
   const items = releaseChecklist(album, songs, { masters: mastersOf(album.id), coverInfo: coverOf(album.id) });
   const errors = items.filter((i) => i.level === 'error').length;
   const warns = items.filter((i) => i.level === 'warn').length;

@@ -66,15 +66,13 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     await p.click('.version >> text=복원');
     await p.waitForTimeout(300);
     const vcount = await p.locator('.version').count();
-    // 앨범: 새 앨범 → 곡 넣기 → 마스터 WAV → 정보 → 커버 → 제출 패키지
-    await p.click('text=+ 새 앨범');
+    // 앨범: 마스터링 결과를 "발매 준비로 보내기" → 싱글 앨범 자동 생성 + 마스터 자동 연결
+    await p.click('.tab:text-is("마스터링")');
+    await p.click('text=발매 준비로 보내기');
+    await p.waitForSelector('.tab:text-is("수록곡")');
+    const autoMaster = await p.locator('.pill:has-text("마스터링 탭 결과")').count();
+    global.autoOk = (global.autoOk ?? true) && autoMaster === 1;
     await p.screenshot({ path: path.join(TMP, `${tag}-앨범새로.png`), fullPage: true });
-    if (await p.locator('text=+ 곡 넣기').count()) await p.click('text=+ 곡 넣기');
-    const masterWav = path.join(TMP, 'master-14.wav');
-    if (fs.existsSync(masterWav)) {
-      await p.setInputFiles('input[id^="master-"]', masterWav);
-      await p.waitForSelector('.pill:has-text("규격 OK")', { timeout: 60000 });
-    }
     await p.click('.tab:text-is("정보·크레딧")');
     await p.fill('#album-title', 'Midnight Signal');
     await p.fill('#album-artist', '물결');
@@ -92,9 +90,22 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     const [download] = await Promise.all([p.waitForEvent('download', { timeout: 60000 }), p.click('text=제출 패키지 받기')]);
     const zipPath = path.join(TMP, `${tag}-release.zip`);
     await download.saveAs(zipPath);
-    console.log(tag, { custom, prog, before, after, refs, masterPill, errorsLeft, zip: fs.statSync(zipPath).size, vbodyStart: vbody.slice(0, 30), vcount });
+    // 새로고침해도 마스터·커버가 남는지 (IndexedDB)
+    await p.waitForTimeout(1500);
+    await p.reload();
+    await p.waitForSelector('.tab');
+    await p.click('.song-item:has-text("Midnight Signal") >> nth=-1');
+    await p.waitForSelector('.pill:has-text("규격 OK")', { timeout: 15000 }).catch(() => {});
+    const keptMaster = await p.locator('.pill:has-text("규격 OK")').count();
+    await p.click('.tab:text-is("커버")');
+    await p.waitForSelector('.cover-thumb', { timeout: 15000 }).catch(() => {});
+    const keptCover = await p.locator('.cover-thumb').count();
+    global.persistOk = (global.persistOk ?? true) && keptMaster === 1 && keptCover === 1;
+    console.log(tag, { custom, prog, before, after, refs, masterPill, autoMaster, keptMaster, keptCover, errorsLeft, zip: fs.statSync(zipPath).size, vbodyStart: vbody.slice(0, 30), vcount });
     await c.close();
   }
+  if (!global.autoOk) errs.push('마스터 자동 연결 안 됨');
+  if (!global.persistOk) errs.push('새로고침 후 마스터·커버 유실');
   console.log('ERRORS:', errs);
   if (errs.length) process.exitCode = 1; else console.log('ui OK');
   await b.close();

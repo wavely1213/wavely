@@ -78,11 +78,13 @@ export function selectSong(id) {
 }
 
 // ---------- 앨범 ----------
-export function newAlbum() {
+// fromSong을 주면 그 곡 하나로 싱글 앨범을 만든다 (제목도 곡 제목으로)
+export function newAlbum({ fromSong } = {}) {
   const album = makeAlbum();
   // 지금 보고 있던 곡을 첫 트랙으로 넣어 준다 (예시 곡 제외)
-  const song = current();
-  if (song && !song.example) album.tracks.push({ songId: song.id, isTitle: true, isrc: '', lyricists: '', composers: '', arrangers: '', featuring: '', explicit: false });
+  const song = fromSong || current();
+  if (fromSong) album.title = fromSong.title.replace(/^예시:\s*/, '');
+  if (song && (fromSong || !song.example)) album.tracks.push({ songId: song.id, isTitle: true, isrc: '', lyricists: '', composers: '', arrangers: '', featuring: '', explicit: false });
   state.albums.unshift(album);
   state.albumId = album.id;
   state.mode = 'album';

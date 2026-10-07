@@ -82,6 +82,10 @@ function renderHeader(song) {
       h('h1', null, song.title || '제목 없음'),
       h('p', { class: 'save mono', id: 'save-status' }, saveLabel())),
     h('div', { class: 'row' },
+      confirming ? null : h('button', { type: 'button', class: 'btn', onclick: () => {
+        const existing = getState().albums.find((a) => a.tracks.some((t) => t.songId === song.id));
+        if (existing) selectAlbum(existing.id); else newAlbum({ fromSong: song });
+      } }, getState().albums.some((a) => a.tracks.some((t) => t.songId === song.id)) ? '발매 준비 보기' : '싱글 발매 준비'),
       confirming
         ? [h('span', { class: 'warn' }, '이 곡과 버전이 모두 지워져요.'),
           h('button', { type: 'button', class: 'btn danger', onclick: () => { ui.confirmDelete = ''; deleteSong(song.id); } }, '삭제'),

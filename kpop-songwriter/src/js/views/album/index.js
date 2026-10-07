@@ -7,6 +7,7 @@ import { renderMeta } from './meta.js';
 import { renderCover } from './cover.js';
 import { renderSchedule, renderPromo } from './plan.js';
 import { renderSubmit } from './submit.js';
+import { restoreAlbum, forgetAlbum } from '../../album/session.js';
 
 const TABS = [
   ['tracks', '수록곡', renderTracks],
@@ -21,6 +22,8 @@ const ui = { confirmDelete: '' };
 
 export function renderAlbum(album, saveLabel) {
   const st = getState();
+  // 보관해 둔 마스터·커버가 있으면 불러와서 다시 그린다 (앨범마다 한 번)
+  restoreAlbum(album).then((changed) => { if (changed) refresh(); });
   const [, , view] = TABS.find(([k]) => k === st.albumTab) || TABS[0];
   const left = daysUntil(album.releaseDate);
   const confirming = ui.confirmDelete === album.id;
@@ -33,7 +36,7 @@ export function renderAlbum(album, saveLabel) {
       h('div', { class: 'row' },
         confirming
           ? [h('span', { class: 'warn' }, '앨범 정보만 지워져요. 곡은 남아요.'),
-            h('button', { type: 'button', class: 'btn danger', onclick: () => { ui.confirmDelete = ''; deleteAlbum(album.id); } }, '삭제'),
+            h('button', { type: 'button', class: 'btn danger', onclick: () => { ui.confirmDelete = ''; forgetAlbum(album.id); deleteAlbum(album.id); } }, '삭제'),
             h('button', { type: 'button', class: 'btn ghost', onclick: () => { ui.confirmDelete = ''; refresh(); } }, '취소')]
           : h('button', { type: 'button', class: 'btn ghost', onclick: () => { ui.confirmDelete = album.id; refresh(); } }, '앨범 삭제'))),
     h('div', { class: 'tabs-wrap' },

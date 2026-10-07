@@ -3,7 +3,7 @@ import { h, toast } from '../../dom.js';
 import { mutateAlbum, refresh, selectSong, setTab, getState } from '../../state.js';
 import { newTrack, ALBUM_TYPES } from '../../album/model.js';
 import { inspectMaster } from '../../album/release.js';
-import { mastersOf } from '../../album/session.js';
+import { mastersOf, setMaster, fillFromSongMasters } from '../../album/session.js';
 import { keyName } from '../../music/theory.js';
 
 const busy = {};
@@ -12,7 +12,7 @@ async function attach(album, songId, file) {
   busy[songId] = true;
   refresh();
   try {
-    mastersOf(album.id)[songId] = await inspectMaster(file);
+    setMaster(album.id, songId, await inspectMaster(file));
   } catch {
     toast('이 파일은 읽지 못했어요. WAV 파일을 넣어 주세요');
   } finally {
@@ -24,12 +24,14 @@ async function attach(album, songId, file) {
 function masterChip(m) {
   if (!m) return h('span', { class: 'pill warn-pill' }, '마스터 없음');
   const ok = /\.wav$/i.test(m.name) && m.sampleRate >= 44100 && (!m.bits || m.bits >= 16) && m.peak <= -0.5;
+  const from = m.fromTab ? '마스터링 탭 결과 · ' : '';
   const fmt = `${(m.sampleRate / 1000).toFixed(1)}kHz${m.bits ? ` ${m.bits}bit` : ''} · ${Number.isFinite(m.lufs) ? m.lufs.toFixed(1) : '—'} LUFS · ${m.peak.toFixed(1)} dBTP`;
-  return h('span', { class: `pill ${ok ? 'good' : 'warn-pill'}`, title: m.name }, `${ok ? '규격 OK' : '확인 필요'} · ${fmt}`);
+  return h('span', { class: `pill ${ok ? 'good' : 'warn-pill'}`, title: m.name }, `${ok ? '규격 OK' : '확인 필요'} · ${from}${fmt}`);
 }
 
 export function renderTracks(album) {
   const { songs } = getState();
+  fillFromSongMasters(album);
   const masters = mastersOf(album.id);
   const inAlbum = new Set(album.tracks.map((t) => t.songId));
   const available = songs.filter((s) => !inAlbum.has(s.id));

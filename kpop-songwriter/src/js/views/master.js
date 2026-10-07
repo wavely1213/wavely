@@ -5,9 +5,16 @@ import { decodeFile, master, masterWarnings, MASTER_PRESETS, LOUDNESS_TARGETS, O
 import { renderSong, stop as stopPlayer } from '../music/player.js';
 import { encodeWav, zip } from '../music/pack.js';
 import { saveFile } from '../platform/download.js';
+import { getState, newAlbum } from '../state.js';
+import { setMaster, setSongMaster } from '../album/session.js';
 
-// 오디오 버퍼는 커서 저장하지 않고 화면 메모리에만 둔다
-const ui = { source: null, sourceName: '', result: null, busy: '', bits: 24, listen: null, matched: true };
+// 오디오 버퍼는 커서 저장하지 않고 화면 메모리에만 둔다. 곡마다 따로 (다른 곡 결과가 섞이지 않게).
+const byId = {};
+let ui = null;
+function uiFor(songId) {
+  if (!byId[songId]) byId[songId] = { source: null, sourceName: '', result: null, busy: '', bits: 24, listen: null, matched: true, linked: 0 };
+  return byId[songId];
+}
 let audioCtx = null;
 let playing = null;
 
@@ -51,7 +58,8 @@ function listen(which) {
   refresh();
 }
 
-async function loadFile(f) {
+async function loadFile(f, songId) {
+  const ui = uiFor(songId);
   stopListen();
   ui.busy = '파일 읽는 중';
   ui.result = null;
@@ -68,6 +76,7 @@ async function loadFile(f) {
 }
 
 async function loadDemo(song) {
+  const ui = uiFor(song.id);
   stopListen();
   ui.busy = '앱 데모 녹음 중';
   ui.result = null;
@@ -84,6 +93,7 @@ async function loadDemo(song) {
 }
 
 async function run(song) {
+  const ui = uiFor(song.id);
   stopListen();
   const st = settings(song);
   ui.result = null;
@@ -105,6 +115,7 @@ async function run(song) {
 }
 
 async function download(song) {
+  const ui = uiFor(song.id);
   const r = ui.result;
   const st = settings(song);
   const base = (ui.sourceName || 'master').replace(/[\\/:*?"<>|]+/g, '').trim().slice(0, 60) || 'master';
@@ -141,14 +152,28 @@ async function download(song) {
 
 const fmt = (v, unit) => (Number.isFinite(v) ? `${v.toFixed(1)} ${unit}` : '—');
 
+// 마스터 결과를 WAV로 만들어 이 곡이 들어 있는 모든 앨범 트랙에 연결한다
+async function useInAlbums(song) {
+  const r = ui.result;
+  const wav = encodeWav({ channels: r.channels, sampleRate: r.rate }, { bits: 24, normalize: false });
+  const name = `${(song.title || 'master').replace(/^예시:\s*/, '').replace(/[\\/:*?"<>|]+/g, '').trim()}_master.wav`;
+  const info = { file: new File([wav], name, { type: 'audio/wav' }), name, sampleRate: r.rate, bits: 24, lufs: r.after.lufs, peak: r.after.peak, duration: r.channels[0].length / r.rate, fromTab: true };
+  setSongMaster(song.id, info);
+  const albums = getState().albums.filter((a) => a.tracks.some((t) => t.songId === song.id));
+  albums.forEach((a) => { setMaster(a.id, song.id, info); });
+  ui.linked = albums.length;
+  return albums.length;
+}
+
 export function renderMaster(song) {
+  ui = uiFor(song.id);
   const st = settings(song);
   const r = ui.result;
   const busy = !!ui.busy;
   const file = h('input', { type: 'file', id: 'master-file', accept: 'audio/*', class: 'visually-hidden', onchange: (e) => {
     const f = e.target.files?.[0];
     e.target.value = '';
-    if (f) loadFile(f);
+    if (f) loadFile(f, song.id);
   } });
   const targetNote = LOUDNESS_TARGETS.find((t) => t.value === st.target)?.note;
 
@@ -205,5 +230,13 @@ function renderResult(song, r) {
       h('label', { class: 'check' }, h('input', { type: 'radio', name: 'bits', id: 'bits-24', checked: ui.bits === 24, onchange: () => { ui.bits = 24; } }), '24비트 (유통사 제출 권장)'),
       h('label', { class: 'check' }, h('input', { type: 'radio', name: 'bits', id: 'bits-16', checked: ui.bits === 16, onchange: () => { ui.bits = 16; } }), '16비트 (CD 규격)'),
       h('button', { type: 'button', class: 'btn primary', disabled: !!ui.busy, onclick: () => download(song) }, 'WAV 받기 (zip)')),
+    h('div', { class: 'row' },
+      h('button', { type: 'button', class: 'btn', disabled: !!ui.busy, onclick: async () => {
+        const n = await useInAlbums(song);
+        if (n) { toast(`앨범 ${n}개의 트랙에 연결했어요`); refresh(); return; }
+        newAlbum({ fromSong: song });
+        toast('이 곡으로 싱글 앨범을 만들고 마스터를 연결했어요');
+      } }, ui.linked ? `앨범 ${ui.linked}개에 연결됨 · 다시 연결` : '발매 준비로 보내기 (앨범 트랙에 연결)'),
+      h('span', { class: 'muted small' }, '파일을 받았다가 다시 넣을 필요 없이 앨범의 마스터로 바로 써요. 이 곡이 든 앨범이 없으면 싱글 앨범을 새로 만들어요.')),
   );
 }
