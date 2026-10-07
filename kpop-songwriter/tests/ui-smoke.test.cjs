@@ -152,6 +152,11 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     global.syncInfo = { nLines, first: syncTimes[0], last: syncTimes[syncTimes.length - 1], syncOverflow };
     await p.click('.tab:text-is("일정")');
     await p.click('.schedule input[type=checkbox] >> nth=0');
+    const [icsDl] = await Promise.all([p.waitForEvent('download', { timeout: 15000 }), p.click('#sched-ics')]);
+    const icsPath = path.join(TMP, `${tag}-schedule.ics`);
+    await icsDl.saveAs(icsPath);
+    const icsText = fs.readFileSync(icsPath, 'utf8');
+    global.icsOk = (global.icsOk ?? true) && icsDl.suggestedFilename().endsWith('발매 일정.ics') && (icsText.match(/BEGIN:VEVENT/g) || []).length === 11;
     await p.click('.tab:text-is("제출")');
     if (tag === 'desk') await p.screenshot({ path: path.join(TMP, `${tag}-앨범제출.png`), fullPage: true });
     const errorsLeft = await p.locator('.checklist .lv-error').count();
@@ -197,6 +202,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
   if (!global.albumUndoOk) errs.push('앨범 되돌리기 안 됨');
   if (!global.syncOk) errs.push('싱크 가사 맞추기 안 됨');
   if (!global.navOk) errs.push('폰 목록 접기 이상');
+  if (!global.icsOk) errs.push('캘린더 파일 이상');
   if (global.toneOk === false) errs.push(`레퍼런스 음색 맞추기 이상: ${global.toneNote}`);
   if (!global.backupOk) errs.push(`백업·복원 이상: ${JSON.stringify(global.backupInfo)}`);
   if (!global.zipLrc) errs.push('제출 패키지에 .lrc 없음');

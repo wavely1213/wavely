@@ -154,3 +154,25 @@ import { extOf } from '../src/js/album/model.js';
   assert.deepEqual(noLyrics.find((i) => i.text.includes('가사가 없어요')).go, { song: song.id, tab: 'editor' });
   console.log('release checks OK');
 }
+
+// 캘린더 파일(.ics): 끝낸 일정 빼기, 하루 종일(다음 날 끝, 달 넘김), 알림, 특수문자, 75바이트 접기
+{
+  const { scheduleIcs, fold } = await import('../src/js/album/ics.js');
+  const al = { ...newAlbum(), id: 'alb1', title: '새벽, 신호; 테스트', releaseDate: '2026-11-30' };
+  assert.equal(scheduleIcs({ ...al, releaseDate: '' }), null);
+  al.schedule = { 'final-songs': true };
+  const ics = scheduleIcs(al, { now: new Date(Date.UTC(2026, 9, 7, 1, 2, 3)) });
+  const rows = ics.split('\r\n');
+  assert.equal(rows[0], 'BEGIN:VCALENDAR');
+  assert.equal(ics.match(/BEGIN:VEVENT/g).length, 11, '12단계 중 끝낸 1개 빼고');
+  assert.ok(ics.includes('DTSTART;VALUE=DATE:20261130\r\nDTEND;VALUE=DATE:20261201'), '발매일 다음 날 끝 (달 넘김)');
+  assert.ok(ics.includes('UID:alb1-release@kpop-songwriter'));
+  assert.ok(ics.includes('DTSTAMP:20261007T010203Z'));
+  assert.ok(ics.includes('TRIGGER:PT9H'));
+  assert.ok(ics.replace(/\r\n /g, '').includes('SUMMARY:[새벽\\, 신호\; 테스트] 발매 (D+0)'), '쉼표·세미콜론 이스케이프');
+  const enc = new TextEncoder();
+  assert.ok(rows.every((r) => enc.encode(r).length <= 75), '모든 줄 75바이트 이하');
+  assert.equal(fold('가'.repeat(30)).split('\r\n ').join(''), '가'.repeat(30), '접어도 글자가 안 깨짐');
+  assert.ok(ics.endsWith('END:VCALENDAR\r\n'));
+  console.log('ics OK');
+}

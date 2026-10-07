@@ -1,9 +1,24 @@
-// 앨범 > 일정 (발매일 기준 체크리스트) / 홍보 (AI 문구 초안).
-import { h, field, copyText } from '../../dom.js';
+// 앨범 > 일정 (발매일 기준 체크리스트, 캘린더 파일) / 홍보 (AI 문구 초안).
+import { h, field, copyText, toast } from '../../dom.js';
 import { mutateAlbum, mutateAlbumById, getState } from '../../state.js';
 import { scheduleFor } from '../../album/model.js';
 import { writePromo } from '../../album/release.js';
 import { isBusy, runJob, stopJob, job } from '../../aijob.js';
+import { scheduleIcs } from '../../album/ics.js';
+import { zip } from '../../music/pack.js';
+import { saveFile, isArtifact } from '../../platform/download.js';
+
+async function downloadIcs(album) {
+  const text = scheduleIcs(album);
+  if (!text) { toast('남은 일정이 없어요'); return; }
+  const name = `${(album.title || 'album').replace(/[\\/:*?"<>|]+/g, '').trim() || 'album'} 발매 일정`;
+  // 아티팩트 다운로드는 허용 확장자만 받으므로 zip으로 감싼다
+  const res = isArtifact()
+    ? await saveFile(`${name}.zip`, zip([{ name: `${name}.ics`, data: text }]))
+    : await saveFile(`${name}.ics`, new Blob([text], { type: 'text/calendar;charset=utf-8' }));
+  if (res === 'saved') toast('받았어요. 파일을 열어 캘린더에 추가하세요');
+  else if (res === 'unavailable') toast('이 화면에서는 파일을 받을 수 없어요');
+}
 
 export function renderSchedule(album) {
   const items = scheduleFor(album);
@@ -13,6 +28,9 @@ export function renderSchedule(album) {
       h('div', { class: 'card-head' },
         h('h2', null, '발매 일정'),
         h('input', { id: 'sched-date', type: 'date', value: album.releaseDate, 'aria-label': '발매 예정일', onchange: (e) => mutateAlbum((a) => { a.releaseDate = e.target.value; }) })),
+      h('div', { class: 'row' },
+        h('button', { type: 'button', class: 'btn small', id: 'sched-ics', disabled: !album.releaseDate, onclick: () => downloadIcs(album) }, '캘린더에 넣기 (.ics)'),
+        h('span', { class: 'muted small' }, album.releaseDate ? '받은 파일을 열면 폰·PC 캘린더에 남은 일정이 들어가고, 그날 아침 9시에 알려 줘요.' : '발매 예정일을 정하면 캘린더 파일을 받을 수 있어요.')),
       next ? h('p', { class: 'note' }, `다음 할 일: ${next.date} ${next.title}${next.left != null ? ` (${next.left > 0 ? `${next.left}일 남음` : next.left === 0 ? '오늘' : `${-next.left}일 지남`})` : ''}`) : h('p', { class: 'note' }, '모든 단계를 끝냈어요.')),
     h('ol', { class: 'versions schedule' }, items.map((s) => h('li', { class: `version${s.overdue ? ' overdue' : ''}${s.done ? ' done' : ''}` },
       h('label', { class: 'version-head' },
