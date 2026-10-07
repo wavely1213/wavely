@@ -62,6 +62,8 @@
 | 발매 준비 | album/release.js, album/session.js | 마스터 규격 점검, 가사지·크레딧, 제출 zip, AI 홍보 문구 |
 | 앨범 화면 | views/album/* | 수록곡·정보·커버·싱크 가사·일정·홍보·제출 탭 |
 | 번안 가사 | translate/mora.js, translate/translate.js, views/translate.js | 일본어·영어 버전: 줄 수·음 수(음절·모라)를 원문에 맞춘 AI 번안, 원문 비교, Suno용 가사·스타일 |
+| 맞춤법 점검 | optimize/spelling.js, views/spelling.js | AI가 확실히 틀린 맞춤법·띄어쓰기만(노래 말투 제외), 하나씩·모두 고치기, 가사 변경 감지 |
+| 줄 점검 공통 | optimize/linecheck.js | AI가 짚은 줄을 실제 가사 줄에 맞추기, 상태(none/stale/flagged/clear), 줄 바꾸기 |
 | 유사 표현 점검 | optimize/similarity.js, views/similarity.js | AI가 유명 곡과 비슷한 줄을 짚음(참고용), 제안으로 바꾸기·괜찮음 표시, 가사 변경 감지 |
 | 트랙 순서 추천 | album/order.js, views/album/tracks.js | BPM·평균 에너지·키·길이로 순서 점수, 8곡까지 전수 탐색(그 이상은 두 곡 바꾸기 반복), 지금보다 나을 때만 제안 |
 | 발매 후 성과 | album/stats.js, views/album/stats.js | 날짜별 트랙 누적 재생 기록, 늘어난 수·비중·그래프, 반응 좋은 곡을 취향 기록(편곡·코러스)으로 넣어 다음 곡에 반영 |

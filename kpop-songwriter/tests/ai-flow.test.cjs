@@ -37,6 +37,11 @@ function fakeClaude() {
     if (p.includes('영어 훅 후보')) return [{ hook: 'Signal on', meaning: '신호 켜', use: '코러스 첫 줄' }, { hook: 'Midnight call', meaning: '한밤의 전화', use: '프리코러스 끝' }];
     if (p.includes('Suno 스타일 프롬프트 재료')) return { genre: 'K-pop', subgenre: 'dark trap', bpm: 140, key: 'C minor', vocals: 'airy', instruments: '808', production: 'wide', extra: 'night', exclude: 'metal', why: '가짜 이유' };
     if (p.includes('반응 기록이다')) return { lyrics: '가짜 정리: 이미지로 감정을 보여 준다', sound: '가짜 정리: 808', avoid: '가짜 정리: 뻔한 단어', basis: '가짜 근거' };
+    if (p.includes('음원 유통 가사 검수자')) {
+      const ls = (p.split('가사 (줄마다):\n')[1] || '').split('\n').filter((l) => l.startsWith('- ')).map((l) => l.slice(2));
+      const words = ls.filter((l) => !l.startsWith('('));
+      return { items: [{ line: words[0], fixed: `${words[0]} 고침`, why: '띄어쓰기' }, { line: words[1], fixed: `${words[1]} 고침`, why: '맞춤법' }, { line: words[2], fixed: words[2] }] };
+    }
     if (p.includes('새 곡의 컨셉을')) return { concepts: [
       { title: '가짜 컨셉 하나', theme: '하나 주제', story: '하나 이야기', moods: ['청량'], keywords: ['a'], hook: 'One' },
       { title: '가짜 컨셉 둘', theme: '둘 주제', story: '둘 이야기', moods: ['다크', '몽환'], keywords: ['밤', '거울'], hook: 'Mirror' },
@@ -199,6 +204,14 @@ function fakeClaude() {
   results.variantStyle = await p.inputValue('#style-subgenre');
   await p.waitForTimeout(1600); // 취향 저장(1.2초 뒤) 기다림
   results.variantPair = (await taste()).log.some((e) => e.kind === 'style' && e.context?.variant === 'B' && e.context?.rejected?.length === 2);
+  // 맞춤법: 점검 → 고칠 곳 2개(같은 줄은 버림) → 모두 고치기 → 가사에 반영
+  await p.click('.tab:text-is("구조·가사")');
+  await p.click('#spell-run');
+  await p.waitForSelector('.spell-new');
+  results.spellCount = await p.locator('.spell-new').count();
+  await p.click('#spell-all');
+  results.spellApplied = (await p.$$eval('textarea.lyrics', (els) => els.map((t) => t.value).join('\n').split(' 고침').length - 1)) >= 2
+    && (await p.locator('.similar .pill:text-is("고침")').count()) === 2;
   // 번안 가사: 내보내기 탭 → 일본어로 번안 → 원문과 음 수 비교, 길게 만든 한 줄만 경고, Suno 가사에 일본어
   await p.click('.tab:text-is("내보내기")');
   await p.click('#translate-run');
@@ -289,7 +302,7 @@ function fakeClaude() {
 
   console.log(JSON.stringify(results, null, 1));
   const ok = results.lyricsApplied && results.review && results.improve.length > 0 && results.improve.every((t) => t.includes('반영')) && results.arrangeKey.includes('A minor') && results.melodyNotes === 3 && results.styleBpm === '140'
-    && results.editRecorded && results.tasteLog.some((x) => x.startsWith('lyrics:-1(유치해요)')) && results.tasteLog.includes('hook:1') && results.lineLiked === 1 && results.similarCount === 1 && results.similarFixed && results.trOff === 1 && results.trLyrics && results.trStyle && results.variantCount === 3 && results.variantChosen.join() === 'B' && results.variantStyle === 'bright synth-pop' && results.variantPair && results.orderTracks >= 2 && results.orderApplied && results.orderUndo && results.statLearn.startsWith('arrange') && results.ideasPromptHint && results.ideaTitle === '가짜 컨셉 둘' && results.ideaTheme === '둘 주제' && results.ideaKeywords === '밤, 거울, Mirror' && results.ideaMoods === '몽환,다크' && results.tasteLog.includes('arrange:1')
+    && results.editRecorded && results.tasteLog.some((x) => x.startsWith('lyrics:-1(유치해요)')) && results.tasteLog.includes('hook:1') && results.lineLiked === 1 && results.similarCount === 1 && results.similarFixed && results.trOff === 1 && results.trLyrics && results.trStyle && results.variantCount === 3 && results.variantChosen.join() === 'B' && results.variantStyle === 'bright synth-pop' && results.variantPair && results.orderTracks >= 2 && results.orderApplied && results.orderUndo && results.statLearn.startsWith('arrange') && results.ideasPromptHint && results.spellCount === 2 && results.spellApplied && results.ideaTitle === '가짜 컨셉 둘' && results.ideaTheme === '둘 주제' && results.ideaKeywords === '밤, 거울, Mirror' && results.ideaMoods === '몽환,다크' && results.tasteLog.includes('arrange:1')
     && results.tasteLog.includes('melody:1') && results.promptHasTaste && results.promo && results.draft.arranged && results.draft.bpm === 128 && results.draft.styleBpm === 128 && results.draft.styleKey === 'A minor' && results.draft.melodySections > 0 && results.draft.lyrics.split('/')[0] === results.draft.lyrics.split('/')[1] && results.keptBridge === '언젠가 너도 이 밤을 보면\n같은 불빛을 찾게 될 거야' && results.melodyPromptRange && results.raceA === 133 && results.raceB === 120 && results.saved.includes('taste-feedback.zip') && !errs.length;
   if (errs.length) console.log('ERRORS', errs);
   console.log(ok ? 'ai OK' : 'ai FAILED');

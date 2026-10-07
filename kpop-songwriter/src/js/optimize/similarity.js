@@ -3,25 +3,20 @@
 //   = { key, at, summary, items: [{ id, line, like, why, level: 'high'|'check', fix, ok(괜찮다고 표시) }] }
 import { getSample } from '../ai.js';
 import { lyricLines, lyricsKey } from '../album/lyrics.js';
+import { lineMatcher, checkStatus, replaceLine } from './linecheck.js';
 import { uid } from '../dom.js';
-
-const norm = (s) => String(s ?? '').replace(/\s+/g, ' ').trim().toLowerCase();
 
 // 'none' 안 함 | 'stale' 점검 뒤 가사가 바뀜 | 'flagged' 확인할 줄 남음 | 'clear' 걸린 줄 없음(또는 모두 괜찮다고 표시)
 export function similarityStatus(song) {
-  const r = song.similarity;
-  if (!r) return 'none';
-  if (r.key !== lyricsKey(song)) return 'stale';
-  return r.items.some((i) => !i.ok) ? 'flagged' : 'clear';
+  return checkStatus(song.similarity, song);
 }
 
 // AI 답을 검사해서 지금 가사에 실제로 있는 줄만 남긴다
 export function parseSimilarity(res, song) {
-  const lines = lyricLines(song);
-  const byNorm = new Map(lines.map((l) => [norm(l), l]));
+  const match = lineMatcher(song);
   const seen = new Set();
   const items = (Array.isArray(res?.items) ? res.items : []).map((x) => {
-    const line = byNorm.get(norm(x?.line)) || lines.find((l) => norm(x?.line).length > 3 && norm(l).includes(norm(x.line)));
+    const line = match(x?.line);
     if (!line || seen.has(line)) return null;
     seen.add(line);
     return {
@@ -58,13 +53,4 @@ export async function checkSimilarity(song, { signal }) {
   return parseSimilarity(res, asked);
 }
 
-// 섹션 가사에서 그 줄을 새 줄로 바꾼다 (처음 나오는 섹션들 전부, 줄 단위로 정확히 같은 것만)
-export function replaceLine(song, line, next) {
-  let n = 0;
-  song.sections.forEach((s) => {
-    const rows = s.text.split('\n');
-    const out = rows.map((r) => (r.trim() === line ? (n++, r.replace(line, () => next)) : r)); // 함수로 넘겨 $& 등이 풀리지 않게
-    if (out.some((r, i) => r !== rows[i])) s.text = out.join('\n');
-  });
-  return n;
-}
+export { replaceLine };

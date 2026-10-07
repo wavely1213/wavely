@@ -2,6 +2,7 @@
 import { uid } from '../dom.js';
 import { syncStatus } from './lrc.js';
 import { similarityStatus } from '../optimize/similarity.js';
+import { spellingStatus } from '../optimize/spelling.js';
 import { splitsFor, splitIssues } from './splits.js';
 
 export const ALBUM_TYPES = {
@@ -139,6 +140,8 @@ export function releaseChecklist(album, songs, { masters = {}, coverInfo = null,
     const sim = similarityStatus(song);
     if (sim === 'flagged') add('warn', `${n}: 유사 표현 점검에서 확인할 줄이 남았어요.`, { song: song.id, tab: 'editor' });
     else if (song.sections.some((s) => s.text.trim()) && (sim === 'none' || sim === 'stale')) add('info', `${n}: 유사 표현 점검을 ${sim === 'none' ? '아직 안 했어요' : '가사를 고친 뒤 다시 안 했어요'} (구조·가사 탭 맨 아래).`, { song: song.id, tab: 'editor' });
+    const spell = spellingStatus(song);
+    if (spell === 'flagged') add('info', `${n}: 맞춤법 점검에서 고칠 곳이 남았어요 (플랫폼 가사에 그대로 보여요).`, { song: song.id, tab: 'editor' });
     const sync = syncStatus(song);
     if (sync === 'stale') add('warn', `${n}: 싱크 가사를 맞춘 뒤 가사가 바뀌었어요. 다시 맞춰 주세요 (안 하면 패키지에서 빠져요).`, { tab: 'sync' });
     else if (sync === 'partial' || sync === 'order') add('warn', `${n}: 싱크 가사를 덜 맞췄어요 (패키지에서 빠져요).`, { tab: 'sync' });

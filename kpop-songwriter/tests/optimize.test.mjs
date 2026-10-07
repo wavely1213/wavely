@@ -43,6 +43,25 @@ assert.ok(sim.sections[1].text.startsWith('Midnight signal 받았니'));
 assert.equal(similarityStatus(sim), 'stale', '가사가 바뀌면 다시 점검');
 console.log('similarity OK');
 
+// 맞춤법: 가사에 있는 줄만, 고친 줄이 같으면 버림, 상태
+{
+  const { parseSpelling, spellingStatus } = await import('../src/js/optimize/spelling.js');
+  const sp = { sections: [{ type: 'Verse', text: '할수 있어\n괜찮아' }] };
+  assert.equal(spellingStatus(sp), 'none');
+  const r = parseSpelling({ items: [
+    { line: '할수 있어', fixed: '할 수 있어', why: '띄어쓰기' },
+    { line: '괜찮아', fixed: '괜찮아' },
+    { line: '없는 줄', fixed: 'x' },
+    { line: '할수  있어', fixed: '중복' },
+  ] }, sp);
+  assert.deepEqual(r.items.map((i) => [i.line, i.fixed]), [['할수 있어', '할 수 있어']]);
+  sp.spelling = r;
+  assert.equal(spellingStatus(sp), 'flagged');
+  r.items[0].ok = true;
+  assert.equal(spellingStatus(sp), 'clear');
+  console.log('spelling OK');
+}
+
 // 채점 기준 보정: 줄이 적으면 기본값, 쌓이면 내 가사 길이 쪽으로 (기본값과 섞어서), 끄면 기본값
 const { syllableRanges, cachedRanges, lyricSamples } = await import('../src/js/optimize/calibrate.js');
 const longLine = '가나다라마바사아자차카타파하가나'; // 16음절
