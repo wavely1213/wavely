@@ -11,6 +11,7 @@ import { help } from '../help.js';
 import { analyzeAudio } from '../music/analyze.js';
 import { compareTake } from '../music/takes.js';
 import { variantFromName } from '../variants.js';
+import { bestWindow, cutClip } from '../music/highlight.js';
 import { uid } from '../dom.js';
 import { getState, newAlbum } from '../state.js';
 import { setMaster, setSongMaster } from '../album/session.js';
@@ -22,7 +23,7 @@ function uiFor(songId) {
   if (!byId[songId]) byId[songId] = { source: null, sourceName: '', result: null, busy: '', bits: 24, listen: null, matched: true, linked: 0 };
   // 다른 곡의 원본·결과 오디오(4분 곡이면 수백 MB)는 놓아 준다. 발매용 WAV는 setSongMaster로 따로 남아 있다.
   Object.entries(byId).forEach(([id, u]) => {
-    if (id !== songId && !u.busy) { u.source = null; u.result = null; u.listen = null; }
+    if (id !== songId && !u.busy) { u.source = null; u.result = null; u.hl = null; u.listen = null; }
   });
   return byId[songId];
 }
@@ -56,6 +57,10 @@ function listen(which) {
   let buffer;
   if (which === 'before') {
     buffer = ui.source;
+  } else if (which === 'hl') {
+    const c = highlightOf(r).clip;
+    buffer = audioCtx.createBuffer(2, c[0].length, r.rate);
+    c.forEach((x, i) => buffer.copyToChannel(x, i));
   } else {
     buffer = audioCtx.createBuffer(2, r.channels[0].length, r.rate);
     r.channels.forEach((c, i) => buffer.copyToChannel(c, i));
@@ -64,7 +69,7 @@ function listen(which) {
   src.buffer = buffer;
   const g = audioCtx.createGain();
   // 음량 맞춰 비교: 큰 쪽을 줄여 같은 크기로 듣는다 (커서 좋게 들리는 착각 방지)
-  if (ui.matched && Number.isFinite(r.before.lufs)) {
+  if (ui.matched && which !== 'hl' && Number.isFinite(r.before.lufs)) {
     const diff = r.after.lufs - r.before.lufs;
     g.gain.value = which === 'after' ? Math.min(1, 10 ** (-diff / 20)) : Math.min(1, 10 ** (diff / 20));
   }
@@ -343,6 +348,44 @@ export function renderMaster(song) {
   );
 }
 
+// 숏폼 하이라이트: 결과·길이가 같으면 다시 계산하지 않는다
+function highlightOf(r) {
+  const len = ui.hlLen || 30;
+  if (!ui.hl || ui.hl.r !== r || ui.hl.len !== len) {
+    const w = bestWindow(r.channels, r.rate, len);
+    ui.hl = { r, len, ...w, clip: cutClip(r.channels, r.rate, w.start, w.end) };
+  }
+  return ui.hl;
+}
+
+async function downloadHighlight(song) {
+  const hl = highlightOf(ui.result);
+  const base = (ui.sourceName || 'master').replace(/[\\/:*?"<>|]+/g, '').trim().slice(0, 60) || 'master';
+  const name = `${base}_highlight_${hl.len}s.wav`;
+  const wav = encodeWav({ channels: hl.clip, sampleRate: ui.result.rate }, { bits: 16, normalize: false });
+  const res = await saveFile(`${base}_highlight_${hl.len}s.zip`, zip([{ name, data: wav }]));
+  if (res === 'saved') toast('받았어요');
+  else if (res === 'unavailable') toast('이 화면에서는 파일을 받을 수 없어요');
+}
+
+const mmss = (t) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
+
+function renderHighlight(song, r) {
+  const hl = highlightOf(r);
+  return h('div', { class: 'highlight' },
+    h('div', { class: 'row' },
+      h('strong', null, '숏폼 하이라이트'),
+      h('div', { class: 'chips' }, [15, 30].map((n) => h('button', {
+        type: 'button', class: `chip${hl.len === n ? ' on' : ''}`, 'aria-pressed': hl.len === n ? 'true' : 'false',
+        onclick: () => { if (ui.listen === 'hl') stopListen(); ui.hlLen = n; refresh(); },
+      }, `${n}초`))),
+      h('span', { class: 'mono muted small', id: 'hl-range' }, `${mmss(hl.start)} ~ ${mmss(hl.end)}`)),
+    h('div', { class: 'row' },
+      h('button', { type: 'button', class: `btn small${ui.listen === 'hl' ? ' primary' : ''}`, onclick: () => listen('hl') }, ui.listen === 'hl' ? '■ 정지' : '▶ 하이라이트 듣기'),
+      h('button', { type: 'button', class: 'btn small', id: 'hl-download', disabled: !!ui.busy, onclick: () => downloadHighlight(song) }, '하이라이트 받기 (zip)'),
+      h('span', { class: 'muted small' }, '가장 신나는 구간(보통 코러스)을 앞뒤 페이드 넣어 잘라요. 티저·릴스·쇼츠용 (일정의 D-7 단계).')));
+}
+
 function renderResult(song, r) {
   const warnings = masterWarnings(r, r.target);
   const ok = r.reached && r.after.peak <= -0.9;
@@ -375,5 +418,6 @@ function renderResult(song, r) {
         toast('이 곡으로 싱글 앨범을 만들고 마스터를 연결했어요');
       } }, ui.linked ? `앨범 ${ui.linked}개에 연결됨 · 다시 연결` : '발매 준비로 보내기 (앨범 트랙에 연결)'),
       h('span', { class: 'muted small' }, '파일을 받았다가 다시 넣을 필요 없이 앨범의 마스터로 바로 써요. 이 곡이 든 앨범이 없으면 싱글 앨범을 새로 만들어요.')),
+    renderHighlight(song, r),
   );
 }

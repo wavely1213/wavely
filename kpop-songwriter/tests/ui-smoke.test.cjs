@@ -80,6 +80,11 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     await p.waitForSelector('.compare', { timeout: 120000 });
     const masterPill = await p.textContent('.pill');
     const stepHint = await p.textContent('.step-hint').catch(() => '');
+    // 숏폼 하이라이트: 15초로 바꿔 구간 표시 → 받기 (zip 안 WAV)
+    await p.click('.highlight .chip:text-is("15초")');
+    global.hlRange = await p.textContent('#hl-range');
+    const [hlDl] = await Promise.all([p.waitForEvent('download', { timeout: 30000 }), p.click('#hl-download')]);
+    global.hlOk = (global.hlOk ?? true) && /_highlight_15s\.zip$/.test(hlDl.suggestedFilename()) && /^\d+:\d\d ~ \d+:\d\d$/.test(global.hlRange);
     // 테이크 비교: 앱 데모 마스터(편곡과 일치) vs 단순 사인파 → 앞의 것이 "가장 가까움"
     const sine = path.join(TMP, 'take-sine.wav');
     if (!fs.existsSync(sine)) require('child_process').execFileSync('ffmpeg', ['-v', 'error', '-f', 'lavfi', '-i', 'sine=frequency=523:duration=15', sine]);
@@ -194,7 +199,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
       global.backupOk = /^kpop-backup-\d{8}-\d{4}\.json$/.test(bdl.suggestedFilename()) && restoredSongs >= 2 && restoredExample === 0;
       await c2.close();
     }
-    console.log(tag, { custom, prog, before, after, refs, masterPill, takeBest: global.takeBest, toneNote: global.toneNote, sync: global.syncInfo, stepHint, autoMaster, keptMaster, keptCover, errorsLeft, zip: fs.statSync(zipPath).size, vbodyStart: vbody.slice(0, 30), vcount });
+    console.log(tag, { custom, prog, before, after, refs, masterPill, hlRange: global.hlRange, takeBest: global.takeBest, toneNote: global.toneNote, sync: global.syncInfo, stepHint, autoMaster, keptMaster, keptCover, errorsLeft, zip: fs.statSync(zipPath).size, vbodyStart: vbody.slice(0, 30), vcount });
     await c.close();
   }
   // 태블릿 세로(834px, 목록이 옆에 있는 가장 좁은 폭): 어떤 탭을 골라도 그 탭이 탭 줄 안에 보임
@@ -216,6 +221,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
   if (!global.syncOk) errs.push('싱크 가사 맞추기 안 됨');
   if (!global.navOk) errs.push('폰 목록 접기 이상');
   if (!global.icsOk) errs.push('캘린더 파일 이상');
+  if (!global.hlOk) errs.push(`하이라이트 이상: ${global.hlRange}`);
   if (global.toneOk === false) errs.push(`레퍼런스 음색 맞추기 이상: ${global.toneNote}`);
   if (!global.backupOk) errs.push(`백업·복원 이상: ${JSON.stringify(global.backupInfo)}`);
   if (!global.zipLrc) errs.push('제출 패키지에 .lrc 없음');

@@ -68,3 +68,23 @@ assert.equal(noHigh.lowDb, -4);
 assert.ok(noHigh.note.includes('다시 분석'));
 console.log('tone OK');
 console.log('takes OK');
+
+// 숏폼 하이라이트: 큰 구간(40~70초)을 찾고, 시작은 바로 앞 조용한 순간, 페이드, 짧은 곡은 전체
+{
+  const { bestWindow, cutClip, blockRms } = await import('../src/js/music/highlight.js');
+  const rate = 8000;
+  const len = rate * 100;
+  const L = new Float32Array(len);
+  for (let i = 0; i < len; i++) { const t = i / rate; L[i] = (t >= 40 && t < 70 ? 0.5 : 0.1) * Math.sin(2 * Math.PI * 220 * t); }
+  assert.equal(blockRms([L, L], rate).length, 400);
+  assert.deepEqual(bestWindow([L, L], rate, 30), { start: 39.75, end: 69.75 });
+  assert.deepEqual(bestWindow([L, L], rate, 15), { start: 39.75, end: 54.75 }, '코러스가 터지는 지점에서 시작');
+  const clip = cutClip([L, L], rate, 39.75, 69.75);
+  assert.equal(clip[0].length, 30 * rate);
+  assert.equal(clip[0][0], 0, '페이드 인');
+  assert.ok(Math.abs(clip[0][clip[0].length - 1]) < 1e-6, '페이드 아웃');
+  assert.ok(Math.max(...clip[0].slice(rate * 5, rate * 6)) > 0.49, '가운데는 그대로');
+  assert.notEqual(clip[0].buffer, L.buffer, '원본은 건드리지 않음');
+  assert.deepEqual(bestWindow([L.slice(0, rate * 10), L.slice(0, rate * 10)], rate, 30), { start: 0, end: 10 });
+  console.log('highlight OK');
+}
