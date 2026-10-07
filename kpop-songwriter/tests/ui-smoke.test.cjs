@@ -236,6 +236,13 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     await p.click('button[id^="inst-"]');
     const trackTitles = await p.$$eval('.track-title', (els) => els.map((e) => e.textContent));
     global.instOk = (global.instOk ?? true) && trackTitles.length === 2 && trackTitles[1].endsWith('(Inst.)') && (await p.locator('button[id^="inst-"]').count()) === 0;
+    if (tag === 'desk') {
+      // Inst. 곡의 내보내기 탭에는 연주곡 만드는 법 안내
+      await p.click('.song-item:has-text("(Inst.)")');
+      await p.click('.tab:text-is("내보내기")');
+      global.instOk = global.instOk && (await p.locator('#inst-guide').count()) === 1;
+      await p.click('.song-item:has-text("Midnight Signal") >> nth=-1');
+    }
     // 새로고침해도 마스터·커버가 남는지 (IndexedDB)
     await p.waitForTimeout(1500);
     await p.reload();

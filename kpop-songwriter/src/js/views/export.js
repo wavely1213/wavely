@@ -1,6 +1,6 @@
 // 내보내기 탭: Suno Custom 모드 칸별 복사 + 제작 패키지(zip) 받기 + 다른 언어 버전.
 import { h, copyText, toast } from '../dom.js';
-import { refresh, mutateSong } from '../state.js';
+import { refresh, mutateSong, getState } from '../state.js';
 import { applyToStyle } from './arrange.js';
 import { keyName } from '../music/theory.js';
 
@@ -64,7 +64,14 @@ export function renderExport(song) {
   const hasMelody = Object.values(song.music.sections).some((sm) => sm.melody.length);
   const arrKey = keyName(song.music.root, song.music.mode);
   const styleMismatch = Number(song.style.bpm) !== song.music.bpm || (song.style.key || '').trim() !== arrKey;
+  const instOf = song.instOf ? getState().songs.find((x) => x.id === song.instOf) : null;
   return h('div', { class: 'stack' },
+    song.instOf ? h('section', { class: 'card note', id: 'inst-guide' },
+      h('h2', null, '연주곡(Inst.) 버전 만들기'),
+      h('p', null, `이 곡은 「${(instOf?.title || '원곡').replace(/^예시:\s*/, '')}」의 Inst. 버전이에요. Suno에서 둘 중 하나로 만들어 마스터링 탭에 넣으세요.`),
+      h('ol', null,
+        h('li', null, 'Create에서 Instrumental을 켜고, 아래 Styles(원곡과 같은 스타일)로 만들기'),
+        h('li', null, '원곡 결과에서 보컬을 뺀 연주(스템)를 받기 — 요금제에 따라 다를 수 있어요'))) : null,
     h('section', { class: 'card' },
       h('h2', null, '제작 패키지 받기'),
       h('p', { class: 'muted' }, '가사·스타일 텍스트, 악기별 MIDI, 데모 WAV, 작업 안내서를 zip 하나로 받아요. 데모 WAV를 Suno의 Upload Audio → Cover에 넣으면 내 코드 진행과 멜로디를 살린 채 완성곡을 만들 수 있어요.'),
