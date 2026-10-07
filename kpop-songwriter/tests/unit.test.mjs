@@ -112,3 +112,22 @@ import { memberSources, importMembers } from '../src/js/members.js';
   assert.equal(v.text, '가', '가사는 그대로');
   console.log('member import OK');
 }
+
+// 저장 공간 사용량·꽉 참 오류 알아보기
+import { storageUsage, isQuotaError, LOCAL_LIMIT } from '../src/js/storage-usage.js';
+{
+  const data = { ab: 'x'.repeat(98), c: '' };
+  const fake = { get length() { return Object.keys(data).length; }, key: (i) => Object.keys(data)[i], getItem: (k) => data[k] };
+  const u = storageUsage(fake);
+  assert.equal(u.used, 2 + 98 + 1);
+  assert.equal(u.ratio, 101 / LOCAL_LIMIT);
+  assert.equal(storageUsage(null), null);
+  assert.equal(storageUsage({ get length() { throw new Error('blocked'); } }), null);
+  assert.ok(isQuotaError({ name: 'QuotaExceededError' }));
+  assert.ok(isQuotaError({ name: 'Error', code: 22 }));
+  assert.ok(isQuotaError({ name: 'NS_ERROR_DOM_QUOTA_REACHED' }));
+  assert.ok(isQuotaError(new Error('Quota exceeded for this origin')));
+  assert.ok(!isQuotaError(new Error('network')));
+  assert.ok(!isQuotaError(null));
+  console.log('storage usage OK');
+}

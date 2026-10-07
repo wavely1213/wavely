@@ -80,6 +80,7 @@
 | 곡 찾기 | views/song-search.js | 곡 8개 이상이면 목록 위 찾기 칸. 다시 그리지 않고 목록 줄만 숨김(한글 조합 안 끊김) |
 | 앨범의 새 곡 | state.js (newSong({from}), newSongInAlbum), views/album/tracks.js | 타이틀곡의 그룹·멤버를 이어받은 새 곡을 트랙 끝에 넣고 그 곡으로 이동 |
 | 멤버 불러오기 | members.js, views/concept.js | 멤버 없는 곡에 다른 곡의 멤버 구성(새 id)·그룹 종류를 넣고 빈 파트는 자동 분배 |
+| 저장 공간 경고 | storage-usage.js, state.js (measureStorage), views/backup.js (updateStorageWarn) | 이 브라우저에 저장할 때 사용량 70%↑ 경고, 용량 초과 저장 실패를 따로 안내 |
 | 취향 학습 | learn/taste.js, learn/context.js | 반응 기록·통계·프롬프트 블록·JSONL, AI 모듈이 취향을 읽는 연결점 |
 | 반응 UI | learn/feedback.js, learn/summarize.js, views/taste.js, music/melodytext.js | 👍/👎 막대, 줄 단위 ♥, 멜로디 고침 기록, 선호 쌍 내보내기(learn/taste.js preferencePairs), 고친 내용 추적, AI 취향 정리, 내 취향 화면 |
 | 가사 최적화 | optimize/lyricscore.js, optimize/improve.js, optimize/calibrate.js | 섹션·곡 채점과 고칠 점, 오른 것만 반영하는 자동 개선, 내 가사로 줄 길이 기준 보정 |

@@ -3,7 +3,7 @@ import { h, formatTime, toast } from './dom.js';
 import { openStore } from './store.js';
 import { init, subscribe, getState, current, currentAlbum, newSong, selectSong, setTab, deleteSong, refresh, newAlbum, selectAlbum, showTaste, undo, redo, duplicateSong } from './state.js';
 import { undoButtons } from './views/undo-buttons.js';
-import { backupSection, importFile } from './views/backup.js';
+import { backupSection, importFile, updateStorageWarn } from './views/backup.js';
 import { songSearch } from './views/song-search.js';
 import { renderAlbum } from './views/album/index.js';
 import { renderTaste } from './views/taste.js';
@@ -52,7 +52,7 @@ function saveLabel() {
   if (st.mode === 'song' && song?.example) return '예시 곡 · 고치면 내 곡으로 저장돼요';
   const where = st.store?.kind === 'account' ? '내 계정에' : '이 브라우저에';
   if (st.saveStatus === 'pending') return '저장 중…';
-  if (st.saveStatus === 'error') return '저장 실패 · 잠시 후 다시 시도해요';
+  if (st.saveStatus === 'error') return st.saveFull ? '저장 공간이 꽉 차서 저장하지 못했어요 · 전체 백업을 받고 안 쓰는 곡·버전을 지워 주세요' : '저장 실패 · 잠시 후 다시 시도해요';
   return `${where} 저장됨`;
 }
 
@@ -271,6 +271,7 @@ subscribe((scope) => {
   else if (scope === 'status') {
     const el = document.getElementById('save-status');
     if (el) el.textContent = saveLabel();
+    updateStorageWarn();
   }
 });
 

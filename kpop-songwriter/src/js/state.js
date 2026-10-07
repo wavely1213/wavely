@@ -8,6 +8,7 @@ import { newAlbum as makeAlbum, normalizeAlbum, newTrack } from './album/model.j
 import { emptyTaste, normalizeTaste, MAX_LOG } from './learn/taste.js';
 import { setTasteGetter } from './learn/context.js';
 import { forgetSong } from './album/session.js';
+import { storageUsage, isQuotaError } from './storage-usage.js';
 
 const state = {
   store: null,
@@ -20,6 +21,8 @@ const state = {
   mode: 'song', // song | album | taste
   taste: emptyTaste(),
   saveStatus: 'saved', // saved | pending | error
+  saveFull: false, // 마지막 저장 실패가 저장 공간 부족 때문인지
+  storageUsage: null, // 이 브라우저에 저장할 때만: { used, ratio }
 };
 const listeners = new Set();
 const pending = new Set();
@@ -53,6 +56,7 @@ export async function init(store) {
   }
   setTasteGetter(() => state.taste);
   state.albums.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+  measureStorage();
   emit('all');
 }
 
@@ -405,6 +409,11 @@ function schedule(id) {
   saveTimer = setTimeout(flush, 1200);
 }
 
+// 이 브라우저에 저장할 때만 사용량을 잰다 (계정 저장은 한도가 따로 있음)
+function measureStorage() {
+  state.storageUsage = state.store?.kind === 'local' ? storageUsage() : null;
+}
+
 let flushing = false;
 async function flush() {
   if (flushing) { saveTimer = setTimeout(flush, 600); return; }
@@ -412,6 +421,7 @@ async function flush() {
   const ids = [...pending];
   pending.clear();
   const failed = [];
+  let full = false;
   // 하나가 실패해도 나머지는 저장한다
   for (const id of ids) {
     try {
@@ -421,10 +431,13 @@ async function flush() {
       if (album) await state.store.saveAlbum(album);
       // 취향을 불러오지 못한 채로 저장하면 기존 기록을 빈 값으로 덮어쓰게 되므로 막는다
       if (id === TASTE_ID && state.tasteLoaded) await state.store.saveTaste(state.taste);
-    } catch {
+    } catch (e) {
       failed.push(id);
+      if (isQuotaError(e)) full = true;
     }
   }
+  state.saveFull = full;
+  measureStorage();
   if (failed.length) {
     failed.forEach((id) => pending.add(id));
     state.saveStatus = 'error';

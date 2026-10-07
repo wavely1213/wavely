@@ -71,7 +71,32 @@ server.listen(0, async () => {
     out.pwa = { ...manifest, offlineTabs };
     await ctx.close();
   }
+  // 저장 공간: 70% 넘게 차면 목록 아래 경고, 꽉 차서 저장이 안 되면 머리말에 "꽉 차서" (다시 시도하라는 말 대신)
+  {
+    const ctx = await b.newContext({ viewport: { width: 1280, height: 900 } });
+    const p = await ctx.newPage();
+    p.on('pageerror', (e) => errs.push(`storage ${e.message}`));
+    await p.goto(`http://localhost:${port}/music/`);
+    await p.waitForSelector('.tab');
+    const warnBefore = await p.locator('#storage-warn').count();
+    await p.evaluate(() => localStorage.setItem('fill-0', 'a'.repeat(3_700_000)));
+    await p.reload();
+    await p.waitForSelector('.tab');
+    const warnText = await p.textContent('#storage-warn').catch(() => '');
+    await p.evaluate(() => {
+      const chunk = 'a'.repeat(20_000);
+      try { for (let i = 1; i < 200; i++) localStorage.setItem(`fill-${i}`, chunk); } catch { /* 꽉 참 */ }
+    });
+    await p.click('.tab:text-is("구조·가사")');
+    await p.locator('textarea.lyrics').first().fill('꽉 찬 저장 공간에서 고친 가사'.repeat(50));
+    const fullLabel = await p.waitForFunction(() => /꽉 차서/.test(document.getElementById('save-status')?.textContent || ''), null, { timeout: 10000 }).then(() => true).catch(() => false);
+    out.storage = { warnBefore, warnText: warnText.slice(0, 30), fullLabel, fullWarn: await p.locator('#storage-warn:has-text("100%")').count() };
+    await ctx.close();
+  }
   console.log(JSON.stringify(out, null, 1));
+  const storage = out.storage;
+  delete out.storage;
+  if (!(storage.warnBefore === 0 && /약 7\d%/.test(storage.warnText) && storage.fullLabel && storage.fullWarn === 1)) errs.push(`저장 공간 경고 이상: ${JSON.stringify(storage)}`);
   const pwa = out.pwa;
   delete out.pwa;
   const pwaOk = pwa.start === '/music/' && pwa.scope === '/music/' && pwa.display === 'standalone' && pwa.icons.every((st) => st === 200) && pwa.offlineTabs > 5;

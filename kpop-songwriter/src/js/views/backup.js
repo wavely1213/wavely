@@ -4,6 +4,7 @@ import { getState, importSong, applyRestore, refresh } from '../state.js';
 import { makeBackup, isBackup, planRestore, readImportFile, backupFileName } from '../backup.js';
 import { zip } from '../music/pack.js';
 import { saveFile, isArtifact } from '../platform/download.js';
+import { WARN_AT } from '../storage-usage.js';
 
 const ui = { busy: false, restoring: false };
 
@@ -49,9 +50,23 @@ export async function importFile(file) {
   else toast('곡을 가져왔어요');
 }
 
+// 이 브라우저 저장 공간이 거의 차면 (웹사이트) 백업·정리를 권한다.
+// 저장이 끝날 때마다(화면 전체를 다시 그리지 않고) 이 자리만 고친다 — updateStorageWarn
+function storageWarn() {
+  const { storageUsage: u, saveFull } = getState();
+  if (!saveFull && !(u && u.ratio >= WARN_AT)) return null;
+  const pct = saveFull ? 100 : Math.min(99, Math.round(u.ratio * 100));
+  return h('p', { class: 'warn small', id: 'storage-warn' }, `이 브라우저 저장 공간을 약 ${pct}% 썼어요. 꽉 차면 더 저장되지 않으니, 전체 백업을 받은 뒤 안 쓰는 곡이나 오래된 버전을 지워 주세요.`);
+}
+
+export function updateStorageWarn() {
+  document.getElementById('storage-slot')?.replaceChildren(...[storageWarn()].filter(Boolean));
+}
+
 export function backupSection() {
   return [
     h('div', { class: 'side-head' }, h('span', { class: 'field-label' }, '백업')),
+    h('div', { id: 'storage-slot' }, storageWarn()),
     h('button', { type: 'button', class: 'btn small', id: 'backup-all', disabled: ui.busy, onclick: downloadBackup }, ui.busy ? '만드는 중…' : '전체 백업 받기'),
     h('p', { class: 'muted small' }, '모든 곡(버전 포함)·앨범·취향을 파일 하나로 받아요. 마스터·커버 파일은 빠져요. 되살릴 때는 위의 "가져오기"에 넣으면 되고, 지금 것을 덮어쓰지 않아요.'),
   ];
