@@ -98,9 +98,21 @@ ol.steps li { margin: 4px 0; }
 .by { display: inline-block; font-size: 12px; font-weight: 700; color: var(--brand); background: var(--brand-soft); border-radius: 999px; padding: 1px 8px; margin-left: 4px; vertical-align: 2px; }
 .ok { color: var(--brand); font-weight: 800; }
 .bad { color: var(--danger); font-weight: 800; }
+.warn { color: var(--peak); font-weight: 800; }
+.warncard { border-color: var(--peak); background: var(--peak-soft); }
+.warncard p { color: var(--ink); margin-top: 6px; }
+.setup { border-color: var(--brand); }
+.btn.ghost { border-color: transparent; background: none; color: var(--ink-3); font-weight: 600; justify-self: center; }
+.hintbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; text-align: left; cursor: pointer; font: inherit; color: var(--ink-2); padding: 12px 16px; border-color: var(--peak); }
+.hintbar b { color: var(--peak); white-space: nowrap; }
+.hint { margin: -2px 2px 0; }
+details.more summary { cursor: pointer; font-weight: 700; color: var(--ink-2); min-height: 28px; }
+details.more[open] summary { margin-bottom: 8px; }
 .alert { border-color: var(--danger); background: var(--danger-soft); }
 .alert p, .alert h2 { color: var(--ink); }
 .offline h2::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--ink-3); margin-right: 8px; vertical-align: 2px; }
+.offline.off h2::before { background: var(--danger); }
+.offline.wait h2::before { background: var(--peak); }
 details.log summary { cursor: pointer; font-weight: 700; min-height: 32px; list-style: none; display: flex; align-items: center; justify-content: space-between; }
 details.log summary::-webkit-details-marker { display: none; }
 details.log summary::after { content: "열기"; color: var(--ink-3); font-size: 13px; font-weight: 600; }
@@ -160,6 +172,12 @@ pre.logtxt { margin: 10px 0 0; max-height: 340px; overflow: auto; padding: 10px;
   opacity: 0; transition: .2s; pointer-events: none; text-align: center;
 }
 .toast.show { opacity: 1; transform: translateX(-50%); }
+.toast.act.show { pointer-events: auto; display: flex; align-items: center; gap: 12px; }
+.toast .tbtn { border: 0; background: none; color: var(--brand-soft); font: inherit; font-weight: 800; padding: 6px 2px; cursor: pointer; white-space: nowrap; text-decoration: underline; }
+@media (prefers-color-scheme: dark) { .toast .tbtn { color: var(--brand-ink); } }
+/* 아래 창이 열려 있으면 알림 글은 위로 (창의 글·단추를 가리지 않게) */
+body.sheet-open .toast { top: calc(12px + env(safe-area-inset-top)); bottom: auto; transform: translateX(-50%) translateY(-20px); }
+body.sheet-open .toast.show { transform: translateX(-50%); }
 a { color: var(--brand); }
 .links { display: flex; flex-wrap: wrap; gap: 8px; }
 .topic { font: 13px ui-monospace, Menlo, Consolas, monospace; background: var(--surface-2); border-radius: 8px; padding: 4px 8px; word-break: break-all; user-select: all; }

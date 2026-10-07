@@ -1,6 +1,6 @@
 // 풋살 스튜디오 원격 — 서비스 워커 (/futsal 화면 파일만 네트워크 먼저 · 캐시는 끊겼을 때만)
 // PC(터널)·ntfy·와벨리 요청은 손대지 않는다 (respondWith 없음).
-const CACHE = "fs-remote-v1";
+const CACHE = "fs-remote-v2";
 const SHELL = ["/futsal", "/futsal/app.js", "/futsal/proto.js", "/futsal/app.css", "/futsal/manifest.webmanifest", "/futsal/icon-192.png"];
 
 self.addEventListener("install", e => {
