@@ -37,6 +37,10 @@ function fakeClaude() {
     if (p.includes('영어 훅 후보')) return [{ hook: 'Signal on', meaning: '신호 켜', use: '코러스 첫 줄' }, { hook: 'Midnight call', meaning: '한밤의 전화', use: '프리코러스 끝' }];
     if (p.includes('Suno 스타일 프롬프트 재료')) return { genre: 'K-pop', subgenre: 'dark trap', bpm: 140, key: 'C minor', vocals: 'airy', instruments: '808', production: 'wide', extra: 'night', exclude: 'metal', why: '가짜 이유' };
     if (p.includes('반응 기록이다')) return { lyrics: '가짜 정리: 이미지로 감정을 보여 준다', sound: '가짜 정리: 808', avoid: '가짜 정리: 뻔한 단어', basis: '가짜 근거' };
+    if (p.includes('음악 저작권 검토')) {
+      const first = (p.split('가사 (줄마다):\n')[1] || '').split('\n')[0].replace(/^- /, '');
+      return { summary: '가짜 점검 요약', items: [{ line: first, like: '가짜 곡 - 가짜 가수', why: '훅 구절이 같음', level: 'high', fix: '가짜 새 줄 signal' }, { line: '가사에 없는 줄', like: 'x', why: 'x', level: 'check', fix: 'x' }] };
+    }
     if (p.includes('레이블 홍보 담당자')) return { intro: '가짜 앨범 소개', tracks: [], sns: ['가짜 공지', '가짜 티저', '가짜 하이'], hashtags: '#가짜' };
     return {};
   };
@@ -153,6 +157,18 @@ function fakeClaude() {
   await p.waitForFunction((n) => window.__prompts.length > n, before);
   const last = (await prompts()).slice(-1)[0];
   results.promptHasTaste = last.includes('작곡가의 취향') && last.includes('가짜 정리: 이미지로') && last.includes('내가 고친 첫 줄') && last.includes('유치해요') && last.includes('특히 좋다고 고른 줄');
+  // 유사 표현 점검: 걸린 줄만 표시(가사에 없는 줄은 버림) → 제안으로 바꾸기
+  await p.click('#similarity-run');
+  await p.waitForSelector('.similar');
+  results.similarCount = await p.locator('.similar').count();
+  await p.locator('.similar').first().evaluate((el) => el.closest('.card').scrollIntoView());
+  await p.locator('.similar').first().evaluate((el) => el.closest('.card').id = 'sim-card');
+  await p.locator('#sim-card').screenshot({ path: path.join(TMP, 'similarity.png') });
+  const flaggedLine = await p.textContent('.similar-line');
+  await p.locator('.similar button:has-text("로 바꾸기")').click();
+  results.similarFixed = (await p.textContent('.similar .pill')) === '바꿈'
+    && (await p.$$eval('textarea.lyrics', (els) => els.some((t) => t.value.includes('가짜 새 줄 signal'))))
+    && !(await p.$$eval('textarea.lyrics', (els, l) => els.some((t) => t.value.split('\n').some((x) => x.trim() === l)), flaggedLine));
 
   // 느린 AI 편곡 중 다른 곡으로 바꿔도 결과는 원래 곡에만
   await p.locator('.song-item').first().click();
@@ -198,7 +214,7 @@ function fakeClaude() {
 
   console.log(JSON.stringify(results, null, 1));
   const ok = results.lyricsApplied && results.review && results.improve.length > 0 && results.improve.every((t) => t.includes('반영')) && results.arrangeKey.includes('A minor') && results.melodyNotes === 3 && results.styleBpm === '140'
-    && results.editRecorded && results.tasteLog.some((x) => x.startsWith('lyrics:-1(유치해요)')) && results.tasteLog.includes('hook:1') && results.lineLiked === 1 && results.tasteLog.includes('arrange:1')
+    && results.editRecorded && results.tasteLog.some((x) => x.startsWith('lyrics:-1(유치해요)')) && results.tasteLog.includes('hook:1') && results.lineLiked === 1 && results.similarCount === 1 && results.similarFixed && results.tasteLog.includes('arrange:1')
     && results.tasteLog.includes('melody:1') && results.promptHasTaste && results.promo && results.draft.arranged && results.draft.bpm === 128 && results.draft.styleBpm === 128 && results.draft.styleKey === 'A minor' && results.draft.melodySections > 0 && results.draft.lyrics.split('/')[0] === results.draft.lyrics.split('/')[1] && results.keptBridge === '언젠가 너도 이 밤을 보면\n같은 불빛을 찾게 될 거야' && results.melodyPromptRange && results.raceA === 133 && results.raceB === 120 && results.saved.includes('taste-feedback.zip') && !errs.length;
   if (errs.length) console.log('ERRORS', errs);
   console.log(ok ? 'ai OK' : 'ai FAILED');

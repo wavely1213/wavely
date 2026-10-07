@@ -1,16 +1,11 @@
 // 싱크 가사(LRC): 마스터를 들으며 줄마다 시작 시각을 찍어 스트리밍 싱크 가사 파일을 만든다.
 // 곡에 저장하는 형식: song.sync = { key, lines: [{ text, t }], duration, master, at }
 //   key = 맞출 때의 가사(줄 목록). 가사를 고치면 key가 달라져 "다시 맞추기"로 안내한다.
-import { plainLyrics } from './lyrics.js';
+import { lyricLines, lyricsKey } from './lyrics.js';
 
 // 맞출 줄: 태그 없는 가사지의 빈 줄을 뺀 줄들 (비운 반복 섹션은 앞 섹션 가사로 채워짐)
-export function syncLines(song) {
-  return plainLyrics(song).split('\n').map((l) => l.trim()).filter(Boolean);
-}
-
-export function lyricsKey(song) {
-  return syncLines(song).join('\n');
-}
+export const syncLines = lyricLines;
+export { lyricsKey };
 
 // 'none' 아직 없음 | 'stale' 가사가 바뀜 | 'partial' 덜 찍음 | 'order' 시각 순서가 꼬임 | 'ok'
 export function syncStatus(song) {

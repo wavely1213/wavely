@@ -1,4 +1,4 @@
-// 구조·가사 탭: 섹션 편집, 파트 분배, AI 작사, 라임·음절 표시, 훅 추천, AI 검토.
+// 구조·가사 탭: 섹션 편집, 파트 분배, AI 작사, 라임·음절 표시, 훅 추천, AI 검토, 유사 표현 점검.
 import { h, uid, afterBlur } from '../dom.js';
 import { mutate, mutateSong } from '../state.js';
 import { SECTION_TYPES, TEMPLATES } from '../constants.js';
@@ -9,6 +9,7 @@ import { job, isBusy, runJob, stopJob } from '../aijob.js';
 import { feedbackBar, trackEdit, lineLikes } from '../learn/feedback.js';
 import { scoreSong, scoreSection } from '../optimize/lyricscore.js';
 import { improveLyrics, DEFAULT_THRESHOLD } from '../optimize/improve.js';
+import { renderSimilarity } from './similarity.js';
 
 // AI가 마지막으로 쓴 섹션 가사 (취향 학습용, 저장하지 않음): sectionId → { text, gen }
 const aiOrigin = {};
@@ -33,6 +34,7 @@ export function renderEditor(song) {
     h('button', { type: 'button', class: 'btn wide', onclick: () => mutate((x) => { x.sections.push(makeSection('Verse')); }) }, '+ 섹션 추가'),
     renderHooks(song, m),
     renderReview(song, m),
+    renderSimilarity(song),
   );
 }
 

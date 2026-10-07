@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import { scoreSection, scoreSong } from '../src/js/optimize/lyricscore.js';
 import { exampleSong } from '../src/js/example.js';
+import { parseSimilarity, similarityStatus, replaceLine } from '../src/js/optimize/similarity.js';
 
 const good = scoreSection({ type: 'Chorus', text: 'Midnight signal 너를 불러\n새벽 세 시 너를 불러\nMidnight signal 들리니 너\n꺼지지 않아 이 불빛 너' });
 const bad = scoreSection({ type: 'Chorus', text: '안녕하세요 반갑습니다 오늘 날씨가 정말 좋네요 그렇죠\n음' });
@@ -22,4 +23,23 @@ assert.ok(r.score > 60 && r.score <= 100);
 assert.equal(r.sections.find((s) => s.label === 'Chorus 2').result, null, '비워 둔 반복 코러스는 채점 안 함');
 song.concept.koRatio = 30;
 assert.ok(scoreSong(song).tips.some((t) => t.includes('한국어 비율')));
+
+// 유사 표현 점검: 가사에 실제로 있는 줄만, 띄어쓰기·대소문자 무시, 중복 제거, 상태 변화
+const sim = { title: 't', sections: [{ type: 'Verse', text: '불 꺼진 거리 위\nI keep on calling' }, { type: 'Chorus', text: 'Midnight signal 들리니\n같은 줄' }, { type: 'Chorus', text: '' }] };
+assert.equal(similarityStatus(sim), 'none');
+const parsed = parseSimilarity({ summary: '요약', items: [
+  { line: 'i keep  on calling', like: 'A - B', why: '훅이 같음', level: 'high', fix: 'I keep on signaling' },
+  { line: '없는 줄', like: 'C', why: 'x', level: 'check', fix: 'y' },
+  { line: 'I keep on calling', like: 'dup', why: '', level: 'check' },
+  { line: 'Midnight signal', like: 'D', why: '부분', level: 'weird', fix: '' },
+] }, sim);
+assert.deepEqual(parsed.items.map((i) => [i.line, i.level]), [['I keep on calling', 'high'], ['Midnight signal 들리니', 'check']]);
+sim.similarity = parsed;
+assert.equal(similarityStatus(sim), 'flagged');
+parsed.items.forEach((i) => { i.ok = true; });
+assert.equal(similarityStatus(sim), 'clear');
+assert.equal(replaceLine(sim, 'Midnight signal 들리니', 'Midnight signal 받았니'), 1, '비운 반복 코러스는 원본만 바뀜');
+assert.ok(sim.sections[1].text.startsWith('Midnight signal 받았니'));
+assert.equal(similarityStatus(sim), 'stale', '가사가 바뀌면 다시 점검');
+console.log('similarity OK');
 console.log('optimize OK');

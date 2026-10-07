@@ -372,3 +372,11 @@ input[type=radio] { accent-color: var(--accent); }
 .sync-time { border: 0; background: none; padding: 2px 4px; font-size: 13px; color: var(--muted); cursor: pointer; flex: none; }
 .sync-time:disabled { cursor: default; }
 .sync-text { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+
+/* 유사 표현 점검 */
+.similar-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.similar { display: grid; gap: 4px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+.similar:last-child { border-bottom: 0; padding-bottom: 0; }
+.similar.ok { opacity: .65; }
+.similar-line { overflow-wrap: anywhere; }
+.good-text { color: var(--r2); font-weight: 600; }

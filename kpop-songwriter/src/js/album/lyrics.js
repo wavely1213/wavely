@@ -6,3 +6,13 @@ export function plainLyrics(song) {
     return body;
   }).filter(Boolean).join('\n\n');
 }
+
+// 가사지의 빈 줄을 뺀 줄들 (싱크 가사·유사 표현 점검의 단위)
+export function lyricLines(song) {
+  return plainLyrics(song).split('\n').map((l) => l.trim()).filter(Boolean);
+}
+
+// 가사 내용 열쇠: 이게 바뀌면 가사로 만든 결과(싱크·점검)는 낡은 것
+export function lyricsKey(song) {
+  return lyricLines(song).join('\n');
+}

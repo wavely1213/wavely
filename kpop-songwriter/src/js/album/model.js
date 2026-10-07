@@ -1,6 +1,7 @@
 // 앨범: 곡 묶음 + 발매 메타데이터 + 커버 설정 + 일정 체크. 오디오·이미지는 저장하지 않는다(용량).
 import { uid } from '../dom.js';
 import { syncStatus } from './lrc.js';
+import { similarityStatus } from '../optimize/similarity.js';
 
 export const ALBUM_TYPES = {
   single: { name: '싱글', min: 1, max: 3 },
@@ -130,6 +131,9 @@ export function releaseChecklist(album, songs, { masters = {}, coverInfo = null,
     if (!t.composers.trim()) add('error', `${n}: 작곡 크레딧이 비어 있어요.`, { tab: 'meta' });
     if (!song.sections.some((s) => s.text.trim())) add('warn', `${n}: 가사가 없어요 (연주곡이면 무시).`, { song: song.id, tab: 'editor' });
     const m = masters[t.songId];
+    const sim = similarityStatus(song);
+    if (sim === 'flagged') add('warn', `${n}: 유사 표현 점검에서 확인할 줄이 남았어요.`, { song: song.id, tab: 'editor' });
+    else if (song.sections.some((s) => s.text.trim()) && (sim === 'none' || sim === 'stale')) add('info', `${n}: 유사 표현 점검을 ${sim === 'none' ? '아직 안 했어요' : '가사를 고친 뒤 다시 안 했어요'} (구조·가사 탭 맨 아래).`, { song: song.id, tab: 'editor' });
     const sync = syncStatus(song);
     if (sync === 'stale') add('warn', `${n}: 싱크 가사를 맞춘 뒤 가사가 바뀌었어요. 다시 맞춰 주세요 (안 하면 패키지에서 빠져요).`, { tab: 'sync' });
     else if (sync === 'partial' || sync === 'order') add('warn', `${n}: 싱크 가사를 덜 맞췄어요 (패키지에서 빠져요).`, { tab: 'sync' });
