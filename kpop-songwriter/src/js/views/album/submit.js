@@ -7,6 +7,7 @@ import { mastersOf, coverOf, fillFromSongMasters } from '../../album/session.js'
 import { saveFile, isArtifact } from '../../platform/download.js';
 import { bookletHtml, blobToDataUrl } from '../../album/booklet.js';
 import { zip } from '../../music/pack.js';
+import { packageKey } from '../../workflow/album-progress.js';
 
 const ui = { busy: '' };
 const LEVEL = { error: '꼭 고치기', warn: '확인', info: '참고' };
@@ -24,7 +25,14 @@ async function download(album) {
     ui.busy = '저장 확인 창을 확인해 주세요';
     refresh();
     const res = await saveFile(filename, blob);
-    if (res === 'saved') { toast('받았어요'); mutateAlbumById(album.id, (a) => { a.submittedAt = Date.now(); }); }
+    if (res === 'saved') {
+      toast('받았어요');
+      // 꼭 고칠 것이 없을 때 받은 패키지만 '제출 패키지' 단계로 친다 (받은 뒤 바뀌면 지문이 달라져 다시 받으라고 안내)
+      const opts = { masters: mastersOf(album.id), coverInfo: coverOf(album.id) };
+      if (!releaseChecklist(album, songs, opts).some((i) => i.level === 'error')) {
+        mutateAlbumById(album.id, (a) => { a.submittedAt = Date.now(); a.submittedKey = packageKey(a, opts); });
+      }
+    }
     else if (res === 'unavailable') toast('이 화면에서는 파일을 받을 수 없어요');
   } catch {
     toast('패키지를 만들지 못했어요. 다시 눌러 주세요');

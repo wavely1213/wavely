@@ -265,7 +265,10 @@ async function playTake(t) {
     const src = audioCtx.createBufferSource();
     src.buffer = buf;
     const g = audioCtx.createGain();
-    g.gain.value = ui.matched && t.lufs != null ? Math.min(1, 10 ** ((-14 - t.lufs) / 20)) : 1;
+    // 기준: -14 LUFS와 지금까지 잰 테이크 중 가장 작은 것 중 더 작은 쪽 (크게 키우지 않고 줄여서 맞춤)
+    const measured = (Object.values(takesBy).find((l) => l.includes(t)) || []).map((x) => x.lufs).filter((v) => Number.isFinite(v));
+    const ref = Math.min(-14, ...measured);
+    g.gain.value = ui.matched && t.lufs != null ? Math.min(1, 10 ** ((ref - t.lufs) / 20)) : 1;
     src.connect(g).connect(audioCtx.destination);
     src.onended = () => { if (playing === src) { playing = null; ui.listen = null; refresh(); } };
     src.start();
@@ -291,7 +294,7 @@ function renderTakes(song) {
       h('h2', null, 'Suno 테이크 비교 (선택)'),
       h('span', { class: 'row' }, files, h('label', { for: 'take-files', class: 'btn small' }, '테이크 여러 개 넣기'))),
     h('p', { class: 'muted' }, 'Suno가 만든 여러 버전을 한꺼번에 넣으면, 편곡에서 정한 BPM·키·길이와 맞는지 비교해요. 들어 보고 마음에 드는 걸 "이걸로 마스터링"하세요. (최대 6개)'),
-    list.length ? h('label', { class: 'check' }, h('input', { type: 'checkbox', id: 'take-matched', checked: ui.matched, onchange: (e) => { ui.matched = e.target.checked; } }), '같은 음량으로 듣기 (큰 테이크가 더 좋게 들리는 착각 방지)') : null,
+    list.length ? h('label', { class: 'check' }, h('input', { type: 'checkbox', id: 'take-matched', checked: ui.matched, onchange: (e) => { ui.matched = e.target.checked; refresh(); } }), '같은 음량으로 듣기 (큰 테이크가 더 좋게 들리는 착각 방지)') : null,
     list.length ? h('ul', { class: 'takes' }, list.map((t) => h('li', { class: `take${t.cmp && t.cmp.score === best && best > 0 ? ' best' : ''}` },
       h('div', { class: 'take-head' },
         h('strong', { class: 'track-title' }, t.name),
@@ -423,7 +426,7 @@ function renderResult(song, r) {
     h('div', { class: 'row' },
       h('button', { type: 'button', class: `btn${ui.listen === 'before' ? ' primary' : ''}`, onclick: () => listen('before') }, ui.listen === 'before' ? '■ 원본 정지' : '▶ 원본 듣기'),
       h('button', { type: 'button', class: `btn${ui.listen === 'after' ? ' primary' : ''}`, onclick: () => listen('after') }, ui.listen === 'after' ? '■ 마스터 정지' : '▶ 마스터 듣기'),
-      h('label', { class: 'check' }, h('input', { type: 'checkbox', id: 'master-matched', checked: ui.matched, onchange: (e) => { ui.matched = e.target.checked; } }), '같은 음량으로 비교')),
+      h('label', { class: 'check' }, h('input', { type: 'checkbox', id: 'master-matched', checked: ui.matched, onchange: (e) => { ui.matched = e.target.checked; refresh(); } }), '같은 음량으로 비교')),
     h('div', { class: 'row' },
       h('label', { class: 'check' }, h('input', { type: 'radio', name: 'bits', id: 'bits-24', checked: ui.bits === 24, onchange: () => { ui.bits = 24; } }), '24비트 (유통사 제출 권장)'),
       h('label', { class: 'check' }, h('input', { type: 'radio', name: 'bits', id: 'bits-16', checked: ui.bits === 16, onchange: () => { ui.bits = 16; } }), '16비트 (CD 규격)'),

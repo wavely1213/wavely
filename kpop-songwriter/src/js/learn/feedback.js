@@ -61,3 +61,10 @@ export function trackEdit({ kind, ref, before, after, context = {} }) {
     mutateTaste((t) => addEntry(t, makeEntry({ kind, rating: 0, before, after, context: { ...context, ref } })), 'quiet');
   }, 4000);
 }
+
+// 고친 것이 원래대로 돌아가면 (되돌리기·다시 고침) 기다리던 기록과 이미 남긴 '고침' 기록을 지운다
+export function cancelEdit(kind, ref) {
+  clearTimeout(timers[ref]);
+  const had = getState().taste.log.some((e) => e.kind === kind && e.rating === 0 && e.context?.ref === ref);
+  if (had) mutateTaste((t) => { t.log = t.log.filter((e) => !(e.kind === kind && e.rating === 0 && e.context?.ref === ref)); }, 'quiet');
+}

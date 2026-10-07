@@ -19,16 +19,21 @@ self.addEventListener('fetch', (e) => {
   // 악기 샘플·아이콘: 보관본 먼저 (버전마다 같은 파일)
   if (/\/samples\/|\.png$|\.svg$|\.webmanifest$/.test(req.url)) {
     e.respondWith(caches.match(req).then((hit) => hit || fetch(req).then((res) => {
-      if (res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); }
+      if (res.ok) { const copy = res.clone(); e.waitUntil(caches.open(CACHE).then((c) => c.put(req, copy))); }
       return res;
     })));
     return;
   }
   // 화면(HTML): 인터넷 먼저, 안 되면 보관본
+  // 앱 화면(HTML)만 보관한다 — sw.js 같은 다른 파일을 주소창으로 열어도 보관본이 바뀌지 않게
   if (req.mode === 'navigate') {
+    const home = new URL('./', self.registration.scope).href;
     e.respondWith(fetch(req).then((res) => {
-      if (res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(new URL('./', self.registration.scope).href, copy)); }
+      if (res.ok && (res.headers.get('content-type') || '').includes('text/html')) {
+        const copy = res.clone();
+        e.waitUntil(caches.open(CACHE).then((c) => c.put(home, copy)));
+      }
       return res;
-    }).catch(() => caches.match(new URL('./', self.registration.scope).href)));
+    }).catch(() => caches.match(home)));
   }
 });

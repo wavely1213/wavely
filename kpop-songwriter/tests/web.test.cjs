@@ -60,6 +60,10 @@ server.listen(0, async () => {
     await p.evaluate(() => navigator.serviceWorker.ready);
     await p.reload();
     await p.waitForFunction(() => !!navigator.serviceWorker.controller, null, { timeout: 15000 });
+    // 다른 파일(sw.js)을 주소창으로 열어도 보관한 앱 화면이 바뀌지 않아야 함
+    await p.goto(`http://localhost:${port}/music/sw.js`);
+    await p.goto(`http://localhost:${port}/music/`);
+    await p.waitForSelector('.tab');
     await ctx.setOffline(true);
     await p.reload();
     const offlineTabs = await p.waitForSelector('.tab', { timeout: 15000 }).then(() => p.locator('.tab').count()).catch(() => 0);

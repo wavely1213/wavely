@@ -9,7 +9,7 @@ import { writeMelody } from '../ai-music.js';
 import { isBusy, runJob, stopJob, job } from '../aijob.js';
 import { playButton } from './playbar.js';
 import { uid } from '../dom.js';
-import { feedbackBar, trackEdit } from '../learn/feedback.js';
+import { feedbackBar, trackEdit, cancelEdit } from '../learn/feedback.js';
 import { melodyText } from '../music/melodytext.js';
 import { help } from '../help.js';
 import { sectionRange, outOfRange, foldIntoRange, midiName as rangeName } from '../music/range.js';
@@ -19,7 +19,9 @@ const BOTTOM = -3;
 const CELL_W = 22;
 const CELL_H = 26;
 
-const ui = { sectionId: '', selected: -1, confirmClear: false, request: '', scroll: 0, gen: {}, origin: {} };
+// gen·origin·lastAfter는 곡+섹션으로 (가져온 곡은 섹션 id가 같을 수 있음)
+const ui = { sectionId: '', selected: -1, confirmClear: false, request: '', scroll: 0, gen: {}, origin: {}, lastAfter: {} };
+const genKey = (songId, sectionId) => `${songId}:${sectionId}`;
 
 function midiName(n) { return `${NOTE_NAMES[n % 12]}${Math.floor(n / 12) - 1}`; }
 
@@ -38,8 +40,17 @@ export function renderMelody(song) {
   const busy = isBusy();
   const withLyrics = song.sections.filter((x) => x.text.trim()).map((x) => x.id);
   const syl = s.text.split('\n').filter((l) => l.trim()).reduce((a, l) => a + countSyllables(l), 0);
-  // AI가 만든 멜로디를 고치면 (멈춘 지 4초 뒤) 전·후를 취향 기록에 남긴다
-  if (ui.origin[s.id]) trackEdit({ kind: 'melody', ref: ui.gen[s.id], before: ui.origin[s.id], after: melodyText(sm.melody), context: { section: s.type, song: song.title } });
+  // AI가 만든 멜로디를 고치면 (멈춘 지 4초 뒤) 전·후를 취향 기록에 남긴다.
+  // 화면을 다시 그릴 때마다 부르므로 멜로디가 실제로 바뀐 때만, 원래대로 돌아가면(되돌리기) 기록을 지우고, 다 지우면 남기지 않는다.
+  const gk = genKey(song.id, s.id);
+  if (ui.origin[gk]) {
+    const after = melodyText(sm.melody);
+    if (after !== ui.lastAfter[gk]) {
+      ui.lastAfter[gk] = after;
+      if (after === ui.origin[gk] || !after) cancelEdit('melody', ui.gen[gk]);
+      else trackEdit({ kind: 'melody', ref: ui.gen[gk], before: ui.origin[gk], after, context: { section: s.type, song: song.title } });
+    }
+  }
 
   return h('div', { class: 'stack' },
     h('section', { class: 'card' },
@@ -76,7 +87,7 @@ export function renderMelody(song) {
       s.text.trim() ? h('pre', { class: 'lyric-ref' }, s.text.trim()) : null,
       renderRange(song, s, sm),
       renderRoll(song, s, sm),
-      ui.gen[s.id] ? feedbackBar({ kind: 'melody', ref: ui.gen[s.id], text: `${label}: ${sm.melody.map((n) => n.syl).join('')}`.slice(0, 200), context: { section: s.type, song: song.title, range: sm.melody.length ? [Math.min(...sm.melody.map((n) => n.d)), Math.max(...sm.melody.map((n) => n.d))] : null }, label: 'AI 멜로디가 마음에 드나요?' }) : null,
+      ui.gen[genKey(song.id, s.id)] ? feedbackBar({ kind: 'melody', ref: ui.gen[genKey(song.id, s.id)], text: `${label}: ${sm.melody.map((n) => n.syl).join('')}`.slice(0, 200), context: { section: s.type, song: song.title, range: sm.melody.length ? [Math.min(...sm.melody.map((n) => n.d)), Math.max(...sm.melody.map((n) => n.d))] : null }, label: 'AI 멜로디가 마음에 드나요?' }) : null,
       renderNoteTools(song, s, sm),
       h('div', { class: 'row' },
         h('button', { type: 'button', class: 'btn small', onclick: () => shiftAll(s.id, 1) }, '전체 한 음 올리기'),
@@ -89,7 +100,7 @@ export function renderMelody(song) {
 }
 
 function applyMelody(songId, out) {
-  out.forEach(({ id, notes }) => { ui.gen[id] = uid(); ui.origin[id] = melodyText(notes); });
+  out.forEach(({ id, notes }) => { const k = genKey(songId, id); ui.gen[k] = uid(); ui.origin[k] = melodyText(notes); ui.lastAfter[k] = ui.origin[k]; });
   mutateSong(songId, (x) => { out.forEach(({ id, notes }) => { if (x.music.sections[id]) x.music.sections[id].melody = notes; }); });
 }
 

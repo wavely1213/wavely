@@ -68,8 +68,8 @@
   2. 웹사이트 mulgyeol.kr/music: `npm run build:web` → `dist-web/music/`. 소유자 작업:
      - Vercel에서 새 프로젝트를 만들고 Root Directory를 `kpop-songwriter`로 지정 (설정은 이 폴더의 `vercel.json`이 사용됨)
      - mulgyeol.kr을 서비스하는 `wavely-web` 저장소의 vercel.json `rewrites`에 추가:
-       `{ "source": "/music", "destination": "https://<새 프로젝트>.vercel.app/music/" }`,
        `{ "source": "/music/:path*", "destination": "https://<새 프로젝트>.vercel.app/music/:path*" }`
+       그리고 `redirects`에 `{ "source": "/music", "destination": "/music/", "permanent": true }` — 끝 슬래시 없는 주소도 서비스 워커 범위(/music/) 안으로 보내야 오프라인에서 열린다
      - 웹에서는 AI 기능이 꺼져 있다 (서버 키 결정 전, ROADMAP 4번)
      - 설치형(PWA): `dist-web/music/`의 `manifest.webmanifest`·`sw.js`·아이콘이 같이 배포돼야 한다. 리라이트 뒤에서도 `/music/sw.js`가 mulgyeol.kr 같은 출처로 보이므로 동작한다. 배포 뒤 폰 브라우저에서 "홈 화면에 추가"로 확인 (D-016)
 
