@@ -55,6 +55,7 @@ export const PROGRESSIONS = {
     { id: 'build', name: '빌드업 (프리코러스용)', degrees: [2, 3, 4, 5] },
     { id: 'ballad', name: '발라드 (8마디)', degrees: [1, 5, 6, 3, 4, 1, 4, 5] },
     { id: 'simple', name: '단순 반복 (두 코드)', degrees: [1, 4] },
+    { id: 'citypop', name: '시티팝 (세련된 7th)', degrees: [4, 3, 6, 1], seventh: true },
   ],
   minor: [
     { id: 'dark', name: '다크·걸크러시', degrees: [1, 6, 3, 7] },
@@ -63,6 +64,7 @@ export const PROGRESSIONS = {
     { id: 'build', name: '빌드업 (프리코러스용)', degrees: [4, 5, 6, 7] },
     { id: 'trap', name: '미니멀 반복 (힙합·트랩)', degrees: [1, 6] },
     { id: 'mystic', name: '몽환·미스터리', degrees: [1, 7, 6, 7], seventh: true },
+    { id: 'descend', name: '내려가는 긴장감 (안달루시안)', degrees: [1, 7, 6, 5] },
   ],
 };
 

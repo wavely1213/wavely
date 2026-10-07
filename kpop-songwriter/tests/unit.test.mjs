@@ -62,3 +62,12 @@ console.log('unit OK');
   assert.deepEqual(bar0('bass'), [2, 6, 10, 14]);
   console.log('patterns OK');
 }
+
+// 코드 진행 추가: 시티팝(장조, 7th), 안달루시안(단조)
+{
+  const { findProgression } = await import('../src/js/music/theory.js');
+  assert.equal(findProgression('major', [4, 3, 6, 1]).id, 'citypop');
+  assert.equal(findProgression('major', [4, 3, 6, 1]).seventh, true);
+  assert.equal(findProgression('minor', [1, 7, 6, 5]).id, 'descend');
+  console.log('progressions OK');
+}
