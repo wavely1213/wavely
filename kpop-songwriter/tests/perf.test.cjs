@@ -36,14 +36,16 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
   const sections = await p.locator('.song-item').count();
   // 곡 찾기: "곡 1" → 1, 10~19 (11곡). 탭을 바꿔 다시 그려도 찾기가 유지. 없는 말이면 안내.
   const visible = () => p.$$eval('#song-list > li', (els) => els.filter((e) => !e.hidden).length);
+  const noneAtStart = await p.isVisible('#song-none');
   await p.fill('#song-search', '곡 1');
   const found = await visible();
   await p.click('.tab:text-is("편곡")');
-  const kept = (await visible()) === found && (await p.inputValue('#song-search')) === '곡 1';
+  const kept = (await visible()) === found && (await p.inputValue('#song-search')) === '곡 1' && !(await p.isVisible('#song-none'));
   await p.fill('#song-search', '없는노래');
+  await p.click('.tab:text-is("멜로디")'); // 다시 그려도 "찾는 곡이 없어요"가 맞게
   const none = (await visible()) === 0 && await p.isVisible('#song-none');
   await p.fill('#song-search', '');
-  const searchOk = found === 11 && kept && none && (await visible()) === 50 && !(await p.isVisible('#song-none'));
+  const searchOk = !noneAtStart && found === 11 && kept && none && (await visible()) === 50 && !(await p.isVisible('#song-none'));
   // 탭 전환: 클릭부터 다음 그리기까지
   const tabs = await p.$$eval('.tab', (els) => els.map((e) => e.textContent));
   const times = {};

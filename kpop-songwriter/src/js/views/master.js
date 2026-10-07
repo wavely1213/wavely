@@ -386,12 +386,36 @@ export function renderMaster(song) {
 }
 
 // 곡 끝 자르기: Suno가 끝을 늘이거나 이상하게 끝내면 원본을 들으며 끝낼 곳을 고른다 (원본마다 따로, 화면 메모리에만)
+// t(초)를 자를 곳으로 정한다. 0.1초 아래는 버려 원본 길이를 넘지 않게. 못 쓰는 값이면 안내하고 false.
 function setEnd(t) {
-  if (Number.isNaN(t)) { toast('분:초로 적어 주세요 (예: 3:25)'); refresh(); return; }
-  if (t && t >= ui.source.duration) { toast(`원본 길이(${mmss(ui.source.duration)})보다 짧게 적어 주세요`); refresh(); return; }
-  ui.endAt = Math.round(t * 10) / 10;
-  refresh();
+  if (Number.isNaN(t)) { toast('분:초나 초로 적어 주세요 (예: 3:25 또는 205)'); return false; }
+  const at = Math.floor(t * 10) / 10;
+  if (at && at >= ui.source.duration) { toast(`원본 길이(${mmss(ui.source.duration)})보다 짧게 적어 주세요`); return false; }
+  ui.endAt = at;
+  return true;
 }
+
+const endValue = () => (ui.endAt ? mmss(ui.endAt, { tenths: true }) : '');
+const endNote = (st) => (ui.endAt
+  ? `원본 ${mmss(ui.source.duration)} 중 ${mmss(ui.endAt, { tenths: true })}에서 끝내요${st.fadeOut ? ` (끝 ${st.fadeOut}초 페이드)` : ' — 끝 페이드 아웃(2~4초)을 함께 쓰면 자연스러워요'}. "끝 부분 듣기"로 확인하세요.`
+  : 'Suno 곡 끝이 늘어지거나 이상하게 끝나면, 원본을 들으며 끝낼 곳에서 "여기서 끝내기"를 누르거나 분:초로 적으세요.');
+
+// 칸에 적은 값은 화면 전체를 다시 그리지 않고 이 부분만 고친다
+// (칸을 벗어나며 바로 다른 버튼을 누를 때, 다시 그리면 그 클릭이 사라진다)
+function applyEndInput(input, st) {
+  if (setEnd(parseMmss(input.value)) && ui.listen === 'end') {
+    stopListen(); // 자를 곳이 바뀌면 듣던 끝 부분은 멈춘다
+    const b = document.getElementById('end-listen');
+    if (b) { b.textContent = '▶ 끝 부분 듣기'; b.classList.remove('primary'); }
+  }
+  input.value = endValue();
+  const note = document.getElementById('end-note');
+  if (note) note.textContent = endNote(st);
+  ['end-listen', 'end-clear'].forEach((id) => { const b = document.getElementById(id); if (b) b.disabled = !ui.endAt; });
+}
+
+// 누른 버튼이 사라지는 경우 키보드 포커스를 자를 곳 칸으로
+const focusEndInput = () => document.getElementById('master-end')?.focus({ preventScroll: true });
 
 function renderEndCut(st) {
   if (!ui.source) return null;
@@ -400,18 +424,18 @@ function renderEndCut(st) {
     const t = (audioCtx?.currentTime ?? 0) - ui.playAt;
     stopListen();
     setEnd(Math.max(0.1, Math.min(t, ui.source.duration - 0.1)));
+    refresh();
+    focusEndInput();
   };
   return h('div', { class: 'field', id: 'end-cut' },
     h('span', { class: 'field-label' }, '곡 끝 자르기'),
     h('div', { class: 'row' },
-      h('input', { type: 'text', id: 'master-end', class: 'mono end-input', inputmode: 'decimal', placeholder: '끝까지', 'aria-label': '곡 끝 시각 (분:초)', value: ui.endAt ? mmss(ui.endAt, { tenths: true }) : '', onchange: (e) => setEnd(parseMmss(e.target.value)) }),
+      h('input', { type: 'text', id: 'master-end', class: 'mono end-input', placeholder: '끝까지', 'aria-label': '곡 끝 시각 (분:초 또는 초)', value: endValue(), onchange: (e) => applyEndInput(e.target, st) }),
       h('button', { type: 'button', class: `btn small${hearing ? ' primary' : ''}`, id: 'end-src', onclick: () => listen('before') }, hearing ? '■ 원본 정지' : '▶ 원본 듣기'),
       hearing ? h('button', { type: 'button', class: 'btn small primary', id: 'end-here', onclick: here }, '여기서 끝내기') : null,
-      ui.endAt ? h('button', { type: 'button', class: `btn small${ui.listen === 'end' ? ' primary' : ''}`, id: 'end-listen', onclick: () => listen('end', st.fadeOut) }, ui.listen === 'end' ? '■ 정지' : '▶ 끝 부분 듣기') : null,
-      ui.endAt ? h('button', { type: 'button', class: 'btn small ghost', id: 'end-clear', onclick: () => { if (ui.listen === 'end') stopListen(); ui.endAt = 0; refresh(); } }, '자르지 않기') : null),
-    h('span', { class: 'muted small', id: 'end-note' }, ui.endAt
-      ? `원본 ${mmss(ui.source.duration)} 중 ${mmss(ui.endAt, { tenths: true })}에서 끝내요${st.fadeOut ? ` (끝 ${st.fadeOut}초 페이드)` : ' — 끝 페이드 아웃(2~4초)을 함께 쓰면 자연스러워요'}. "끝 부분 듣기"로 확인하세요.`
-      : 'Suno 곡 끝이 늘어지거나 이상하게 끝나면, 원본을 들으며 끝낼 곳에서 "여기서 끝내기"를 누르거나 분:초로 적으세요.'));
+      h('button', { type: 'button', class: `btn small${ui.listen === 'end' ? ' primary' : ''}`, id: 'end-listen', disabled: !ui.endAt, onclick: () => listen('end', st.fadeOut) }, ui.listen === 'end' ? '■ 정지' : '▶ 끝 부분 듣기'),
+      h('button', { type: 'button', class: 'btn small ghost', id: 'end-clear', disabled: !ui.endAt, onclick: () => { if (ui.listen === 'end') stopListen(); ui.endAt = 0; refresh(); focusEndInput(); } }, '자르지 않기')),
+    h('span', { class: 'muted small', id: 'end-note' }, endNote(st)));
 }
 
 // 숏폼 하이라이트: 결과·길이가 같으면 다시 계산하지 않는다

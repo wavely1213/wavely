@@ -25,7 +25,7 @@ function apply(list, none) {
 export function songSearch(songs) {
   const on = songs.length >= SEARCH_FROM;
   if (!on) query.text = '';
-  const none = h('p', { class: 'muted small', id: 'song-none', hidden: !songs.some((s) => songMatches(s)) }, '찾는 곡이 없어요');
+  const none = h('p', { class: 'muted small', id: 'song-none', hidden: songs.some((s) => songMatches(s)) }, '찾는 곡이 없어요');
   const field = on ? h('input', {
     type: 'search', id: 'song-search', class: 'song-search', placeholder: '곡 찾기 (제목·주제)', 'aria-label': '곡 찾기 (제목·주제·키워드)', value: query.text,
     oninput: (e) => { query.text = e.target.value; apply(document.getElementById('song-list'), none); },

@@ -146,7 +146,9 @@ export function addInstVersion(albumId, songId) {
   const album = state.albums.find((a) => a.id === albumId);
   const at = album ? album.tracks.findIndex((t) => t.songId === songId) : -1;
   if (at < 0) return null;
-  const song = copySong(songId, { suffix: ' (Inst.)', inst: true });
+  // 이미 만든 Inst. 곡(되돌리기로 트랙만 빠졌거나 다른 앨범에 든 것)이 있으면 다시 쓴다 — 같은 곡이 쌓이지 않게
+  const song = state.songs.find((x) => x.instOf === songId && !album.tracks.some((t) => t.songId === x.id))
+    || copySong(songId, { suffix: ' (Inst.)', inst: true });
   remember(album, 'all');
   const src = album.tracks[at];
   album.tracks.splice(at + 1, 0, { ...src, songId: song.id, isTitle: false, isrc: '', lyricists: '', featuring: '', explicit: false, splits: { music: src.splits?.music, arrange: src.splits?.arrange } });

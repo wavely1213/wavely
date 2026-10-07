@@ -242,6 +242,16 @@ assert.ok(AL.cover && AL.promo && Array.isArray(AL.tracks), '되돌린 뒤에도
   S.selectAlbum(S.currentAlbum().id);
   S.undo();
   assert.equal(S.currentAlbum().tracks.length, 0, '앨범 되돌리기로 트랙 빠짐');
+  // Inst. 버전: 되돌리기로 트랙만 빠진 뒤 다시 더하면 같은 Inst. 곡을 다시 씀 (사본이 쌓이지 않음)
+  const src = first.id;
+  S.mutateAlbum((a) => { a.tracks = [{ songId: src, isTitle: true, isrc: '', lyricists: '', composers: '', arrangers: '', featuring: '', explicit: false, splits: {} }]; });
+  const instA = S.addInstVersion(S.currentAlbum().id, src);
+  S.selectAlbum(S.currentAlbum().id);
+  S.undo();
+  const instB = S.addInstVersion(S.currentAlbum().id, src);
+  assert.equal(instB.id, instA.id);
+  assert.equal(S.getState().songs.filter((x) => x.instOf === src).length, 1);
+  assert.equal(S.currentAlbum().tracks.filter((t) => t.songId === instA.id).length, 1);
   console.log('new song in album OK');
 }
 

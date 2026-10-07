@@ -101,12 +101,14 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     await p.waitForSelector('#end-note:has-text("0:20에서 끝내요")');
     await p.click('#end-listen');
     await p.click('#end-listen:has-text("정지")');
+    // 칸에 적고 곧바로 버튼을 눌러도 그 클릭이 사라지지 않음 (칸을 벗어날 때 화면 전체를 다시 그리지 않음)
+    await p.fill('#master-end', '0:20.5');
     await p.click('text=마스터링 하기');
-    await p.waitForSelector('.compare td:has-text("0:20에서 자름")', { timeout: 120000 });
+    await p.waitForSelector('.compare td:has-text("0:20.5에서 자름")', { timeout: 120000 });
     const cutLen = Number((await p.textContent('.compare td:has-text("에서 자름")')).match(/^([\d.]+)초/)[1]);
-    global.endCutOk = cutLen > 15 && cutLen <= 20.05;
+    global.endCutOk = cutLen > 15 && cutLen <= 20.55;
     await p.click('#end-clear');
-    global.endCutOk = global.endCutOk && (await p.inputValue('#master-end')) === '';
+    global.endCutOk = global.endCutOk && (await p.inputValue('#master-end')) === '' && (await p.evaluate(() => document.activeElement?.id)) === 'master-end' && await p.isDisabled('#end-listen');
     // 테이크 비교: 앱 데모 마스터(편곡과 일치) vs 단순 사인파 → 앞의 것이 "가장 가까움"
     const sine = path.join(TMP, 'take-sine.wav');
     if (!fs.existsSync(sine)) require('child_process').execFileSync('ffmpeg', ['-v', 'error', '-f', 'lavfi', '-i', 'sine=frequency=523:duration=15', sine]);

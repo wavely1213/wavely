@@ -59,7 +59,7 @@ export function renderTracks(album) {
       if (j < 0 || j >= a.tracks.length) return;
       [a.tracks[i], a.tracks[j]] = [a.tracks[j], a.tracks[i]];
     });
-    return h('article', { class: 'section' },
+    return h('article', { class: 'section', id: `track-${t.songId}`, tabindex: '-1' },
       h('header', { class: 'section-head' },
         h('span', { class: 'tag mono' }, String(i + 1).padStart(2, '0')),
         h('strong', { class: 'track-title' }, song.title),
@@ -79,7 +79,12 @@ export function renderTracks(album) {
         h('label', { for: `master-${t.songId}`, class: 'btn small' }, masters[t.songId] ? '마스터 바꾸기' : '마스터 WAV 넣기'),
         h('button', { type: 'button', class: 'btn small ghost', onclick: () => { selectSong(song.id); setTab('master'); } }, '마스터링 하러 가기'),
         !song.instOf && !songs.some((x) => x.instOf === song.id && album.tracks.some((y) => y.songId === x.id))
-          ? h('button', { type: 'button', class: 'btn small ghost', id: `inst-${t.songId}`, title: '가사 없는 연주곡 트랙을 바로 뒤에 더해요. Suno에서 Instrumental로 만든 결과를 마스터로 넣으세요.', onclick: () => { if (addInstVersion(album.id, song.id)) toast('Inst. 트랙을 더했어요. Suno에서 연주곡으로 만든 파일을 마스터로 넣어 주세요'); } }, 'Inst. 버전 추가') : null),
+          ? h('button', { type: 'button', class: 'btn small ghost', id: `inst-${t.songId}`, title: '가사 없는 연주곡 트랙을 바로 뒤에 더해요. Suno에서 Instrumental로 만든 결과를 마스터로 넣으세요.', onclick: () => {
+            const inst = addInstVersion(album.id, song.id);
+            if (!inst) return;
+            toast('Inst. 트랙을 더했어요. Suno에서 연주곡으로 만든 파일을 마스터로 넣어 주세요');
+            document.getElementById(`track-${inst.id}`)?.focus({ preventScroll: true }); // 누른 버튼이 사라지므로 새 트랙으로
+          } }, 'Inst. 버전 추가') : null),
     );
   });
 

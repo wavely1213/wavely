@@ -124,13 +124,14 @@ export function cutBuffer(buffer, endAt) {
 // endAt: 곡 끝 시각(초, 0 = 끝까지). Suno가 끝을 늘이거나 이상하게 끝낼 때 잘라 낸다.
 export async function master(buffer, { preset = 'kpop', eq = null, target = -14, trim = true, fadeOut = 0, endAt = 0 } = {}, onStep = () => {}) {
   const p = presetOf({ preset, eq });
+  const original = buffer; // '원본' 측정값은 자르기 전 전체 기준 (결과 표의 원본 길이·같은 음량 비교와 맞춤)
   const cut = cutBuffer(buffer, endAt);
   if (cut) buffer = cut;
   const cutAt = cut ? endAt : 0;
   onStep('톤 보정·컴프레서');
   await tick();
   const toned = channelsOf(await tonal(buffer, p));
-  const payload = { src: channelsOf(buffer), srcRate: buffer.sampleRate, toned, target, trim, fadeOut, cut: !!cut };
+  const payload = { src: channelsOf(original), srcRate: original.sampleRate, toned, target, trim, fadeOut, cut: !!cut };
   const viaWorker = inWorker('master', payload, onStep);
   if (viaWorker) {
     try { return { ...(await viaWorker), via: 'worker', cutAt }; } catch { onStep('다시 계산 중'); /* 워커가 도중에 실패(메모리 등) → 화면 스레드로 */ }
