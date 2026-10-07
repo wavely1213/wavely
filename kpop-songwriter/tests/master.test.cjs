@@ -128,9 +128,23 @@ server.listen(0, async () => {
     const src = await T.toneOf(make(0.1, 0.2));
     const m = T.matchEq(src, ref);
     const res = await T.master(make(0.1, 0.2), { preset: 'ref', eq: m.eq, target: -14 });
-    return { ref, src, lowDb: m.lowDb, highDb: m.highDb, note: m.note, lufs: res.after.lufs };
+    // 거친 고음 부드럽게: 6.5kHz 사인 + 1kHz 사인을 같은 설정으로 마스터링하면 켠 쪽의 6.5kHz 비중이 작다
+    const harsh = (() => {
+      const buf = new AudioBuffer({ numberOfChannels: 2, length: n, sampleRate: sr });
+      for (let c = 0; c < 2; c++) { const d = buf.getChannelData(c); for (let i = 0; i < n; i++) d[i] = 0.2 * Math.sin(2 * Math.PI * 1000 * i / sr) + 0.2 * Math.sin(2 * Math.PI * 6500 * i / sr); }
+      return buf;
+    })();
+    const bandRatio = (ch) => { // 6.5kHz 대 1kHz 세기 비 (짧은 DFT 두 점)
+      const N = 44100; let a = [0, 0]; let b = [0, 0];
+      for (let i = 0; i < N; i++) { const x = ch[i + 10000]; a[0] += x * Math.cos(2 * Math.PI * 6500 * i / 44100); a[1] += x * Math.sin(2 * Math.PI * 6500 * i / 44100); b[0] += x * Math.cos(2 * Math.PI * 1000 * i / 44100); b[1] += x * Math.sin(2 * Math.PI * 1000 * i / 44100); }
+      return Math.hypot(...a) / Math.hypot(...b);
+    };
+    const plain = await T.master(harsh, { preset: 'natural', target: -14, trim: false });
+    const soft = await T.master(harsh, { preset: 'natural', target: -14, trim: false, soften: true });
+    const softenDb = 20 * Math.log10(bandRatio(soft.channels[0]) / bandRatio(plain.channels[0]));
+    return { ref, src, lowDb: m.lowDb, highDb: m.highDb, note: m.note, lufs: res.after.lufs, softenDb };
   });
-  const toneOk = tone.ref.bass > tone.src.bass && tone.ref.high < tone.src.high && tone.lowDb > 2 && tone.highDb < -2 && Math.abs(tone.lufs + 14) < 0.6;
+  const toneOk = tone.softenDb < -1.5 && tone.softenDb > -3.5 && tone.ref.bass > tone.src.bass && tone.ref.high < tone.src.high && tone.lowDb > 2 && tone.highDb < -2 && Math.abs(tone.lufs + 14) < 0.6;
   console.log('tone match', JSON.stringify(tone), toneOk ? 'OK' : 'FAIL');
   ok = ok && toneOk;
   console.log(ok ? 'master OK' : 'master FAILED');

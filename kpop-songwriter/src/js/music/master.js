@@ -9,6 +9,9 @@ export const MASTER_PRESETS = {
   vocal: { name: '보컬 또렷하게', low: 0, mud: -2, presence: 3, air: 2, comp: { threshold: -20, ratio: 1.8 } },
 };
 
+// 거친 고음 부드럽게: Suno 결과에 흔한 쇳소리·치찰음 대역(6~7kHz)을 살짝 내린다
+export const SOFTEN = { freq: 6500, gain: -2.5, q: 1.4 };
+
 export const LOUDNESS_TARGETS = [
   { value: -14, name: '-14 LUFS · 스트리밍 표준 (권장)', note: 'Spotify·YouTube 기준. 플랫폼이 소리를 줄이지 않아 다이내믹이 그대로 남아요.' },
   { value: -11, name: '-11 LUFS · 조금 크게', note: '대부분의 팝 음원 정도. 스트리밍에선 조금 줄여서 재생돼요.' },
@@ -73,7 +76,7 @@ function channelsOf(buffer) {
 }
 
 // EQ·컴프레서를 거치고 44.1kHz 스테레오로 다시 샘플링
-async function tonal(buffer, preset) {
+async function tonal(buffer, preset, soften = false) {
   const len = Math.ceil(buffer.duration * OUTPUT_RATE);
   const off = new OfflineAudioContext(2, len, OUTPUT_RATE);
   const src = off.createBufferSource();
@@ -93,6 +96,7 @@ async function tonal(buffer, preset) {
     .connect(f('lowshelf', 110, preset.low))
     .connect(f('peaking', 350, preset.mud, 1))
     .connect(f('peaking', 3200, preset.presence, 0.8))
+    .connect(f('peaking', SOFTEN.freq, soften ? SOFTEN.gain : 0, SOFTEN.q))
     .connect(f('highshelf', 10000, preset.air))
     .connect(comp)
     .connect(off.destination);
@@ -122,7 +126,7 @@ export function cutBuffer(buffer, endAt) {
 }
 
 // endAt: 곡 끝 시각(초, 0 = 끝까지). Suno가 끝을 늘이거나 이상하게 끝낼 때 잘라 낸다.
-export async function master(buffer, { preset = 'kpop', eq = null, target = -14, trim = true, fadeOut = 0, endAt = 0 } = {}, onStep = () => {}) {
+export async function master(buffer, { preset = 'kpop', eq = null, target = -14, trim = true, fadeOut = 0, endAt = 0, soften = false } = {}, onStep = () => {}) {
   const p = presetOf({ preset, eq });
   const original = buffer; // '원본' 측정값은 자르기 전 전체 기준 (결과 표의 원본 길이·같은 음량 비교와 맞춤)
   const cut = cutBuffer(buffer, endAt);
@@ -130,7 +134,7 @@ export async function master(buffer, { preset = 'kpop', eq = null, target = -14,
   const cutAt = cut ? endAt : 0;
   onStep('톤 보정·컴프레서');
   await tick();
-  const toned = channelsOf(await tonal(buffer, p));
+  const toned = channelsOf(await tonal(buffer, p, soften));
   const payload = { src: channelsOf(original), srcRate: original.sampleRate, toned, target, trim, fadeOut, cut: !!cut };
   const viaWorker = inWorker('master', payload, onStep);
   if (viaWorker) {

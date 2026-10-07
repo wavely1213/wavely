@@ -41,7 +41,7 @@ let audioCtx = null;
 let playing = null;
 
 function settings(song) {
-  return { preset: 'kpop', target: -14, trim: true, fadeOut: 0, ...(song.master || {}) };
+  return { preset: 'kpop', target: -14, trim: true, fadeOut: 0, soften: false, ...(song.master || {}) };
 }
 
 function stopListen() {
@@ -172,7 +172,7 @@ async function download(song) {
     const wav = encodeWav({ channels: r.channels, sampleRate: r.rate }, { bits: ui.bits, normalize: false });
     const report = [
       `원본: ${ui.sourceName}`,
-      `프리셋: ${presetOf(st).name}${st.preset === 'ref' && st.eqNote ? ` (${st.eqNote})` : ''}`,
+      `프리셋: ${presetOf(st).name}${st.preset === 'ref' && st.eqNote ? ` (${st.eqNote})` : ''}${st.soften ? ' + 거친 고음 부드럽게(6.5kHz -2.5dB)' : ''}`,
       `목표 음량: ${st.target} LUFS / 트루 피크 한도: -1 dBTP`,
       `결과: ${r.after.lufs.toFixed(1)} LUFS, ${r.after.peak.toFixed(1)} dBTP, ${OUTPUT_RATE} Hz ${ui.bits}bit 스테레오 WAV`,
       `원본 측정: ${Number.isFinite(r.before.lufs) ? r.before.lufs.toFixed(1) : '무음'} LUFS, ${r.before.peak.toFixed(1)} dBTP`,
@@ -374,6 +374,7 @@ export function renderMaster(song) {
         targetNote ? h('span', { class: 'muted' }, targetNote) : null),
       h('div', { class: 'row' },
         h('label', { class: 'check' }, h('input', { type: 'checkbox', id: 'master-trim', checked: st.trim, onchange: (e) => mutate((s) => { s.master = { ...settings(s), trim: e.target.checked }; }) }), '앞뒤 무음 정리'),
+        h('label', { class: 'check', title: 'Suno 결과에 흔한 쇳소리·치찰음(6~7kHz)을 살짝 줄여요. 귀가 따가우면 켜 보세요.' }, h('input', { type: 'checkbox', id: 'master-soften', checked: st.soften, onchange: (e) => mutate((s) => { s.master = { ...settings(s), soften: e.target.checked }; }) }), '거친 고음 부드럽게'),
         h('label', { class: 'check' }, '끝 페이드 아웃',
           h('select', { id: 'master-fade', onchange: (e) => mutate((s) => { s.master = { ...settings(s), fadeOut: Number(e.target.value) }; }) },
             [[0, '없음'], [2, '2초'], [4, '4초'], [8, '8초']].map(([v, t]) => h('option', { value: String(v), selected: st.fadeOut === v }, t))))),
