@@ -6,7 +6,10 @@ import { rewriteLine } from '../ai-line.js';
 import { countSyllables } from '../lyrictools.js';
 import { makeEntry, addEntry, removeEntry } from '../learn/taste.js';
 
-const bySection = {}; // 섹션 id → { open, index, line, at(후보를 받은 줄 번호), options, picked } (화면 메모리에만)
+// `곡 id:섹션 id` → { open, index, line, at(후보를 받은 줄 번호), options, picks } (화면 메모리에만).
+// 곡 id까지 쓰는 건 가져온 곡이 원곡과 섹션 id가 같을 수 있어서.
+const bySection = {};
+const MAX_PICKS = 20;
 const short = (l) => (l.length > 28 ? `${l.slice(0, 28)}…` : l);
 
 // 후보를 받은 뒤 가사가 바뀌었을 수 있으니, 받은 줄을 지금 가사에서 다시 찾는다.
@@ -19,30 +22,39 @@ function findLine(songId, sectionId, line, at) {
   return best;
 }
 
-// 바꾼 뒤 되돌리기(↶)로 원래 줄이 돌아왔으면 그 선택 기록을 지운다 (다시 그릴 때 확인)
-function forgetUndonePick(s, st) {
-  const p = st.picked;
-  if (!p) return;
+// 되돌리기(↶)로 바꾼 자리(j)에 원래 줄이 돌아오면 그 선택 기록을 지우고, 다시 하기(↷)로 고른 줄이 돌아오면 되살린다.
+// 다시 그릴 때마다 확인하고, 취향 저장은 그리기가 끝난 뒤에.
+function syncPicks(s, st) {
   const rows = s.text.split('\n').map((r) => r.trim());
-  if (rows.includes(p.opt)) return; // 바꾼 줄이 그대로 있음
-  st.picked = null;
-  if (rows.includes(p.old)) queueMicrotask(() => mutateTaste((t) => removeEntry(t, p.entryId), 'quiet'));
+  st.picks.forEach((p) => {
+    const now = rows[p.j];
+    if (!p.removed && now === p.old) {
+      p.removed = true;
+      queueMicrotask(() => mutateTaste((t) => removeEntry(t, p.entry.id), 'quiet'));
+    } else if (p.removed && now === p.opt) {
+      p.removed = false;
+      queueMicrotask(() => mutateTaste((t) => addEntry(t, p.entry), 'quiet'));
+    }
+  });
 }
 
-const stateOf = (id) => bySection[id] || (bySection[id] = { open: false, index: -1, line: '', at: -1, options: [] });
+const stateOf = (songId, sectionId) => {
+  const key = `${songId}:${sectionId}`;
+  return bySection[key] || (bySection[key] = { open: false, index: -1, line: '', at: -1, options: [], picks: [] });
+};
 const hasLines = (s) => s.text.split('\n').some((l) => l.trim());
 
 // 섹션 버튼 줄에 놓는 여는 버튼 (열려 있거나 가사가 없으면 없음)
-export function lineSwapButton(s) {
-  const st = stateOf(s.id);
-  forgetUndonePick(s, st);
+export function lineSwapButton(song, s) {
+  const st = stateOf(song.id, s.id);
+  syncPicks(s, st);
   if (st.open || !hasLines(s)) return null;
   return h('button', { type: 'button', class: 'btn small ghost', id: `ls-open-${s.id}`, onclick: () => { st.open = true; refresh(); document.getElementById(`ls-line-${s.id}`)?.focus(); } }, '한 줄만 바꾸기');
 }
 
 // 열었을 때 버튼 줄 아래에 놓는 패널
 export function lineSwapPanel(song, s) {
-  const st = stateOf(s.id);
+  const st = stateOf(song.id, s.id);
   if (!st.open || !hasLines(s)) return null;
   const lines = s.text.split('\n');
   const filled = lines.map((l, i) => ({ l: l.trim(), i })).filter((x) => x.l);
@@ -71,7 +83,7 @@ export function lineSwapPanel(song, s) {
       sec.text = rows.join('\n');
     });
     mutateTaste((t) => addEntry(t, entry));
-    st.picked = { entryId: entry.id, old, opt };
+    st.picks = [...st.picks, { entry, j, old, opt, removed: false }].slice(-MAX_PICKS);
     st.options = [];
     st.index = j;
     toast('줄을 바꿨어요. ↶로 되돌릴 수 있고, 고른 것은 취향에 배워요');

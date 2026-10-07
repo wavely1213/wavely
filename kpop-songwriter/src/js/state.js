@@ -176,7 +176,8 @@ function refreshInst(inst, srcId) {
     state.songs = state.songs.filter((x) => x !== inst);
     return fresh;
   }
-  if (inst.instTitle && inst.title === inst.instTitle) {
+  // instTitle이 없는 예전 사본은 " (Inst.)"로 끝나면 자동 제목으로 본다
+  if (inst.instTitle ? inst.title === inst.instTitle : / \(Inst\.\)$/.test(inst.title)) {
     inst.title = `${String(src.title || '제목 없음').replace(/^예시:\s*/, '')} (Inst.)`;
     inst.instTitle = inst.title;
   }

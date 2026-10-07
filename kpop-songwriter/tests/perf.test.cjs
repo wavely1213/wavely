@@ -31,6 +31,11 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     localStorage.setItem('kpop-writer-songs', text);
     return text.length;
   });
+  // AI 만족도 추이가 보이도록 👍/👎 12개(처음 6개 중 2개 👍, 최근 6개 중 5개 👍)를 취향 기록에 넣어 둔다
+  await p.evaluate(() => {
+    const log = Array.from({ length: 12 }, (_, i) => ({ id: `t${i}`, at: 1000 + i, kind: 'lyrics', rating: (i < 6 ? i < 2 : i < 11) ? 1 : -1, text: 'x', before: '', after: '', reasons: [], context: {} }));
+    localStorage.setItem('kpop-writer-taste', JSON.stringify({ enabled: true, profile: {}, log }));
+  });
   await p.reload();
   await p.waitForSelector('.tab');
   const sections = await p.locator('.song-item').count();
@@ -45,7 +50,10 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
   await p.click('.tab:text-is("멜로디")'); // 다시 그려도 "찾는 곡이 없어요"가 맞게
   const none = (await visible()) === 0 && await p.isVisible('#song-none');
   await p.fill('#song-search', '');
-  const searchOk = !noneAtStart && found === 11 && kept && none && (await visible()) === 50 && !(await p.isVisible('#song-none'));
+  await p.click('.song-item:has-text("내 취향")');
+  const trend = await p.textContent('#taste-trend');
+  await p.locator('.song-item').first().click();
+  const searchOk = trend === '처음 6개 33% → 최근 6개 83% (좋아지고 있어요)' && !noneAtStart && found === 11 && kept && none && (await visible()) === 50 && !(await p.isVisible('#song-none'));
   // 탭 전환: 클릭부터 다음 그리기까지
   const tabs = await p.$$eval('.tab', (els) => els.map((e) => e.textContent));
   const times = {};

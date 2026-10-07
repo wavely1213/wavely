@@ -189,7 +189,8 @@ function fakeClaude() {
   await p.click('text=기록으로 AI가 정리하기');
   await p.waitForFunction(() => document.querySelector('#taste-lyrics')?.value.includes('가짜 정리'));
   await p.screenshot({ path: path.join(TMP, 'taste.png'), fullPage: true });
-  results.trendRow = /쌓이면|→ 최근/.test(await p.textContent('#taste-trend'));
+  // 이 흐름에선 👍/👎가 10개가 안 돼 안내 문구가 보여야 함 (추이 계산은 perf 테스트에서 기록을 넣어 확인)
+  results.trendRow = (await p.textContent('#taste-trend')).includes('10개 넘게 쌓이면');
   await p.click('text=기록 내보내기');
 
   // 다음 AI 요청에 취향이 들어가는지
@@ -228,17 +229,20 @@ function fakeClaude() {
   const linePrompt = (await prompts()).filter((x) => x.includes('섹션의 한 줄만 다르게')).pop();
   const lineTaste = await p.waitForFunction(() => (JSON.parse(localStorage.getItem('kpop-writer-taste') || '{"log":[]}').log || [])
     .some((e) => e.kind === 'lyrics' && e.text === '가짜 한 줄 B' && e.context?.rejected?.length === 3 && e.context?.line === true), null, { timeout: 8000 }).then(() => true).catch(() => false);
-  // 되돌리면(↶) 원래 줄이 돌아오고 그 선택 기록도 지워짐 → 다시 하기로 줄은 B로 (기록은 다시 고르면 생김)
+  // 되돌리면(↶) 원래 줄이 돌아오고 그 선택 기록도 지워짐 → 다시 하기(↷)로 줄과 기록이 함께 돌아옴
   await p.click('button[aria-label^="되돌리기"]');
   const verseUndone = await verseCard.locator('textarea.lyrics').inputValue();
   const lineForgot = await p.waitForFunction(() => !(JSON.parse(localStorage.getItem('kpop-writer-taste') || '{"log":[]}').log || [])
     .some((e) => e.text === '가짜 한 줄 B'), null, { timeout: 8000 }).then(() => true).catch(() => false);
   await p.click('button[aria-label^="다시 하기"]');
+  // 다시 하기로 고른 줄이 돌아오면 기록도 되살아남
+  const lineBack = await p.waitForFunction(() => (JSON.parse(localStorage.getItem('kpop-writer-taste') || '{"log":[]}').log || [])
+    .some((e) => e.text === '가짜 한 줄 B' && e.context?.line === true), null, { timeout: 8000 }).then(() => true).catch(() => false);
   results.lineSwap = lsOptions.join('|') === '가짜 한 줄 A|가짜 한 줄 B|가짜 한 줄 C'
     && verseAfter.split('\n').some((l) => l.trim() === '가짜 한 줄 B') && !verseAfter.split('\n').some((l) => l.trim() === firstLine)
     && linePrompt.includes(`바꿀 줄: ${JSON.stringify(firstLine)}`) && lineTaste
     && lsLabel === '이걸로: 가짜 한 줄 B' && lsFocus.startsWith('ls-line-')
-    && verseUndone.split('\n').some((l) => l.trim() === firstLine) && lineForgot;
+    && verseUndone.split('\n').some((l) => l.trim() === firstLine) && lineForgot && lineBack;
 
   // 스타일 변형: 3개 만들기 → B로 정하기 → B만 "지금 스타일"
   await p.click('.tab:text-is("Suno 스타일")');

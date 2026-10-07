@@ -46,18 +46,27 @@ export function newAlbum() {
 }
 
 // 새 앨범에 지난 앨범의 아티스트 정보를 이어받는다 (아티스트명·레이블·장르·언어·©/℗·AI 표기).
-// ©/℗ 앞의 연도는 올해로. 제목·발매일·UPC·수록곡·커버·일정·홍보는 앨범마다 다르므로 그대로 둔다.
+// ©/℗ 표기는 "올해 이름"으로: 앞의 기호(© ℗ (c) (p))·연도(범위 포함)와 끝에 붙은 최근 연도를 떼고 올해를 앞에 붙인다.
+// 제목·발매일·UPC·수록곡·커버·일정·홍보는 앨범마다 다르므로 그대로 둔다.
+const LEAD = /^\s*(?:[©℗]|\([cp]\))?\s*(?:\d{4}(?:\s*[-–]\s*\d{4})?)?[\s,.]*/i;
+export function lineName(line, year = new Date().getFullYear()) {
+  let name = String(line || '').replace(LEAD, '').trim();
+  // 끝의 연도는 최근 것(±10년)만 뗀다 — "Studio 1984" 같은 이름은 둔다
+  const tail = name.match(/[\s,]*(\d{4})$/);
+  if (tail && Math.abs(Number(tail[1]) - year) <= 10 && tail.index > 0) name = name.slice(0, tail.index).trim();
+  return name;
+}
 export function inheritAlbumInfo(album, prev, year = new Date().getFullYear()) {
   if (!prev) return album;
-  const yeared = (line) => String(line || '').replace(/^\s*(?:\d{4}\s*)?/, `${year} `).trimEnd();
+  const yeared = (line, fallback) => { const name = lineName(line, year); return name ? `${year} ${name}` : fallback; };
   Object.assign(album, {
     artist: prev.artist || '',
     label: prev.label || '',
     genre: prev.genre || album.genre,
     subgenre: prev.subgenre ?? album.subgenre,
     language: prev.language || album.language,
-    cLine: prev.cLine?.trim() && !/^\d{4}$/.test(prev.cLine.trim()) ? yeared(prev.cLine) : album.cLine,
-    pLine: prev.pLine?.trim() && !/^\d{4}$/.test(prev.pLine.trim()) ? yeared(prev.pLine) : album.pLine,
+    cLine: yeared(prev.cLine, album.cLine),
+    pLine: yeared(prev.pLine, album.pLine),
     ai: { ...album.ai, ...prev.ai },
   });
   return album;

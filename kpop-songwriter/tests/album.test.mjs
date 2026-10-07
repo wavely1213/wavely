@@ -426,6 +426,10 @@ import { inheritAlbumInfo } from '../src/js/album/model.js';
   assert.notEqual(a.releaseDate, '2025-05-01');
   assert.equal(inheritAlbumInfo(newAlbum(), { ...newAlbum(), cLine: '2025 ' }, 2026).cLine.trim(), String(new Date().getFullYear()), '비어 있던 표기는 기본값');
   assert.equal(inheritAlbumInfo(newAlbum(), null).artist, '', '첫 앨범은 그대로');
+  // 기호·연도·범위·끝 연도가 붙은 표기도 "올해 이름"으로 (두 번 들어가지 않게)
+  for (const [line, want] of [['℗ 2025 물결뮤직', '2026 물결뮤직'], ['(c) 2024 물결', '2026 물결'], ['© 2025 X', '2026 X'], ['물결뮤직 2025', '2026 물결뮤직'], ['2023-2025 물결', '2026 물결'], ['(P) 2025, 물결', '2026 물결'], ['Studio 1984', '2026 Studio 1984'], ['℗ 2025', '2026 ']]) {
+    assert.equal(inheritAlbumInfo(newAlbum(), { ...newAlbum(), pLine: line }, 2026).pLine.replace(/\d{4} $/, '2026 '), want, line);
+  }
   console.log('album inherit OK');
 }
 

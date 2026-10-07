@@ -86,7 +86,7 @@ import { satisfactionTrend, trendText } from '../src/js/learn/taste.js';
   const log = [];
   for (let i = 0; i < 6; i++) log.push(e(i < 2 ? 1 : -1, i)); // 처음 6개: 👍 2 (33%)
   for (let i = 6; i < 12; i++) log.push(e(i < 11 ? 1 : -1, i)); // 최근 6개: 👍 5 (83%)
-  log.push(e(1, 50, { line: true }), e(1, 51, { rejected: ['a'] }), e(0, 52)); // 세지 않음
+  log.push(e(1, 50, { line: true }), e(1, 51, { rejected: ['a'] }), e(0, 52), e(1, 53, { source: 'release' }), e(1, 54, { source: 'release' })); // 세지 않음 (발매 성과로 배운 것 포함)
   const t = satisfactionTrend({ log: log.reverse() });
   assert.deepEqual([t.n, Math.round(t.early * 100), Math.round(t.recent * 100), t.diff], [6, 33, 83, 50]);
   assert.equal(trendText(t), '처음 6개 33% → 최근 6개 83% (좋아지고 있어요)');

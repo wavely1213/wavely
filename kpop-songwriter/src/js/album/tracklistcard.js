@@ -17,20 +17,25 @@ export function drawTracklistCard(canvas, { title, artist, sub = '', tracks, ima
   ctx.textBaseline = 'top';
   ctx.fillStyle = textColor;
   // 머리: 앨범 제목(두 줄까지) · 아티스트 · 종류·날짜
+  const maxW = CARD_W - PAD * 2;
+  const measure = (t) => ctx.measureText(t).width;
   ctx.font = `700 64px ${BODY}`;
-  const head = wrapLine((t) => ctx.measureText(t).width, title, CARD_W - PAD * 2).slice(0, 2);
+  const wrapped = wrapLine(measure, title, maxW);
+  // 두 줄을 넘으면 둘째 줄에 나머지를 붙여 줄임표로
+  const head = wrapped.length > 2 ? [wrapped[0], fitOne(measure, wrapped.slice(1).join(' '), maxW)] : wrapped;
   head.forEach((l, i) => ctx.fillText(l, PAD, PAD + i * 80));
   let y = PAD + head.length * 80 + 10;
   ctx.font = `600 32px ${MONO}`;
-  ctx.fillText(artist, PAD, y);
-  if (sub) { ctx.globalAlpha = 0.75; ctx.font = `600 26px ${MONO}`; ctx.fillText(sub, PAD, y + 48); ctx.globalAlpha = 1; }
+  ctx.fillText(fitOne(measure, artist, maxW), PAD, y);
+  if (sub) { ctx.globalAlpha = 0.75; ctx.font = `600 26px ${MONO}`; ctx.fillText(fitOne(measure, sub, maxW), PAD, y + 48); ctx.globalAlpha = 1; }
   y += 120;
   ctx.fillStyle = accent;
   ctx.fillRect(PAD, y, 72, 8);
   y += 50;
   // 목록: 남은 높이에 곡 수만큼 줄 높이를 나눈다
   const rowH = Math.min(96, (CARD_H - PAD - y) / Math.max(1, tracks.length));
-  const size = Math.max(26, Math.min(46, Math.round(rowH * 0.5)));
+  // 곡이 많으면 줄 높이에 맞춰 작게 (줄끼리 겹치지 않게)
+  const size = Math.min(46, Math.max(12, Math.min(Math.round(rowH * 0.5), Math.floor(rowH * 0.85))));
   tracks.forEach((t, i) => {
     const top = y + i * rowH;
     ctx.font = `600 ${Math.round(size * 0.8)}px ${MONO}`;

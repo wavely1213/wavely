@@ -273,6 +273,14 @@ assert.ok(AL.cover && AL.promo && Array.isArray(AL.tracks), '되돌린 뒤에도
   S.undo();
   S.mutateSong(src, (x) => { x.title = 'Signal 3'; });
   assert.equal(S.addInstVersion(S.currentAlbum().id, src).title, 'Signal Acoustic (Inst.)');
+  // 예전(instTitle 없는) 사본은 " (Inst.)"로 끝나면 원곡 제목을 따라감
+  const legacy = S.getState().songs.find((x) => x.id === instA.id);
+  legacy.title = 'Signal 3 (Inst.)';
+  delete legacy.instTitle;
+  S.selectAlbum(S.currentAlbum().id);
+  S.undo();
+  S.mutateSong(src, (x) => { x.title = 'Signal 4'; });
+  assert.equal(S.addInstVersion(S.currentAlbum().id, src).title, 'Signal 4 (Inst.)');
   console.log('new song in album OK');
 }
 

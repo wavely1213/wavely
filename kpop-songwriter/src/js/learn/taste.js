@@ -66,7 +66,8 @@ export function tasteStats(taste) {
 // 반응이 TREND_MIN개 넘어야 보인다. 반환: null 또는 { n(반쪽 개수), early, recent (0~1), diff(%p) }
 export const TREND_MIN = 10;
 export function satisfactionTrend(taste) {
-  const rated = taste.log.filter((e) => (e.rating === 1 || e.rating === -1) && !e.context?.line && !Array.isArray(e.context?.rejected))
+  // 발매 성과로 배운 것(source: release)은 AI 결과에 대한 반응이 아니므로 뺀다
+  const rated = taste.log.filter((e) => (e.rating === 1 || e.rating === -1) && !e.context?.line && !Array.isArray(e.context?.rejected) && e.context?.source !== 'release')
     .sort((a, b) => a.at - b.at);
   if (rated.length < TREND_MIN) return null;
   const n = Math.floor(rated.length / 2);

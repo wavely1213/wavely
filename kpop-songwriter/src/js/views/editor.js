@@ -257,7 +257,7 @@ function renderSection(song, s, index, label, result) {
         const out = await writeLyrics(song, { targetIds: [s.id], request: memoOf(song.id).request, signal, onProgress: (n) => progress(`${n}자`) });
         applyLyrics(song.id, out);
       }) }, s.text.trim() ? 'AI로 다시 쓰기' : 'AI로 쓰기'),
-      lineSwapButton(s)),
+      lineSwapButton(song, s)),
     lineSwapPanel(song, s),
     aiOrigin[s.id] ? feedbackBar({ kind: 'lyrics', ref: aiOrigin[s.id].gen, text: aiOrigin[s.id].text, context: { section: s.type, song: song.title }, label: 'AI가 쓴 가사예요. 고치면 고친 방향도 배워요' }) : null,
     aiOrigin[s.id] ? lineLikes({ kind: 'lyrics', ref: aiOrigin[s.id].gen, text: s.text, context: { section: s.type, song: song.title } }) : null,
