@@ -35,7 +35,7 @@ const TABS = [
   ['versions', '버전', renderVersions],
 ];
 
-const ui = { confirmDelete: '', aiAvailable: true };
+const ui = { confirmDelete: '', aiAvailable: true, navOpen: false };
 // 빌드 대상: 웹사이트(mulgyeol.kr/music) 빌드에서만 true (build.mjs의 define)
 const WEB = typeof __WEB__ !== 'undefined' && __WEB__;
 
@@ -49,9 +49,21 @@ function saveLabel() {
   return `${where} 저장됨`;
 }
 
+// 폰에서는 목록을 접어 두고(지금 보는 것 이름만), 버튼으로 펼친다. 넓은 화면에서는 항상 펼침.
+function nowLabel(st) {
+  if (st.mode === 'taste') return '내 취향';
+  if (st.mode === 'album') return `앨범 · ${currentAlbum()?.title || '새 앨범'}`;
+  return current()?.title || '제목 없음';
+}
+const pick = (fn) => () => { ui.navOpen = false; stopPlayer(); fn(); };
+
 function renderSidebar() {
   const st = getState();
-  return h('nav', { class: 'songs', 'aria-label': '곡·앨범 목록' },
+  return h('nav', { class: `songs${ui.navOpen ? '' : ' collapsed'}`, 'aria-label': '곡·앨범 목록' },
+    h('button', { type: 'button', class: 'nav-toggle', 'aria-expanded': ui.navOpen ? 'true' : 'false', onclick: () => { ui.navOpen = !ui.navOpen; refresh(); } },
+      h('span', { 'aria-hidden': 'true' }, ui.navOpen ? '✕' : '☰'),
+      h('span', { class: 'nav-now' }, ui.navOpen ? '목록 닫기' : nowLabel(st)),
+      h('span', { class: 'muted small' }, ui.navOpen ? '' : '곡·앨범 목록')),
     h('div', { class: 'side-head' }, h('span', { class: 'field-label' }, '곡'),
       h('span', { class: 'row' },
         h('input', { type: 'file', id: 'import-song', accept: '.json,application/json', class: 'visually-hidden', onchange: async (e) => {
@@ -64,27 +76,27 @@ function renderSidebar() {
           } catch { toast('파일을 읽지 못했어요'); }
         } }),
         h('label', { for: 'import-song', class: 'btn small ghost', title: '제작 패키지의 project.json으로 곡 되살리기' }, '가져오기'),
-        h('button', { type: 'button', class: 'btn small primary', onclick: () => { stopPlayer(); newSong(); } }, '+ 새 곡'))),
+        h('button', { type: 'button', class: 'btn small primary', onclick: pick(newSong) }, '+ 새 곡'))),
     h('ul', null, st.songs.map((s) => {
       const active = st.mode === 'song' && s.id === st.currentId;
       return h('li', null,
-        h('button', { type: 'button', class: `song-item${active ? ' active' : ''}`, 'aria-current': active ? 'true' : null, onclick: () => { stopPlayer(); selectSong(s.id); } },
+        h('button', { type: 'button', class: `song-item${active ? ' active' : ''}`, 'aria-current': active ? 'true' : null, onclick: pick(() => selectSong(s.id)) },
           h('span', { class: 'song-title' }, s.title || '제목 없음'),
           h('span', { class: 'song-meta mono' }, s.example ? '예시' : formatTime(s.updatedAt))));
     })),
     h('div', { class: 'side-head' }, h('span', { class: 'field-label' }, '앨범·발매'),
-      h('button', { type: 'button', class: 'btn small', onclick: () => { stopPlayer(); newAlbum(); } }, '+ 새 앨범')),
+      h('button', { type: 'button', class: 'btn small', onclick: pick(() => newAlbum()) }, '+ 새 앨범')),
     st.albums.length
       ? h('ul', null, st.albums.map((a) => {
         const active = st.mode === 'album' && a.id === st.albumId;
         return h('li', null,
-          h('button', { type: 'button', class: `song-item${active ? ' active' : ''}`, 'aria-current': active ? 'true' : null, onclick: () => { stopPlayer(); selectAlbum(a.id); } },
+          h('button', { type: 'button', class: `song-item${active ? ' active' : ''}`, 'aria-current': active ? 'true' : null, onclick: pick(() => selectAlbum(a.id)) },
             h('span', { class: 'song-title' }, a.title || '새 앨범'),
             h('span', { class: 'song-meta mono' }, `${a.tracks.length}곡 · ${a.releaseDate || '발매일 미정'}`)));
       }))
       : h('p', { class: 'muted small' }, '곡을 묶어 발매 준비(메타데이터·커버·제출 패키지·일정)를 해요.'),
     h('div', { class: 'side-head' }, h('span', { class: 'field-label' }, '학습')),
-    h('button', { type: 'button', class: `song-item${st.mode === 'taste' ? ' active' : ''}`, onclick: () => { stopPlayer(); showTaste(); } },
+    h('button', { type: 'button', class: `song-item${st.mode === 'taste' ? ' active' : ''}`, onclick: pick(showTaste) },
       h('span', { class: 'song-title' }, '내 취향'),
       h('span', { class: 'song-meta mono' }, `반응 ${st.taste.log.length}개${st.taste.enabled ? '' : ' · 꺼짐'}${newSinceSummary(st.taste) >= SUMMARY_EVERY ? ' · 정리 추천' : ''}`)),
   );
@@ -200,6 +212,17 @@ function draw() {
   window.scrollTo(0, y);
 }
 
+// 탭 줄: 다시 그려도 고른 탭이 보이게 옆으로 밀어 두고, 오른쪽에 더 있으면 끝을 흐리게
+function fixTabs() {
+  document.querySelectorAll('.tabs-wrap').forEach((wrap) => {
+    const on = wrap.querySelector('.tab.on');
+    if (on && on.offsetLeft + on.offsetWidth > wrap.scrollLeft + wrap.clientWidth) wrap.scrollLeft = on.offsetLeft - 24;
+    const mark = () => wrap.classList.toggle('more-right', wrap.scrollLeft + wrap.clientWidth < wrap.scrollWidth - 4);
+    wrap.onscroll = mark;
+    mark();
+  });
+}
+
 // 재생 위치 표시: 진행 막대, 재생 중인 섹션 강조, 피아노롤 재생선
 let wasPlaying = false;
 onPlayer((st) => {
@@ -233,7 +256,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 subscribe((scope) => {
-  if (scope === 'all') render();
+  if (scope === 'all') { render(); fixTabs(); }
   else if (scope === 'status') {
     const el = document.getElementById('save-status');
     if (el) el.textContent = saveLabel();

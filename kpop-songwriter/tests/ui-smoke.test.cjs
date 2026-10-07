@@ -14,11 +14,17 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     p.on('console', m => { if (m.type() === 'error') errs.push(tag + ' console ' + m.text()); });
     await p.goto('file://' + path.join(__dirname, '..', 'dist', 'index.html'));
     await p.waitForSelector('.tab');
+    // 폰: 목록은 접혀 있고 제목이 첫 화면 위쪽에 보임, 넓은 화면: 접기 버튼 없음
+    const navToggle = await p.locator('.nav-toggle').isVisible();
+    const h1Top = await p.$eval('h1', (e) => e.getBoundingClientRect().top);
+    global.navOk = (global.navOk ?? true) && (tag === 'phone' ? navToggle && h1Top < 200 : !navToggle);
     const tabs = await p.$$eval('.tab', els => els.map(e => e.textContent));
     for (const name of tabs) {
       await p.click(`.tab:text-is("${name}")`);
       const sw = await p.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
       if (sw) errs.push(`${tag} overflow on ${name}`);
+      const onTab = await p.$eval('.tab.on', (e) => { const r = e.getBoundingClientRect(); return r.left >= 0 && r.right <= window.innerWidth; });
+      if (!onTab) errs.push(`${tag} 고른 탭(${name})이 화면 밖`);
       if (['편곡','멜로디','사운드','레퍼런스','내보내기','마스터링'].includes(name)) await p.screenshot({ path: path.join(TMP, `${tag}-${name}.png`), fullPage: tag === 'desk' && name !== '편곡' });
     }
     // 편곡: 빠른 바꾸기, 드럼 직접 찍기, 재생/정지
@@ -145,6 +151,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     await p.waitForTimeout(1500);
     await p.reload();
     await p.waitForSelector('.tab');
+    if (tag === 'phone') await p.click('.nav-toggle');
     await p.click('.song-item:has-text("Midnight Signal") >> nth=-1');
     await p.waitForSelector('.pill:has-text("규격 OK")', { timeout: 15000 }).catch(() => {});
     const keptMaster = await p.locator('.pill:has-text("규격 OK")').count();
@@ -159,6 +166,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
   if (!global.undoOk) errs.push('되돌리기·다시 하기 안 됨');
   if (!global.albumUndoOk) errs.push('앨범 되돌리기 안 됨');
   if (!global.syncOk) errs.push('싱크 가사 맞추기 안 됨');
+  if (!global.navOk) errs.push('폰 목록 접기 이상');
   if (!global.zipLrc) errs.push('제출 패키지에 .lrc 없음');
   if (global.takeBest !== undefined && global.takeBest !== 'master-14') errs.push(`테이크 비교 결과 이상: ${global.takeBest}`);
   if (!global.keysOk) errs.push('피아노롤 키보드 안 됨');
