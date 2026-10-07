@@ -176,3 +176,37 @@ import { extOf } from '../src/js/album/model.js';
   assert.ok(ics.endsWith('END:VCALENDAR\r\n'));
   console.log('ics OK');
 }
+
+// 트랙 순서 추천: 타이틀 1번, 잔잔한 곡 마지막, 짧은 인트로는 맨 앞, 이미 좋은 순서면 그대로
+{
+  const { suggestOrder, trackTraits } = await import('../src/js/album/order.js');
+  const mkSong = (id, bpm, energy, root = 9, mode = 'minor') => {
+    const s = normalizeMusic(exampleSong());
+    s.id = id;
+    s.music.bpm = bpm; s.music.root = root; s.music.mode = mode;
+    Object.values(s.music.sections).forEach((sm) => { sm.energy = energy; });
+    return s;
+  };
+  const songsO = [mkSong('ballad', 72, 1.5), mkSong('title', 124, 4.5), mkSong('b', 118, 4), mkSong('c', 100, 3, 2, 'major')];
+  assert.ok(Math.abs(trackTraits(songsO[1]).energy - 4.5) < 1e-9);
+  const tr = (ids, title) => ids.map((id) => ({ ...newTrack(id), isTitle: id === title }));
+  const r = suggestOrder(tr(['ballad', 'b', 'title', 'c'], 'title'), songsO);
+  assert.equal(r.order[0], 'title', '타이틀곡이 1번');
+  assert.equal(r.order[3], 'ballad', '잔잔한 곡이 마지막');
+  assert.ok(r.better && r.why.includes('타이틀곡이 1번'));
+  const again = suggestOrder(tr(r.order, 'title'), songsO);
+  assert.equal(again.better, false, '추천 순서를 다시 넣으면 그대로');
+  // 짧은 인트로(90초 미만)는 타이틀 앞
+  const intro = mkSong('intro', 90, 2);
+  intro.sections = intro.sections.slice(0, 2);
+  assert.ok(trackTraits(intro).seconds < 90);
+  const r2 = suggestOrder(tr(['ballad', 'title', 'intro', 'b'], 'title'), [...songsO, intro]);
+  assert.deepEqual(r2.order.slice(0, 2), ['intro', 'title']);
+  assert.equal(suggestOrder(tr(['title'], 'title'), songsO).better, false);
+  // 인트로가 가장 잔잔해도 끝으로 가지 않음
+  const quietIntro = mkSong('qintro', 80, 1);
+  quietIntro.sections = quietIntro.sections.slice(0, 2);
+  const r3 = suggestOrder(tr(['title', 'ballad', 'b', 'qintro', 'c'], 'title'), [...songsO, quietIntro]);
+  assert.deepEqual([r3.order[0], r3.order[1], r3.order[4]], ['qintro', 'title', 'ballad']);
+  console.log('order OK');
+}

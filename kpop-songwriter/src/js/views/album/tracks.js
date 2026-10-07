@@ -5,6 +5,7 @@ import { newTrack, ALBUM_TYPES } from '../../album/model.js';
 import { inspectMaster } from '../../album/release.js';
 import { mastersOf, setMaster, fillFromSongMasters } from '../../album/session.js';
 import { keyName } from '../../music/theory.js';
+import { suggestOrder } from '../../album/order.js';
 
 const busy = {};
 
@@ -98,6 +99,22 @@ export function renderTracks(album) {
         } }, '+ 곡 넣기'))
         : h('p', { class: 'muted' }, '넣을 곡이 없어요. 곡 목록에서 새 곡을 만들어 주세요.'),
       h('p', { class: 'muted' }, `마스터 WAV는 곡의 마스터링 탭에서 받은 파일을 넣으세요. 파일은 이 브라우저에 보관했다가 제출 패키지에 넣어요 (다른 기기에서는 다시 넣어야 해요). ${type.name}은 보통 ${type.min}~${type.max}곡이에요.`)),
+    album.tracks.length > 1 ? renderOrder(album, songs) : null,
     album.tracks.length ? h('div', { class: 'sections' }, rows) : h('p', { class: 'empty card' }, '아직 수록곡이 없어요. 위에서 곡을 넣어 주세요.'),
   );
+}
+
+// 트랙 순서 추천: 지금보다 나은 순서가 있으면 보여 주고, 누르면 그 순서로 (되돌리기 가능)
+function renderOrder(album, songs) {
+  const r = suggestOrder(album.tracks, songs);
+  const title = (id) => (songs.find((s) => s.id === id)?.title || '').replace(/^예시:\s*/, '');
+  if (!r.better) return h('p', { class: 'muted small', id: 'order-ok' }, `트랙 순서가 자연스러워요${r.why.length ? ` (${r.why.join(', ')})` : ''}.`);
+  return h('section', { class: 'card', id: 'order-suggest' },
+    h('div', { class: 'card-head' },
+      h('h2', null, '이 순서는 어때요?'),
+      h('button', { type: 'button', class: 'btn small primary', onclick: () => mutateAlbum((a) => {
+        a.tracks = r.order.map((id) => a.tracks.find((t) => t.songId === id)).filter(Boolean).concat(a.tracks.filter((t) => !r.order.includes(t.songId)));
+      }) }, '이 순서로 바꾸기')),
+    h('ol', { class: 'order-list' }, r.order.map((id) => h('li', null, title(id)))),
+    h('p', { class: 'muted small' }, `${r.why.join(', ')}. BPM·에너지(편곡 탭)·키로 계산한 제안이에요. 바꾼 뒤에도 ↶로 되돌릴 수 있어요.`));
 }

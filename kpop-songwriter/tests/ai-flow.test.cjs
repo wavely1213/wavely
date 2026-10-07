@@ -242,11 +242,25 @@ function fakeClaude() {
   await p.click('text=AI로 초안 쓰기');
   await p.waitForFunction(() => document.querySelector('#promo-intro')?.value === '가짜 앨범 소개');
   results.promo = true;
+  // 트랙 순서 추천: 곡을 더 넣고 → 제안이 있으면 바꾸기 → 자연스럽다고 바뀜 → ↶로 되돌림
+  await p.click('.tab:text-is("수록곡")');
+  for (let k = 0; k < 2; k++) {
+    if (await p.locator('#album-add-song option').count()) await p.click('text=+ 곡 넣기');
+  }
+  results.orderTracks = await p.locator('button[aria-label="앨범에서 빼기"]').count();
+  if (await p.locator('#order-suggest').count()) {
+    await p.click('text=이 순서로 바꾸기');
+    results.orderApplied = (await p.locator('#order-ok').count()) === 1;
+    await p.click('button[aria-label^="되돌리기"]');
+    results.orderUndo = (await p.locator('#order-suggest').count()) === 1;
+  } else {
+    results.orderApplied = results.orderUndo = (await p.locator('#order-ok').count()) === 1;
+  }
   results.saved = await p.evaluate(() => window.__saved);
 
   console.log(JSON.stringify(results, null, 1));
   const ok = results.lyricsApplied && results.review && results.improve.length > 0 && results.improve.every((t) => t.includes('반영')) && results.arrangeKey.includes('A minor') && results.melodyNotes === 3 && results.styleBpm === '140'
-    && results.editRecorded && results.tasteLog.some((x) => x.startsWith('lyrics:-1(유치해요)')) && results.tasteLog.includes('hook:1') && results.lineLiked === 1 && results.similarCount === 1 && results.similarFixed && results.trOff === 1 && results.trLyrics && results.trStyle && results.variantCount === 3 && results.variantChosen.join() === 'B' && results.variantStyle === 'bright synth-pop' && results.tasteLog.includes('arrange:1')
+    && results.editRecorded && results.tasteLog.some((x) => x.startsWith('lyrics:-1(유치해요)')) && results.tasteLog.includes('hook:1') && results.lineLiked === 1 && results.similarCount === 1 && results.similarFixed && results.trOff === 1 && results.trLyrics && results.trStyle && results.variantCount === 3 && results.variantChosen.join() === 'B' && results.variantStyle === 'bright synth-pop' && results.orderTracks >= 2 && results.orderApplied && results.orderUndo && results.tasteLog.includes('arrange:1')
     && results.tasteLog.includes('melody:1') && results.promptHasTaste && results.promo && results.draft.arranged && results.draft.bpm === 128 && results.draft.styleBpm === 128 && results.draft.styleKey === 'A minor' && results.draft.melodySections > 0 && results.draft.lyrics.split('/')[0] === results.draft.lyrics.split('/')[1] && results.keptBridge === '언젠가 너도 이 밤을 보면\n같은 불빛을 찾게 될 거야' && results.melodyPromptRange && results.raceA === 133 && results.raceB === 120 && results.saved.includes('taste-feedback.zip') && !errs.length;
   if (errs.length) console.log('ERRORS', errs);
   console.log(ok ? 'ai OK' : 'ai FAILED');
