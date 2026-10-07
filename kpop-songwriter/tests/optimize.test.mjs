@@ -42,4 +42,25 @@ assert.equal(replaceLine(sim, 'Midnight signal 들리니', 'Midnight signal 받�
 assert.ok(sim.sections[1].text.startsWith('Midnight signal 받았니'));
 assert.equal(similarityStatus(sim), 'stale', '가사가 바뀌면 다시 점검');
 console.log('similarity OK');
+
+// 채점 기준 보정: 줄이 적으면 기본값, 쌓이면 내 가사 길이 쪽으로 (기본값과 섞어서), 끄면 기본값
+const { syllableRanges, cachedRanges, lyricSamples } = await import('../src/js/optimize/calibrate.js');
+const longLine = '가나다라마바사아자차카타파하가나'; // 16음절
+const mk = (n, type = 'Verse') => Array.from({ length: n }, (_, i) => ({ id: `e${i}`, at: i, kind: 'lyrics', rating: i % 2 ? 1 : 0, text: longLine, after: longLine, context: { section: type } }));
+assert.deepEqual(syllableRanges({ log: mk(7) }), {}, '7줄은 보정 안 함');
+assert.equal(lyricSamples({ log: [{ kind: 'lyrics', rating: -1, text: 'x', context: { section: 'Verse' } }, { kind: 'hook', rating: 1, text: 'x', context: { section: 'Verse' } }] }).length, 0, '👎·다른 종류는 안 씀');
+const r16 = syllableRanges({ log: mk(16) });
+assert.deepEqual(r16.Verse.own, [16, 16]);
+assert.equal(r16.Verse.n, 16);
+assert.deepEqual(r16.Verse.range, [12, 15], '16줄이면 기본값(7~13)과 반반');
+const r64 = syllableRanges({ log: mk(64) });
+assert.ok(r64.Verse.range[0] > r16.Verse.range[0], '많이 쌓일수록 내 가사 쪽으로');
+const verse16 = { type: 'Verse', text: Array(4).fill(longLine).join('\n') };
+assert.ok(scoreSection(verse16, {}).tips.some((t) => t.includes('7~13음절') && !t.includes('내 취향')), '기본값으로는 길다고 함');
+assert.ok(!scoreSection(verse16, r64).tips.some((t) => t.startsWith('줄 길이')), '내 기준으로는 괜찮음');
+assert.ok(scoreSection(verse16, r64).score > scoreSection(verse16, {}).score);
+const tasteOn = { enabled: true, log: mk(20) };
+assert.equal(cachedRanges(tasteOn), cachedRanges(tasteOn), '같은 기록이면 다시 계산 안 함');
+assert.deepEqual(cachedRanges({ ...tasteOn, enabled: false }), {}, '취향 반영을 끄면 기본값');
+console.log('calibrate OK');
 console.log('optimize OK');

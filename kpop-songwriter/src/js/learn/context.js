@@ -4,6 +4,7 @@ import { promptBlock } from './taste.js';
 let getTaste = () => null;
 
 export function setTasteGetter(fn) { getTaste = fn; }
+export function currentTaste() { return getTaste(); }
 
 // kind: lyrics | hook | arrange | melody | style
 export function tasteBlock(kind) {

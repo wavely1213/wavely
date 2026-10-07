@@ -1,12 +1,15 @@
 // 가사 자동 채점 (AI 없이). 섹션마다 0~100점과 고칠 점을 낸다. 자동 개선 루프의 기준이 된다.
 import { analyzeSection, languageRatio } from '../lyrictools.js';
 import { lineShare, sectionLabels } from '../structure.js';
+import { DEFAULT_SYLLABLES, FALLBACK_SYLLABLES, cachedRanges } from './calibrate.js';
+import { currentTaste } from '../learn/context.js';
 
-// 섹션 종류별 한 줄 음절 수 권장 범위 (K-pop 곡들의 일반적인 줄 길이 기준 어림값)
-const SYLLABLES = {
-  Chorus: [5, 11], Hook: [4, 10], 'Post-Chorus': [3, 10], 'Pre-Chorus': [6, 12],
-  Verse: [7, 13], Bridge: [6, 13], Rap: [9, 18],
-};
+// 지금 쓰는 줄 길이 범위: 내 취향 기록으로 보정한 것이 있으면 그것, 없으면 기본값
+export function rangeFor(type, ranges = cachedRanges(currentTaste())) {
+  const own = ranges[type];
+  return own ? { range: own.range, personal: true } : { range: DEFAULT_SYLLABLES[type] || FALLBACK_SYLLABLES, personal: false };
+}
+
 const SKIP = ['Intro', 'Outro', 'Dance Break'];
 
 function words(line) {
@@ -29,7 +32,8 @@ function repeatedPhrase(lines) {
   return best ? best[0] : '';
 }
 
-export function scoreSection(section) {
+// ranges: 보정한 줄 길이 범위 (calibrate.js syllableRanges). 생략하면 지금 취향 기록으로 계산
+export function scoreSection(section, ranges) {
   if (SKIP.includes(section.type)) return null;
   const rows = analyzeSection(section.text).filter((r) => r.line.trim());
   if (!rows.length) return { score: 0, tips: ['가사가 비어 있어요.'], parts: {} };
@@ -44,14 +48,14 @@ export function scoreSection(section) {
   if (rhyme < 0.8) tips.push(`라임이 약해요: 줄 끝 모음이 맞는 줄이 ${rows.filter((r) => r.group >= 0).length}/${rows.length}줄이에요. 줄 끝 모음을 맞춰 보세요.`);
 
   // 2) 음절: 권장 범위 + 줄 사이 균형
-  const [lo, hi] = SYLLABLES[section.type] || [6, 13];
+  const { range: [lo, hi], personal } = rangeFor(section.type, ranges);
   const syl = rows.map((r) => r.syllables);
   const inRange = syl.filter((n) => n >= lo && n <= hi).length / syl.length;
   const mean = syl.reduce((a, b) => a + b, 0) / syl.length;
   const cv = mean ? Math.sqrt(syl.reduce((a, b) => a + (b - mean) ** 2, 0) / syl.length) / mean : 0;
   const balance = Math.max(0, 1 - Math.max(0, cv - 0.15) * 2.5);
   const syllable = 0.5 * inRange + 0.5 * balance;
-  if (inRange < 0.75) tips.push(`줄 길이: ${section.type}는 한 줄 ${lo}~${hi}음절이 부르기 좋아요 (지금 ${syl.join('/')}).`);
+  if (inRange < 0.75) tips.push(`줄 길이: ${section.type}는 한 줄 ${lo}~${hi}음절이 부르기 좋아요${personal ? ' (내 취향 기준)' : ''} (지금 ${syl.join('/')}).`);
   else if (balance < 0.7) tips.push(`줄마다 길이 차이가 커요 (${syl.join('/')}). 비슷하게 맞추면 멜로디가 반복되기 쉬워요.`);
 
   // 3) 훅 반복 (코러스류만)
@@ -73,12 +77,12 @@ export function scoreSection(section) {
 }
 
 // 곡 전체: 섹션 점수 평균(빈 반복 코러스 제외) + 곡 단위 점검
-export function scoreSong(song) {
+export function scoreSong(song, ranges) {
   const labels = sectionLabels(song.sections);
   const sections = song.sections.map((s, i) => {
     // 비워 둔 반복 섹션은 앞의 같은 섹션 가사를 쓰므로 채점하지 않는다
     const repeat = !s.text.trim() && song.sections.slice(0, i).some((p) => p.type === s.type && p.text.trim());
-    return { id: s.id, label: labels[i], result: repeat ? null : scoreSection(s) };
+    return { id: s.id, label: labels[i], result: repeat ? null : scoreSection(s, ranges) };
   });
   const scored = sections.filter((s) => s.result);
   const avg = scored.length ? Math.round(scored.reduce((a, s) => a + s.result.score, 0) / scored.length) : 0;

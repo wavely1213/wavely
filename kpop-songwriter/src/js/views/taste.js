@@ -7,9 +7,21 @@ import { isBusy, runJob, stopJob, job } from '../aijob.js';
 import { INSTRUMENT_BY_ID } from '../music/instruments.js';
 import { zip } from '../music/pack.js';
 import { saveFile } from '../platform/download.js';
+import { syllableRanges, DEFAULT_SYLLABLES, FALLBACK_SYLLABLES, MIN_LINES } from '../optimize/calibrate.js';
 
 const KIND = { lyrics: '가사', hook: '훅', arrange: '편곡', melody: '멜로디', style: '스타일' };
 const ui = { basis: '' };
+
+// 채점 기준이 내 가사로 얼마나 옮겨졌는지 (보정된 종류만, 없으면 기본값 안내)
+function renderRanges(taste) {
+  const r = syllableRanges(taste);
+  const types = Object.keys(r);
+  if (!types.length || !taste.enabled) return h('span', { class: 'muted' }, `기본값 (섹션 종류마다 ${MIN_LINES}줄 넘게 👍·♥·고침이 쌓이면 내 가사 길이 쪽으로 옮겨 가요)`);
+  return types.map((t) => {
+    const def = DEFAULT_SYLLABLES[t] || FALLBACK_SYLLABLES;
+    return h('span', { class: 'mono range-row' }, `${t} ${r[t].range[0]}~${r[t].range[1]}음절 (기본 ${def[0]}~${def[1]}, 내 가사 ${r[t].n}줄)`);
+  });
+}
 
 export function renderTaste(saveLabel) {
   const { taste } = getState();
@@ -52,7 +64,8 @@ export function renderTaste(saveLabel) {
           h('dt', null, '기록'), h('dd', { class: 'mono' }, `${st.total}개 (👍 ${st.liked} · 👎 ${st.disliked} · 고침 ${st.edits})`),
           h('dt', null, '자주 나온 불만'), h('dd', null, st.reasons.length ? st.reasons.slice(0, 4).map(([r, n]) => `${r} ${n}`).join(', ') : '—'),
           h('dt', null, '좋아한 편곡 BPM'), h('dd', { class: 'mono' }, st.bpmRange ? `${st.bpmRange[0]}~${st.bpmRange[1]}` : '—'),
-          h('dt', null, '좋아한 편곡 악기'), h('dd', null, st.instruments.length ? st.instruments.map((i) => INSTRUMENT_BY_ID[i]?.name || i).join(', ') : '—')),
+          h('dt', null, '좋아한 편곡 악기'), h('dd', null, st.instruments.length ? st.instruments.map((i) => INSTRUMENT_BY_ID[i]?.name || i).join(', ') : '—'),
+          h('dt', null, '가사 채점 줄 길이'), h('dd', { id: 'taste-ranges' }, renderRanges(taste))),
         h('div', { class: 'row' },
           h('button', { type: 'button', class: 'btn small', disabled: !st.total, onclick: async () => {
             const res = await saveFile('taste-feedback.zip', zip([{ name: 'taste-feedback.jsonl', data: toJsonl(taste) }, { name: 'profile.json', data: JSON.stringify(taste.profile, null, 1) }]));
