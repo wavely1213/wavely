@@ -388,3 +388,9 @@ input[type=radio] { accent-color: var(--accent); }
 .tr-src, .tr-dst { min-width: 0; overflow-wrap: anywhere; }
 .tr-kana { display: block; }
 @media (max-width: 640px) { .tr-row { grid-template-columns: 1fr; gap: 0; padding-bottom: 6px; } .tr-dst { padding-left: 10px; border-left: 2px solid var(--line); } }
+
+/* 스타일 변형 */
+.variants { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.variant { display: grid; gap: 6px; }
+.variant.chosen .tag { background: var(--accent-soft); }
+.take-variant { font-size: 13px; padding: 2px 6px; }

@@ -70,6 +70,7 @@
 | 가사 최적화 | optimize/lyricscore.js, optimize/improve.js | 섹션·곡 채점과 고칠 점, 오른 것만 반영하는 자동 개선 |
 | 보컬 음역 | music/range.js | 멤버 음역, 섹션 음역(겹침), 음역 밖 음 찾기·옮기기 |
 | 테이크 비교 | music/takes.js | Suno 테이크의 BPM·키·길이를 편곡과 비교해 점수 매기기 |
+| 스타일 변형 | variants.js, views/variants.js | Suno 스타일 A/B/C (BPM·키 고정) 만들기·복사·정하기, 테이크 파일 이름에서 변형 찾기 |
 | 원클릭 초안 | workflow/draft.js | 컨셉 → 가사·편곡·멜로디·Suno 스타일을 차례로 AI로 채움 (단계마다 바로 반영) |
 | 도움말 | help.js | 용어 설명 "?" (details 요소) |
 | 진행 단계 | workflow/progress.js | 곡 하나의 발매까지 7단계 완료 판단·다음 할 일 |

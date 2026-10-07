@@ -1,4 +1,4 @@
-// 스타일 탭: Suno 스타일 프롬프트 재료 입력 + AI 제안.
+// 스타일 탭: Suno 스타일 프롬프트 재료 입력 + AI 제안 + 변형 A/B/C.
 import { h, field } from '../dom.js';
 import { mutate, mutateSong } from '../state.js';
 import { GENRES, SUNO_LIMITS } from '../constants.js';
@@ -6,6 +6,7 @@ import { buildStyle } from '../suno.js';
 import { suggestStyle } from '../ai.js';
 import { isBusy, runJob, stopJob, job } from '../aijob.js';
 import { feedbackBar } from '../learn/feedback.js';
+import { renderVariants } from './variants.js';
 
 const why = {};
 
@@ -68,5 +69,6 @@ export function renderStyle(song) {
     h('section', { class: 'card' },
       h('div', { class: 'card-head' }, h('h2', null, '미리보기'), count),
       preview),
+    renderVariants(song),
   );
 }

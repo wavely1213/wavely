@@ -8,6 +8,7 @@ import { saveFile } from '../platform/download.js';
 import { help } from '../help.js';
 import { analyzeAudio } from '../music/analyze.js';
 import { compareTake } from '../music/takes.js';
+import { variantFromName } from '../variants.js';
 import { uid } from '../dom.js';
 import { getState, newAlbum } from '../state.js';
 import { setMaster, setSongMaster } from '../album/session.js';
@@ -189,7 +190,7 @@ const takesBy = {};
 async function addTakes(song, files) {
   const list = takesBy[song.id] || (takesBy[song.id] = []);
   for (const f of [...files].slice(0, 6 - list.length)) {
-    const t = { id: uid(), file: f, name: f.name.replace(/\.[^.]+$/, ''), analysis: null, cmp: null, error: false };
+    const t = { id: uid(), file: f, name: f.name.replace(/\.[^.]+$/, ''), variant: variantFromName(f.name, song), analysis: null, cmp: null, error: false };
     list.push(t);
     refresh();
     try {
@@ -234,6 +235,7 @@ function renderTakes(song) {
     if (fs?.length) addTakes(song, fs);
   } });
   const best = Math.max(-1, ...list.filter((t) => t.cmp).map((t) => t.cmp.score));
+  const vids = (song.styleVariants?.items || []).map((v) => v.id);
   return h('section', { class: 'card' },
     h('div', { class: 'card-head' },
       h('h2', null, 'Suno 테이크 비교 (선택)'),
@@ -242,6 +244,9 @@ function renderTakes(song) {
     list.length ? h('ul', { class: 'takes' }, list.map((t) => h('li', { class: `take${t.cmp && t.cmp.score === best && best > 0 ? ' best' : ''}` },
       h('div', { class: 'take-head' },
         h('strong', { class: 'track-title' }, t.name),
+        vids.length ? h('select', { class: 'take-variant', 'aria-label': `${t.name} 스타일`, onchange: (e) => { t.variant = e.target.value; refresh(); } },
+          h('option', { value: '', selected: !t.variant }, '스타일 ?'),
+          vids.map((id) => h('option', { value: id, selected: t.variant === id }, `스타일 ${id}`))) : null,
         t.cmp ? h('span', { class: `pill ${t.cmp.score === 3 ? 'good' : t.cmp.score >= 2 ? '' : 'warn-pill'}` }, `편곡과 일치 ${t.cmp.score}/3`) : null,
         t.cmp && t.cmp.score === best && best > 0 && list.length > 1 ? h('span', { class: 'pill good' }, '가장 가까움') : null,
         !t.analysis && !t.error ? h('span', { class: 'status' }, h('span', { class: 'dot' }), '분석 중') : null,
