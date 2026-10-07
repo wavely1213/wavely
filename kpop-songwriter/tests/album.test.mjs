@@ -411,3 +411,20 @@ import { wrapLine, layoutLyrics } from '../src/js/album/lyriccard.js';
   assert.ok(many.size < 76 && many.rows.length * many.size * 1.5 <= 830, `줄여서 들어감 ${many.size}`);
   console.log('lyric card layout OK');
 }
+
+// 새 앨범이 지난 앨범의 아티스트 정보를 이어받음 (©/℗ 연도는 올해로), 앨범마다 다른 것은 안 받음
+import { inheritAlbumInfo } from '../src/js/album/model.js';
+{
+  const prev = { ...newAlbum(), title: '첫 앨범', artist: '물결', label: '물결뮤직', genre: 'Ballad', subgenre: '', language: '한국어·영어', cLine: '2025 물결뮤직', pLine: '물결', upc: '123456789012', releaseDate: '2025-05-01', ai: { lyrics: false, composition: true, vocals: true, note: '보컬만 Suno' } };
+  const a = inheritAlbumInfo(newAlbum(), prev, 2026);
+  assert.deepEqual([a.artist, a.label, a.genre, a.subgenre, a.language], ['물결', '물결뮤직', 'Ballad', '', '한국어·영어']);
+  assert.equal(a.cLine, '2026 물결뮤직');
+  assert.equal(a.pLine, '2026 물결', '연도가 없던 표기에도 올해를 붙임');
+  assert.deepEqual(a.ai, { lyrics: false, composition: true, vocals: true, note: '보컬만 Suno' });
+  assert.equal(a.title, '새 앨범');
+  assert.equal(a.upc, '');
+  assert.notEqual(a.releaseDate, '2025-05-01');
+  assert.equal(inheritAlbumInfo(newAlbum(), { ...newAlbum(), cLine: '2025 ' }, 2026).cLine.trim(), String(new Date().getFullYear()), '비어 있던 표기는 기본값');
+  assert.equal(inheritAlbumInfo(newAlbum(), null).artist, '', '첫 앨범은 그대로');
+  console.log('album inherit OK');
+}

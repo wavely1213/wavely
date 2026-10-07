@@ -4,7 +4,7 @@ import { sectionsFromTemplate, autoDistribute } from './structure.js';
 import { MAX_VERSIONS } from './constants.js';
 import { exampleSong } from './example.js';
 import { normalizeMusic } from './music/arrangement.js';
-import { newAlbum as makeAlbum, normalizeAlbum, newTrack } from './album/model.js';
+import { newAlbum as makeAlbum, normalizeAlbum, newTrack, inheritAlbumInfo } from './album/model.js';
 import { emptyTaste, normalizeTaste, MAX_LOG } from './learn/taste.js';
 import { setTasteGetter } from './learn/context.js';
 import { forgetSong } from './album/session.js';
@@ -260,7 +260,9 @@ export function keepSong(id) {
 
 // fromSong을 주면 그 곡 하나로 싱글 앨범을 만든다 (제목도 곡 제목으로)
 export function newAlbum({ fromSong } = {}) {
-  const album = makeAlbum();
+  // 가장 최근에 고친 앨범의 아티스트 정보를 이어받는다 (두 번째 앨범부터 다시 적지 않게)
+  const prev = [...state.albums].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))[0];
+  const album = inheritAlbumInfo(makeAlbum(), prev);
   // 지금 보고 있던 곡을 첫 트랙으로 넣어 준다 (예시 곡 제외)
   const song = fromSong || current();
   if (fromSong) album.title = fromSong.title.replace(/^예시:\s*/, '');
