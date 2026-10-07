@@ -28,3 +28,12 @@ console.log('unit OK');
   assert.ok(lineDiff('x\ny', 'x\ny').every((r) => r.type === 'same'));
   console.log('diff OK');
 }
+
+// 부를 음절 조각: 한글은 글자마다, 영어는 음절 수만큼, 괄호 애드립 제외 — 개수는 countSyllables와 같음
+{
+  const { syllableTokens, countSyllables } = await import('../src/js/lyrictools.js');
+  const line = '불 꺼진 signal (oh) baby calling';
+  assert.deepEqual(syllableTokens(line), ['불', '꺼', '진', 'sig', 'nal', 'ba', 'by', 'call', 'ing']);
+  for (const l of ['Midnight signal 들리니', '새벽 세 시 빛이 번져', 'I keep on calling', '(Can you hear me?)']) assert.equal(syllableTokens(l).length, countSyllables(l), l);
+  console.log('tokens OK');
+}

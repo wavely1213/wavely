@@ -33,6 +33,20 @@ export function countSyllables(line) {
   return n;
 }
 
+// 한 줄을 부를 음절 조각으로: 한글은 글자마다, 영어는 음절 수만큼 단어를 나눈다 (예: signal → sig·nal). 괄호 애드립은 뺀다.
+export function syllableTokens(line) {
+  const main = String(line || '').replace(/\([^)]*\)/g, ' ');
+  const out = [];
+  for (const m of main.matchAll(/[\uac00-\ud7a3]|[A-Za-z']+/g)) {
+    const w = m[0];
+    if (isHangul(w)) { out.push(w); continue; }
+    const n = englishSyllables(w);
+    const size = Math.ceil(w.length / n);
+    for (let i = 0; i < n; i++) out.push(w.slice(i * size, (i + 1) * size) || w.slice(-1));
+  }
+  return out;
+}
+
 // 줄 끝 라임 키. 한글은 마지막 음절의 모음 + 받침 유무, 영어는 마지막 단어의 끝 모음군.
 export function rhymeKey(line) {
   const main = line.replace(/\([^)]*\)/g, ' ').replace(/[\s.,!?~…"'-]+$/g, '').trim();

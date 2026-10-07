@@ -57,6 +57,12 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     await p.keyboard.press('Delete');
     const nAfter = await p.locator('.pr-note').count();
     global.keysOk = (global.keysOk ?? true) && nAfter === nBefore - 1;
+    // 가사 음절 넣기: 음표를 시작 순서대로 가사 음절로 채움
+    if (await p.locator('#mel-fill-syl').count()) {
+      await p.click('#mel-fill-syl');
+      const syls = await p.$$eval('.pr-note', (els) => els.map((e) => e.textContent));
+      global.sylOk = (global.sylOk ?? true) && syls.filter(Boolean).length >= Math.min(3, syls.length);
+    }
     // 도움말 열기
     await p.click('.tab:text-is("편곡")');
     await p.click('details.help >> nth=0 >> summary');
@@ -235,7 +241,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
       global.backupOk = /^kpop-backup-\d{8}-\d{4}\.json$/.test(bdl.suggestedFilename()) && restoredSongs >= 2 && restoredExample === 0;
       await c2.close();
     }
-    console.log(tag, { custom, prog, before, after, refs, masterPill, hlRange: global.hlRange, takeBest: global.takeBest, toneNote: global.toneNote, sync: global.syncInfo, stepHint, autoMaster, keptMaster, keptCover, errorsLeft, zip: fs.statSync(zipPath).size, vbodyStart: vbody.slice(0, 30), vcount });
+    console.log(tag, { custom, prog, before, after, refs, masterPill, sylOk: global.sylOk, hlRange: global.hlRange, takeBest: global.takeBest, toneNote: global.toneNote, sync: global.syncInfo, stepHint, autoMaster, keptMaster, keptCover, errorsLeft, zip: fs.statSync(zipPath).size, vbodyStart: vbody.slice(0, 30), vcount });
     await c.close();
   }
   // 태블릿 세로(834px, 목록이 옆에 있는 가장 좁은 폭): 어떤 탭을 골라도 그 탭이 탭 줄 안에 보임
@@ -258,6 +264,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
   if (!global.navOk) errs.push('폰 목록 접기 이상');
   if (!global.icsOk) errs.push('캘린더 파일 이상');
   if (!global.diffSame) errs.push('버전 비교 이상');
+  if (global.sylOk !== true) errs.push('가사 음절 넣기 이상');
   if (!global.statOk) errs.push('성과 기록 이상');
   if (!global.bookletOk) errs.push('가사집 이상');
   if (!global.splitOk) errs.push(`지분 이상: ${global.splitSum}`);

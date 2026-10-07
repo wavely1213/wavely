@@ -4,7 +4,7 @@ import { h } from '../dom.js';
 import { mutate, mutateSong, refresh } from '../state.js';
 import { sectionLabels } from '../structure.js';
 import { degreeToMidi, NOTE_NAMES } from '../music/theory.js';
-import { countSyllables } from '../lyrictools.js';
+import { countSyllables, syllableTokens } from '../lyrictools.js';
 import { writeMelody } from '../ai-music.js';
 import { isBusy, runJob, stopJob, job } from '../aijob.js';
 import { playButton } from './playbar.js';
@@ -64,7 +64,11 @@ export function renderMelody(song) {
       h('div', { class: 'card-head' },
         h('h2', null, `[${label}] ${sm.bars}마디`),
         h('div', { class: 'row' },
-          h('span', { class: 'mono muted' }, `음표 ${sm.melody.length} · 가사 음절 ${syl}`),
+          h('span', { class: `mono ${sm.melody.length && syl && Math.abs(sm.melody.length - syl) > Math.max(2, syl * 0.15) ? 'over' : 'muted'}`, id: 'mel-count', title: '음표 수와 가사 음절 수가 많이 다르면 가사가 바뀌었거나 멜로디가 덜 맞은 거예요' }, `음표 ${sm.melody.length} · 가사 음절 ${syl}`),
+          sm.melody.length && syl ? h('button', { type: 'button', class: 'btn small', id: 'mel-fill-syl', title: '음표에 가사 음절을 앞에서부터 차례로 넣어요 (손으로 찍은 음표용)', onclick: () => mutate((x) => {
+            const tokens = x.sections.find((y) => y.id === s.id).text.split('\n').flatMap(syllableTokens);
+            [...x.music.sections[s.id].melody].sort((a, b) => a.s - b.s).forEach((n, i) => { n.syl = tokens[i] || ''; });
+          }) }, '가사 음절 넣기') : null,
           playButton(song, { onlyIds: [s.id], label, text: '▶ 이 부분 듣기', cls: 'btn small primary' }))),
       s.text.trim() ? h('pre', { class: 'lyric-ref' }, s.text.trim()) : null,
       renderRange(song, s, sm),
