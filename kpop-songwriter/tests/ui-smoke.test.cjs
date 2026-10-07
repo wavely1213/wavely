@@ -171,6 +171,13 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     await p.waitForTimeout(100);
     global.splitSum = await p.textContent('.split-row .mono');
     await p.click('.tab:text-is("커버")');
+    // 분위기에 맞게 고르기 + 모양 한눈에 보기 4개 (누르면 그 모양)
+    if (await p.locator('#cover-suggest:not([disabled])').count()) await p.click('#cover-suggest');
+    const minis = await p.locator('.cover-mini-btn').count();
+    await p.locator('.cover-mini-btn >> nth=2').click();
+    const miniOn = await p.getAttribute('.cover-mini-btn >> nth=2', 'aria-pressed');
+    const coverOverflow = await p.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
+    global.coverPickOk = (global.coverPickOk ?? true) && minis === 4 && miniOn === 'true' && !coverOverflow && (await p.locator('#cover-suggest').count()) === 1;
     await p.click('text=이 커버 쓰기');
     await p.waitForSelector('.cover-thumb', { timeout: 30000 });
     if (tag === 'desk') await p.screenshot({ path: path.join(TMP, `${tag}-앨범커버.png`), fullPage: true });
@@ -278,6 +285,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
   if (!global.icsOk) errs.push('캘린더 파일 이상');
   if (!global.diffSame) errs.push('버전 비교 이상');
   if (!global.qcOk) errs.push('소리 점검(QC) 표시 이상');
+  if (!global.coverPickOk) errs.push('커버 추천·모양 미리보기 이상');
   if (!/^-1[34]\.\d LUFS$/.test(global.takeLufs || '')) errs.push(`테이크 음량 표시 이상: ${global.takeLufs}`);
   if (global.albumStep1 !== '다음: 정보·크레딧' || global.albumStepTab !== '정보·크레딧' || global.albumStep2 !== '다음: 발매 후 기록') errs.push(`앨범 진행 단계 이상: ${global.albumStep1} / ${global.albumStepTab} / ${global.albumStep2}`);
   if (global.sylOk !== true) errs.push('가사 음절 넣기 이상');

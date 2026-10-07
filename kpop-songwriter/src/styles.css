@@ -441,3 +441,9 @@ input[type=radio] { accent-color: var(--accent); }
 .table-scroll { overflow-x: auto; max-width: 100%; }
 .stat-table th:first-child { min-width: 7em; overflow-wrap: anywhere; }
 @media (max-width: 640px) { .stat-graph { display: none; } }
+
+/* 커버 모양 한눈에 보기 */
+.cover-thumbs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+.cover-mini-btn { border: 2px solid transparent; background: none; padding: 4px; border-radius: 10px; cursor: pointer; display: grid; gap: 4px; justify-items: center; }
+.cover-mini-btn.on { border-color: var(--accent); }
+.cover-mini { width: 100%; aspect-ratio: 1; border-radius: 6px; display: block; }

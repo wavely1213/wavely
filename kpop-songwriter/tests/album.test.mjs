@@ -287,3 +287,19 @@ import { extOf } from '../src/js/album/model.js';
   assert.equal(t.log.length, 2, '같은 곡을 두 번 넣어도 하나씩');
   console.log('stats OK');
 }
+
+// 커버 추천: 타이틀곡 분위기 먼저, 앞의 분위기에 무게, 모르는 분위기만이면 없음
+{
+  const { suggestCover, coverMoods } = await import('../src/js/album/coverpick.js');
+  const { PALETTES } = await import('../src/js/album/cover.js');
+  const sA = { id: 'a', concept: { moods: ['청량', '하이틴'] } };
+  const sB = { id: 'b', concept: { moods: ['다크'] } };
+  assert.deepEqual(coverMoods({ tracks: [{ songId: 'a' }, { songId: 'b', isTitle: true }] }, [sA, sB]), ['다크']);
+  assert.deepEqual(coverMoods({ tracks: [{ songId: 'a' }, { songId: 'b' }] }, [sA, sB]), ['청량', '하이틴', '다크']);
+  const sg = suggestCover(['청량', '하이틴']);
+  assert.equal(PALETTES[sg.palette].name, '민트');
+  assert.equal(sg.template, 'gradient');
+  assert.equal(suggestCover(['없는분위기']), null);
+  assert.equal(suggestCover([]), null);
+  console.log('coverpick OK');
+}

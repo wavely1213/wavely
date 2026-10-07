@@ -68,6 +68,7 @@
 | 트랙 순서 추천 | album/order.js, views/album/tracks.js | BPM·평균 에너지·키·길이로 순서 점수, 8곡까지 전수 탐색(그 이상은 두 곡 바꾸기 반복), 지금보다 나을 때만 제안 |
 | 발매 후 성과 | album/stats.js, views/album/stats.js | 날짜별 트랙 누적 재생 기록, 늘어난 수·비중·그래프, 반응 좋은 곡을 취향 기록(편곡·코러스)으로 넣어 다음 곡에 반영 |
 | 지분 시트 | album/splits.js, views/album/meta.js | 역할(작사·작곡·편곡)마다 여러 명이면 % 입력, 안 적으면 똑같이, 합 100% 점검, split_sheet.csv |
+| 커버 추천 | album/coverpick.js, views/album/cover.js | 타이틀곡(없으면 전체) 분위기 → 팔레트·모양 추천, 모양 4개 미리보기 |
 | 가사집 | album/booklet.js, views/album/submit.js | 커버·트랙 목록·곡마다 가사·크레딧을 인쇄용 HTML(A4, 쪽 나눔)로, 제출 패키지에 booklet.html |
 | 캘린더 파일 | album/ics.js, views/album/plan.js | 발매 일정 → .ics (하루 종일 + 9시 알림, 끝낸 일정 제외, 75바이트 접기) |
 | 싱크 가사 | album/lrc.js, album/lyrics.js, views/album/sync.js | 마스터를 들으며 줄마다 탭 → song.sync 저장, LRC 파일·제출 패키지 포함, 가사 변경 감지 |
