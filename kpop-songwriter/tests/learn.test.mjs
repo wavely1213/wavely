@@ -1,6 +1,6 @@
 // 취향 학습 로직 점검: 기록 상한, 같은 대상 재평가, 프롬프트 블록, JSONL. 실행: npm run test:learn
 import assert from 'node:assert/strict';
-import { emptyTaste, makeEntry, addEntry, promptBlock, tasteStats, toJsonl, MAX_LOG } from '../src/js/learn/taste.js';
+import { emptyTaste, makeEntry, addEntry, promptBlock, tasteStats, toJsonl, MAX_LOG, preferencePairs, pairsJsonl } from '../src/js/learn/taste.js';
 
 const t = emptyTaste();
 assert.equal(promptBlock(t, 'lyrics'), ''); // 아무것도 없으면 프롬프트에 안 붙음
@@ -51,3 +51,28 @@ import { newSinceSummary, SUMMARY_EVERY } from '../src/js/learn/taste.js';
   assert.equal(newSinceSummary(t2), 0);
   console.log('summary hint OK');
 }
+
+// 선호 쌍: 고침(전→후), 스타일 변형 선택(고름↔나머지), 같은 종류·섹션의 👍↔👎, 줄 ♥는 제외
+{
+  const pt = emptyTaste();
+  addEntry(pt, makeEntry({ kind: 'lyrics', rating: 0, before: 'AI 초안', after: '내가 고침', context: { ref: 'g1', section: 'Verse' } }));
+  addEntry(pt, makeEntry({ kind: 'lyrics', rating: 0, before: '같음', after: '같음 ', context: { ref: 'g2', section: 'Verse' } }));
+  addEntry(pt, makeEntry({ kind: 'style', rating: 1, text: '스타일 B', context: { ref: 'v1', rejected: ['스타일 A', '스타일 C'] } }));
+  addEntry(pt, makeEntry({ kind: 'lyrics', rating: 1, text: '좋은 벌스', context: { ref: 'g3', section: 'Verse' } }));
+  addEntry(pt, makeEntry({ kind: 'lyrics', rating: -1, text: '별로 벌스', reasons: ['유치해요'], context: { ref: 'g4', section: 'Verse' } }));
+  addEntry(pt, makeEntry({ kind: 'lyrics', rating: -1, text: '별로 코러스', context: { ref: 'g5', section: 'Chorus' } }));
+  addEntry(pt, makeEntry({ kind: 'lyrics', rating: 1, text: '♥ 줄', context: { ref: 'g3#x', section: 'Verse', line: true } }));
+  const pairs = preferencePairs(pt);
+  assert.deepEqual(pairs.map((p) => [p.source, p.chosen, p.rejected]), [
+    ['edit', '내가 고침', 'AI 초안'],
+    ['choice', '스타일 B', '스타일 A'],
+    ['choice', '스타일 B', '스타일 C'],
+    ['rating', '좋은 벌스', '별로 벌스'],
+  ]);
+  assert.deepEqual(pairs[3].reasons, ['유치해요']);
+  const lines = pairsJsonl(pt).trim().split('\n');
+  assert.equal(lines.length, 4);
+  assert.ok(JSON.parse(lines[0]).at.endsWith('Z'));
+  console.log('pairs OK');
+}
+

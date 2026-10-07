@@ -1,7 +1,7 @@
 // 내 취향 화면: 취향 프로필(직접 고치기·AI 정리), 반응 기록, 내보내기.
 import { h, field, formatTime, toast } from '../dom.js';
 import { getState, mutateTaste } from '../state.js';
-import { tasteStats, toJsonl, removeEntry, newSinceSummary, SUMMARY_EVERY } from '../learn/taste.js';
+import { tasteStats, toJsonl, removeEntry, newSinceSummary, SUMMARY_EVERY, preferencePairs, pairsJsonl } from '../learn/taste.js';
 import { summarizeTaste } from '../learn/summarize.js';
 import { isBusy, runJob, stopJob, job } from '../aijob.js';
 import { INSTRUMENT_BY_ID } from '../music/instruments.js';
@@ -68,10 +68,14 @@ export function renderTaste(saveLabel) {
           h('dt', null, '가사 채점 줄 길이'), h('dd', { id: 'taste-ranges' }, renderRanges(taste))),
         h('div', { class: 'row' },
           h('button', { type: 'button', class: 'btn small', disabled: !st.total, onclick: async () => {
-            const res = await saveFile('taste-feedback.zip', zip([{ name: 'taste-feedback.jsonl', data: toJsonl(taste) }, { name: 'profile.json', data: JSON.stringify(taste.profile, null, 1) }]));
+            const res = await saveFile('taste-feedback.zip', zip([
+              { name: 'taste-feedback.jsonl', data: toJsonl(taste) },
+              { name: 'preference-pairs.jsonl', data: pairsJsonl(taste) },
+              { name: 'profile.json', data: JSON.stringify(taste.profile, null, 1) },
+            ]));
             if (res === 'saved') toast('받았어요');
           } }, '기록 내보내기 (JSONL)'),
-          h('span', { class: 'muted small' }, '나중에 모델을 파인튜닝할 때 학습 데이터로 쓸 수 있어요.'))),
+          h('span', { class: 'muted small' }, `나중에 모델을 파인튜닝할 때 학습 데이터로 쓸 수 있어요. 고른 것·버린 것 쌍 ${preferencePairs(taste).length}개(선호 학습용)도 함께 들어가요.`))),
       taste.log.length
         ? h('ol', { class: 'versions' }, [...taste.log].reverse().slice(0, 40).map((e) => h('li', { class: 'version' },
           h('div', { class: 'version-head' },

@@ -69,7 +69,7 @@
 | 전체 백업·복원 | backup.js, views/backup.js, music/pack.js(unzip) | 곡(버전 포함)·앨범·취향을 파일 하나로, 덮어쓰지 않고 합치는 복원, 가져오기(json·zip) |
 | 되돌리기 | state.js (undo/redo), views/undo-buttons.js | 곡·앨범마다 최근 40단계, 타이핑은 2초 묶음. 머리말 ↶↷ + Ctrl+Z |
 | 취향 학습 | learn/taste.js, learn/context.js | 반응 기록·통계·프롬프트 블록·JSONL, AI 모듈이 취향을 읽는 연결점 |
-| 반응 UI | learn/feedback.js, learn/summarize.js, views/taste.js | 👍/👎 막대, 줄 단위 ♥, 고친 내용 추적, AI 취향 정리, 내 취향 화면 |
+| 반응 UI | learn/feedback.js, learn/summarize.js, views/taste.js | 👍/👎 막대, 줄 단위 ♥, 선호 쌍 내보내기(learn/taste.js preferencePairs), 고친 내용 추적, AI 취향 정리, 내 취향 화면 |
 | 가사 최적화 | optimize/lyricscore.js, optimize/improve.js, optimize/calibrate.js | 섹션·곡 채점과 고칠 점, 오른 것만 반영하는 자동 개선, 내 가사로 줄 길이 기준 보정 |
 | 보컬 음역 | music/range.js | 멤버 음역, 섹션 음역(겹침), 음역 밖 음 찾기·옮기기 |
 | 레퍼런스 음색 맞추기 | music/tonematch.js, music/analyze.js(toneOf), views/master.js | 레퍼런스·원본의 저음(150Hz↓)·고음(2.5kHz↑) 비율 차이 → 마스터링 EQ('ref' 설정) |

@@ -97,3 +97,30 @@ export function newSinceSummary(taste) {
   const since = taste.profile.summarizedAt || 0;
   return taste.log.filter((e) => e.at > since).length;
 }
+
+// 선호 쌍(고른 것 vs 버린 것): 선호 학습(DPO 등)용. 사람이 실제로 고른 것만 쓴다.
+// - 고침: AI 초안(버림) → 고친 글(고름)
+// - 스타일 변형: 정한 변형(고름) ↔ 나머지 변형(버림)
+// - 반응: 같은 종류·같은 섹션의 👍(고름) ↔ 👎(버림), 최근 것끼리 최대 maxRated쌍
+export function preferencePairs(taste, { maxRated = 50 } = {}) {
+  const out = [];
+  const ctx = (e) => ({ kind: e.kind, section: e.context?.section || '', song: e.context?.song || '' });
+  taste.log.filter((e) => e.rating === 0 && e.before && e.after && e.before.trim() !== e.after.trim())
+    .forEach((e) => out.push({ source: 'edit', ...ctx(e), chosen: e.after, rejected: e.before, at: e.at }));
+  taste.log.filter((e) => e.rating === 1 && Array.isArray(e.context?.rejected))
+    .forEach((e) => e.context.rejected.forEach((r) => { if (r && r !== e.text) out.push({ source: 'choice', ...ctx(e), chosen: e.text, rejected: r, at: e.at }); }));
+  const rated = [];
+  const plain = taste.log.filter((e) => e.text && !Array.isArray(e.context?.rejected) && !e.context?.line);
+  const liked = plain.filter((e) => e.rating === 1).reverse();
+  const disliked = plain.filter((e) => e.rating === -1).reverse();
+  liked.forEach((l) => disliked.forEach((d) => {
+    if (rated.length < maxRated && l.kind === d.kind && (l.context?.section || '') === (d.context?.section || '')) {
+      rated.push({ source: 'rating', ...ctx(l), chosen: l.text, rejected: d.text, reasons: d.reasons, at: Math.max(l.at, d.at) });
+    }
+  }));
+  return [...out, ...rated];
+}
+
+export function pairsJsonl(taste) {
+  return preferencePairs(taste).map((p) => JSON.stringify({ ...p, at: new Date(p.at).toISOString() })).join('\n') + '\n';
+}
