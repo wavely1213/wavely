@@ -24,7 +24,7 @@ export function coverOf(albumId) {
 export function setCover(albumId, cover) {
   if (covers[albumId]?.url) URL.revokeObjectURL(covers[albumId].url);
   covers[albumId] = cover ? { ...cover, url: URL.createObjectURL(cover.blob) } : null;
-  if (cover) putFile(`cover:${albumId}`, { blob: cover.blob, width: cover.width, height: cover.height, source: cover.source, name: cover.name || '' });
+  if (cover) putFile(`cover:${albumId}`, { blob: cover.blob, width: cover.width, height: cover.height, source: cover.source, name: cover.name || '', drawnWith: cover.drawnWith || null });
   else deleteFile(`cover:${albumId}`);
 }
 
@@ -67,4 +67,28 @@ export function forgetAlbum(albumId) {
   deleteFile(`cover:${albumId}`);
   delete masters[albumId];
   delete covers[albumId];
+}
+
+// 곡을 지울 때: 그 곡의 마스터링 결과와 앨범별 마스터 보관 파일을 지운다
+export function forgetSong(songId, albumIds = []) {
+  delete songMasters[songId];
+  deleteFile(`songmaster:${songId}`);
+  albumIds.forEach((aid) => forgetTrack(aid, songId));
+}
+
+// 앨범에서 트랙을 뺄 때
+export function forgetTrack(albumId, songId) {
+  delete mastersOf(albumId)[songId];
+  deleteFile(`master:${albumId}:${songId}`);
+}
+
+// 곡 화면을 열 때 한 번: 마스터링 탭 결과를 보관함에서 불러온다. 불러왔으면 true.
+const restoredSongs = new Set();
+export async function restoreSong(songId) {
+  if (restoredSongs.has(songId)) return false;
+  restoredSongs.add(songId);
+  if (songMasters[songId]) return false;
+  const m = await getFile(`songmaster:${songId}`);
+  if (m?.file) { songMasters[songId] = m; return true; }
+  return false;
 }

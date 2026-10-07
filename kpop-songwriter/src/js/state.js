@@ -7,6 +7,7 @@ import { normalizeMusic } from './music/arrangement.js';
 import { newAlbum as makeAlbum, normalizeAlbum } from './album/model.js';
 import { emptyTaste, normalizeTaste } from './learn/taste.js';
 import { setTasteGetter } from './learn/context.js';
+import { forgetSong } from './album/session.js';
 
 const state = {
   store: null,
@@ -223,7 +224,18 @@ async function flush() {
   emit('status');
 }
 
+// 곡을 지우면 앨범 트랙·버전 사본·보관 파일도 함께 정리한다
 export async function deleteSong(id) {
+  const song = state.songs.find((s) => s.id === id);
+  const inAlbums = state.albums.filter((a) => a.tracks.some((t) => t.songId === id));
+  inAlbums.forEach((a) => {
+    a.tracks = a.tracks.filter((t) => t.songId !== id);
+    if (a.tracks.length && !a.tracks.some((t) => t.isTitle)) a.tracks[0].isTitle = true;
+    a.updatedAt = Date.now();
+    schedule(a.id);
+  });
+  (song?.versions || []).forEach((v) => state.store.removeVersion(id, v.id).catch(() => {}));
+  forgetSong(id, inAlbums.map((a) => a.id));
   state.songs = state.songs.filter((s) => s.id !== id);
   pending.delete(id);
   try { await state.store.remove(id); } catch { /* 다음 저장 때 목록에서 빠짐 */ }

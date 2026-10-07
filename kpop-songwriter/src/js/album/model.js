@@ -99,44 +99,55 @@ export function scheduleFor(album, today = new Date()) {
 
 // ---------- 발매 전 점검표 ----------
 // masters: { [songId]: {sampleRate, bits, lufs, peak, name} } (화면 메모리), coverInfo: {width, height} | null
+const ISRC = /^[A-Z]{2}[A-Z0-9]{3}\d{7}$/;
+
 export function releaseChecklist(album, songs, { masters = {}, coverInfo = null, today = new Date() } = {}) {
   const items = [];
-  const add = (level, text) => items.push({ level, text });
+  // go: 고치러 갈 곳 — { tab } (앨범 탭) 또는 { song, tab } (곡 화면 탭)
+  const add = (level, text, go = null) => items.push({ level, text, go });
   const type = ALBUM_TYPES[album.type];
   const tracks = album.tracks.filter((t) => songs.some((s) => s.id === t.songId));
 
-  if (!album.title.trim() || album.title === '새 앨범') add('error', '앨범 제목을 정해 주세요.');
-  if (!album.artist.trim()) add('error', '아티스트명을 적어 주세요.');
-  if (!tracks.length) add('error', '수록곡이 없어요.');
-  else if (tracks.length < type.min || tracks.length > type.max) add('warn', `${type.name}은 보통 ${type.min}~${type.max}곡이에요 (지금 ${tracks.length}곡).`);
-  if (tracks.length > 1 && !tracks.some((t) => t.isTitle)) add('warn', '타이틀곡을 정해 주세요.');
+  if (!album.title.trim() || album.title === '새 앨범') add('error', '앨범 제목을 정해 주세요.', { tab: 'meta' });
+  if (!album.artist.trim()) add('error', '아티스트명을 적어 주세요.', { tab: 'meta' });
+  if (!tracks.length) add('error', '수록곡이 없어요.', { tab: 'tracks' });
+  else if (tracks.length < type.min || tracks.length > type.max) add('warn', `${type.name}은 보통 ${type.min}~${type.max}곡이에요 (지금 ${tracks.length}곡).`, { tab: 'tracks' });
+  if (tracks.length > 1 && !tracks.some((t) => t.isTitle)) add('warn', '타이틀곡을 정해 주세요.', { tab: 'tracks' });
   const left = daysUntil(album.releaseDate, today);
-  if (left == null) add('error', '발매 예정일을 정해 주세요.');
-  else if (left < 28) add('warn', `발매일까지 ${left}일 남았어요. 유통사 검수·피칭을 생각하면 4주 이상 여유를 두는 게 안전해요.`);
-  if (!album.cLine.trim() || /^\d{4}\s*$/.test(album.cLine)) add('warn', '© 표기(저작권자)를 적어 주세요. 예: 2026 물결뮤직');
-  if (!album.pLine.trim() || /^\d{4}\s*$/.test(album.pLine)) add('warn', '℗ 표기(음원 제작자)를 적어 주세요.');
+  if (left == null) add('error', '발매 예정일을 정해 주세요.', { tab: 'schedule' });
+  else if (left < 28) add('warn', `발매일까지 ${left}일 남았어요. 유통사 검수·피칭을 생각하면 4주 이상 여유를 두는 게 안전해요.`, { tab: 'schedule' });
+  if (!album.cLine.trim() || /^\d{4}\s*$/.test(album.cLine)) add('warn', '© 표기(저작권자)를 적어 주세요. 예: 2026 물결뮤직', { tab: 'meta' });
+  if (album.upc.trim() && !/^\d{12,13}$/.test(album.upc.replace(/[\s-]/g, ''))) add('warn', `UPC는 숫자 12~13자리예요 (지금 "${album.upc}").`, { tab: 'meta' });
+  if (!album.pLine.trim() || /^\d{4}\s*$/.test(album.pLine)) add('warn', '℗ 표기(음원 제작자)를 적어 주세요.', { tab: 'meta' });
 
   tracks.forEach((t, i) => {
     const song = songs.find((s) => s.id === t.songId);
     const n = `${i + 1}번 「${song.title.replace(/^예시:\s*/, '')}」`;
-    if (!t.lyricists.trim()) add('error', `${n}: 작사 크레딧이 비어 있어요.`);
-    if (!t.composers.trim()) add('error', `${n}: 작곡 크레딧이 비어 있어요.`);
-    if (!song.sections.some((s) => s.text.trim())) add('warn', `${n}: 가사가 없어요 (연주곡이면 무시).`);
+    if (!t.lyricists.trim()) add('error', `${n}: 작사 크레딧이 비어 있어요.`, { tab: 'meta' });
+    if (t.isrc.trim() && !ISRC.test(t.isrc.replace(/[\s-]/g, '').toUpperCase())) add('warn', `${n}: ISRC 형식이 아니에요 (예: KR-A01-26-00001, 12자리).`, { tab: 'meta' });
+    if (!t.composers.trim()) add('error', `${n}: 작곡 크레딧이 비어 있어요.`, { tab: 'meta' });
+    if (!song.sections.some((s) => s.text.trim())) add('warn', `${n}: 가사가 없어요 (연주곡이면 무시).`, { song: song.id, tab: 'editor' });
     const m = masters[t.songId];
-    if (!m) add('error', `${n}: 마스터 WAV를 넣어 주세요.`);
+    if (!m) add('error', `${n}: 마스터 WAV를 넣어 주세요.`, { tab: 'tracks' });
     else {
-      if (!/\.wav$/i.test(m.name)) add('error', `${n}: 마스터는 WAV여야 해요 (지금 ${m.name}).`);
-      if (m.sampleRate && m.sampleRate < 44100) add('error', `${n}: 샘플레이트가 ${m.sampleRate}Hz예요. 44.1kHz 이상이어야 해요.`);
-      if (m.bits && m.bits < 16) add('error', `${n}: ${m.bits}비트예요. 16비트 이상이어야 해요.`);
-      if (Number.isFinite(m.peak) && m.peak > -0.5) add('warn', `${n}: 트루 피크 ${m.peak.toFixed(1)} dBTP — 마스터링 탭에서 -1 dBTP로 맞추는 걸 권해요.`);
-      if (Number.isFinite(m.lufs) && (m.lufs < -18 || m.lufs > -6)) add('warn', `${n}: 음량 ${m.lufs.toFixed(1)} LUFS — 일반적인 범위(-18~-6)를 벗어났어요.`);
+      if (!/\.wav$/i.test(m.name)) add('error', `${n}: 마스터는 WAV여야 해요 (지금 ${m.name}).`, { tab: 'tracks' });
+      if (m.sampleRate && m.sampleRate < 44100) add('error', `${n}: 샘플레이트가 ${m.sampleRate}Hz예요. 44.1kHz 이상이어야 해요.`, { tab: 'tracks' });
+      if (m.bits && m.bits < 16) add('error', `${n}: ${m.bits}비트예요. 16비트 이상이어야 해요.`, { tab: 'tracks' });
+      if (m.format === 3) add('error', `${n}: 32비트 float WAV예요. 대부분의 유통사는 16·24비트 PCM만 받아요 — 마스터링 탭에서 다시 받으세요.`, { tab: 'tracks' });
+      if (/\.wav$/i.test(m.name) && m.format == null) add('warn', `${n}: WAV 형식 정보를 읽지 못했어요. 마스터링 탭에서 다시 받은 파일을 권해요.`, { tab: 'tracks' });
+      if (m.channels === 1) add('warn', `${n}: 모노 파일이에요. 보통 스테레오로 제출해요.`, { tab: 'tracks' });
+      if (!Number.isFinite(m.lufs)) add('error', `${n}: 소리가 거의 없는 파일이에요. 파일을 확인해 주세요.`, { tab: 'tracks' });
+      if (Number.isFinite(m.peak) && m.peak > -0.5) add('warn', `${n}: 트루 피크 ${m.peak.toFixed(1)} dBTP — 마스터링 탭에서 -1 dBTP로 맞추는 걸 권해요.`, { tab: 'tracks' });
+      if (Number.isFinite(m.lufs) && (m.lufs < -18 || m.lufs > -6)) add('warn', `${n}: 음량 ${m.lufs.toFixed(1)} LUFS — 일반적인 범위(-18~-6)를 벗어났어요.`, { tab: 'tracks' });
     }
   });
 
-  if (!coverInfo) add('error', '커버 이미지를 만들거나 넣어 주세요.');
+  if (!coverInfo) add('error', '커버 이미지를 만들거나 넣어 주세요.', { tab: 'cover' });
   else {
-    if (coverInfo.width !== coverInfo.height) add('error', `커버가 정사각형이 아니에요 (${coverInfo.width}×${coverInfo.height}).`);
-    if (Math.min(coverInfo.width, coverInfo.height) < 3000) add('warn', `커버가 ${coverInfo.width}×${coverInfo.height}예요. 대부분의 유통사는 3000×3000을 권해요.`);
+    if (coverInfo.width !== coverInfo.height) add('error', `커버가 정사각형이 아니에요 (${coverInfo.width}×${coverInfo.height}).`, { tab: 'cover' });
+    const d = coverInfo.drawnWith;
+    if (d && (d.title !== album.title || d.artist !== album.artist)) add('warn', `커버 글자("${d.title}" / "${d.artist}")가 지금 앨범 정보와 달라요. 커버 탭에서 다시 만들어 주세요 — 다르면 유통사가 반려할 수 있어요.`, { tab: 'cover' });
+    if (Math.min(coverInfo.width, coverInfo.height) < 3000) add('warn', `커버가 ${coverInfo.width}×${coverInfo.height}예요. 대부분의 유통사는 3000×3000을 권해요.`, { tab: 'cover' });
   }
   if (album.ai.lyrics || album.ai.composition || album.ai.vocals) add('info', 'AI 생성 사용을 표기했어요. 유통사·플랫폼의 AI 음원 정책을 제출 전에 확인하세요.');
   return items;
@@ -151,9 +162,15 @@ export function toCsv(rows) {
   return `﻿${rows.map((r) => r.map(csvCell).join(',')).join('\r\n')}\r\n`;
 }
 
-export function trackFileName(i, title) {
+export function trackFileName(i, title, ext = 'wav') {
   const clean = (title || 'Untitled').replace(/^예시:\s*/, '').replace(/[\\/:*?"<>|]+/g, '').trim();
-  return `${String(i + 1).padStart(2, '0')} ${clean}.wav`;
+  return `${String(i + 1).padStart(2, '0')} ${clean}.${ext}`;
+}
+
+// 실제 파일의 확장자 (없으면 wav)
+export function extOf(name) {
+  const m = /\.([a-z0-9]{2,5})$/i.exec(name || '');
+  return m ? m[1].toLowerCase() : 'wav';
 }
 
 export function metadataRows(album, songs, masters = {}) {
@@ -164,7 +181,7 @@ export function metadataRows(album, songs, masters = {}) {
     if (!song) return;
     const m = masters[t.songId];
     rows.push(['1', String(i + 1), song.title.replace(/^예시:\s*/, ''), album.artist, t.featuring, t.lyricists, t.composers, t.arrangers, t.isrc,
-      t.isTitle ? 'Y' : 'N', t.explicit ? 'Y' : 'N', album.language, album.genre, album.subgenre, m?.duration ? String(Math.round(m.duration)) : '', trackFileName(i, song.title)]);
+      t.isTitle ? 'Y' : 'N', t.explicit ? 'Y' : 'N', album.language, album.genre, album.subgenre, m?.duration ? String(Math.round(m.duration)) : '', trackFileName(i, song.title, extOf(m?.name))]);
   });
   return rows;
 }
@@ -184,7 +201,7 @@ export function albumRows(album) {
     ['UPC', album.upc],
     ['(C) Line', album.cLine],
     ['(P) Line', album.pLine],
-    ['Explicit', album.explicit ? 'Y' : 'N'],
+    ['Explicit', album.explicit || album.tracks.some((t) => t.explicit) ? 'Y' : 'N'],
     ['AI Generated', aiUsed],
     ['AI Note', album.ai.note],
     ['Description', album.description],

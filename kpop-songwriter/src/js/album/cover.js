@@ -66,12 +66,13 @@ export async function ensureFonts() {
   } catch { /* 대체 글꼴로 그린다 */ }
 }
 
-// opts: { title, artist, subtitle, template, palette }
-export function drawCover(canvas, { title, artist, subtitle, template = 'gradient', palette = 0 }) {
+// opts: { title, artist, subtitle, template, palette }. size: 실제 픽셀 크기 (미리보기는 작게, 좌표는 3000 기준)
+export function drawCover(canvas, { title, artist, subtitle, template = 'gradient', palette = 0 }, size = COVER_SIZE) {
   const S = COVER_SIZE;
-  canvas.width = S;
-  canvas.height = S;
+  canvas.width = size;
+  canvas.height = size;
   const ctx = canvas.getContext('2d');
+  ctx.scale(size / S, size / S);
   const [bg1, bg2, accent, ink] = (PALETTES[palette] || PALETTES[0]).colors;
   const pad = 220;
   ctx.textBaseline = 'alphabetic';

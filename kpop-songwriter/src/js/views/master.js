@@ -13,7 +13,18 @@ const byId = {};
 let ui = null;
 function uiFor(songId) {
   if (!byId[songId]) byId[songId] = { source: null, sourceName: '', result: null, busy: '', bits: 24, listen: null, matched: true, linked: 0 };
+  // 다른 곡의 원본·결과 오디오(4분 곡이면 수백 MB)는 놓아 준다. 발매용 WAV는 setSongMaster로 따로 남아 있다.
+  Object.entries(byId).forEach(([id, u]) => {
+    if (id !== songId && !u.busy) { u.source = null; u.result = null; u.listen = null; }
+  });
   return byId[songId];
+}
+
+// 다른 탭·곡으로 가면 원본/마스터 미리듣기를 멈춘다 (app.js가 부름)
+export function stopMasterPreview() {
+  try { playing?.stop(); } catch { /* 이미 멈춤 */ }
+  playing = null;
+  Object.values(byId).forEach((u) => { u.listen = null; });
 }
 let audioCtx = null;
 let playing = null;
@@ -106,6 +117,7 @@ async function run(song) {
       if (el) el.textContent = t;
     });
     ui.result.target = st.target;
+    ui.result.settings = { ...st }; // 받기·보고서는 실제로 마스터링한 설정으로
     mutateSong(song.id, (x) => { x.progress = { ...(x.progress || {}), mastered: true }; }, 'quiet');
   } catch {
     toast('마스터링 중 문제가 생겼어요. 다른 파일로 시도해 주세요');
@@ -118,7 +130,7 @@ async function run(song) {
 async function download(song) {
   const ui = uiFor(song.id);
   const r = ui.result;
-  const st = settings(song);
+  const st = r.settings || settings(song);
   const base = (ui.sourceName || 'master').replace(/[\\/:*?"<>|]+/g, '').trim().slice(0, 60) || 'master';
   const wavName = `${base}_master_${Math.abs(st.target)}LUFS_${ui.bits}bit.wav`;
   ui.busy = 'WAV 만드는 중';
@@ -156,9 +168,9 @@ const fmt = (v, unit) => (Number.isFinite(v) ? `${v.toFixed(1)} ${unit}` : '—'
 // 마스터 결과를 WAV로 만들어 이 곡이 들어 있는 모든 앨범 트랙에 연결한다
 async function useInAlbums(song) {
   const r = ui.result;
-  const wav = encodeWav({ channels: r.channels, sampleRate: r.rate }, { bits: 24, normalize: false });
+  const wav = encodeWav({ channels: r.channels, sampleRate: r.rate }, { bits: ui.bits, normalize: false });
   const name = `${(song.title || 'master').replace(/^예시:\s*/, '').replace(/[\\/:*?"<>|]+/g, '').trim()}_master.wav`;
-  const info = { file: new File([wav], name, { type: 'audio/wav' }), name, sampleRate: r.rate, bits: 24, lufs: r.after.lufs, peak: r.after.peak, duration: r.channels[0].length / r.rate, fromTab: true };
+  const info = { file: new File([wav], name, { type: 'audio/wav' }), name, sampleRate: r.rate, bits: ui.bits, format: 1, channels: 2, lufs: r.after.lufs, peak: r.after.peak, duration: r.channels[0].length / r.rate, fromTab: true };
   setSongMaster(song.id, info);
   const albums = getState().albums.filter((a) => a.tracks.some((t) => t.songId === song.id));
   albums.forEach((a) => { setMaster(a.id, song.id, info); });

@@ -1,6 +1,8 @@
 // 내보내기 탭: Suno Custom 모드 칸별 복사 + 제작 패키지(zip) 받기.
 import { h, copyText, toast } from '../dom.js';
 import { refresh, mutateSong } from '../state.js';
+import { applyToStyle } from './arrange.js';
+import { keyName } from '../music/theory.js';
 
 import { buildLyrics, buildStyle } from '../suno.js';
 import { SUNO_LIMITS } from '../constants.js';
@@ -58,6 +60,8 @@ export function renderExport(song) {
     label);
 
   const hasMelody = Object.values(song.music.sections).some((sm) => sm.melody.length);
+  const arrKey = keyName(song.music.root, song.music.mode);
+  const styleMismatch = Number(song.style.bpm) !== song.music.bpm || (song.style.key || '').trim() !== arrKey;
   return h('div', { class: 'stack' },
     h('section', { class: 'card' },
       h('h2', null, '제작 패키지 받기'),
@@ -78,6 +82,9 @@ export function renderExport(song) {
         toggle('memberTags', '섹션 태그에 보컬 톤 넣기'),
         toggle('arrangeHints', '섹션 태그에 편곡 힌트 넣기'),
         toggle('keepAdlibs', '(괄호) 애드립 유지'))),
+    styleMismatch ? h('section', { class: 'card' },
+      h('p', { class: 'warn' }, `Suno 스타일(${song.style.bpm || '—'} BPM, ${song.style.key || '키 없음'})이 편곡(${song.music.bpm} BPM, ${arrKey})과 달라요. 데모 WAV를 Suno에 올릴 거라면 맞추는 게 좋아요.`),
+      h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn small', onclick: () => mutateSong(song.id, (x) => applyToStyle(x)) }, '편곡 값으로 맞추기'))) : null,
     block('out-lyrics', 'Lyrics', lyrics, SUNO_LIMITS.lyrics, 16),
     block('out-style', 'Styles', style, SUNO_LIMITS.style, 3),
     song.style.exclude ? block('out-exclude', 'Exclude styles', song.style.exclude, 0, 2) : null,

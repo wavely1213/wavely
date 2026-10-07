@@ -3,7 +3,7 @@ import { h, toast } from '../../dom.js';
 import { mutateAlbum, refresh, selectSong, setTab, getState, keepSong } from '../../state.js';
 import { newTrack, ALBUM_TYPES } from '../../album/model.js';
 import { inspectMaster } from '../../album/release.js';
-import { mastersOf, setMaster, fillFromSongMasters } from '../../album/session.js';
+import { mastersOf, setMaster, fillFromSongMasters, forgetTrack } from '../../album/session.js';
 import { keyName } from '../../music/theory.js';
 
 const busy = {};
@@ -23,9 +23,10 @@ async function attach(album, songId, file) {
 
 function masterChip(m) {
   if (!m) return h('span', { class: 'pill warn-pill' }, '마스터 없음');
-  const ok = /\.wav$/i.test(m.name) && m.sampleRate >= 44100 && (!m.bits || m.bits >= 16) && m.peak <= -0.5;
+  const ok = /\.wav$/i.test(m.name) && (m.sampleRate || 0) >= 44100 && (!m.bits || m.bits >= 16) && m.format !== 3 && m.channels !== 1
+    && Number.isFinite(m.lufs) && m.peak <= -0.5;
   const from = m.fromTab ? '마스터링 탭 결과 · ' : '';
-  const fmt = `${(m.sampleRate / 1000).toFixed(1)}kHz${m.bits ? ` ${m.bits}bit` : ''} · ${Number.isFinite(m.lufs) ? m.lufs.toFixed(1) : '—'} LUFS · ${m.peak.toFixed(1)} dBTP`;
+  const fmt = `${m.sampleRate ? `${(m.sampleRate / 1000).toFixed(1)}kHz` : '?kHz'}${m.bits ? ` ${m.bits}bit${m.format === 3 ? ' float' : ''}` : ''} · ${Number.isFinite(m.lufs) ? m.lufs.toFixed(1) : '—'} LUFS · ${m.peak.toFixed(1)} dBTP`;
   return h('span', { class: `pill ${ok ? 'good' : 'warn-pill'}`, title: m.name }, `${ok ? '규격 OK' : '확인 필요'} · ${from}${fmt}`);
 }
 
@@ -65,7 +66,7 @@ export function renderTracks(album) {
         h('span', { class: 'push' }),
         h('button', { type: 'button', class: 'icon-btn', 'aria-label': '위로', disabled: i === 0, onclick: () => move(-1) }, '↑'),
         h('button', { type: 'button', class: 'icon-btn', 'aria-label': '아래로', disabled: i === album.tracks.length - 1, onclick: () => move(1) }, '↓'),
-        h('button', { type: 'button', class: 'icon-btn', 'aria-label': '앨범에서 빼기', onclick: () => mutateAlbum((a) => { a.tracks.splice(i, 1); }) }, '×')),
+        h('button', { type: 'button', class: 'icon-btn', 'aria-label': '앨범에서 빼기', onclick: () => { forgetTrack(album.id, t.songId); mutateAlbum((a) => { a.tracks.splice(i, 1); }); } }, '×')),
       h('p', { class: 'muted' }, `${keyName(song.music.root, song.music.mode)} · ${song.music.bpm} BPM · 가사 ${filled}/${song.sections.length} 섹션`),
       h('div', { class: 'row' },
         h('label', { class: 'check' }, h('input', { type: 'radio', name: 'title-track', id: `title-${t.songId}`, checked: t.isTitle,
@@ -96,7 +97,7 @@ export function renderTracks(album) {
           });
         } }, '+ 곡 넣기'))
         : h('p', { class: 'muted' }, '넣을 곡이 없어요. 곡 목록에서 새 곡을 만들어 주세요.'),
-      h('p', { class: 'muted' }, `마스터 WAV는 곡의 마스터링 탭에서 받은 파일을 넣으세요. 파일은 이 브라우저에만 잠시 들고 있다가 제출 패키지에 들어가요 (새로고침하면 다시 넣어야 해요). ${type.name}은 보통 ${type.min}~${type.max}곡이에요.`)),
+      h('p', { class: 'muted' }, `마스터 WAV는 곡의 마스터링 탭에서 받은 파일을 넣으세요. 파일은 이 브라우저에 보관했다가 제출 패키지에 넣어요 (다른 기기에서는 다시 넣어야 해요). ${type.name}은 보통 ${type.min}~${type.max}곡이에요.`)),
     album.tracks.length ? h('div', { class: 'sections' }, rows) : h('p', { class: 'empty card' }, '아직 수록곡이 없어요. 위에서 곡을 넣어 주세요.'),
   );
 }

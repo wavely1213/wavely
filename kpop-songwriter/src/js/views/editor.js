@@ -16,7 +16,7 @@ const aiOrigin = {};
 // 곡별 화면 메모 (저장하지 않음)
 const memo = {};
 function memoOf(id) {
-  if (!memo[id]) memo[id] = { request: '', hooks: [], review: '', confirmTemplate: '', report: null };
+  if (!memo[id]) memo[id] = { request: '', hooks: [], review: '', confirmTemplate: '', report: null, confirmDel: '' };
   return memo[id];
 }
 
@@ -45,10 +45,11 @@ function renderToolbar(song, m) {
     mutate((s) => { s.sections = autoDistribute(sectionsFromTemplate(key), s.members); });
     m.confirmTemplate = '';
   };
-  const hasLyrics = song.sections.some((s) => s.text.trim());
+  // 가사뿐 아니라 멜로디·편곡 작업이 있어도 지워지므로 확인한다
+  const hasLyrics = song.sections.some((s) => s.text.trim()) || Object.values(song.music.sections).some((sm) => sm.melody.length) || !!song.progress?.arranged;
   const tplRow = m.confirmTemplate
     ? h('div', { class: 'confirm' },
-      h('span', null, '지금 가사가 모두 지워져요. 먼저 버전 탭에서 저장해 두는 걸 권해요.'),
+      h('span', null, '지금 가사·멜로디·편곡이 모두 새 구조로 바뀌어요. 먼저 버전 탭에서 저장해 두는 걸 권해요.'),
       h('button', { type: 'button', class: 'btn danger', onclick: applyTemplate }, '지우고 적용'),
       h('button', { type: 'button', class: 'btn ghost', onclick: () => { m.confirmTemplate = ''; mutate(() => {}, 'all'); } }, '취소'))
     : h('div', { class: 'row' }, tplSelect,
@@ -200,7 +201,14 @@ function renderSection(song, s, index, label, result) {
       h('button', { type: 'button', class: 'icon-btn', 'aria-label': '복제', onclick: () => mutate((x) => {
         x.sections.splice(index + 1, 0, { ...makeSection(s.type, s.text), members: [...s.members] });
       }) }, '⧉'),
-      h('button', { type: 'button', class: 'icon-btn', 'aria-label': '섹션 삭제', onclick: () => mutate((x) => { x.sections.splice(index, 1); }) }, '×')),
+      memoOf(song.id).confirmDel === s.id
+        ? h('span', { class: 'row' },
+          h('button', { type: 'button', class: 'btn small danger', onclick: () => { memoOf(song.id).confirmDel = ''; mutate((x) => { x.sections.splice(index, 1); }); } }, '가사·멜로디·편곡까지 삭제'),
+          h('button', { type: 'button', class: 'btn small ghost', onclick: () => { memoOf(song.id).confirmDel = ''; mutate(() => {}); } }, '취소'))
+        : h('button', { type: 'button', class: 'icon-btn', 'aria-label': '섹션 삭제', onclick: () => {
+          const hasWork = s.text.trim() || song.music.sections[s.id]?.melody.length;
+          if (hasWork) { memoOf(song.id).confirmDel = s.id; mutate(() => {}); } else mutate((x) => { x.sections.splice(index, 1); });
+        } }, '×')),
     memberChips,
     h('div', { class: 'lyric-box' }, ta, gutter),
     result && result.tips.length && result.score < 90 ? h('ul', { class: 'tips' }, result.tips.map((t) => h('li', null, t))) : null,

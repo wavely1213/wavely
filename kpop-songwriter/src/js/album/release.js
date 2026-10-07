@@ -2,18 +2,23 @@
 import { zip } from '../music/pack.js';
 import { measureAsync } from '../music/master.js';
 import { getSample } from '../ai.js';
-import { ALBUM_TYPES, scheduleFor, releaseChecklist, metadataRows, albumRows, toCsv, trackFileName } from './model.js';
+import { ALBUM_TYPES, scheduleFor, releaseChecklist, metadataRows, albumRows, toCsv, trackFileName, extOf } from './model.js';
 
 // WAV 헤더에서 샘플레이트·비트 수 읽기 (decodeAudioData는 비트 수를 알려 주지 않는다)
-function wavHeader(bytes) {
-  const v = new DataView(bytes.buffer, bytes.byteOffset, Math.min(bytes.byteLength, 4096));
+export function wavHeader(bytes) {
+  // 메타데이터 덩어리가 앞에 길게 붙는 파일도 있어 파일 전체에서 덩어리를 따라간다 (헤더만 읽으므로 빠름)
+  const v = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const tag = (o) => String.fromCharCode(v.getUint8(o), v.getUint8(o + 1), v.getUint8(o + 2), v.getUint8(o + 3));
   if (v.byteLength < 12 || tag(0) !== 'RIFF' || tag(8) !== 'WAVE') return null;
   let o = 12;
   while (o + 8 <= v.byteLength) {
     const id = tag(o);
     const size = v.getUint32(o + 4, true);
-    if (id === 'fmt ') return { sampleRate: v.getUint32(o + 12, true), bits: v.getUint16(o + 22, true), channels: v.getUint16(o + 10, true) };
+    if (id === 'fmt ') {
+      let format = v.getUint16(o + 8, true);
+      if (format === 0xfffe && size >= 26) format = v.getUint16(o + 32, true); // WAVE_FORMAT_EXTENSIBLE의 실제 형식
+      return { format, sampleRate: v.getUint32(o + 12, true), bits: v.getUint16(o + 22, true), channels: v.getUint16(o + 10, true) };
+    }
     o += 8 + size + (size % 2);
   }
   return null;
@@ -27,7 +32,8 @@ export async function inspectMaster(file) {
   const buf = await ctx.decodeAudioData(bytes.slice().buffer);
   const ch = [buf.getChannelData(0), buf.numberOfChannels > 1 ? buf.getChannelData(1) : buf.getChannelData(0)];
   const m = await measureAsync(ch, buf.sampleRate);
-  return { file, name: file.name, sampleRate: head?.sampleRate || buf.sampleRate, bits: head?.bits || null, lufs: m.lufs, peak: m.peak, duration: buf.duration };
+  // 샘플레이트는 헤더 값만 믿는다 (디코딩은 44.1kHz로 바꿔 버려 원래 값을 알 수 없음)
+  return { file, name: file.name, sampleRate: head?.sampleRate || null, bits: head?.bits || null, format: head?.format ?? null, channels: head?.channels || buf.numberOfChannels, lufs: m.lufs, peak: m.peak, duration: buf.duration };
 }
 
 // 태그 없는 가사지. 비워 둔 반복 섹션은 앞의 같은 섹션 가사로 채운다.
@@ -75,11 +81,11 @@ export async function buildReleasePackage(album, songs, masters, cover, onStep =
     const m = masters[t.songId];
     if (m) {
       onStep(`음원 담는 중 (${i + 1}/${tracks.length})`);
-      files.push({ name: `${root}/audio/${trackFileName(i, song.title)}`, data: new Uint8Array(await m.file.arrayBuffer()) });
+      files.push({ name: `${root}/audio/${trackFileName(i, song.title, extOf(m.name))}`, data: new Uint8Array(await m.file.arrayBuffer()) });
     }
-    files.push({ name: `${root}/lyrics/${trackFileName(i, song.title).replace(/\.wav$/, '.txt')}`, data: plainLyrics(song) });
+    files.push({ name: `${root}/lyrics/${trackFileName(i, song.title, 'txt')}`, data: plainLyrics(song) });
   }
-  if (cover?.blob) files.push({ name: `${root}/cover.jpg`, data: new Uint8Array(await cover.blob.arrayBuffer()) });
+  if (cover?.blob) files.push({ name: `${root}/cover.${cover.blob.type === 'image/png' ? 'png' : 'jpg'}`, data: new Uint8Array(await cover.blob.arrayBuffer()) });
   onStep('메타데이터 정리 중');
   files.push({ name: `${root}/metadata_tracks.csv`, data: toCsv(metadataRows({ ...album, tracks }, songs, masters)) });
   files.push({ name: `${root}/metadata_album.csv`, data: toCsv(albumRows(album)) });
@@ -100,7 +106,7 @@ export async function buildReleasePackage(album, songs, masters, cover, onStep =
     '유통사 제출 패키지',
     '',
     '- audio/: 트랙 번호 순 마스터 WAV (유통사 업로드용)',
-    '- cover.jpg: 커버 (정사각형, 3000×3000 권장)',
+    '- cover.jpg / cover.png: 커버 (정사각형, 3000×3000 권장)',
     '- metadata_album.csv / metadata_tracks.csv: 유통사 입력 화면에 옮겨 적을 값',
     '- lyrics/: 트랙별 가사 (플랫폼 가사 등록용)',
     '- credits.txt: 크레딧 시트, release_schedule.txt: 발매 일정, checklist.txt: 제출 전 점검 결과',

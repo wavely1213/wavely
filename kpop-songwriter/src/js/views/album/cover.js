@@ -16,7 +16,8 @@ async function useTemplate(album) {
       title: album.title, artist: album.artist || 'Artist', subtitle: album.cover.subtitle, template: album.cover.template, palette: album.cover.palette,
     });
     const blob = await canvasToJpeg(canvas);
-    setCover(album.id, { blob, width: COVER_SIZE, height: COVER_SIZE, source: 'template' });
+    // 그릴 때의 제목·아티스트를 기억해 두었다가, 나중에 정보가 바뀌면 점검표가 알려 준다
+    setCover(album.id, { blob, width: COVER_SIZE, height: COVER_SIZE, source: 'template', drawnWith: { title: album.title, artist: album.artist } });
   } finally {
     ui.busy = false;
     refresh();
@@ -39,7 +40,7 @@ export function renderCover(album) {
   // 미리보기용 작은 캔버스 (실제 내보내기는 3000px로 다시 그린다)
   const preview = h('canvas', { class: 'cover-preview', 'aria-label': '커버 미리보기' });
   ensureFonts().then(() => {
-    drawCover(preview, { title: album.title, artist: album.artist || 'Artist', subtitle: album.cover.subtitle, template: album.cover.template, palette: album.cover.palette });
+    drawCover(preview, { title: album.title, artist: album.artist || 'Artist', subtitle: album.cover.subtitle, template: album.cover.template, palette: album.cover.palette }, 600); // 미리보기는 작게
   });
   const file = h('input', { type: 'file', id: 'cover-file', accept: 'image/jpeg,image/png', class: 'visually-hidden', onchange: (e) => {
     const f = e.target.files?.[0];
@@ -82,6 +83,6 @@ export function renderCover(album) {
         ? h('div', { class: 'row' },
           h('img', { src: cover.url, class: 'cover-thumb', alt: '선택한 커버' }),
           h('p', { class: 'muted' }, `${cover.width}×${cover.height} · ${cover.source === 'template' ? '템플릿' : '올린 이미지'}${cover.width === cover.height && cover.width >= 3000 ? ' · 규격 OK' : ' · 3000×3000 정사각형 권장'}`))
-        : h('p', { class: 'empty' }, '아직 정하지 않았어요. 위에서 "이 커버 쓰기"를 누르거나 이미지를 올려 주세요. (이미지는 새로고침하면 다시 정해야 해요)')),
+        : h('p', { class: 'empty' }, '아직 정하지 않았어요. 위에서 "이 커버 쓰기"를 누르거나 이미지를 올려 주세요.')),
   );
 }

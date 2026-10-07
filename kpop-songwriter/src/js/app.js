@@ -5,6 +5,7 @@ import { init, subscribe, getState, current, currentAlbum, newSong, selectSong, 
 import { renderAlbum } from './views/album/index.js';
 import { renderTaste } from './views/taste.js';
 import { songProgress } from './workflow/progress.js';
+import { restoreSong, restoreAlbum } from './album/session.js';
 import { getSample } from './ai.js';
 import { renderConcept } from './views/concept.js';
 import { renderEditor } from './views/editor.js';
@@ -15,7 +16,7 @@ import { renderArrange } from './views/arrange.js';
 import { renderMelody } from './views/melody.js';
 import { renderSound } from './views/sound.js';
 import { renderReferences } from './views/references.js';
-import { renderMaster } from './views/master.js';
+import { renderMaster, stopMasterPreview } from './views/master.js';
 import { onPlayer, stop as stopPlayer } from './music/player.js';
 
 const TABS = [
@@ -88,7 +89,10 @@ function renderHeader(song) {
         if (existing) selectAlbum(existing.id); else newAlbum({ fromSong: song });
       } }, getState().albums.some((a) => a.tracks.some((t) => t.songId === song.id)) ? '발매 준비 보기' : '싱글 발매 준비'),
       confirming
-        ? [h('span', { class: 'warn' }, '이 곡과 버전이 모두 지워져요.'),
+        ? [h('span', { class: 'warn' }, (() => {
+          const n = getState().albums.filter((a) => a.tracks.some((t) => t.songId === song.id)).length;
+          return n ? `이 곡과 버전이 모두 지워지고, 앨범 ${n}개에서도 빠져요.` : '이 곡과 버전이 모두 지워져요.';
+        })()),
           h('button', { type: 'button', class: 'btn danger', onclick: () => { ui.confirmDelete = ''; deleteSong(song.id); } }, '삭제'),
           h('button', { type: 'button', class: 'btn ghost', onclick: () => { ui.confirmDelete = ''; refresh(); } }, '취소')]
         : h('button', { type: 'button', class: 'btn ghost', onclick: () => { ui.confirmDelete = song.id; refresh(); } }, '곡 삭제')),
@@ -98,6 +102,9 @@ function renderHeader(song) {
 // 발매까지 진행 단계: 끝난 단계 ✓, 다음 할 일 강조 + 바로 가기
 function renderProgress(song) {
   const st = getState();
+  // 새로고침 뒤엔 마스터·커버가 보관함에만 있으니, 처음 볼 때 불러와서 다시 그린다
+  Promise.all([restoreSong(song.id), ...st.albums.filter((a) => a.tracks.some((t) => t.songId === song.id)).map(restoreAlbum)])
+    .then((r) => { if (r.some(Boolean)) refresh(); });
   const { steps, next, album } = songProgress(song, { albums: st.albums, songs: st.songs });
   const go = (s) => {
     if (s.id === 'release') {
@@ -145,6 +152,8 @@ function render() {
 
 function draw() {
   const root = document.getElementById('app');
+  const now = getState();
+  if (!(now.mode === 'song' && now.tab === 'master')) stopMasterPreview();
   const st = getState();
   const song = current();
   if (!song) return;

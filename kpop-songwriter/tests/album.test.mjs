@@ -78,3 +78,59 @@ import { finishEdges } from '../src/js/music/master.js';
   assert.equal(none.channels[0].length, n, '끄면 길이 그대로');
   console.log('master edges OK');
 }
+
+// 마스터 파일 규격: float·모노·무음·형식 모름
+{
+  const base = { name: 'a.wav', sampleRate: 48000, bits: 32, format: 3, channels: 1, lufs: -Infinity, peak: -3 };
+  const al = { ...newAlbum(), title: 'X', artist: 'Y', releaseDate: '2026-12-31', cLine: '2026 Y', pLine: '2026 Y' };
+  al.tracks = [{ ...newTrack(song.id), lyricists: 'a', composers: 'a' }];
+  const c = releaseChecklist(al, [song], { masters: { [song.id]: base }, coverInfo: { width: 3000, height: 3000 }, today });
+  const t = c.map((i) => `${i.level}:${i.text}`).join('\n');
+  assert.ok(/error:.*float/.test(t), 'float 오류');
+  assert.ok(/warn:.*모노/.test(t), '모노 경고');
+  assert.ok(/error:.*소리가 거의 없는/.test(t), '무음 오류');
+  const unknown = releaseChecklist(al, [song], { masters: { [song.id]: { ...base, format: null, channels: 2, lufs: -14, bits: 24 } }, coverInfo: { width: 3000, height: 3000 }, today });
+  assert.ok(unknown.some((i) => i.text.includes('형식 정보를 읽지 못했어요')));
+  console.log('master checks OK');
+}
+
+// WAV 헤더 읽기: 24비트 PCM, float(3), 앞에 큰 LIST 덩어리(4KB 넘음)가 있는 파일
+import { wavHeader } from '../src/js/album/release.js';
+import { encodeWav } from '../src/js/music/pack.js';
+{
+  const ch = [new Float32Array(100), new Float32Array(100)];
+  const pcm24 = encodeWav({ channels: ch, sampleRate: 48000 }, { bits: 24, normalize: false });
+  assert.deepEqual(wavHeader(pcm24), { format: 1, sampleRate: 48000, bits: 24, channels: 2 });
+  // fmt 앞에 8KB LIST 덩어리를 끼운 파일
+  const list = new Uint8Array(8 + 8192);
+  list.set([76, 73, 83, 84]); new DataView(list.buffer).setUint32(4, 8192, true);
+  const withList = new Uint8Array(pcm24.length + list.length);
+  withList.set(pcm24.subarray(0, 12)); withList.set(list, 12); withList.set(pcm24.subarray(12), 12 + list.length);
+  assert.equal(wavHeader(withList)?.bits, 24, '4KB 넘는 앞 덩어리 뒤의 fmt도 읽음');
+  const float = pcm24.slice(); new DataView(float.buffer).setUint16(20, 3, true);
+  assert.equal(wavHeader(float).format, 3);
+  assert.equal(wavHeader(new Uint8Array([1, 2, 3])), null);
+  console.log('wav header OK');
+}
+
+// 커버 글자 불일치, ISRC·UPC 형식, 앨범 Explicit, 확장자, 고치러 갈 곳
+import { extOf } from '../src/js/album/model.js';
+{
+  const al = { ...newAlbum(), title: 'Real Title', artist: '물결', releaseDate: '2026-12-31', cLine: '2026 Y', pLine: '2026 Y', upc: '12345' };
+  al.tracks = [{ ...newTrack(song.id), lyricists: 'a', composers: 'a', isrc: 'KR-A01-26-0001', explicit: true }];
+  const c = releaseChecklist(al, [song], { masters: {}, coverInfo: { width: 3000, height: 3000, drawnWith: { title: '새 앨범', artist: '' } }, today });
+  assert.ok(c.some((i) => i.text.includes('커버 글자') && i.go.tab === 'cover'));
+  assert.ok(c.some((i) => i.text.includes('ISRC 형식')));
+  assert.ok(c.some((i) => i.text.includes('UPC')));
+  assert.ok(c.filter((i) => i.level !== 'info').every((i) => i.go), '모든 항목에 고치러 갈 곳');
+  al.tracks[0].isrc = 'KR-A01-26-00001';
+  al.upc = '880000000001';
+  const c2 = releaseChecklist(al, [song], { masters: {}, coverInfo: { width: 3000, height: 3000, drawnWith: { title: 'Real Title', artist: '물결' } }, today });
+  assert.ok(!c2.some((i) => /ISRC|UPC|커버 글자/.test(i.text)), '올바르면 경고 없음');
+  assert.ok(toCsv(albumRows(al)).includes('Explicit,Y'), '트랙이 19금이면 앨범도 Y');
+  assert.equal(extOf('a.FLAC'), 'flac');
+  assert.equal(extOf('noext'), 'wav');
+  const noLyrics = releaseChecklist({ ...al, tracks: [{ ...newTrack(song.id), lyricists: 'a', composers: 'a' }] }, [{ ...song, sections: [{ id: 'x', type: 'Verse', members: [], text: '' }] }], { today });
+  assert.deepEqual(noLyrics.find((i) => i.text.includes('가사가 없어요')).go, { song: song.id, tab: 'editor' });
+  console.log('release checks OK');
+}

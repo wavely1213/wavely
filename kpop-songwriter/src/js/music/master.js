@@ -53,7 +53,9 @@ function inWorker(kind, payload, onStep = () => {}) {
 }
 
 export async function measureAsync(channels, rate) {
-  return (await inWorker('measure', { channels, rate })) || measure(channels, rate);
+  const job = inWorker('measure', { channels, rate });
+  if (job) { try { return await job; } catch { /* 워커 실패 → 아래에서 직접 계산 */ } }
+  return measure(channels, rate);
 }
 
 const tick = () => new Promise((r) => setTimeout(r, 0));
@@ -111,7 +113,9 @@ export async function master(buffer, { preset = 'kpop', target = -14, trim = tru
   const toned = channelsOf(await tonal(buffer, p));
   const payload = { src: channelsOf(buffer), srcRate: buffer.sampleRate, toned, target, trim, fadeOut };
   const viaWorker = inWorker('master', payload, onStep);
-  if (viaWorker) return { ...(await viaWorker), via: 'worker' };
+  if (viaWorker) {
+    try { return { ...(await viaWorker), via: 'worker' }; } catch { onStep('다시 계산 중'); /* 워커가 도중에 실패(메모리 등) → 화면 스레드로 */ }
+  }
   await tick();
   return { ...processMaster(payload, onStep), via: 'main' };
 }

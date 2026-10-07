@@ -1,6 +1,6 @@
 // 앨범 > 제출: 발매 전 점검표 + 유통사 제출 패키지(zip) 받기.
 import { h, toast } from '../../dom.js';
-import { refresh, getState, setAlbumTab } from '../../state.js';
+import { refresh, getState, setAlbumTab, selectSong, setTab } from '../../state.js';
 import { releaseChecklist } from '../../album/model.js';
 import { buildReleasePackage } from '../../album/release.js';
 import { mastersOf, coverOf, fillFromSongMasters } from '../../album/session.js';
@@ -38,12 +38,10 @@ export function renderSubmit(album) {
   const items = releaseChecklist(album, songs, { masters: mastersOf(album.id), coverInfo: coverOf(album.id) });
   const errors = items.filter((i) => i.level === 'error').length;
   const warns = items.filter((i) => i.level === 'warn').length;
-  const jump = (text) => {
-    if (/마스터|WAV|샘플레이트|비트|피크|음량|수록곡|타이틀/.test(text)) return 'tracks';
-    if (/커버/.test(text)) return 'cover';
-    if (/발매일|발매 예정일/.test(text)) return 'schedule';
-    return 'meta';
+  const jump = (go) => {
+    if (go.song) { selectSong(go.song); setTab(go.tab); } else setAlbumTab(go.tab);
   };
+
   return h('div', { class: 'stack' },
     h('section', { class: 'card' },
       h('div', { class: 'card-head' },
@@ -53,7 +51,7 @@ export function renderSubmit(album) {
         ? h('ul', { class: 'checklist' }, items.map((i) => h('li', { class: `lv-${i.level}` },
           h('span', { class: 'lv' }, LEVEL[i.level]),
           h('span', { class: 'ck-text' }, i.text),
-          i.level !== 'info' ? h('button', { type: 'button', class: 'btn small ghost', onclick: () => setAlbumTab(jump(i.text)) }, '고치러 가기') : null)))
+          i.go ? h('button', { type: 'button', class: 'btn small ghost', onclick: () => jump(i.go) }, '고치러 가기') : null)))
         : h('p', { class: 'empty' }, '점검 항목이 없어요.')),
     h('section', { class: 'card' },
       h('h2', null, '유통사 제출 패키지'),
