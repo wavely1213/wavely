@@ -39,7 +39,7 @@ export function encodeWav(buffer, { bits = 16, normalize = true } = {}) {
 }
 
 let crcTable;
-function crc32(bytes) {
+function crcInit() {
   if (!crcTable) {
     crcTable = new Uint32Array(256);
     for (let n = 0; n < 256; n++) {
@@ -48,8 +48,27 @@ function crc32(bytes) {
       crcTable[n] = c >>> 0;
     }
   }
+}
+function crcUpdate(c, bytes) {
+  let x = c;
+  for (let i = 0; i < bytes.length; i++) x = crcTable[(x ^ bytes[i]) & 255] ^ (x >>> 8);
+  return x;
+}
+function crc32(bytes) {
+  crcInit();
+  return (crcUpdate(0xffffffff, bytes) ^ 0xffffffff) >>> 0;
+}
+
+// 큰 파일(Blob)은 8MB씩 읽으며 CRC를 계산하고 사이사이 화면에 양보한다
+async function crc32Blob(blob, onChunk) {
+  crcInit();
   let c = 0xffffffff;
-  for (let i = 0; i < bytes.length; i++) c = crcTable[(c ^ bytes[i]) & 255] ^ (c >>> 8);
+  const CH = 8 * 1024 * 1024;
+  for (let o = 0; o < blob.size; o += CH) {
+    c = crcUpdate(c, new Uint8Array(await blob.slice(o, o + CH).arrayBuffer()));
+    onChunk(Math.min(blob.size, o + CH));
+    await new Promise((r) => setTimeout(r, 0));
+  }
   return (c ^ 0xffffffff) >>> 0;
 }
 
@@ -78,6 +97,41 @@ export function zip(files) {
   const cenSize = central.reduce((a, b) => a + b.length, 0);
   const end = new DataView(new ArrayBuffer(22));
   end.setUint32(0, 0x06054b50, true); end.setUint16(8, files.length, true); end.setUint16(10, files.length, true);
+  end.setUint32(12, cenSize, true); end.setUint32(16, offset, true);
+  return new Blob([...parts, ...central, new Uint8Array(end.buffer)]);
+}
+
+// 큰 파일용 zip: data가 Blob이면 메모리로 복사하지 않고 그대로 이어 붙인다 (마스터 WAV 여러 개).
+// files: [{name, data: Uint8Array | string | Blob}], onProgress(읽은 바이트, 전체 바이트)
+export async function zipAsync(files, onProgress = () => {}) {
+  const enc = new TextEncoder();
+  const prepared = files.map((f) => ({ name: enc.encode(f.name), data: typeof f.data === 'string' ? enc.encode(f.data) : f.data }));
+  const total = prepared.reduce((a, f) => a + (f.data.size ?? f.data.length), 0);
+  let done = 0;
+  const parts = [];
+  const central = [];
+  let offset = 0;
+  for (const f of prepared) {
+    const isBlob = typeof Blob !== 'undefined' && f.data instanceof Blob;
+    const size = isBlob ? f.data.size : f.data.length;
+    const crc = isBlob ? await crc32Blob(f.data, (n) => onProgress(done + n, total)) : crc32(f.data);
+    done += size;
+    onProgress(done, total);
+    const local = new DataView(new ArrayBuffer(30));
+    local.setUint32(0, 0x04034b50, true); local.setUint16(4, 20, true); local.setUint16(6, 0x0800, true);
+    local.setUint32(14, crc, true); local.setUint32(18, size, true); local.setUint32(22, size, true);
+    local.setUint16(26, f.name.length, true);
+    parts.push(new Uint8Array(local.buffer), f.name, f.data);
+    const cen = new DataView(new ArrayBuffer(46));
+    cen.setUint32(0, 0x02014b50, true); cen.setUint16(4, 20, true); cen.setUint16(6, 20, true); cen.setUint16(8, 0x0800, true);
+    cen.setUint32(16, crc, true); cen.setUint32(20, size, true); cen.setUint32(24, size, true);
+    cen.setUint16(28, f.name.length, true); cen.setUint32(42, offset, true);
+    central.push(new Uint8Array(cen.buffer), f.name);
+    offset += 30 + f.name.length + size;
+  }
+  const cenSize = central.reduce((a, b) => a + b.length, 0);
+  const end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0, 0x06054b50, true); end.setUint16(8, prepared.length, true); end.setUint16(10, prepared.length, true);
   end.setUint32(12, cenSize, true); end.setUint32(16, offset, true);
   return new Blob([...parts, ...central, new Uint8Array(end.buffer)]);
 }

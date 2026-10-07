@@ -84,6 +84,30 @@ export function selectSong(id) {
   emit('all');
 }
 
+// 제작 패키지의 project.json(곡 백업)을 새 곡으로 가져온다. 형식이 맞지 않으면 false.
+export function importSong(data) {
+  if (!data || typeof data !== 'object' || !Array.isArray(data.sections) || !data.concept || !data.style) return false;
+  const song = JSON.parse(JSON.stringify(data));
+  // 원래 곡과 겹치지 않게 새 id (섹션 id는 편곡 데이터와 묶여 있어 그대로 둔다)
+  song.id = uid();
+  song.title = `${String(song.title || '가져온 곡').replace(/^예시:\s*/, '')} (가져옴)`;
+  song.example = false;
+  song.versions = [];
+  song.members = Array.isArray(song.members) ? song.members : [];
+  song.references = Array.isArray(song.references) ? song.references : [];
+  song.createdAt = Date.now();
+  song.updatedAt = Date.now();
+  song.sections = song.sections.filter((s) => s && typeof s.id === 'string').map((s) => ({ id: s.id, type: String(s.type || 'Verse'), members: Array.isArray(s.members) ? s.members : [], text: String(s.text || '') }));
+  normalizeMusic(song);
+  state.songs.unshift(song);
+  state.currentId = song.id;
+  state.mode = 'song';
+  state.tab = 'concept';
+  schedule(song.id);
+  emit('all');
+  return true;
+}
+
 // ---------- 앨범 ----------
 // 아직 저장 안 된 예시 곡을 앨범에 넣으면 새로고침 때 사라지므로 내 곡으로 저장한다
 export function keepSong(id) {

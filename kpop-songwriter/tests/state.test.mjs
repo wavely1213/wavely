@@ -93,5 +93,14 @@ await S.deleteSong(D.id);
 assert.deepEqual(album.tracks.map((t) => t.songId), [E.id], '앨범에서 빠짐');
 assert.equal(album.tracks[0].isTitle, true, '남은 곡이 타이틀');
 assert.equal(removedVersions.length, 1, '버전 사본 삭제');
+// 7) project.json 가져오기: 새 id·새 곡으로, 잘못된 파일은 거부
+const before = S.getState().songs.length;
+assert.equal(S.importSong({ hello: 1 }), false);
+const src = JSON.parse(JSON.stringify(E));
+assert.equal(S.importSong(src), true);
+assert.equal(S.getState().songs.length, before + 1);
+assert.notEqual(S.current().id, E.id, '새 id');
+assert.ok(S.current().title.endsWith('(가져옴)'));
+assert.equal(Object.keys(S.current().music.sections).length, S.current().sections.length);
 console.log('state OK');
 process.exit(0);

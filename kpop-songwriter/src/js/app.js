@@ -1,7 +1,7 @@
 // 진입점: 저장소 열기 → 상태 초기화 → 화면 그리기.
-import { h, formatTime } from './dom.js';
+import { h, formatTime, toast } from './dom.js';
 import { openStore } from './store.js';
-import { init, subscribe, getState, current, currentAlbum, newSong, selectSong, setTab, deleteSong, refresh, newAlbum, selectAlbum, showTaste } from './state.js';
+import { init, subscribe, getState, current, currentAlbum, newSong, selectSong, setTab, deleteSong, refresh, newAlbum, selectAlbum, showTaste, importSong } from './state.js';
 import { renderAlbum } from './views/album/index.js';
 import { renderTaste } from './views/taste.js';
 import { songProgress } from './workflow/progress.js';
@@ -50,7 +50,18 @@ function renderSidebar() {
   const st = getState();
   return h('nav', { class: 'songs', 'aria-label': '곡·앨범 목록' },
     h('div', { class: 'side-head' }, h('span', { class: 'field-label' }, '곡'),
-      h('button', { type: 'button', class: 'btn small primary', onclick: () => { stopPlayer(); newSong(); } }, '+ 새 곡')),
+      h('span', { class: 'row' },
+        h('input', { type: 'file', id: 'import-song', accept: '.json,application/json', class: 'visually-hidden', onchange: async (e) => {
+          const f = e.target.files?.[0];
+          e.target.value = '';
+          if (!f) return;
+          try {
+            if (!importSong(JSON.parse(await f.text()))) toast('곡 파일이 아니에요. 제작 패키지의 project.json을 넣어 주세요');
+            else toast('곡을 가져왔어요');
+          } catch { toast('파일을 읽지 못했어요'); }
+        } }),
+        h('label', { for: 'import-song', class: 'btn small ghost', title: '제작 패키지의 project.json으로 곡 되살리기' }, '가져오기'),
+        h('button', { type: 'button', class: 'btn small primary', onclick: () => { stopPlayer(); newSong(); } }, '+ 새 곡'))),
     h('ul', null, st.songs.map((s) => {
       const active = st.mode === 'song' && s.id === st.currentId;
       return h('li', null,

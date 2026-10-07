@@ -21,7 +21,7 @@ function guide(song) {
     '- style_suno.txt  : Suno Styles 칸 (첫 줄), Exclude styles (둘째 줄)',
     '- demo.wav        : 앱에서 만든 코드·리듬·가이드 멜로디 데모',
     '- song.mid        : 악기별 트랙이 나뉜 MIDI. DAW(FL Studio, Logic, Ableton, GarageBand 등)로 가져가기',
-    '- project.json    : 이 앱의 곡 데이터 백업',
+    '- project.json    : 이 앱의 곡 데이터 백업 (앱 왼쪽 "가져오기"로 되살릴 수 있음)',
     '',
     '[Suno로 완성하기]',
     '1. Suno에서 Create → Upload Audio로 demo.wav를 올린다.',

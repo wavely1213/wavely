@@ -1,5 +1,5 @@
 // 발매 준비: 마스터 파일 점검, 가사지·크레딧, 유통사 제출 패키지(zip), AI 홍보 문구.
-import { zip } from '../music/pack.js';
+import { zipAsync } from '../music/pack.js';
 import { measureAsync } from '../music/master.js';
 import { getSample } from '../ai.js';
 import { ALBUM_TYPES, scheduleFor, releaseChecklist, metadataRows, albumRows, toCsv, trackFileName, extOf } from './model.js';
@@ -80,12 +80,11 @@ export async function buildReleasePackage(album, songs, masters, cover, onStep =
     const song = songs.find((s) => s.id === t.songId);
     const m = masters[t.songId];
     if (m) {
-      onStep(`음원 담는 중 (${i + 1}/${tracks.length})`);
-      files.push({ name: `${root}/audio/${trackFileName(i, song.title, extOf(m.name))}`, data: new Uint8Array(await m.file.arrayBuffer()) });
+      files.push({ name: `${root}/audio/${trackFileName(i, song.title, extOf(m.name))}`, data: m.file }); // 복사하지 않고 원본 파일 그대로
     }
     files.push({ name: `${root}/lyrics/${trackFileName(i, song.title, 'txt')}`, data: plainLyrics(song) });
   }
-  if (cover?.blob) files.push({ name: `${root}/cover.${cover.blob.type === 'image/png' ? 'png' : 'jpg'}`, data: new Uint8Array(await cover.blob.arrayBuffer()) });
+  if (cover?.blob) files.push({ name: `${root}/cover.${cover.blob.type === 'image/png' ? 'png' : 'jpg'}`, data: cover.blob });
   onStep('메타데이터 정리 중');
   files.push({ name: `${root}/metadata_tracks.csv`, data: toCsv(metadataRows({ ...album, tracks }, songs, masters)) });
   files.push({ name: `${root}/metadata_album.csv`, data: toCsv(albumRows(album)) });
@@ -113,8 +112,9 @@ export async function buildReleasePackage(album, songs, masters, cover, onStep =
     '',
     'ISRC·UPC는 보통 유통사가 발급한다. 받은 뒤 앱의 앨범 메타데이터에 적어 두면 다음 패키지에 들어간다.',
   ].join('\n') });
-  onStep('압축 중');
-  return { blob: zip(files), filename: `${root}.zip`, checklist: check };
+  onStep('묶는 중');
+  const blob = await zipAsync(files, (n, total) => onStep(`묶는 중 ${Math.round((n / Math.max(1, total)) * 100)}%`));
+  return { blob, filename: `${root}.zip`, checklist: check };
 }
 
 // AI 홍보 문구 초안
