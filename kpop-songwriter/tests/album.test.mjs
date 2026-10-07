@@ -317,3 +317,12 @@ import { extOf } from '../src/js/album/model.js';
   assert.ok(!releaseChecklist(al, [rudeSong], { today }).some((i) => i.text.includes('19금')), '표시를 켜면 경고 없음');
   console.log('explicit OK');
 }
+
+// Inst. 트랙: 작사 크레딧·가사 없음은 점검 대상 아님
+{
+  const inst = { ...song, id: 'inst1', title: '새벽 신호 (Inst.)', instOf: song.id, sections: song.sections.map((x) => ({ ...x, text: '' })) };
+  const al = { ...newAlbum(), title: 'X', artist: 'Y', cLine: '2026 a', pLine: '2026 a', releaseDate: '2026-12-01', tracks: [{ ...newTrack('inst1'), isTitle: true, composers: 'a' }] };
+  const items = releaseChecklist(al, [inst], { today });
+  assert.ok(!items.some((i) => i.text.includes('작사 크레딧') || i.text.includes('가사가 없어요')));
+  console.log('inst OK');
+}

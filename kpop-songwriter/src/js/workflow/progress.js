@@ -28,9 +28,11 @@ export function songProgress(song, { albums = [], songs = [] } = {}) {
     && !song.sections.slice(0, i).some((x) => x.type === s.type && x.text.trim()));
   const score = scoreSong(song).score;
   set('lyrics', !empty.length && score >= 70, empty.length ? `${empty.length}개 섹션이 비어 있어요.` : `가사 점수 ${score}점 — 70점 이상이면 완료로 봐요.`);
+  // 연주곡(Inst.) 버전은 가사·가이드 멜로디가 없는 게 맞다
+  if (song.instOf) { set('lyrics', true, ''); set('melody', true, ''); }
 
   set('arrange', !!p.arranged, '편곡 탭에서 코드·악기를 고르거나 AI 편곡을 해 보세요.');
-  set('melody', Object.values(song.music.sections).some((sm) => sm.melody.length), '멜로디 탭에서 가이드 멜로디를 만들어 주세요.');
+  if (!song.instOf) set('melody', Object.values(song.music.sections).some((sm) => sm.melody.length), '멜로디 탭에서 가이드 멜로디를 만들어 주세요.');
   set('suno', !!p.suno, '내보내기 탭에서 가사·스타일을 복사하거나 제작 패키지를 받아 Suno로 노래를 만들어 주세요.');
 
   const mastered = !!songMaster(song.id) || !!(album && mastersOf(album.id)[song.id]) || !!p.mastered;

@@ -231,6 +231,11 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     const statCell = await p.textContent('.stat-table tbody td.mono');
     const statOverflow = await p.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
     global.statOk = (global.statOk ?? true) && statCell.replace(/\D/g, '') === '3100000' && !statOverflow;
+    // Inst. 버전 추가: 원곡 바로 뒤에 (Inst.) 트랙, 같은 곡에는 버튼이 다시 안 보임
+    await p.click('.tab:text-is("수록곡")');
+    await p.click('button[id^="inst-"]');
+    const trackTitles = await p.$$eval('.track-title', (els) => els.map((e) => e.textContent));
+    global.instOk = (global.instOk ?? true) && trackTitles.length === 2 && trackTitles[1].endsWith('(Inst.)') && (await p.locator('button[id^="inst-"]').count()) === 0;
     // 새로고침해도 마스터·커버가 남는지 (IndexedDB)
     await p.waitForTimeout(1500);
     await p.reload();
@@ -285,6 +290,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
   if (!global.icsOk) errs.push('캘린더 파일 이상');
   if (!global.diffSame) errs.push('버전 비교 이상');
   if (!global.qcOk) errs.push('소리 점검(QC) 표시 이상');
+  if (!global.instOk) errs.push('Inst. 버전 추가 이상');
   if (!global.coverPickOk) errs.push('커버 추천·모양 미리보기 이상');
   if (!/^-1[34]\.\d LUFS$/.test(global.takeLufs || '')) errs.push(`테이크 음량 표시 이상: ${global.takeLufs}`);
   if (global.albumStep1 !== '다음: 정보·크레딧' || global.albumStepTab !== '정보·크레딧' || global.albumStep2 !== '다음: 발매 후 기록') errs.push(`앨범 진행 단계 이상: ${global.albumStep1} / ${global.albumStepTab} / ${global.albumStep2}`);

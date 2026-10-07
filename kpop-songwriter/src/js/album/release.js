@@ -79,7 +79,7 @@ export async function buildReleasePackage(album, songs, masters, cover, onStep =
     if (m) {
       files.push({ name: `${root}/audio/${trackFileName(i, song.title, extOf(m.name))}`, data: m.file }); // 복사하지 않고 원본 파일 그대로
     }
-    files.push({ name: `${root}/lyrics/${trackFileName(i, song.title, 'txt')}`, data: plainLyrics(song) });
+    if (plainLyrics(song)) files.push({ name: `${root}/lyrics/${trackFileName(i, song.title, 'txt')}`, data: plainLyrics(song) }); // 연주곡은 가사 파일 없음
     if (syncStatus(song) === 'ok') {
       files.push({ name: `${root}/lyrics/${trackFileName(i, song.title, 'lrc')}`, data: toLrc({ title: song.title.replace(/^예시:\s*/, ''), artist: album.artist, album: album.title, lines: song.sync.lines, duration: song.sync.duration }) });
     }

@@ -132,7 +132,7 @@ export function releaseChecklist(album, songs, { masters = {}, coverInfo = null,
   tracks.forEach((t, i) => {
     const song = songs.find((s) => s.id === t.songId);
     const n = `${i + 1}번 「${song.title.replace(/^예시:\s*/, '')}」`;
-    if (!t.lyricists.trim()) add('error', `${n}: 작사 크레딧이 비어 있어요.`, { tab: 'meta' });
+    if (!t.lyricists.trim() && !song.instOf) add('error', `${n}: 작사 크레딧이 비어 있어요.`, { tab: 'meta' });
     if (t.isrc.trim() && !ISRC.test(t.isrc.replace(/[\s-]/g, '').toUpperCase())) add('warn', `${n}: ISRC 형식이 아니에요 (예: KR-A01-26-00001, 12자리).`, { tab: 'meta' });
     if (!t.composers.trim()) add('error', `${n}: 작곡 크레딧이 비어 있어요.`, { tab: 'meta' });
     splitIssues(t).forEach((r) => add('warn', r.missing.length
@@ -140,7 +140,7 @@ export function releaseChecklist(album, songs, { masters = {}, coverInfo = null,
       : `${n}: ${r.name} 지분 합이 ${r.sum}%예요. 100%가 되게 맞춰 주세요.`, { tab: 'meta' }));
     const shared = splitsFor(t).filter((r) => r.people.length > 1 && !r.custom).map((r) => r.name);
     if (shared.length) add('info', `${n}: ${shared.join('·')}을 여럿이 했는데 지분을 안 적어 똑같이 나눈 것으로 적었어요. 합의한 비율이 다르면 정보·크레딧에서 고치세요.`, { tab: 'meta' });
-    if (!song.sections.some((s) => s.text.trim())) add('warn', `${n}: 가사가 없어요 (연주곡이면 무시).`, { song: song.id, tab: 'editor' });
+    if (!song.instOf && !song.sections.some((s) => s.text.trim())) add('warn', `${n}: 가사가 없어요 (연주곡이면 무시).`, { song: song.id, tab: 'editor' });
     const rude = t.explicit ? [] : explicitWords(song.sections.map((s) => s.text).join('\n'));
     if (rude.length) add('warn', `${n}: 가사에 욕설로 보이는 말(${rude.slice(0, 3).join(', ')})이 있는데 19금(Explicit) 표시가 꺼져 있어요. 플랫폼은 표시가 틀리면 내리거나 반려할 수 있어요.`, { tab: 'meta' });
     const m = masters[t.songId];

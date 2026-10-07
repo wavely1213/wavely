@@ -181,5 +181,23 @@ assert.ok(AL.cover && AL.promo && Array.isArray(AL.tracks), '되돌린 뒤에도
   assert.equal(S.duplicateSong('없음'), null);
   assert.equal(S.getState().songs.length, before);
 }
+// Inst. 버전: 가사·멜로디 비운 사본이 원곡 바로 뒤 트랙으로, 작사·피처링·ISRC는 비움, 화면은 앨범 그대로
+{
+  await S.init(fakeStore());
+  const orig = S.current();
+  S.mutateSong(orig.id, (x) => { x.title = '타이틀'; });
+  S.newAlbum({ fromSong: orig });
+  const al = S.currentAlbum();
+  S.mutateAlbum((a) => { Object.assign(a.tracks[0], { lyricists: '물결', composers: '하늘', arrangers: '바다', isrc: 'KRA012600001', explicit: true }); });
+  const inst = S.addInstVersion(al.id, orig.id);
+  assert.equal(inst.title, '타이틀 (Inst.)');
+  assert.equal(inst.instOf, orig.id);
+  assert.ok(inst.sections.every((sec) => !sec.text));
+  assert.ok(Object.values(inst.music.sections).every((sm) => !sm.melody.length));
+  assert.deepEqual(al.tracks.map((t) => t.songId), [orig.id, inst.id]);
+  assert.deepEqual([al.tracks[1].lyricists, al.tracks[1].composers, al.tracks[1].arrangers, al.tracks[1].isrc, al.tracks[1].explicit, al.tracks[1].isTitle], ['', '하늘', '바다', '', false, false]);
+  assert.equal(S.getState().mode, 'album');
+  assert.equal(S.addInstVersion(al.id, 'none'), null);
+}
 console.log('state OK');
 process.exit(0);

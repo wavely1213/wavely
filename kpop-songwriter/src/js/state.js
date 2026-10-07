@@ -111,6 +111,34 @@ export function importSong(data) {
 // 곡 복제 (다른 버전·리믹스를 시도할 때): 섹션 id를 새로 만들어 편곡·멜로디·번안을 옮기고,
 // 버전 목록·싱크 가사·Suno 생성·마스터링 진행은 새 버전에서 다시 하도록 비운다.
 export function duplicateSong(id) {
+  const song = copySong(id);
+  if (!song) return null;
+  state.currentId = song.id;
+  state.mode = 'song';
+  schedule(song.id);
+  emit('all');
+  return song;
+}
+
+// 앨범에 연주곡(Inst.) 버전 더하기: 가사·가이드 멜로디를 비운 사본을 만들어 원곡 바로 뒤 트랙으로.
+// 작곡·편곡 크레딧은 같고 작사는 없음. 마스터는 Suno 연주곡(Instrumental) 결과를 따로 넣는다.
+export function addInstVersion(albumId, songId) {
+  const album = state.albums.find((a) => a.id === albumId);
+  const at = album ? album.tracks.findIndex((t) => t.songId === songId) : -1;
+  if (at < 0) return null;
+  const song = copySong(songId, { suffix: ' (Inst.)', inst: true });
+  remember(album, 'all');
+  const src = album.tracks[at];
+  album.tracks.splice(at + 1, 0, { ...src, songId: song.id, isTitle: false, isrc: '', lyricists: '', featuring: '', explicit: false, splits: { music: src.splits?.music, arrange: src.splits?.arrange } });
+  normalizeAlbum(album);
+  album.updatedAt = Date.now();
+  schedule(song.id);
+  schedule(album.id);
+  emit('all');
+  return song;
+}
+
+function copySong(id, { suffix = ' (사본)', inst = false } = {}) {
   const src = state.songs.find((x) => x.id === id);
   if (!src) return null;
   const { versions, ...rest } = src;
@@ -121,7 +149,7 @@ export function duplicateSong(id) {
   Object.values(song.translations || {}).forEach((t) => { t.sections = Object.fromEntries(Object.entries(t.sections || {}).filter(([k]) => map[k]).map(([k, v]) => [map[k], v])); });
   Object.assign(song, {
     id: uid(),
-    title: `${String(src.title || '제목 없음').replace(/^예시:\s*/, '')} (사본)`,
+    title: `${String(src.title || '제목 없음').replace(/^예시:\s*/, '')}${suffix}`,
     example: false,
     versions: [],
     sync: null,
@@ -129,13 +157,14 @@ export function duplicateSong(id) {
     createdAt: Date.now(),
     updatedAt: Date.now(),
   });
+  if (inst) {
+    song.instOf = src.id;
+    song.sections.forEach((sec) => { sec.text = ''; });
+    Object.values(song.music.sections).forEach((sm) => { sm.melody = []; });
+    ['translations', 'similarity', 'spelling'].forEach((k) => { delete song[k]; });
+  }
   normalizeMusic(song);
-  const at = state.songs.indexOf(src);
-  state.songs.splice(at + 1, 0, song);
-  state.currentId = song.id;
-  state.mode = 'song';
-  schedule(song.id);
-  emit('all');
+  state.songs.splice(state.songs.indexOf(src) + 1, 0, song);
   return song;
 }
 
