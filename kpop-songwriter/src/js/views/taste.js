@@ -1,7 +1,7 @@
 // 내 취향 화면: 취향 프로필(직접 고치기·AI 정리), 반응 기록, 내보내기.
 import { h, field, formatTime, toast } from '../dom.js';
 import { getState, mutateTaste } from '../state.js';
-import { tasteStats, toJsonl, removeEntry, newSinceSummary, SUMMARY_EVERY, preferencePairs, pairsJsonl } from '../learn/taste.js';
+import { tasteStats, toJsonl, removeEntry, newSinceSummary, SUMMARY_EVERY, preferencePairs, pairsJsonl, satisfactionTrend, trendText, TREND_MIN } from '../learn/taste.js';
 import { summarizeTaste } from '../learn/summarize.js';
 import { isBusy, runJob, stopJob, job } from '../aijob.js';
 import { INSTRUMENT_BY_ID } from '../music/instruments.js';
@@ -62,6 +62,7 @@ export function renderTaste(saveLabel) {
         h('h2', null, '지금까지의 반응'),
         h('dl', { class: 'facts' },
           h('dt', null, '기록'), h('dd', { class: 'mono' }, `${st.total}개 (👍 ${st.liked} · 👎 ${st.disliked} · 고침 ${st.edits})`),
+          h('dt', null, 'AI 만족도 (👍 비율)'), h('dd', { id: 'taste-trend' }, trendText(satisfactionTrend(taste)) || `👍/👎가 ${TREND_MIN}개 넘게 쌓이면 처음과 최근을 비교해 보여 줘요`),
           h('dt', null, '자주 나온 불만'), h('dd', null, st.reasons.length ? st.reasons.slice(0, 4).map(([r, n]) => `${r} ${n}`).join(', ') : '—'),
           h('dt', null, '좋아한 편곡 BPM'), h('dd', { class: 'mono' }, st.bpmRange ? `${st.bpmRange[0]}~${st.bpmRange[1]}` : '—'),
           h('dt', null, '좋아한 편곡 악기'), h('dd', null, st.instruments.length ? st.instruments.map((i) => INSTRUMENT_BY_ID[i]?.name || i).join(', ') : '—'),

@@ -76,3 +76,19 @@ import { newSinceSummary, SUMMARY_EVERY } from '../src/js/learn/taste.js';
   console.log('pairs OK');
 }
 
+
+// 학습 효과: 👍/👎만 시간 순으로 반씩 나눠 비교 (줄 ♥·고른 것·고침은 빼고)
+import { satisfactionTrend, trendText } from '../src/js/learn/taste.js';
+{
+  const e = (rating, at, context = {}) => ({ id: String(at), at, kind: 'lyrics', rating, text: 'x', reasons: [], context });
+  const few = { log: [e(1, 1), e(-1, 2)] };
+  assert.equal(satisfactionTrend(few), null);
+  const log = [];
+  for (let i = 0; i < 6; i++) log.push(e(i < 2 ? 1 : -1, i)); // 처음 6개: 👍 2 (33%)
+  for (let i = 6; i < 12; i++) log.push(e(i < 11 ? 1 : -1, i)); // 최근 6개: 👍 5 (83%)
+  log.push(e(1, 50, { line: true }), e(1, 51, { rejected: ['a'] }), e(0, 52)); // 세지 않음
+  const t = satisfactionTrend({ log: log.reverse() });
+  assert.deepEqual([t.n, Math.round(t.early * 100), Math.round(t.recent * 100), t.diff], [6, 33, 83, 50]);
+  assert.equal(trendText(t), '처음 6개 33% → 최근 6개 83% (좋아지고 있어요)');
+  console.log('satisfaction trend OK');
+}

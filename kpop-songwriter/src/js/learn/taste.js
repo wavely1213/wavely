@@ -62,6 +62,27 @@ export function tasteStats(taste) {
   };
 }
 
+// 학습 효과: AI 결과에 누른 👍/👎만(줄 ♥·고른 것 제외) 시간 순으로 반으로 나눠 앞·뒤 👍 비율을 비교한다.
+// 반응이 TREND_MIN개 넘어야 보인다. 반환: null 또는 { n(반쪽 개수), early, recent (0~1), diff(%p) }
+export const TREND_MIN = 10;
+export function satisfactionTrend(taste) {
+  const rated = taste.log.filter((e) => (e.rating === 1 || e.rating === -1) && !e.context?.line && !Array.isArray(e.context?.rejected))
+    .sort((a, b) => a.at - b.at);
+  if (rated.length < TREND_MIN) return null;
+  const n = Math.floor(rated.length / 2);
+  const ratio = (xs) => xs.filter((e) => e.rating === 1).length / xs.length;
+  const early = ratio(rated.slice(0, n));
+  const recent = ratio(rated.slice(-n));
+  return { n, early, recent, diff: Math.round((recent - early) * 100) };
+}
+
+export function trendText(t) {
+  if (!t) return '';
+  const pct = (x) => `${Math.round(x * 100)}%`;
+  const how = t.diff >= 10 ? '좋아지고 있어요' : t.diff <= -10 ? '나빠졌어요 — "기록으로 AI가 정리하기"로 프로필을 새로 고쳐 보세요' : '비슷해요';
+  return `처음 ${t.n}개 ${pct(t.early)} → 최근 ${t.n}개 ${pct(t.recent)} (${how})`;
+}
+
 // AI 요청에 붙일 취향 블록. kind에 맞는 좋아한 예시를 몇 개 넣는다.
 export function promptBlock(taste, kind = 'lyrics') {
   if (!taste?.enabled) return '';
