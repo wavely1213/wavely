@@ -1,5 +1,6 @@
 // 앨범: 곡 묶음 + 발매 메타데이터 + 커버 설정 + 일정 체크. 오디오·이미지는 저장하지 않는다(용량).
 import { uid } from '../dom.js';
+import { syncStatus } from './lrc.js';
 
 export const ALBUM_TYPES = {
   single: { name: '싱글', min: 1, max: 3 },
@@ -129,6 +130,10 @@ export function releaseChecklist(album, songs, { masters = {}, coverInfo = null,
     if (!t.composers.trim()) add('error', `${n}: 작곡 크레딧이 비어 있어요.`, { tab: 'meta' });
     if (!song.sections.some((s) => s.text.trim())) add('warn', `${n}: 가사가 없어요 (연주곡이면 무시).`, { song: song.id, tab: 'editor' });
     const m = masters[t.songId];
+    const sync = syncStatus(song);
+    if (sync === 'stale') add('warn', `${n}: 싱크 가사를 맞춘 뒤 가사가 바뀌었어요. 다시 맞춰 주세요 (안 하면 패키지에서 빠져요).`, { tab: 'sync' });
+    else if (sync === 'partial' || sync === 'order') add('warn', `${n}: 싱크 가사를 덜 맞췄어요 (패키지에서 빠져요).`, { tab: 'sync' });
+    else if (sync === 'ok' && m && Number.isFinite(m.duration) && Number.isFinite(song.sync.duration) && Math.abs(m.duration - song.sync.duration) > 1) add('warn', `${n}: 싱크 가사를 맞춘 마스터와 지금 마스터의 길이가 달라요. 다시 맞춰 주세요.`, { tab: 'sync' });
     if (!m) add('error', `${n}: 마스터 WAV를 넣어 주세요.`, { tab: 'tracks' });
     else {
       if (!/\.wav$/i.test(m.name)) add('error', `${n}: 마스터는 WAV여야 해요 (지금 ${m.name}).`, { tab: 'tracks' });

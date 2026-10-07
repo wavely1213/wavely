@@ -120,6 +120,18 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     await p.click('text=이 커버 쓰기');
     await p.waitForSelector('.cover-thumb', { timeout: 30000 });
     if (tag === 'desk') await p.screenshot({ path: path.join(TMP, `${tag}-앨범커버.png`), fullPage: true });
+    // 싱크 가사: 맞추기 시작 → 스페이스로 줄마다 찍기 → 싱크 완료, 제출 zip에 .lrc
+    await p.click('.tab:text-is("싱크 가사")');
+    await p.click('text=▶ 맞추기 시작');
+    const nLines = await p.locator('.sync-line').count();
+    for (let k = 0; k < nLines; k++) { await p.waitForTimeout(40); await p.keyboard.press('Space'); }
+    await p.waitForSelector('.chip.on:has-text("싱크 완료")', { timeout: 10000 }).catch(() => {});
+    const syncTimes = await p.$$eval('.sync-time', (els) => els.map((e) => e.textContent));
+    const syncDone = await p.locator('.chip.on:has-text("싱크 완료")').count();
+    const syncOverflow = await p.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
+    if (tag === 'desk') await p.screenshot({ path: path.join(TMP, `${tag}-싱크.png`), fullPage: true });
+    global.syncOk = (global.syncOk ?? true) && nLines > 3 && syncDone === 1 && !syncTimes.includes('--:--.--') && !syncOverflow;
+    global.syncInfo = { nLines, first: syncTimes[0], last: syncTimes[syncTimes.length - 1], syncOverflow };
     await p.click('.tab:text-is("일정")');
     await p.click('.schedule input[type=checkbox] >> nth=0');
     await p.click('.tab:text-is("제출")');
@@ -128,6 +140,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     const [download] = await Promise.all([p.waitForEvent('download', { timeout: 60000 }), p.click('text=제출 패키지 받기')]);
     const zipPath = path.join(TMP, `${tag}-release.zip`);
     await download.saveAs(zipPath);
+    global.zipLrc = (global.zipLrc ?? true) && fs.readFileSync(zipPath).includes(Buffer.from('.lrc'));
     // 새로고침해도 마스터·커버가 남는지 (IndexedDB)
     await p.waitForTimeout(1500);
     await p.reload();
@@ -139,12 +152,14 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     await p.waitForSelector('.cover-thumb', { timeout: 15000 }).catch(() => {});
     const keptCover = await p.locator('.cover-thumb').count();
     global.persistOk = (global.persistOk ?? true) && keptMaster === 1 && keptCover === 1;
-    console.log(tag, { custom, prog, before, after, refs, masterPill, takeBest: global.takeBest, stepHint, autoMaster, keptMaster, keptCover, errorsLeft, zip: fs.statSync(zipPath).size, vbodyStart: vbody.slice(0, 30), vcount });
+    console.log(tag, { custom, prog, before, after, refs, masterPill, takeBest: global.takeBest, sync: global.syncInfo, stepHint, autoMaster, keptMaster, keptCover, errorsLeft, zip: fs.statSync(zipPath).size, vbodyStart: vbody.slice(0, 30), vcount });
     await c.close();
   }
   if (!global.autoOk) errs.push('마스터 자동 연결 안 됨');
   if (!global.undoOk) errs.push('되돌리기·다시 하기 안 됨');
   if (!global.albumUndoOk) errs.push('앨범 되돌리기 안 됨');
+  if (!global.syncOk) errs.push('싱크 가사 맞추기 안 됨');
+  if (!global.zipLrc) errs.push('제출 패키지에 .lrc 없음');
   if (global.takeBest !== undefined && global.takeBest !== 'master-14') errs.push(`테이크 비교 결과 이상: ${global.takeBest}`);
   if (!global.keysOk) errs.push('피아노롤 키보드 안 됨');
   if (!global.helpOk) errs.push('도움말 안 열림');

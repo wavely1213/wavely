@@ -60,7 +60,8 @@
 | 앨범 모델 | album/model.js | 앨범·트랙, 발매 일정표, 발매 전 점검표, 메타데이터 CSV |
 | 커버 | album/cover.js | 3000×3000 템플릿 캔버스 → JPG |
 | 발매 준비 | album/release.js, album/session.js | 마스터 규격 점검, 가사지·크레딧, 제출 zip, AI 홍보 문구 |
-| 앨범 화면 | views/album/* | 수록곡·정보·커버·일정·홍보·제출 탭 |
+| 앨범 화면 | views/album/* | 수록곡·정보·커버·싱크 가사·일정·홍보·제출 탭 |
+| 싱크 가사 | album/lrc.js, album/lyrics.js, views/album/sync.js | 마스터를 들으며 줄마다 탭 → song.sync 저장, LRC 파일·제출 패키지 포함, 가사 변경 감지 |
 | 되돌리기 | state.js (undo/redo), views/undo-buttons.js | 곡·앨범마다 최근 40단계, 타이핑은 2초 묶음. 머리말 ↶↷ + Ctrl+Z |
 | 취향 학습 | learn/taste.js, learn/context.js | 반응 기록·통계·프롬프트 블록·JSONL, AI 모듈이 취향을 읽는 연결점 |
 | 반응 UI | learn/feedback.js, learn/summarize.js, views/taste.js | 👍/👎 막대, 줄 단위 ♥, 고친 내용 추적, AI 취향 정리, 내 취향 화면 |

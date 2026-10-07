@@ -3,6 +3,10 @@ import { zipAsync } from '../music/pack.js';
 import { measureAsync } from '../music/master.js';
 import { getSample } from '../ai.js';
 import { ALBUM_TYPES, scheduleFor, releaseChecklist, metadataRows, albumRows, toCsv, trackFileName, extOf } from './model.js';
+import { plainLyrics } from './lyrics.js';
+import { syncStatus, toLrc } from './lrc.js';
+
+export { plainLyrics };
 
 // WAV 헤더에서 샘플레이트·비트 수 읽기 (decodeAudioData는 비트 수를 알려 주지 않는다)
 export function wavHeader(bytes) {
@@ -34,15 +38,6 @@ export async function inspectMaster(file) {
   const m = await measureAsync(ch, buf.sampleRate);
   // 샘플레이트는 헤더 값만 믿는다 (디코딩은 44.1kHz로 바꿔 버려 원래 값을 알 수 없음)
   return { file, name: file.name, sampleRate: head?.sampleRate || null, bits: head?.bits || null, format: head?.format ?? null, channels: head?.channels || buf.numberOfChannels, lufs: m.lufs, peak: m.peak, duration: buf.duration };
-}
-
-// 태그 없는 가사지. 비워 둔 반복 섹션은 앞의 같은 섹션 가사로 채운다.
-export function plainLyrics(song) {
-  return song.sections.map((s, i) => {
-    let body = s.text.trim();
-    if (!body) body = song.sections.slice(0, i).reverse().find((p) => p.type === s.type && p.text.trim())?.text.trim() || '';
-    return body;
-  }).filter(Boolean).join('\n\n');
 }
 
 function credits(album, songs) {
@@ -83,6 +78,9 @@ export async function buildReleasePackage(album, songs, masters, cover, onStep =
       files.push({ name: `${root}/audio/${trackFileName(i, song.title, extOf(m.name))}`, data: m.file }); // 복사하지 않고 원본 파일 그대로
     }
     files.push({ name: `${root}/lyrics/${trackFileName(i, song.title, 'txt')}`, data: plainLyrics(song) });
+    if (syncStatus(song) === 'ok') {
+      files.push({ name: `${root}/lyrics/${trackFileName(i, song.title, 'lrc')}`, data: toLrc({ title: song.title.replace(/^예시:\s*/, ''), artist: album.artist, album: album.title, lines: song.sync.lines, duration: song.sync.duration }) });
+    }
   }
   if (cover?.blob) files.push({ name: `${root}/cover.${cover.blob.type === 'image/png' ? 'png' : 'jpg'}`, data: cover.blob });
   onStep('메타데이터 정리 중');
@@ -107,7 +105,7 @@ export async function buildReleasePackage(album, songs, masters, cover, onStep =
     '- audio/: 트랙 번호 순 마스터 WAV (유통사 업로드용)',
     '- cover.jpg / cover.png: 커버 (정사각형, 3000×3000 권장)',
     '- metadata_album.csv / metadata_tracks.csv: 유통사 입력 화면에 옮겨 적을 값',
-    '- lyrics/: 트랙별 가사 (플랫폼 가사 등록용)',
+    '- lyrics/: 트랙별 가사 .txt (플랫폼 가사 등록용), 싱크 가사 .lrc (맞춘 곡만, 가사 따라가기용)',
     '- credits.txt: 크레딧 시트, release_schedule.txt: 발매 일정, checklist.txt: 제출 전 점검 결과',
     '',
     'ISRC·UPC는 보통 유통사가 발급한다. 받은 뒤 앱의 앨범 메타데이터에 적어 두면 다음 패키지에 들어간다.',

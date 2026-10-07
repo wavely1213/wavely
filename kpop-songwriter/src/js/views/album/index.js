@@ -7,6 +7,7 @@ import { renderMeta } from './meta.js';
 import { renderCover } from './cover.js';
 import { renderSchedule, renderPromo } from './plan.js';
 import { renderSubmit } from './submit.js';
+import { renderSync } from './sync.js';
 import { restoreAlbum, forgetAlbum } from '../../album/session.js';
 import { undoButtons } from '../undo-buttons.js';
 
@@ -14,6 +15,7 @@ const TABS = [
   ['tracks', '수록곡', renderTracks],
   ['meta', '정보·크레딧', renderMeta],
   ['cover', '커버', renderCover],
+  ['sync', '싱크 가사', renderSync],
   ['schedule', '일정', renderSchedule],
   ['promo', '홍보', renderPromo],
   ['submit', '제출', renderSubmit],

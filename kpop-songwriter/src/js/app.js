@@ -19,6 +19,7 @@ import { renderMelody } from './views/melody.js';
 import { renderSound } from './views/sound.js';
 import { renderReferences } from './views/references.js';
 import { renderMaster, stopMasterPreview } from './views/master.js';
+import { stopSyncAudio } from './views/album/sync.js';
 import { onPlayer, stop as stopPlayer } from './music/player.js';
 
 const TABS = [
@@ -168,6 +169,7 @@ function draw() {
   const root = document.getElementById('app');
   const now = getState();
   if (!(now.mode === 'song' && now.tab === 'master')) stopMasterPreview();
+  if (!(now.mode === 'album' && now.albumTab === 'sync')) stopSyncAudio();
   const st = getState();
   const song = current();
   if (!song) return;

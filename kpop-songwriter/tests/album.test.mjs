@@ -39,6 +39,16 @@ album.tracks = [{ ...newTrack(song.id), isTitle: true, lyricists: '물결', comp
 const masters = { [song.id]: { name: 'a.wav', sampleRate: 44100, bits: 24, lufs: -14, peak: -1, duration: 200 } };
 check = releaseChecklist(album, [song], { masters, coverInfo: { width: 3000, height: 3000 }, today });
 assert.deepEqual(errs(check), []);
+// 싱크 가사: 맞춘 뒤 가사가 바뀌면 경고(싱크 탭으로), 마스터 길이가 다르면 경고
+const { makeSync } = await import('../src/js/album/lrc.js');
+song.sync = makeSync(song, Array.from({ length: 200 }, (_, k) => k), { duration: 200 });
+assert.ok(!releaseChecklist(album, [song], { masters, coverInfo: { width: 3000, height: 3000 }, today }).some((i) => i.text.includes('싱크')), '맞춘 싱크는 경고 없음');
+const longer = { [song.id]: { ...masters[song.id], duration: 215 } };
+assert.ok(releaseChecklist(album, [song], { masters: longer, coverInfo: { width: 3000, height: 3000 }, today }).some((i) => i.text.includes('길이가 달라요') && i.go.tab === 'sync'));
+song.sync = { ...song.sync, key: 'old lyrics' };
+const stale = releaseChecklist(album, [song], { masters, coverInfo: { width: 3000, height: 3000 }, today }).find((i) => i.text.includes('싱크 가사를 맞춘 뒤'));
+assert.ok(stale && stale.level === 'warn' && stale.go.tab === 'sync');
+delete song.sync;
 // 트랙 간 음량 차이: 3 LU 넘으면 작은 곡 마스터링 탭으로 안내
 const song2 = { ...normalizeMusic(exampleSong()), id: 'song-2', title: '두 번째' };
 const two = { ...album, tracks: [...album.tracks, { ...newTrack('song-2'), lyricists: '물결', composers: '물결' }] };
