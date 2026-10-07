@@ -1,7 +1,7 @@
 // 마스터링 탭: Suno 완성곡(또는 앱 데모)을 발매 규격(음량·트루 피크·44.1kHz)으로 맞춰 WAV로 받는다.
 import { h, toast } from '../dom.js';
 import { mutate, mutateSong, refresh } from '../state.js';
-import { decodeFile, master, masterWarnings, MASTER_PRESETS, LOUDNESS_TARGETS, OUTPUT_RATE, presetOf } from '../music/master.js';
+import { decodeFile, master, masterWarnings, MASTER_PRESETS, LOUDNESS_TARGETS, OUTPUT_RATE, presetOf, measureAsync } from '../music/master.js';
 import { referenceTone, matchEq } from '../music/tonematch.js';
 import { toneOf } from '../music/analyze.js';
 import { renderSong, stop as stopPlayer } from '../music/player.js';
@@ -254,10 +254,19 @@ async function playTake(t) {
   refresh();
   try {
     const buf = await audioCtx.decodeAudioData(await t.file.arrayBuffer());
+    // 처음 들을 때 음량을 재 두고, 같은 음량(-14 LUFS 기준)으로 줄여서 들려준다 (큰 테이크가 좋게 들리는 착각 방지)
+    if (t.lufs === undefined) {
+      const chs = Array.from({ length: buf.numberOfChannels }, (_, i) => buf.getChannelData(i));
+      t.lufs = (await measureAsync(chs.length > 1 ? chs : [chs[0], chs[0]], buf.sampleRate).catch(() => ({ lufs: null }))).lufs;
+      if (!Number.isFinite(t.lufs)) t.lufs = null;
+      refresh(); // 카드에 음량 표시
+    }
     if (ui.listen !== `take:${t.id}`) return;
     const src = audioCtx.createBufferSource();
     src.buffer = buf;
-    src.connect(audioCtx.destination);
+    const g = audioCtx.createGain();
+    g.gain.value = ui.matched && t.lufs != null ? Math.min(1, 10 ** ((-14 - t.lufs) / 20)) : 1;
+    src.connect(g).connect(audioCtx.destination);
     src.onended = () => { if (playing === src) { playing = null; ui.listen = null; refresh(); } };
     src.start();
     playing = src;
@@ -282,6 +291,7 @@ function renderTakes(song) {
       h('h2', null, 'Suno 테이크 비교 (선택)'),
       h('span', { class: 'row' }, files, h('label', { for: 'take-files', class: 'btn small' }, '테이크 여러 개 넣기'))),
     h('p', { class: 'muted' }, 'Suno가 만든 여러 버전을 한꺼번에 넣으면, 편곡에서 정한 BPM·키·길이와 맞는지 비교해요. 들어 보고 마음에 드는 걸 "이걸로 마스터링"하세요. (최대 6개)'),
+    list.length ? h('label', { class: 'check' }, h('input', { type: 'checkbox', id: 'take-matched', checked: ui.matched, onchange: (e) => { ui.matched = e.target.checked; } }), '같은 음량으로 듣기 (큰 테이크가 더 좋게 들리는 착각 방지)') : null,
     list.length ? h('ul', { class: 'takes' }, list.map((t) => h('li', { class: `take${t.cmp && t.cmp.score === best && best > 0 ? ' best' : ''}` },
       h('div', { class: 'take-head' },
         h('strong', { class: 'track-title' }, t.name),
@@ -289,6 +299,7 @@ function renderTakes(song) {
           h('option', { value: '', selected: !t.variant }, '스타일 ?'),
           vids.map((id) => h('option', { value: id, selected: t.variant === id }, `스타일 ${id}`))) : null,
         t.cmp ? h('span', { class: `pill ${t.cmp.score === 3 ? 'good' : t.cmp.score >= 2 ? '' : 'warn-pill'}` }, `편곡과 일치 ${t.cmp.score}/3`) : null,
+        t.lufs != null && t.lufs !== undefined ? h('span', { class: 'mono muted small take-lufs' }, `${t.lufs.toFixed(1)} LUFS`) : null,
         t.cmp && t.cmp.score === best && best > 0 && list.length > 1 ? h('span', { class: 'pill good' }, '가장 가까움') : null,
         !t.analysis && !t.error ? h('span', { class: 'status' }, h('span', { class: 'dot' }), '분석 중') : null,
         t.error ? h('span', { class: 'warn' }, '읽지 못한 파일') : null,

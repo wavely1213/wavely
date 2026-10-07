@@ -100,6 +100,11 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
       await p.setInputFiles('#take-files', [demoTake, sine]);
       await p.waitForFunction(() => document.querySelectorAll('.take .pill').length >= 2, null, { timeout: 90000 });
       global.takeBest = await p.locator('.take.best .track-title').first().textContent();
+      // 처음 들을 때 음량을 재서 카드에 표시 (같은 음량으로 듣기)
+      await p.locator('.take.best >> text=▶ 듣기').click();
+      await p.waitForSelector('.take.best .take-lufs', { timeout: 30000 });
+      global.takeLufs = await p.textContent('.take.best .take-lufs');
+      await p.locator('.take.best >> text=■ 정지').click();
       await p.locator('.take.best >> text=이걸로 마스터링').click();
       await p.waitForSelector('.muted:has-text("master-14 ·")', { timeout: 30000 });
       await p.click('text=마스터링 하기');
@@ -249,7 +254,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
       global.backupOk = /^kpop-backup-\d{8}-\d{4}\.json$/.test(bdl.suggestedFilename()) && restoredSongs >= 2 && restoredExample === 0;
       await c2.close();
     }
-    console.log(tag, { custom, prog, before, after, refs, masterPill, albumSteps: [global.albumStep1, global.albumStepTab, global.albumStep2], sylOk: global.sylOk, hlRange: global.hlRange, takeBest: global.takeBest, toneNote: global.toneNote, sync: global.syncInfo, stepHint, autoMaster, keptMaster, keptCover, errorsLeft, zip: fs.statSync(zipPath).size, vbodyStart: vbody.slice(0, 30), vcount });
+    console.log(tag, { custom, prog, before, after, refs, masterPill, albumSteps: [global.albumStep1, global.albumStepTab, global.albumStep2], sylOk: global.sylOk, hlRange: global.hlRange, takeBest: global.takeBest, takeLufs: global.takeLufs, toneNote: global.toneNote, sync: global.syncInfo, stepHint, autoMaster, keptMaster, keptCover, errorsLeft, zip: fs.statSync(zipPath).size, vbodyStart: vbody.slice(0, 30), vcount });
     await c.close();
   }
   // 태블릿 세로(834px, 목록이 옆에 있는 가장 좁은 폭): 어떤 탭을 골라도 그 탭이 탭 줄 안에 보임
@@ -273,6 +278,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
   if (!global.icsOk) errs.push('캘린더 파일 이상');
   if (!global.diffSame) errs.push('버전 비교 이상');
   if (!global.qcOk) errs.push('소리 점검(QC) 표시 이상');
+  if (!/^-1[34]\.\d LUFS$/.test(global.takeLufs || '')) errs.push(`테이크 음량 표시 이상: ${global.takeLufs}`);
   if (global.albumStep1 !== '다음: 정보·크레딧' || global.albumStepTab !== '정보·크레딧' || global.albumStep2 !== '다음: 발매 후 기록') errs.push(`앨범 진행 단계 이상: ${global.albumStep1} / ${global.albumStepTab} / ${global.albumStep2}`);
   if (global.sylOk !== true) errs.push('가사 음절 넣기 이상');
   if (!global.statOk) errs.push('성과 기록 이상');
