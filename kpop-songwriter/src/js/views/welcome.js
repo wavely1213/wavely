@@ -29,6 +29,5 @@ export function renderWelcome(song, { aiAvailable = true } = {}) {
       h('li', null, h('strong', null, '발매 준비'), ' — 마스터링 탭에 Suno 결과를 넣어 발매용 WAV로 만들고, "싱글 발매 준비"에서 커버·정보·제출 패키지까지.')),
     h('div', { class: 'row' },
       h('button', { type: 'button', class: 'btn primary', id: 'welcome-new', onclick: () => { close(); newSong(); } }, '+ 내 첫 곡 만들기'),
-      h('button', { type: 'button', class: 'btn ghost', id: 'welcome-close', onclick: close }, '예시부터 둘러볼게요')),
-    h('p', { class: 'muted small' }, '아래는 예시 곡이에요. 고치면 내 곡으로 저장돼요.'));
+      h('button', { type: 'button', class: 'btn ghost', id: 'welcome-close', onclick: close }, '예시부터 둘러볼게요')));
 }

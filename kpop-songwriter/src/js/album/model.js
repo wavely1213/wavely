@@ -5,6 +5,7 @@ import { similarityStatus } from '../optimize/similarity.js';
 import { spellingStatus } from '../optimize/spelling.js';
 import { splitsFor, splitIssues } from './splits.js';
 import { explicitWords } from './explicit.js';
+import { titleIssues } from './titlecheck.js';
 
 export const ALBUM_TYPES = {
   single: { name: '싱글', min: 1, max: 3 },
@@ -119,6 +120,7 @@ export function releaseChecklist(album, songs, { masters = {}, coverInfo = null,
 
   if (!album.title.trim() || album.title === '새 앨범') add('error', '앨범 제목을 정해 주세요.', { tab: 'meta' });
   if (!album.artist.trim()) add('error', '아티스트명을 적어 주세요.', { tab: 'meta' });
+  titleIssues(album.title).forEach((x) => add('warn', `앨범 제목: ${x}`, { tab: 'meta' }));
   if (!tracks.length) add('error', '수록곡이 없어요.', { tab: 'tracks' });
   else if (tracks.length < type.min || tracks.length > type.max) add('warn', `${type.name}은 보통 ${type.min}~${type.max}곡이에요 (지금 ${tracks.length}곡).`, { tab: 'tracks' });
   if (tracks.length > 1 && !tracks.some((t) => t.isTitle)) add('warn', '타이틀곡을 정해 주세요.', { tab: 'tracks' });
@@ -132,6 +134,7 @@ export function releaseChecklist(album, songs, { masters = {}, coverInfo = null,
   tracks.forEach((t, i) => {
     const song = songs.find((s) => s.id === t.songId);
     const n = `${i + 1}번 「${song.title.replace(/^예시:\s*/, '')}」`;
+    titleIssues(song.title.replace(/^예시:\s*/, '')).forEach((x) => add('warn', `${n}: ${x}`, { song: song.id, tab: 'concept' }));
     if (!t.lyricists.trim() && !song.instOf) add('error', `${n}: 작사 크레딧이 비어 있어요.`, { tab: 'meta' });
     if (t.isrc.trim() && !ISRC.test(t.isrc.replace(/[\s-]/g, '').toUpperCase())) add('warn', `${n}: ISRC 형식이 아니에요 (예: KR-A01-26-00001, 12자리).`, { tab: 'meta' });
     if (!t.composers.trim()) add('error', `${n}: 작곡 크레딧이 비어 있어요.`, { tab: 'meta' });

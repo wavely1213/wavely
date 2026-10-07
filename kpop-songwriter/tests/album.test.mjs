@@ -344,3 +344,29 @@ import { extOf } from '../src/js/album/model.js';
   assert.deepEqual([al.tracks[1].lyricists, al.tracks[1].composers, al.tracks[1].arrangers], ['', '물결', '물결']);
   console.log('credits fill OK');
 }
+
+// 제목 표기 점검: 피처링·프로듀서·홍보 문구·이모지·빈칸. 흔한 단어 속·대문자 제목은 통과
+import { titleIssues } from '../src/js/album/titlecheck.js';
+{
+  const has = (t, word) => titleIssues(t).some((x) => x.includes(word));
+  assert.ok(has('Midnight (feat. JUN)', '피처링'));
+  assert.ok(has('Midnight ft. JUN', '피처링'));
+  assert.ok(has('Signal (Prod. by Wave)', '프로듀서'));
+  assert.ok(has('Signal (Official Audio)', 'Official'));
+  assert.ok(has('Signal (Explicit)', 'Official'));
+  assert.ok(has('새벽 신호 (신곡)', 'Official'));
+  assert.ok(has('Signal 🔥', '이모지'));
+  assert.ok(has('Signal  Lost', '빈칸'));
+  assert.ok(has(' Signal', '빈칸'));
+  for (const ok of ['LOVE DIVE', 'Left Behind', 'Product of Love', 'Clean Slate', 'Gift', 'Official Girl', '새벽 신호 (Midnight Signal)', 'Featuring'.slice(0, 4) + 'ure', 'Signal © 2026', 'Midnight Signal (Inst.)']) {
+    assert.deepEqual(titleIssues(ok), [], ok);
+  }
+  // 점검표에 앨범·트랙 제목 경고로 들어감
+  const s3 = normalizeMusic(exampleSong());
+  s3.title = 'Signal (feat. JUN)';
+  const al3 = { ...newAlbum(), title: 'Album 🔥', artist: 'Y', releaseDate: '2026-12-01', tracks: [{ ...newTrack(s3.id), isTitle: true }] };
+  const items = releaseChecklist(al3, [s3], { today });
+  assert.ok(items.some((i) => i.level === 'warn' && i.text.startsWith('앨범 제목:') && i.go.tab === 'meta'));
+  assert.ok(items.some((i) => i.level === 'warn' && i.text.includes('1번 「Signal (feat. JUN)」: 제목에 피처링') && i.go.tab === 'concept'));
+  console.log('title check OK');
+}
