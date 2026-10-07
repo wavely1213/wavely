@@ -303,3 +303,17 @@ import { extOf } from '../src/js/album/model.js';
   assert.equal(suggestCover([]), null);
   console.log('coverpick OK');
 }
+
+// 19금 점검: 욕설로 보이는 말 찾기(흔한 말 속은 제외), 표시가 꺼져 있으면 점검표 경고
+{
+  const { explicitWords } = await import('../src/js/album/explicit.js');
+  assert.deepEqual(explicitWords('이게 시발점이야\nshitake? no — Dickens'), [], '시발점·다른 단어 속은 아님');
+  assert.deepEqual(explicitWords('씨발 진짜\nWhat the FUCK, shit'), ['씨발', 'fuck', 'shit']);
+  const rudeSong = { ...song, id: 'rude', title: '거친 곡', sections: [{ id: 'r1', type: 'Verse', members: [], text: '지랄 말고 들어' }] };
+  const al = { ...newAlbum(), title: 'X', artist: 'Y', cLine: '2026 a', pLine: '2026 a', releaseDate: '2026-12-01', tracks: [{ ...newTrack('rude'), isTitle: true, lyricists: 'a', composers: 'a' }] };
+  const warn = releaseChecklist(al, [rudeSong], { today }).find((i) => i.text.includes('19금'));
+  assert.ok(warn && warn.level === 'warn' && warn.text.includes('지랄') && warn.go.tab === 'meta');
+  al.tracks[0].explicit = true;
+  assert.ok(!releaseChecklist(al, [rudeSong], { today }).some((i) => i.text.includes('19금')), '표시를 켜면 경고 없음');
+  console.log('explicit OK');
+}
