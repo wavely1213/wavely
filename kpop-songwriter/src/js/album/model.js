@@ -129,7 +129,8 @@ export function scheduleFor(album, today = new Date()) {
 const ISRC = /^[A-Z]{2}[A-Z0-9]{3}\d{7}$/;
 export const ALBUM_LOUDNESS_GAP = 3; // LU. 이보다 크게 차이 나면 경고
 
-export function releaseChecklist(album, songs, { masters = {}, coverInfo = null, today = new Date() } = {}) {
+// aiChecks: AI 점검(유사 표현)을 쓸 수 있는 화면인지. 없으면(웹사이트) "아직 안 했어요" 안내를 빼서 할 수 없는 일을 권하지 않는다.
+export function releaseChecklist(album, songs, { masters = {}, coverInfo = null, today = new Date(), aiChecks = true } = {}) {
   const items = [];
   // go: 고치러 갈 곳 — { tab } (앨범 탭) 또는 { song, tab } (곡 화면 탭)
   const add = (level, text, go = null) => items.push({ level, text, go });
@@ -167,7 +168,7 @@ export function releaseChecklist(album, songs, { masters = {}, coverInfo = null,
     const m = masters[t.songId];
     const sim = similarityStatus(song);
     if (sim === 'flagged') add('warn', `${n}: 유사 표현 점검에서 확인할 줄이 남았어요.`, { song: song.id, tab: 'editor' });
-    else if (song.sections.some((s) => s.text.trim()) && (sim === 'none' || sim === 'stale')) add('info', `${n}: 유사 표현 점검을 ${sim === 'none' ? '아직 안 했어요' : '가사를 고친 뒤 다시 안 했어요'} (구조·가사 탭 맨 아래).`, { song: song.id, tab: 'editor' });
+    else if (aiChecks && song.sections.some((s) => s.text.trim()) && (sim === 'none' || sim === 'stale')) add('info', `${n}: 유사 표현 점검을 ${sim === 'none' ? '아직 안 했어요' : '가사를 고친 뒤 다시 안 했어요'} (구조·가사 탭 맨 아래).`, { song: song.id, tab: 'editor' });
     const spell = spellingStatus(song);
     if (spell === 'flagged') add('info', `${n}: 맞춤법 점검에서 고칠 곳이 남았어요 (플랫폼 가사에 그대로 보여요).`, { song: song.id, tab: 'editor' });
     const sync = syncStatus(song);

@@ -438,3 +438,12 @@ import { fitOne } from '../src/js/album/tracklistcard.js';
   assert.ok(m(fitOne(m, 'x'.repeat(50), 100)) <= 100);
   console.log('tracklist fit OK');
 }
+
+// AI를 못 쓰는 화면(웹)에서는 "유사 표현 점검을 아직 안 했어요" 안내를 빼고, 걸린 줄 경고는 그대로
+{
+  const s4 = normalizeMusic(exampleSong());
+  const al4 = { ...newAlbum(), title: 'X', artist: 'Y', releaseDate: '2026-12-01', tracks: [{ ...newTrack(s4.id), isTitle: true }] };
+  assert.ok(releaseChecklist(al4, [s4], { today }).some((i) => i.text.includes('유사 표현 점검을 아직')));
+  assert.ok(!releaseChecklist(al4, [s4], { today, aiChecks: false }).some((i) => i.text.includes('유사 표현 점검을 아직')));
+  console.log('ai checks option OK');
+}

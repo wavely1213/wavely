@@ -45,7 +45,7 @@ async function download(album) {
 export function renderSubmit(album) {
   const { songs } = getState();
   fillFromSongMasters(album);
-  const items = releaseChecklist(album, songs, { masters: mastersOf(album.id), coverInfo: coverOf(album.id) });
+  const items = releaseChecklist(album, songs, { masters: mastersOf(album.id), coverInfo: coverOf(album.id), aiChecks: !!window.claude?.use });
   const errors = items.filter((i) => i.level === 'error').length;
   const warns = items.filter((i) => i.level === 'warn').length;
   const jump = (go) => {

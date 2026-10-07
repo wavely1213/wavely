@@ -93,7 +93,7 @@ export async function buildReleasePackage(album, songs, masters, cover, onStep =
   files.push({ name: `${root}/split_sheet.csv`, data: toCsv(splitRows({ ...album, tracks }, songs)) });
   files.push({ name: `${root}/credits.txt`, data: credits({ ...album, tracks }, songs) });
   files.push({ name: `${root}/release_schedule.txt`, data: scheduleText(album) });
-  const check = releaseChecklist(album, songs, { masters, coverInfo: cover });
+  const check = releaseChecklist(album, songs, { masters, coverInfo: cover, aiChecks: !!globalThis.window?.claude?.use });
   files.push({ name: `${root}/checklist.txt`, data: check.length ? check.map((c) => `[${c.level}] ${c.text}`).join('\n') : '점검 항목 없음 — 제출 준비 완료' });
   if (album.promo.intro || album.promo.sns.length || album.promo.pitch || album.promo.pitchKo) {
     const promo = [

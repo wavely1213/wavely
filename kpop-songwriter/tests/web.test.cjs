@@ -88,7 +88,11 @@ server.listen(0, async () => {
     await p.click('#install-app');
     const prompted = await p.evaluate(() => window.__installPrompted === true);
     await p.waitForTimeout(200);
-    out.install = { before, prompted, after: await p.locator('#install-app').count() };
+    // AI 버튼을 누르면 (권한 메뉴가 없는) 웹사이트에 맞는 안내
+    await p.click('.tab:text-is("구조·가사")');
+    await p.locator('article.section button:has-text("AI로")').first().click();
+    const aiNote = await p.waitForSelector('text=이 화면(웹사이트)에서는 AI 기능을 아직 쓸 수 없어요', { timeout: 5000 }).then(() => true).catch(() => false);
+    out.install = { before, prompted, after: await p.locator('#install-app').count(), aiNote };
     await ctx.close();
   }
   // 저장 공간: 70% 넘게 차면 목록 아래 경고, 꽉 차서 저장이 안 되면 머리말에 "꽉 차서" (다시 시도하라는 말 대신)
@@ -125,7 +129,7 @@ server.listen(0, async () => {
   delete out.storage;
   const inst = out.install;
   delete out.install;
-  if (!(inst.before === 0 && inst.prompted && inst.after === 0)) errs.push(`앱 설치 버튼 이상: ${JSON.stringify(inst)}`);
+  if (!(inst.before === 0 && inst.prompted && inst.after === 0 && inst.aiNote)) errs.push(`앱 설치 버튼 이상: ${JSON.stringify(inst)}`);
   if (!(storage.welcomeNoAi && storage.firstSong && storage.warnBefore === 0 && /약 7\d%/.test(storage.warnText) && storage.fullLabel && storage.fullWarn === 1)) errs.push(`저장 공간 경고 이상: ${JSON.stringify(storage)}`);
   const pwa = out.pwa;
   delete out.pwa;

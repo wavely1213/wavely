@@ -24,6 +24,8 @@ const ERROR_COPY = {
 };
 export function errorCopy(e) {
   if (!e || e.code === 'cancelled') return '';
+  // claude.ai 밖(웹사이트·파일로 연 화면)에는 권한 메뉴가 없으므로 다르게 안내
+  if (e.code === 'not_granted' && !window.claude?.use) return '이 화면(웹사이트)에서는 AI 기능을 아직 쓸 수 없어요. claude.ai에서 열면 쓸 수 있어요. 나머지 기능은 그대로 돼요.';
   return ERROR_COPY[e.code] || '연결이 끊겼어요. 다시 눌러 주세요.';
 }
 
