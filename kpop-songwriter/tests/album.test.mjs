@@ -447,3 +447,31 @@ import { fitOne } from '../src/js/album/tracklistcard.js';
   assert.ok(!releaseChecklist(al4, [s4], { today, aiChecks: false }).some((i) => i.text.includes('유사 표현 점검을 아직')));
   console.log('ai checks option OK');
 }
+
+// 가사·음원 일치 확인: 줄 표시(맞음→다름→지움), 모두 맞음, 가사가 바뀌면 다시, 점검표 경고·안내
+import { lyricCheckStatus, cycleLine, markAll } from '../src/js/album/lyriccheck.js';
+{
+  const s5 = normalizeMusic(exampleSong());
+  assert.equal(lyricCheckStatus(s5), 'none');
+  cycleLine(s5, 0);
+  assert.equal(lyricCheckStatus(s5), 'partial');
+  cycleLine(s5, 0);
+  assert.equal(lyricCheckStatus(s5), 'off');
+  cycleLine(s5, 0);
+  assert.equal(lyricCheckStatus(s5), 'none');
+  markAll(s5);
+  assert.equal(lyricCheckStatus(s5), 'done');
+  s5.sections[1].text += '\n새 줄';
+  assert.equal(lyricCheckStatus(s5), 'stale');
+  cycleLine(s5, 2);
+  assert.deepEqual(s5.lyricCheck.ok, [2], '가사가 바뀌었으면 처음부터');
+  const al5 = { ...newAlbum(), title: 'X', artist: 'Y', releaseDate: '2026-12-01', tracks: [{ ...newTrack(s5.id), isTitle: true }] };
+  const master = { [s5.id]: { name: 'a.wav', sampleRate: 44100, bits: 24, format: 1, channels: 2, lufs: -14, peak: -1, duration: 100 } };
+  assert.ok(releaseChecklist(al5, [s5], { today, masters: master }).some((i) => i.level === 'info' && i.text.includes('끝까지 확인하지 않았어요') && i.go.tab === 'master'));
+  assert.ok(!releaseChecklist(al5, [s5], { today }).some((i) => i.text.includes('음원과 맞는지')), '마스터가 없으면 안내 안 함');
+  cycleLine(s5, 2); // 다름
+  assert.ok(releaseChecklist(al5, [s5], { today }).some((i) => i.level === 'warn' && i.text.includes('다르게 부른 가사 줄')));
+  markAll(s5);
+  assert.ok(!releaseChecklist(al5, [s5], { today, masters: master }).some((i) => i.text.includes('음원과 맞는지') || i.text.includes('다르게 부른')));
+  console.log('lyric check OK');
+}

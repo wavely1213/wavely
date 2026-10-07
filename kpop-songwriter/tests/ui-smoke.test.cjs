@@ -130,6 +130,13 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     const masterPill = await p.textContent('.pill');
     global.qcOk = (global.qcOk ?? true) && /^\d+곳$/.test(await p.textContent('#qc-clips')) && Number(await p.textContent('#qc-corr')) > 0;
     const stepHint = await p.textContent('.step-hint').catch(() => '');
+    // 가사 맞춰 듣기: 첫 줄 한 번 → ✓, 두 번 → ✗(다르게 부름), "모두 맞게 불렀음" → 완료
+    await p.click('#lc-line-0');
+    const lcOk = (await p.textContent('#lc-line-0')).startsWith('✓');
+    await p.click('#lc-line-0');
+    const lcOff = (await p.textContent('#lyric-check-status')).includes('다르게 부른 줄');
+    await p.click('#lc-all');
+    global.lyricCheckOk = (global.lyricCheckOk ?? true) && lcOk && lcOff && (await p.textContent('#lyric-check-status')).startsWith('모두 맞게 불렀음');
     // 숏폼 하이라이트: 15초로 바꿔 구간 표시 → 받기 (zip 안 WAV)
     await p.click('.highlight .chip:text-is("15초")');
     global.hlRange = await p.textContent('#hl-range');
@@ -427,6 +434,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
   if (!global.shareOk) errs.push('파트 분배 표시 이상');
   if (!global.matchOk) errs.push('같은 멜로디 맞추기 안내 이상');
   if (global.tracklistOk === false || (global.tracklist && !global.tracklistOk)) errs.push(`트랙리스트 이미지 이상: ${JSON.stringify(global.tracklist)}`);
+  if (!global.lyricCheckOk) errs.push('가사 맞춰 듣기 이상');
   if (!global.welcomeOk) errs.push('처음 안내 카드 이상');
   if (!global.transitionOk) errs.push(`곡 사이 듣기 이상: ${JSON.stringify(global.transition)}`);
   if (!global.albumNewSongOk) errs.push(`앨범의 새 곡 이상: ${JSON.stringify(global.albumNewSong)}`);

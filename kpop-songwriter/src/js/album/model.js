@@ -6,6 +6,7 @@ import { spellingStatus } from '../optimize/spelling.js';
 import { splitsFor, splitIssues } from './splits.js';
 import { explicitWords } from './explicit.js';
 import { titleIssues } from './titlecheck.js';
+import { lyricCheckStatus } from './lyriccheck.js';
 
 export const ALBUM_TYPES = {
   single: { name: '싱글', min: 1, max: 3 },
@@ -171,6 +172,10 @@ export function releaseChecklist(album, songs, { masters = {}, coverInfo = null,
     else if (aiChecks && song.sections.some((s) => s.text.trim()) && (sim === 'none' || sim === 'stale')) add('info', `${n}: 유사 표현 점검을 ${sim === 'none' ? '아직 안 했어요' : '가사를 고친 뒤 다시 안 했어요'} (구조·가사 탭 맨 아래).`, { song: song.id, tab: 'editor' });
     const spell = spellingStatus(song);
     if (spell === 'flagged') add('info', `${n}: 맞춤법 점검에서 고칠 곳이 남았어요 (플랫폼 가사에 그대로 보여요).`, { song: song.id, tab: 'editor' });
+    // 가사·음원 일치: 다르게 부른 줄이 있으면 경고, 마스터가 있는데 확인을 안 했으면 안내 (Inst.는 가사 없음)
+    const heard = song.instOf ? 'empty' : lyricCheckStatus(song);
+    if (heard === 'off') add('warn', `${n}: 음원에서 다르게 부른 가사 줄이 있어요. 가사를 부른 대로 고치거나 Suno에서 다시 만들어 주세요 — 플랫폼 가사는 실제로 부른 대로여야 해요.`, { song: song.id, tab: 'master' });
+    else if (m && ['none', 'partial', 'stale'].includes(heard)) add('info', `${n}: 가사가 음원과 맞는지 ${heard === 'stale' ? '가사를 고친 뒤 다시 ' : heard === 'partial' ? '끝까지 ' : ''}확인하지 않았어요 (마스터링 탭 "가사 맞춰 듣기").`, { song: song.id, tab: 'master' });
     const sync = syncStatus(song);
     if (sync === 'stale') add('warn', `${n}: 싱크 가사를 맞춘 뒤 가사가 바뀌었어요. 다시 맞춰 주세요 (안 하면 패키지에서 빠져요).`, { tab: 'sync' });
     else if (sync === 'partial' || sync === 'order') add('warn', `${n}: 싱크 가사를 덜 맞췄어요 (패키지에서 빠져요).`, { tab: 'sync' });

@@ -17,6 +17,7 @@ import { uid } from '../dom.js';
 import { getState, newAlbum } from '../state.js';
 import { setMaster, setSongMaster } from '../album/session.js';
 import { mmss, parseMmss } from '../timefmt.js';
+import { renderLyricCheck } from './lyriccheck.js';
 
 // 오디오 버퍼는 커서 저장하지 않고 화면 메모리에만 둔다. 곡마다 따로 (다른 곡 결과가 섞이지 않게).
 const byId = {};
@@ -382,6 +383,7 @@ export function renderMaster(song) {
         busy ? h('span', { class: 'status' }, h('span', { class: 'dot' }), h('span', { id: 'master-status' }, ui.busy)) : null,
         !ui.source && !busy ? h('span', { class: 'muted' }, '먼저 파일을 넣어 주세요') : null)),
     r ? renderResult(song, r) : null,
+    renderLyricCheck(song),
   );
 }
 

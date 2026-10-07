@@ -458,3 +458,10 @@ input[type=radio] { accent-color: var(--accent); }
 .line-swap { display: flex; flex-direction: column; gap: 8px; }
 .line-options { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .line-option { min-width: 0; overflow-wrap: anywhere; font-weight: 600; }
+.check-lines { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.check-line { width: 100%; text-align: left; border: 0; background: none; padding: 6px 8px; border-radius: 8px; display: flex; gap: 10px; align-items: baseline; cursor: pointer; }
+.check-line:hover { background: var(--paper); }
+.check-line .check-mark { width: 1.2em; font-weight: 700; color: var(--muted); }
+.check-line.ok .check-mark { color: var(--r2); }
+.check-line.off { color: var(--danger); }
+.check-line.off .check-mark { color: var(--danger); }

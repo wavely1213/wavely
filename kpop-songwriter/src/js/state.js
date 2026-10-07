@@ -198,6 +198,7 @@ function copySong(id, { suffix = ' (사본)', inst = false } = {}) {
     example: false,
     versions: [],
     sync: null,
+    lyricCheck: null, // 가사·음원 일치 확인은 음원마다 새로
     progress: { ...(src.progress || {}), suno: false, mastered: false },
     createdAt: Date.now(),
     updatedAt: Date.now(),
