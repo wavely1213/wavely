@@ -35,10 +35,11 @@ export function renderLyricCard(album, songs) {
   const picked = lines.slice(ui.start, ui.start + ui.count);
   const opts = { lines: picked, title: clean(song.title), artist: album.artist, palette: album.cover.palette };
   const preview = h('canvas', { class: 'card-preview', id: 'lyric-card-preview', role: 'img', 'aria-label': `가사 카드 미리보기: ${picked.join(' / ')}` });
-  (async () => { await ensureCardFonts(); drawLyricCard(preview, { ...opts, image: await coverImage(album) }, 0.3); })();
+  const glyphs = [...picked, opts.title, opts.artist].join(' ');
+  (async () => { await ensureCardFonts(glyphs); drawLyricCard(preview, { ...opts, image: await coverImage(album) }, 0.3); })();
   const download = async () => {
     try {
-      await ensureCardFonts();
+      await ensureCardFonts(glyphs);
       const c = drawLyricCard(document.createElement('canvas'), { ...opts, image: await coverImage(album) });
       const blob = await new Promise((r) => c.toBlob(r, 'image/png'));
       const res = await saveFile(`${opts.title.replace(/[\\/:*?"<>|]+/g, '').trim() || 'lyrics'}_가사카드.png`, blob);

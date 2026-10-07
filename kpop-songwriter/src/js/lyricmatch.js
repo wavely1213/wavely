@@ -5,8 +5,8 @@ import { countSyllables } from './lyrictools.js';
 const SKIP = ['Intro', 'Outro', 'Dance Break', 'Bridge'];
 export const MATCH_TOLERANCE = 2;
 
-// 애드립만 있는 줄((oh-oh) 등)은 멜로디 줄로 치지 않는다
-const rowsOf = (text) => text.split('\n').map(countSyllables).filter((n) => n > 0);
+// 애드립만 있는 줄((oh-oh) 등)·빈 줄은 멜로디 줄로 치지 않는다. n: 가사 칸의 실제 줄 번호(1부터)
+const rowsOf = (text) => text.split('\n').map((l, i) => ({ n: i + 1, syl: countSyllables(l) })).filter((r) => r.syl > 0);
 
 // sections[index]가 앞의 같은 종류(가사 있는) 섹션과 맞는지. 반환: null(비교할 것 없음) 또는
 // { ref(앞 섹션 index), lines: [{ n(1부터), have, want }], countHave, countWant }
@@ -18,7 +18,7 @@ export function matchFirst(sections, index, text = sections[index].text) {
   const want = rowsOf(sections[ref].text);
   const have = rowsOf(text);
   if (!want.length || !have.length) return null;
-  const lines = have.map((n, i) => ({ n: i + 1, have: n, want: want[i] }))
+  const lines = have.map((r, i) => ({ n: r.n, have: r.syl, want: want[i]?.syl }))
     .filter((x) => x.want != null && Math.abs(x.have - x.want) > MATCH_TOLERANCE);
   return { ref, lines, countHave: have.length, countWant: want.length };
 }

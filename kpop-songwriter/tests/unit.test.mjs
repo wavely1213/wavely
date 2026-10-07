@@ -216,5 +216,7 @@ import { matchFirst, matchNote } from '../src/js/lyricmatch.js';
   assert.equal(matchFirst(sections, 0), null, '첫 벌스는 비교 대상 없음');
   assert.equal(matchFirst(sections, 4), null, '브릿지는 안 봄');
   assert.equal(matchNote(matchFirst(sections, 2, '가나다라마바\n가나다라마바사'), 'Verse 1'), '', '±2 안이면 안내 없음');
+  // 줄 번호는 가사 칸의 실제 줄 (애드립 줄이 앞에 있어도)
+  assert.deepEqual(matchFirst(sections, 2, '(yeah)\n가나다라마바\n가나다').lines, [{ n: 3, have: 3, want: 8 }]);
   console.log('lyric match OK');
 }

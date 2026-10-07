@@ -166,7 +166,7 @@ export function addInstVersion(albumId, songId) {
 }
 
 // 다시 쓰는 Inst. 사본을 원곡의 지금 상태에 맞춘다: 손대지 않은 사본은 원곡에서 새로 복사(같은 id),
-// 고친 사본은 그대로 두고 자동으로 붙인 제목만 원곡 제목을 따라가게.
+// 고친 사본은 그대로 두고, 제목은 자동으로 붙인 그대로일 때만 원곡 제목을 따라가게 (작곡가가 바꾼 제목은 둔다).
 function refreshInst(inst, srcId) {
   const src = state.songs.find((x) => x.id === srcId);
   if (!src) return inst;
@@ -176,7 +176,10 @@ function refreshInst(inst, srcId) {
     state.songs = state.songs.filter((x) => x !== inst);
     return fresh;
   }
-  if (/ \(Inst\.\)$/.test(inst.title)) inst.title = `${String(src.title || '제목 없음').replace(/^예시:\s*/, '')} (Inst.)`;
+  if (inst.instTitle && inst.title === inst.instTitle) {
+    inst.title = `${String(src.title || '제목 없음').replace(/^예시:\s*/, '')} (Inst.)`;
+    inst.instTitle = inst.title;
+  }
   return inst;
 }
 
@@ -201,6 +204,7 @@ function copySong(id, { suffix = ' (사본)', inst = false } = {}) {
   });
   if (inst) {
     song.instOf = src.id;
+    song.instTitle = song.title; // 자동으로 붙인 제목 (작곡가가 바꿨는지 알아보려고)
     song.sections.forEach((sec) => { sec.text = ''; });
     Object.values(song.music.sections).forEach((sm) => { sm.melody = []; });
     ['translations', 'similarity', 'spelling'].forEach((k) => { delete song[k]; });

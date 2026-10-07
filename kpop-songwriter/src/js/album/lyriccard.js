@@ -49,7 +49,7 @@ export function drawLyricCard(canvas, { lines, title, artist, image = null, pale
   let textColor = ink;
   if (image) {
     const k = Math.max(CARD_W / image.width, CARD_H / image.height) * 1.1; // 흐림 가장자리가 안 보이게 조금 크게
-    ctx.filter = 'blur(28px)';
+    ctx.filter = `blur(${28 * scale}px)`; // 필터는 scale을 따르지 않으므로 미리보기 크기에 맞춤
     ctx.drawImage(image, (CARD_W - image.width * k) / 2, (CARD_H - image.height * k) / 2, image.width * k, image.height * k);
     ctx.filter = 'none';
     ctx.fillStyle = 'rgba(0, 0, 0, 0.5)'; // 흐림을 못 쓰는 브라우저에서도 글자가 읽히게 어둡게
@@ -83,8 +83,9 @@ export function drawLyricCard(canvas, { lines, title, artist, image = null, pale
   return canvas;
 }
 
-export async function ensureCardFonts() {
+// text: 카드에 그릴 글자 전부. 한글 글꼴은 글자 묶음(unicode-range)마다 따로 받으므로 실제 글자를 넘겨야 다 받는다.
+export async function ensureCardFonts(text = '가A') {
   try {
-    await Promise.all([document.fonts.load(`700 60px ${BODY}`, '가A'), document.fonts.load(`600 30px ${MONO}`, 'A')]);
+    await Promise.all([document.fonts.load(`700 60px ${BODY}`, text), document.fonts.load(`600 30px ${MONO}`, text)]);
   } catch { /* 대체 글꼴로 그린다 */ }
 }

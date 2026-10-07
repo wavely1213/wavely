@@ -267,6 +267,12 @@ assert.ok(AL.cover && AL.promo && Array.isArray(AL.tracks), '되돌린 뒤에도
   assert.equal(instC.id, instA.id);
   assert.equal(instC.music.bpm, 99);
   assert.equal(instC.title, 'Signal 2 (Inst.)');
+  // 작곡가가 바꾼 Inst. 제목은 원곡을 따라가지 않음
+  S.mutateSong(instA.id, (x) => { x.title = 'Signal Acoustic (Inst.)'; });
+  S.selectAlbum(S.currentAlbum().id);
+  S.undo();
+  S.mutateSong(src, (x) => { x.title = 'Signal 3'; });
+  assert.equal(S.addInstVersion(S.currentAlbum().id, src).title, 'Signal Acoustic (Inst.)');
   console.log('new song in album OK');
 }
 

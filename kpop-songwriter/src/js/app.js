@@ -272,8 +272,8 @@ document.addEventListener('keydown', (e) => {
   if (k === 'z' && !e.shiftKey) { if (undo(id)) e.preventDefault(); } else if ((k === 'z' && e.shiftKey) || k === 'y') { if (redo(id)) e.preventDefault(); }
 });
 
-// 스페이스바 = 전체 듣기/정지 (재생 막대가 있는 편곡·멜로디·사운드 탭). 글 입력·버튼·선택 칸에 있을 때는 그쪽 동작 그대로
-const PLAY_TABS = ['arrange', 'melody', 'sound'];
+// 스페이스바 = 전체 듣기/정지 (전체 재생 막대가 있는 편곡·사운드 탭). 글 입력·버튼·선택 칸에 있을 때는 그쪽 동작 그대로
+const PLAY_TABS = ['arrange', 'sound'];
 document.addEventListener('keydown', (e) => {
   if (e.key !== ' ' || e.ctrlKey || e.metaKey || e.altKey || e.shiftKey || e.repeat) return;
   const t = e.target;
