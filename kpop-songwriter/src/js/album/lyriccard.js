@@ -3,8 +3,8 @@ import { PALETTES } from './cover.js';
 
 export const CARD_W = 1080;
 export const CARD_H = 1350;
-const BODY = '"IBM Plex Sans KR", "Apple SD Gothic Neo", sans-serif';
-const MONO = '"IBM Plex Mono", ui-monospace, monospace';
+export const BODY = '"IBM Plex Sans KR", "Apple SD Gothic Neo", sans-serif';
+export const MONO = '"IBM Plex Mono", ui-monospace, monospace';
 const PAD = 110;
 
 // 한 줄을 maxW 안에 들게 나눈다: 빈칸에서 먼저, 빈칸 없이 긴 말은 글자 단위로
@@ -39,14 +39,13 @@ export function layoutLyrics(measureAt, lines, maxW, maxH, { from = 76, to = 34 
   return { size: to, rows: lines.flatMap((l) => wrapLine(m, l, maxW)) };
 }
 
-// opts: { lines, title, artist, image(그릴 수 있는 이미지)|null, palette }. scale: 미리보기는 작게(좌표는 1080 기준)
-export function drawLyricCard(canvas, { lines, title, artist, image = null, palette = 0 }, scale = 1) {
+// SNS 카드 공통 배경: 커버를 흐리고 어둡게 깐 것(없으면 앨범 색 그라데이션). 반환: { ctx(1080 기준 좌표), accent, textColor }
+export function cardBackground(canvas, { image = null, palette = 0 }, scale = 1) {
   canvas.width = Math.round(CARD_W * scale);
   canvas.height = Math.round(CARD_H * scale);
   const ctx = canvas.getContext('2d');
   ctx.scale(scale, scale);
   const [bg1, bg2, accent, ink] = (PALETTES[palette] || PALETTES[0]).colors;
-  let textColor = ink;
   if (image) {
     const k = Math.max(CARD_W / image.width, CARD_H / image.height) * 1.1; // 흐림 가장자리가 안 보이게 조금 크게
     ctx.filter = `blur(${28 * scale}px)`; // 필터는 scale을 따르지 않으므로 미리보기 크기에 맞춤
@@ -54,14 +53,19 @@ export function drawLyricCard(canvas, { lines, title, artist, image = null, pale
     ctx.filter = 'none';
     ctx.fillStyle = 'rgba(0, 0, 0, 0.5)'; // 흐림을 못 쓰는 브라우저에서도 글자가 읽히게 어둡게
     ctx.fillRect(0, 0, CARD_W, CARD_H);
-    textColor = '#ffffff';
-  } else {
-    const g = ctx.createLinearGradient(0, 0, CARD_W, CARD_H);
-    g.addColorStop(0, bg1);
-    g.addColorStop(1, bg2);
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, CARD_W, CARD_H);
+    return { ctx, accent, textColor: '#ffffff' };
   }
+  const g = ctx.createLinearGradient(0, 0, CARD_W, CARD_H);
+  g.addColorStop(0, bg1);
+  g.addColorStop(1, bg2);
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, CARD_W, CARD_H);
+  return { ctx, accent, textColor: ink };
+}
+
+// opts: { lines, title, artist, image(그릴 수 있는 이미지)|null, palette }. scale: 미리보기는 작게(좌표는 1080 기준)
+export function drawLyricCard(canvas, { lines, title, artist, image = null, palette = 0 }, scale = 1) {
+  const { ctx, accent, textColor } = cardBackground(canvas, { image, palette }, scale);
   const clean = lines.map((l) => l.trim()).filter(Boolean);
   const measureAt = (size, t) => { ctx.font = `700 ${size}px ${BODY}`; return ctx.measureText(t).width; };
   const { size, rows } = layoutLyrics(measureAt, clean, CARD_W - PAD * 2, CARD_H - 520);

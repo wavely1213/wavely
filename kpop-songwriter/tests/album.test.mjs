@@ -428,3 +428,13 @@ import { inheritAlbumInfo } from '../src/js/album/model.js';
   assert.equal(inheritAlbumInfo(newAlbum(), null).artist, '', '첫 앨범은 그대로');
   console.log('album inherit OK');
 }
+
+// 트랙리스트: 한 줄에 안 들어가는 제목은 줄임표
+import { fitOne } from '../src/js/album/tracklistcard.js';
+{
+  const m = (t) => t.length * 10;
+  assert.equal(fitOne(m, '짧은 제목', 200), '짧은 제목');
+  assert.equal(fitOne(m, '아주 아주 긴 곡 제목입니다', 80), '아주 아주 긴…');
+  assert.ok(m(fitOne(m, 'x'.repeat(50), 100)) <= 100);
+  console.log('tracklist fit OK');
+}

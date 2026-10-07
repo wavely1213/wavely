@@ -85,7 +85,7 @@
 | 제목 표기 점검 | album/titlecheck.js, album/model.js | 앨범·트랙 제목의 feat.·Prod.·홍보 문구·이모지·겹친 빈칸 경고 |
 | 곡 사이 듣기 | album/transition.js, views/album/transitions.js | 이웃 트랙 끝·처음 6초 이어 재생 + 음량 차이. 다른 탭으로 가면 멈춤(app.js) |
 | 가사·마디 맞춤 | lyricfit.js, views/editor.js | 섹션 머리에 빠듯함·느슨함 표시(그 사이는 숨김), 입력마다 다시 잼 |
-| 가사 카드 | album/lyriccard.js, views/album/lyriccard.js | 홍보 탭에서 가사 몇 줄 + 흐린 커버 배경으로 1080×1350 PNG |
+| 가사 카드·트랙리스트 이미지 | album/lyriccard.js (cardBackground 공통 배경), album/tracklistcard.js, views/album/lyriccard.js, views/album/tracklistcard.js, album/session.js (coverBitmap) | 홍보 탭에서 1080×1350 PNG 두 종류 |
 | 곡 길이 예상 | music/length.js, views/arrange.js | 섹션 마디 합 × 4박 / BPM, 4분↑·2분↓ 안내 |
 | 한 줄만 바꾸기 | ai-line.js, views/lineswap.js (editor.js) | 한 줄 AI 후보 3개 → 바꾸기(되돌리기 가능), 고른 것·버린 것은 취향 선호 쌍 |
 | 같은 멜로디 맞추기 | lyricmatch.js, views/editor.js | 반복 섹션을 첫 섹션과 줄 수·줄별 음절로 비교, 다를 때만 가사 칸 아래 안내 |

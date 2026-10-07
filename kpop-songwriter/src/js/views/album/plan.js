@@ -9,6 +9,7 @@ import { help } from '../../help.js';
 import { zip } from '../../music/pack.js';
 import { saveFile, isArtifact } from '../../platform/download.js';
 import { renderLyricCard } from './lyriccard.js';
+import { renderTracklistCard } from './tracklistcard.js';
 
 async function downloadIcs(album) {
   const text = scheduleIcs(album);
@@ -87,5 +88,6 @@ export function renderPromo(album) {
       copyable('promo-pitch', '영어', p.pitch || '', 5, (v) => mutateAlbum((a) => { a.promo.pitch = v; }, 'quiet'), PITCH_LIMIT),
       copyable('promo-pitch-ko', '한국어', p.pitchKo || '', 5, (v) => mutateAlbum((a) => { a.promo.pitchKo = v; }, 'quiet'), PITCH_LIMIT)),
     renderLyricCard(album, songs),
+    renderTracklistCard(album, songs),
   );
 }

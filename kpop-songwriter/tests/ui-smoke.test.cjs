@@ -314,6 +314,15 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
       await p.click('.tab:text-is("내보내기")');
       global.instOk = global.instOk && (await p.locator('#inst-guide').count()) === 1;
       await p.click('.song-item:has-text("Midnight Signal") >> nth=-1');
+      // 트랙리스트 이미지: 수록곡이 2곡이 되면 홍보 탭에 생기고 1080×1350 PNG
+      await p.click('.tab:text-is("홍보")');
+      const [tlDl] = await Promise.all([p.waitForEvent('download', { timeout: 30000 }), p.click('#tl-download')]);
+      const tlPath = path.join(TMP, 'tracklist.png');
+      await tlDl.saveAs(tlPath);
+      const tl = fs.readFileSync(tlPath);
+      global.tracklist = { name: tlDl.suggestedFilename(), w: tl.readUInt32BE(16), h: tl.readUInt32BE(20), label: await p.getAttribute('#tracklist-preview', 'aria-label') };
+      global.tracklistOk = global.tracklist.name.endsWith('_트랙리스트.png') && global.tracklist.w === 1080 && global.tracklist.h === 1350 && global.tracklist.label.includes('2. ');
+      await p.click('.tab:text-is("수록곡")');
     }
     // 새로고침해도 마스터·커버가 남는지 (IndexedDB)
     await p.waitForTimeout(1500);
@@ -417,6 +426,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
   if (!global.spaceOk) errs.push('스페이스바 재생 이상');
   if (!global.shareOk) errs.push('파트 분배 표시 이상');
   if (!global.matchOk) errs.push('같은 멜로디 맞추기 안내 이상');
+  if (global.tracklistOk === false || (global.tracklist && !global.tracklistOk)) errs.push(`트랙리스트 이미지 이상: ${JSON.stringify(global.tracklist)}`);
   if (!global.welcomeOk) errs.push('처음 안내 카드 이상');
   if (!global.transitionOk) errs.push(`곡 사이 듣기 이상: ${JSON.stringify(global.transition)}`);
   if (!global.albumNewSongOk) errs.push(`앨범의 새 곡 이상: ${JSON.stringify(global.albumNewSong)}`);

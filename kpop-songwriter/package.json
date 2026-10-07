@@ -1,7 +1,7 @@
 {
   "name": "kpop-songwriter",
   "type": "module",
-  "version": "0.76.0",
+  "version": "0.77.0",
   "description": "K-pop 작사·작곡·편곡 노트 (claude.ai 아티팩트 앱)",
   "scripts": {
     "build": "node build.mjs",

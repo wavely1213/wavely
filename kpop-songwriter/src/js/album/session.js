@@ -21,6 +21,15 @@ export function coverOf(albumId) {
   return covers[albumId] || null;
 }
 
+// 커버를 캔버스에 그릴 수 있는 이미지로 (SNS 카드용). 커버 Blob마다 한 번만 푼다. 없으면 null.
+const bitmaps = new WeakMap();
+export async function coverBitmap(albumId) {
+  const c = covers[albumId];
+  if (!c?.blob) return null;
+  if (!bitmaps.has(c.blob)) bitmaps.set(c.blob, await createImageBitmap(c.blob).catch(() => null));
+  return bitmaps.get(c.blob);
+}
+
 export function setCover(albumId, cover) {
   if (covers[albumId]?.url) URL.revokeObjectURL(covers[albumId].url);
   covers[albumId] = cover ? { ...cover, url: URL.createObjectURL(cover.blob) } : null;

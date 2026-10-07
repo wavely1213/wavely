@@ -2,19 +2,11 @@
 import { h, toast } from '../../dom.js';
 import { refresh } from '../../state.js';
 import { lyricLines } from '../../album/lyrics.js';
-import { coverOf } from '../../album/session.js';
+import { coverBitmap } from '../../album/session.js';
 import { drawLyricCard, ensureCardFonts } from '../../album/lyriccard.js';
 import { saveFile } from '../../platform/download.js';
 
 const byAlbum = {}; // 앨범마다 고른 곡·줄 (화면 메모리에만)
-const bitmaps = new WeakMap(); // 커버 Blob → 그릴 수 있는 이미지
-
-async function coverImage(album) {
-  const c = coverOf(album.id);
-  if (!c?.blob) return null;
-  if (!bitmaps.has(c.blob)) bitmaps.set(c.blob, await createImageBitmap(c.blob).catch(() => null));
-  return bitmaps.get(c.blob);
-}
 
 // 처음엔 첫 코러스의 첫 줄부터 (킬링 파트일 가능성이 큼)
 function defaultStart(song, lines) {
@@ -36,11 +28,11 @@ export function renderLyricCard(album, songs) {
   const opts = { lines: picked, title: clean(song.title), artist: album.artist, palette: album.cover.palette };
   const preview = h('canvas', { class: 'card-preview', id: 'lyric-card-preview', role: 'img', 'aria-label': `가사 카드 미리보기: ${picked.join(' / ')}` });
   const glyphs = [...picked, opts.title, opts.artist].join(' ');
-  (async () => { await ensureCardFonts(glyphs); drawLyricCard(preview, { ...opts, image: await coverImage(album) }, 0.3); })();
+  (async () => { await ensureCardFonts(glyphs); drawLyricCard(preview, { ...opts, image: await coverBitmap(album.id) }, 0.3); })();
   const download = async () => {
     try {
       await ensureCardFonts(glyphs);
-      const c = drawLyricCard(document.createElement('canvas'), { ...opts, image: await coverImage(album) });
+      const c = drawLyricCard(document.createElement('canvas'), { ...opts, image: await coverBitmap(album.id) });
       const blob = await new Promise((r) => c.toBlob(r, 'image/png'));
       const res = await saveFile(`${opts.title.replace(/[\\/:*?"<>|]+/g, '').trim() || 'lyrics'}_가사카드.png`, blob);
       if (res === 'saved') toast('받았어요');
