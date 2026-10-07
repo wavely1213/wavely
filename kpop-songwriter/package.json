@@ -1,14 +1,14 @@
 {
   "name": "kpop-songwriter",
   "type": "module",
-  "version": "0.15.0",
+  "version": "0.16.0",
   "description": "K-pop 작사·작곡·편곡 노트 (claude.ai 아티팩트 앱)",
   "scripts": {
     "build": "node build.mjs",
     "test:unit": "node tests/unit.test.mjs",
     "test:engine": "node tests/engine.test.cjs",
     "test:ui": "node tests/ui-smoke.test.cjs",
-    "test": "npm run build && npm run build:web && npm run test:unit && npm run test:album && npm run test:learn && npm run test:optimize && npm run test:workflow && npm run test:state && npm run test:range && npm run test:engine && npm run test:master && npm run test:ai && npm run test:ui && npm run test:web",
+    "test": "npm run build && npm run build:web && npm run test:unit && npm run test:album && npm run test:learn && npm run test:optimize && npm run test:workflow && npm run test:state && npm run test:range && npm run test:takes && npm run test:engine && npm run test:master && npm run test:ai && npm run test:ui && npm run test:web",
     "samples": "node tools/fetch-samples.mjs",
     "test:master": "node tests/master.test.cjs",
     "test:album": "node tests/album.test.mjs",
@@ -19,7 +19,8 @@
     "test:web": "node tests/web.test.cjs",
     "test:workflow": "node tests/workflow.test.mjs",
     "test:state": "node tests/state.test.mjs",
-    "test:range": "node tests/range.test.mjs"
+    "test:range": "node tests/range.test.mjs",
+    "test:takes": "node tests/takes.test.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.10"

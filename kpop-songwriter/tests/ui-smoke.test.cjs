@@ -74,6 +74,19 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     await p.waitForSelector('.compare', { timeout: 120000 });
     const masterPill = await p.textContent('.pill');
     const stepHint = await p.textContent('.step-hint').catch(() => '');
+    // 테이크 비교: 앱 데모 마스터(편곡과 일치) vs 단순 사인파 → 앞의 것이 "가장 가까움"
+    const sine = path.join(TMP, 'take-sine.wav');
+    if (!fs.existsSync(sine)) require('child_process').execFileSync('ffmpeg', ['-v', 'error', '-f', 'lavfi', '-i', 'sine=frequency=523:duration=15', sine]);
+    const demoTake = path.join(TMP, 'master-14.wav');
+    if (fs.existsSync(demoTake)) {
+      await p.setInputFiles('#take-files', [demoTake, sine]);
+      await p.waitForFunction(() => document.querySelectorAll('.take .pill').length >= 2, null, { timeout: 90000 });
+      global.takeBest = await p.locator('.take.best .track-title').first().textContent();
+      await p.locator('.take.best >> text=이걸로 마스터링').click();
+      await p.waitForSelector('.muted:has-text("master-14 ·")', { timeout: 30000 });
+      await p.click('text=마스터링 하기');
+      await p.waitForSelector('.compare', { timeout: 120000 });
+    }
     // 버전 저장/보기
     await p.click('.tab:text-is("버전")');
     await p.fill('#version-note', 'v1');
@@ -120,11 +133,12 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     await p.waitForSelector('.cover-thumb', { timeout: 15000 }).catch(() => {});
     const keptCover = await p.locator('.cover-thumb').count();
     global.persistOk = (global.persistOk ?? true) && keptMaster === 1 && keptCover === 1;
-    console.log(tag, { custom, prog, before, after, refs, masterPill, stepHint, autoMaster, keptMaster, keptCover, errorsLeft, zip: fs.statSync(zipPath).size, vbodyStart: vbody.slice(0, 30), vcount });
+    console.log(tag, { custom, prog, before, after, refs, masterPill, takeBest: global.takeBest, stepHint, autoMaster, keptMaster, keptCover, errorsLeft, zip: fs.statSync(zipPath).size, vbodyStart: vbody.slice(0, 30), vcount });
     await c.close();
   }
   if (!global.autoOk) errs.push('마스터 자동 연결 안 됨');
   if (!global.undoOk) errs.push('되돌리기·다시 하기 안 됨');
+  if (global.takeBest !== undefined && global.takeBest !== 'master-14') errs.push(`테이크 비교 결과 이상: ${global.takeBest}`);
   if (!global.keysOk) errs.push('피아노롤 키보드 안 됨');
   if (!global.helpOk) errs.push('도움말 안 열림');
   if (!global.persistOk) errs.push('새로고침 후 마스터·커버 유실');

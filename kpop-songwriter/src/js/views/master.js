@@ -6,6 +6,9 @@ import { renderSong, stop as stopPlayer } from '../music/player.js';
 import { encodeWav, zip } from '../music/pack.js';
 import { saveFile } from '../platform/download.js';
 import { help } from '../help.js';
+import { analyzeAudio } from '../music/analyze.js';
+import { compareTake } from '../music/takes.js';
+import { uid } from '../dom.js';
 import { getState, newAlbum } from '../state.js';
 import { setMaster, setSongMaster } from '../album/session.js';
 
@@ -179,6 +182,78 @@ async function useInAlbums(song) {
   return albums.length;
 }
 
+// ---------- Suno 테이크 비교 ----------
+// 곡마다 테이크 목록 (파일과 분석값만; 오디오는 들을 때만 풀어서 재생)
+const takesBy = {};
+
+async function addTakes(song, files) {
+  const list = takesBy[song.id] || (takesBy[song.id] = []);
+  for (const f of [...files].slice(0, 6 - list.length)) {
+    const t = { id: uid(), file: f, name: f.name.replace(/\.[^.]+$/, ''), analysis: null, cmp: null, error: false };
+    list.push(t);
+    refresh();
+    try {
+      t.analysis = await analyzeAudio(f);
+      t.cmp = compareTake(t.analysis, song);
+    } catch {
+      t.error = true;
+    }
+    refresh();
+  }
+}
+
+async function playTake(t) {
+  stopPlayer();
+  if (ui.listen === `take:${t.id}`) { stopListen(); refresh(); return; }
+  stopListen();
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  ui.listen = `take:${t.id}`;
+  refresh();
+  try {
+    const buf = await audioCtx.decodeAudioData(await t.file.arrayBuffer());
+    if (ui.listen !== `take:${t.id}`) return;
+    const src = audioCtx.createBufferSource();
+    src.buffer = buf;
+    src.connect(audioCtx.destination);
+    src.onended = () => { if (playing === src) { playing = null; ui.listen = null; refresh(); } };
+    src.start();
+    playing = src;
+  } catch {
+    ui.listen = null;
+    toast('이 파일은 재생하지 못했어요');
+    refresh();
+  }
+}
+
+function renderTakes(song) {
+  const list = takesBy[song.id] || [];
+  const files = h('input', { type: 'file', id: 'take-files', accept: 'audio/*', multiple: true, class: 'visually-hidden', onchange: (e) => {
+    const fs = [...(e.target.files || [])]; // value를 비우면 FileList도 비므로 먼저 복사
+    e.target.value = '';
+    if (fs?.length) addTakes(song, fs);
+  } });
+  const best = Math.max(-1, ...list.filter((t) => t.cmp).map((t) => t.cmp.score));
+  return h('section', { class: 'card' },
+    h('div', { class: 'card-head' },
+      h('h2', null, 'Suno 테이크 비교 (선택)'),
+      h('span', { class: 'row' }, files, h('label', { for: 'take-files', class: 'btn small' }, '테이크 여러 개 넣기'))),
+    h('p', { class: 'muted' }, 'Suno가 만든 여러 버전을 한꺼번에 넣으면, 편곡에서 정한 BPM·키·길이와 맞는지 비교해요. 들어 보고 마음에 드는 걸 "이걸로 마스터링"하세요. (최대 6개)'),
+    list.length ? h('ul', { class: 'takes' }, list.map((t) => h('li', { class: `take${t.cmp && t.cmp.score === best && best > 0 ? ' best' : ''}` },
+      h('div', { class: 'take-head' },
+        h('strong', { class: 'track-title' }, t.name),
+        t.cmp ? h('span', { class: `pill ${t.cmp.score === 3 ? 'good' : t.cmp.score >= 2 ? '' : 'warn-pill'}` }, `편곡과 일치 ${t.cmp.score}/3`) : null,
+        t.cmp && t.cmp.score === best && best > 0 && list.length > 1 ? h('span', { class: 'pill good' }, '가장 가까움') : null,
+        !t.analysis && !t.error ? h('span', { class: 'status' }, h('span', { class: 'dot' }), '분석 중') : null,
+        t.error ? h('span', { class: 'warn' }, '읽지 못한 파일') : null,
+        h('span', { class: 'push' }),
+        h('button', { type: 'button', class: 'btn small', disabled: t.error, onclick: () => playTake(t) }, ui.listen === `take:${t.id}` ? '■ 정지' : '▶ 듣기'),
+        h('button', { type: 'button', class: 'btn small primary', disabled: t.error || !!ui.busy, onclick: () => loadFile(t.file, song.id) }, '이걸로 마스터링'),
+        h('button', { type: 'button', class: 'icon-btn', 'aria-label': '테이크 빼기', onclick: () => { takesBy[song.id] = list.filter((x) => x !== t); refresh(); } }, '×')),
+      t.cmp ? h('p', { class: 'muted small' }, t.cmp.notes.join(' · ')) : null)))
+      : null);
+}
+
 export function renderMaster(song) {
   ui = uiFor(song.id);
   const st = settings(song);
@@ -200,6 +275,7 @@ export function renderMaster(song) {
         h('label', { for: 'master-file', class: `btn primary${busy ? ' disabled' : ''}` }, '완성곡 파일 넣기 (WAV·MP3)'),
         h('button', { type: 'button', class: 'btn', disabled: busy, onclick: () => loadDemo(song) }, '앱 데모로 해 보기'),
         ui.source ? h('span', { class: 'muted' }, `${ui.sourceName} · ${Math.round(ui.source.duration)}초 · ${ui.source.sampleRate}Hz`) : null)),
+    renderTakes(song),
     h('section', { class: 'card' },
       h('h2', null, '설정'),
       h('div', { class: 'field' }, h('span', { class: 'field-label' }, '음색'),
