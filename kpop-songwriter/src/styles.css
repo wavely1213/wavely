@@ -422,3 +422,9 @@ input[type=radio] { accent-color: var(--accent); }
 .stat-table td, .stat-table th { vertical-align: middle; }
 .stat-spark { width: 90px; height: 24px; }
 .compare .stat-best th { color: var(--accent); font-weight: 700; }
+
+/* 컨셉 아이디어 */
+.ideas { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.idea { display: grid; gap: 6px; align-content: start; padding: 12px; border: 1px solid var(--line); border-radius: 10px; }
+.idea p { margin: 0; overflow-wrap: anywhere; }
+.idea .btn { justify-self: start; }

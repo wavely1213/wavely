@@ -79,6 +79,7 @@
 | 숏폼 하이라이트 | music/highlight.js, views/master.js | 0.25초 음량으로 가장 신나는 15·30초(터지는 지점 가산), 시작은 직전 조용한 순간, 페이드 넣어 WAV |
 | 테이크 비교 | music/takes.js | Suno 테이크의 BPM·키·길이를 편곡과 비교해 점수 매기기 |
 | 스타일 변형 | variants.js, views/variants.js | Suno 스타일 A/B/C (BPM·키 고정) 만들기·복사·정하기, 테이크 파일 이름에서 변형 찾기 |
+| 컨셉 아이디어 | ai-concept.js, views/concept.js | 아이디어가 없을 때 AI가 서로 다른 컨셉 3개(제목·주제·스토리·분위기·키워드·훅), 고르면 컨셉 칸 채움 |
 | 원클릭 초안 | workflow/draft.js | 컨셉 → 가사·편곡·멜로디·Suno 스타일을 차례로 AI로 채움 (단계마다 바로 반영) |
 | 도움말 | help.js | 용어 설명 "?" (details 요소) |
 | 진행 단계 | workflow/progress.js | 곡 하나의 발매까지 7단계 완료 판단·다음 할 일 |

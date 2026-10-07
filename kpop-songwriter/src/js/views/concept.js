@@ -2,6 +2,7 @@
 import { h, field, uid, afterBlur, toast } from '../dom.js';
 import { mutate, setTab } from '../state.js';
 import { makeDraft } from '../workflow/draft.js';
+import { suggestConcepts } from '../ai-concept.js';
 import { isBusy, runJob, stopJob, job } from '../aijob.js';
 import { GROUP_TYPES, MOODS, POSITIONS } from '../constants.js';
 import { VOICE_RANGES, defaultVoice, midiName } from '../music/range.js';
@@ -45,6 +46,7 @@ export function renderConcept(song) {
       h('p', { class: 'muted' }, ready
         ? '아래 컨셉으로 빈 섹션 가사 → 편곡 → 멜로디 → Suno 스타일을 차례로 채워요. 이미 쓴 가사는 그대로 둬요. 몇 분 걸리고, 중간에 멈춰도 거기까지는 남아요.'
         : '먼저 아래에 주제·스토리·키워드 중 하나를 적어 주세요. 그걸로 가사부터 멜로디까지 초안을 만들어요.')),
+    renderIdeas(song, busy),
     h('section', { class: 'card' },
       h('h2', null, '곡 컨셉'),
       h('div', { class: 'grid2' },
@@ -60,6 +62,33 @@ export function renderConcept(song) {
     ),
     renderMembers(song),
   );
+}
+
+// 컨셉 아이디어 카드 3개 (곡마다, 저장하지 않음). 고르면 컨셉 칸을 채운다 (되돌리기 가능).
+const ideas = {};
+function renderIdeas(song, busy) {
+  const m = ideas[song.id] || (ideas[song.id] = { hint: '', list: [] });
+  return h('section', { class: 'card' },
+    h('div', { class: 'card-head' },
+      h('h2', null, '아이디어가 없다면'),
+      h('button', { type: 'button', class: 'btn', id: 'ideas-run', disabled: busy, onclick: () => runJob('컨셉 아이디어 찾는 중', async (signal) => {
+        m.list = await suggestConcepts(song, { hint: m.hint, signal });
+      }) }, m.list.length ? '다른 아이디어' : '컨셉 아이디어 3개 받기')),
+    h('input', { id: 'ideas-hint', value: m.hint, placeholder: '원하는 방향이 있으면 (선택) 예: 여름, 이별 뒤 홀가분함, 걸크러시', oninput: (e) => { m.hint = e.target.value; } }),
+    m.list.length ? h('div', { class: 'ideas' }, m.list.map((c, i) => h('article', { class: 'idea' },
+      h('strong', null, c.title),
+      h('p', null, c.theme),
+      h('p', { class: 'muted small' }, c.story),
+      h('p', { class: 'small' }, [c.moods.join(' · '), c.keywords, c.hook && `훅: ${c.hook}`].filter(Boolean).join(' / ')),
+      h('button', { type: 'button', class: 'btn small primary', id: `idea-use-${i}`, onclick: () => {
+        mutate((s) => {
+          s.title = c.title;
+          Object.assign(s.concept, { theme: c.theme, story: c.story, keywords: [c.keywords, c.hook].filter(Boolean).join(', ') });
+          if (c.moods.length) s.concept.moods = c.moods;
+        });
+        toast('컨셉을 채웠어요. 위의 "초안 만들기"로 가사부터 멜로디까지 이어서 만들 수 있어요');
+      } }, '이 컨셉으로'))))
+      : h('p', { class: 'muted small' }, '취향 기록과 지금 적어 둔 것을 바탕으로 서로 다른 방향 3개를 제안해요.'));
 }
 
 function renderMembers(song) {

@@ -35,3 +35,22 @@ assert.equal(st('master').done, true);
 assert.equal(pr.next.id, 'release');
 assert.ok(st('release').hint.includes('꼭 고칠 것'));
 console.log('workflow OK');
+
+// 컨셉 아이디어: 제목·주제 없는 것 버림, 분위기는 목록 안의 것만, 키워드 배열 → 문자열, 최대 3개
+{
+  const { parseConcepts } = await import('../src/js/ai-concept.js');
+  const out = parseConcepts({ concepts: [
+    { title: '여름 신호', theme: '마지막 여름밤', story: 's', moods: ['청량', '없는분위기', '감성'], keywords: ['불꽃', '바다'], hook: 'Summer signal' },
+    { title: '', theme: '제목 없음' },
+    { title: 'B', theme: 'b', keywords: 'x, y' },
+    { title: 'C', theme: 'c' },
+    { title: 'D', theme: 'd' },
+  ] });
+  assert.equal(out.length, 3);
+  assert.deepEqual(out[0].moods, ['청량', '감성']);
+  assert.equal(out[0].keywords, '불꽃, 바다');
+  assert.equal(out[1].keywords, 'x, y');
+  assert.throws(() => parseConcepts({ concepts: [{ title: 'x' }] }), (e) => e.code === 'invalid_json');
+  console.log('ideas OK');
+}
+
