@@ -36,13 +36,25 @@ function capture() {
   return { songId: ui.songId, times: [...ui.times], duration: Number.isFinite(ui.audio?.duration) ? Math.round(ui.audio.duration * 100) / 100 : null, master: ui.file?.name || '' };
 }
 
-// 찍은 시각을 곡에 저장 (한 번 맞출 때마다 되돌리기 한 단계)
+// 찍은 시각을 곡에 저장 (한 번 맞출 때마다 되돌리기 한 단계 — 싱크 탭의 ↶는 이 곡을 되돌린다)
 function save(snap = capture()) {
   const s = getState().songs.find((x) => x.id === snap.songId);
   if (!s || !snap.times.some(Number.isFinite)) return;
   const sync = makeSync(s, snap.times, { duration: snap.duration, master: snap.master });
   if (JSON.stringify(s.sync?.lines) === JSON.stringify(sync.lines)) return;
+  // 다 맞춘 싱크가 있는데 처음부터 다시 맞추다 멈췄으면 덮어쓰지 않는다
+  if (sync.lines.some((l) => !Number.isFinite(l.t)) && syncStatus(s) === 'ok') {
+    ui.key = ''; // 다음에 그릴 때 저장된 싱크를 다시 보여 줌
+    toast('끝까지 맞추지 않아서 전에 맞춘 싱크를 그대로 뒀어요');
+    return;
+  }
   mutateSong(s.id, (x) => { x.sync = sync; });
+}
+
+// 싱크 탭에서 맞추는 곡 (앨범 트랙 중 고른 곡, 없으면 첫 곡). 머리말 ↶·Ctrl+Z도 이 곡을 되돌린다.
+export function syncSongId(album) {
+  const ids = album.tracks.map((t) => t.songId).filter((id) => getState().songs.some((x) => x.id === id));
+  return ids.includes(ui.songId) ? ui.songId : ids[0] || null;
 }
 
 // 재생 위치에 맞춰 지금 줄 강조 + 시계 (다시 그리지 않고 DOM만 바꿈)
@@ -120,11 +132,11 @@ export function renderSync(album) {
   const masters = mastersOf(album.id);
   const tracks = album.tracks.map((t, i) => ({ i, s: songs.find((x) => x.id === t.songId) })).filter((x) => x.s);
   if (!tracks.length) return h('p', { class: 'empty card' }, '수록곡을 먼저 넣어 주세요.');
-  if (!tracks.some((x) => x.s.id === ui.songId)) { stopSyncAudio(); ui.songId = tracks[0].s.id; }
+  if (ui.songId !== syncSongId(album)) { stopSyncAudio(); ui.songId = syncSongId(album); }
   const { i: trackIndex, s } = tracks.find((x) => x.s.id === ui.songId);
   const lines = syncLines(s);
-  // 곡이나 가사가 바뀌면 저장된 시각에서 다시 시작
-  const key = `${s.id}\n${lyricsKey(s)}`;
+  // 곡·가사·저장된 싱크(되돌리기 등)가 바뀌면 저장된 시각에서 다시 시작
+  const key = `${s.id}\n${s.sync?.at || 0}\n${lyricsKey(s)}`;
   if (ui.key !== key) {
     ui.key = key;
     ui.times = s.sync?.key === lyricsKey(s) ? s.sync.lines.map((l) => l.t) : lines.map(() => null);
@@ -140,7 +152,7 @@ export function renderSync(album) {
   return h('div', { class: 'stack' },
     h('section', { class: 'card' },
       h('h2', null, '싱크 가사 (LRC)'),
-      h('p', { class: 'muted' }, '멜론·스포티파이·애플뮤직의 "가사 따라가기"용 파일이에요. 마스터를 틀고, 각 줄을 부르기 시작할 때 버튼(또는 스페이스)을 누르면 돼요. 만든 파일은 제출 패키지에도 들어가요.'),
+      h('p', { class: 'muted' }, '멜론·스포티파이·애플뮤직의 "가사 따라가기"용 파일이에요. 마스터를 틀고, 각 줄을 부르기 시작할 때 버튼(또는 스페이스)을 누르면 돼요. 만든 파일은 제출 패키지에도 들어가요. 이 탭에서 ↶는 고른 곡의 싱크를 되돌려요.'),
       h('div', { class: 'chips' }, tracks.map((x) => h('button', {
         type: 'button', class: `chip${x.s.id === s.id ? ' on' : ''}`, 'aria-pressed': x.s.id === s.id ? 'true' : 'false',
         onclick: () => { if (x.s.id !== s.id) { stopSyncAudio(); ui.songId = x.s.id; refresh(); } },
@@ -164,7 +176,7 @@ export function renderSync(album) {
                 playing ? h('button', { type: 'button', class: 'btn small ghost', onclick: stop }, '■ 멈춤')
                   : h('button', { type: 'button', class: 'btn small ghost', disabled: !done, onclick: () => { ui.mode = 'check'; play(0); refresh(); } }, '▶ 확인 재생')]),
           ui.mode === 'tap'
-            ? h('button', { type: 'button', class: 'btn primary sync-tap', id: 'sync-tap', onclick: (e) => {
+            ? h('button', { type: 'button', class: 'btn primary wrap sync-tap', id: 'sync-tap', onclick: (e) => {
               // 스페이스는 keydown에서 이미 찍었으므로, 그 키로 생긴 버튼 클릭은 무시
               if (e.detail === 0 && performance.now() - lastKeyTap < 1000) return;
               tap();

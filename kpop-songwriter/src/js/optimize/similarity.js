@@ -40,7 +40,9 @@ export function parseSimilarity(res, song) {
 export async function checkSimilarity(song, { signal }) {
   const sample = await getSample();
   if (!sample) throw { code: 'not_granted' };
-  const lines = lyricLines(song);
+  // 요청할 때의 가사로 고정한다 (기다리는 동안 가사를 고치면 결과는 '다시 점검'으로 보여야 함)
+  const asked = { sections: song.sections.map((s) => ({ ...s })) };
+  const lines = lyricLines(asked);
   if (!lines.length) throw { code: 'empty_completion' };
   const prompt = [
     '너는 음악 저작권 검토를 돕는 K-pop A&R이다. 아래 가사를 발매 전에 점검한다.',
@@ -53,7 +55,7 @@ export async function checkSimilarity(song, { signal }) {
   ].join('\n\n');
   const res = await sample.json(prompt, { signal, cache: false });
   if (!res || typeof res !== 'object') throw { code: 'invalid_json' };
-  return parseSimilarity(res, song);
+  return parseSimilarity(res, asked);
 }
 
 // 섹션 가사에서 그 줄을 새 줄로 바꾼다 (처음 나오는 섹션들 전부, 줄 단위로 정확히 같은 것만)
@@ -61,7 +63,7 @@ export function replaceLine(song, line, next) {
   let n = 0;
   song.sections.forEach((s) => {
     const rows = s.text.split('\n');
-    const out = rows.map((r) => (r.trim() === line ? (n++, r.replace(line, next)) : r));
+    const out = rows.map((r) => (r.trim() === line ? (n++, r.replace(line, () => next)) : r)); // 함수로 넘겨 $& 등이 풀리지 않게
     if (out.some((r, i) => r !== rows[i])) s.text = out.join('\n');
   });
   return n;

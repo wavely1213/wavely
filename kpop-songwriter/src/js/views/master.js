@@ -208,7 +208,7 @@ function renderToneMatch(song, st) {
   const ref = referenceTone(song);
   if (!ref) return h('span', { class: 'muted small' }, '레퍼런스 탭에서 곡 파일을 분석해 두면, 그 곡의 저음·고음 균형에 맞춘 설정을 추천해요.');
   return h('div', { class: 'row' },
-    h('button', { type: 'button', class: 'btn small', id: 'tone-match', disabled: !ui.source || !!ui.busy, onclick: () => matchReference(song) },
+    h('button', { type: 'button', class: 'btn small wrap', id: 'tone-match', disabled: !ui.source || !!ui.busy, onclick: () => matchReference(song) },
       `레퍼런스(${ref.names.slice(0, 2).join(', ')}${ref.n > 2 ? ` 외 ${ref.n - 2}` : ''})에 음색 맞추기`),
     !ui.source ? h('span', { class: 'muted small' }, '완성곡을 먼저 넣어 주세요') : null,
     st.preset === 'ref' && st.eqNote ? h('span', { class: 'muted small', id: 'tone-note' }, st.eqNote) : null);
@@ -285,7 +285,7 @@ function renderTakes(song) {
         h('span', { class: 'push' }),
         h('button', { type: 'button', class: 'btn small', disabled: t.error, onclick: () => playTake(t) }, ui.listen === `take:${t.id}` ? '■ 정지' : '▶ 듣기'),
         h('button', { type: 'button', class: 'btn small primary', disabled: t.error || !!ui.busy, onclick: () => loadFile(t.file, song.id) }, '이걸로 마스터링'),
-        h('button', { type: 'button', class: 'icon-btn', 'aria-label': '테이크 빼기', onclick: () => { takesBy[song.id] = list.filter((x) => x !== t); refresh(); } }, '×')),
+        h('button', { type: 'button', class: 'icon-btn', 'aria-label': '테이크 빼기', onclick: () => { const arr = takesBy[song.id]; arr.splice(arr.indexOf(t), 1); refresh(); } }, '×')), // 같은 배열에서 빼야 분석 중인 나머지가 남음
       t.cmp ? h('p', { class: 'muted small' }, t.cmp.notes.join(' · ')) : null)))
       : null);
 }

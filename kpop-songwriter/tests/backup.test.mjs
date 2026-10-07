@@ -38,6 +38,11 @@ assert.notEqual(plan.albums[0].id, 'al');
 assert.deepEqual(plan.taste.log.map((e) => e.id), ['t1', 't2'], '취향 기록은 합쳐서 시간순');
 assert.equal(plan.taste.profile.lyrics, '내 프로필', '지금 프로필은 유지');
 
+// 3-1) 키 순서만 다르면 같은 내용으로 봄 (되돌리기가 키 순서를 바꿈)
+const reordered = Object.fromEntries(Object.entries(a).reverse());
+plan = planRestore({ songs: [reordered], albums: [album], taste }, backup);
+assert.equal(plan.report.same, 2, '키 순서만 다른 곡은 사본을 만들지 않음');
+
 // 4) 형식이 아닌 항목은 버림
 plan = planRestore({ songs: [], albums: [], taste: emptyTaste() }, { ...backup, songs: [{ id: 1 }, ...backup.songs], albums: [{ nope: 1 }] });
 assert.equal(plan.report.songs, 1);

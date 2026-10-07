@@ -7,7 +7,11 @@ import { unzip } from './music/pack.js';
 export const BACKUP_FORMAT = 1;
 
 const clone = (x) => JSON.parse(JSON.stringify(x));
-const body = (x) => { const { versions, versionData, updatedAt, ...rest } = x; return JSON.stringify(rest); };
+// 키 순서와 상관없이 같은 내용이면 같은 문자열 (되돌리기는 키 순서를 바꿀 수 있음)
+const stable = (v) => (Array.isArray(v) ? `[${v.map(stable).join(',')}]`
+  : v && typeof v === 'object' ? `{${Object.keys(v).sort().filter((k) => v[k] !== undefined).map((k) => `${JSON.stringify(k)}:${stable(v[k])}`).join(',')}}`
+    : JSON.stringify(v ?? null));
+const body = (x) => { const { versions, versionData, updatedAt, ...rest } = x; return stable(rest); };
 
 // getVersion(songId, versionId) → { ...meta, data } | null
 export async function makeBackup({ songs, albums, taste }, getVersion) {

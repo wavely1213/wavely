@@ -69,7 +69,7 @@ h2 { margin: 0; font-size: 1rem; font-weight: 700; }
 .save { margin: 0; font-size: 12px; color: var(--muted); }
 
 /* 탭 */
-.tabs-wrap { overflow-x: auto; border-bottom: 1px solid var(--line); }
+.tabs-wrap { position: relative; overflow-x: auto; border-bottom: 1px solid var(--line); } /* 탭 offsetLeft의 기준 */
 .tabs-wrap.more-right { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); }
 .tabs { display: flex; gap: 4px; min-width: max-content; }
 .tab { border: 0; background: none; padding: 10px 14px; cursor: pointer; color: var(--muted); font-weight: 600; border-bottom: 2px solid transparent; margin-bottom: -1px; }
@@ -405,3 +405,6 @@ input[type=radio] { accent-color: var(--accent); }
 
 .range-row { display: block; font-size: 13px; }
 .order-list { margin: 0 0 6px; padding-left: 22px; display: grid; gap: 2px; }
+
+/* AI 글·가사·파일 이름이 들어가는 버튼은 줄바꿈 (폰 가로 넘침 방지) */
+.btn.wrap { white-space: normal; text-align: left; overflow-wrap: anywhere; max-width: 100%; }

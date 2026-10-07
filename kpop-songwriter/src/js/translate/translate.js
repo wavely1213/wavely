@@ -57,17 +57,24 @@ export function compareLines(song, lang) {
   }));
 }
 
-// Suno에 넣을 곡 사본: 섹션 가사를 번안으로 바꾼다 (buildLyrics에 그대로 넘김)
+// Suno에 넣을 곡 사본: 섹션 가사를 번안으로 바꾼다 (buildLyrics에 그대로 넘김).
+// 번안이 빠진 섹션·줄은 원문을 그대로 둔다 (비워 두면 앞 섹션 번안으로 채워져 엉뚱한 가사가 됨)
 export function translatedSong(song, lang) {
   const t = song.translations?.[lang];
-  return { ...song, sections: song.sections.map((s) => ({ ...s, text: (t?.sections?.[s.id] || []).map((l) => l.text).join('\n') })) };
+  return { ...song, sections: song.sections.map((s) => {
+    const src = linesOf(s.text);
+    const tr = t?.sections?.[s.id] || [];
+    return { ...s, text: src.map((line, i) => tr[i]?.text || line).join('\n') };
+  }) };
 }
 
 export async function translateLyrics(song, lang, { signal }) {
   const sample = await getSample();
   if (!sample) throw { code: 'not_granted' };
   const L = LANGS[lang];
-  const src = sourceSections(song).map((s) => ({
+  // 요청할 때의 가사로 고정 (기다리는 동안 원문을 고치면 결과는 '다시 번안'으로 보여야 함)
+  const asked = { ...song, sections: song.sections.map((s) => ({ ...s })) };
+  const src = sourceSections(asked).map((s) => ({
     id: s.id,
     이름: s.label,
     줄: s.lines.map((l) => ({ 원문: l, 음절수: countSyllables(l) })),
@@ -82,5 +89,5 @@ export async function translateLyrics(song, lang, { signal }) {
     `출력은 JSON 하나만: {"sections":[{"id":"","lines":[${lang === 'ja' ? '{"text":"","kana":""}' : '{"text":""}'}]}]}`,
   ].filter(Boolean).join('\n\n');
   const res = await sample.json(prompt, { signal, cache: false });
-  return parseTranslation(res, song, lang);
+  return parseTranslation(res, asked, lang);
 }

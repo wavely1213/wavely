@@ -20,7 +20,7 @@ import { renderMelody } from './views/melody.js';
 import { renderSound } from './views/sound.js';
 import { renderReferences } from './views/references.js';
 import { renderMaster, stopMasterPreview } from './views/master.js';
-import { stopSyncAudio } from './views/album/sync.js';
+import { stopSyncAudio, syncSongId } from './views/album/sync.js';
 import { onPlayer, stop as stopPlayer } from './music/player.js';
 
 const TABS = [
@@ -249,8 +249,11 @@ document.addEventListener('keydown', (e) => {
   if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
   const st = getState();
   if (st.mode !== 'song' && st.mode !== 'album') return;
+  // 싱크 가사 탭에서는 맞추는 곡을 되돌린다 (싱크는 곡에 저장됨)
+  const album = st.mode === 'album' ? currentAlbum() : null;
+  const id = album && st.albumTab === 'sync' ? syncSongId(album) || album.id : undefined;
   const k = e.key.toLowerCase();
-  if (k === 'z' && !e.shiftKey) { if (undo()) e.preventDefault(); } else if ((k === 'z' && e.shiftKey) || k === 'y') { if (redo()) e.preventDefault(); }
+  if (k === 'z' && !e.shiftKey) { if (undo(id)) e.preventDefault(); } else if ((k === 'z' && e.shiftKey) || k === 'y') { if (redo(id)) e.preventDefault(); }
 });
 
 subscribe((scope) => {

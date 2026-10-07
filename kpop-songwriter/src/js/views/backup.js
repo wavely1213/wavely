@@ -5,7 +5,7 @@ import { makeBackup, isBackup, planRestore, readImportFile, backupFileName } fro
 import { zip } from '../music/pack.js';
 import { saveFile, isArtifact } from '../platform/download.js';
 
-const ui = { busy: false };
+const ui = { busy: false, restoring: false };
 
 async function downloadBackup() {
   ui.busy = true;
@@ -30,12 +30,15 @@ async function downloadBackup() {
 }
 
 export async function importFile(file) {
+  if (ui.restoring) { toast('되살리는 중이에요. 끝나면 다시 넣어 주세요'); return; }
   let data;
   try { data = await readImportFile(file); } catch { toast('파일을 읽지 못했어요'); return; }
   if (isBackup(data)) {
     const st = getState();
     const plan = planRestore(st, data);
-    await applyRestore(plan);
+    ui.restoring = true;
+    toast('되살리는 중… (버전이 많으면 조금 걸려요)');
+    try { await applyRestore(plan); } finally { ui.restoring = false; }
     const r = plan.report;
     toast(r.songs || r.albums || r.taste
       ? `되살렸어요: 곡 ${r.songs}개, 앨범 ${r.albums}개, 취향 기록 ${r.taste}개${r.same ? ` (이미 같은 것 ${r.same}개는 건너뜀)` : ''}`

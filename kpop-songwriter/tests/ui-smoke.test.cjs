@@ -197,6 +197,19 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     console.log(tag, { custom, prog, before, after, refs, masterPill, takeBest: global.takeBest, toneNote: global.toneNote, sync: global.syncInfo, stepHint, autoMaster, keptMaster, keptCover, errorsLeft, zip: fs.statSync(zipPath).size, vbodyStart: vbody.slice(0, 30), vcount });
     await c.close();
   }
+  // 태블릿 세로(834px, 목록이 옆에 있는 가장 좁은 폭): 어떤 탭을 골라도 그 탭이 탭 줄 안에 보임
+  {
+    const c3 = await b.newContext({ viewport: { width: 834, height: 1112 } });
+    const p3 = await c3.newPage();
+    await p3.goto('file://' + path.join(__dirname, '..', 'dist', 'index.html'));
+    await p3.waitForSelector('.tab');
+    for (const name of await p3.$$eval('.tab', (els) => els.map((e) => e.textContent))) {
+      await p3.click(`.tab:text-is("${name}")`);
+      const vis = await p3.$eval('.tab.on', (e) => { const r = e.getBoundingClientRect(); const w = e.closest('.tabs-wrap').getBoundingClientRect(); return r.left >= w.left - 1 && r.right <= w.right + 1; });
+      if (!vis) errs.push(`834px 고른 탭(${name})이 탭 줄 밖`);
+    }
+    await c3.close();
+  }
   if (!global.autoOk) errs.push('마스터 자동 연결 안 됨');
   if (!global.undoOk) errs.push('되돌리기·다시 하기 안 됨');
   if (!global.albumUndoOk) errs.push('앨범 되돌리기 안 됨');

@@ -31,7 +31,7 @@ export function renderSimilarity(song) {
             h('strong', { class: 'similar-line' }, it.line)),
           h('p', { class: 'small' }, it.like ? h('span', { class: 'muted' }, `비슷한 곡: ${it.like} · `) : null, it.why),
           it.ok ? null : h('div', { class: 'row' },
-            it.fix ? h('button', { type: 'button', class: 'btn small', disabled: busy || status === 'stale', onclick: () => mutateSong(song.id, (x) => {
+            it.fix ? h('button', { type: 'button', class: 'btn small wrap', disabled: busy || status === 'stale', onclick: () => mutateSong(song.id, (x) => {
               replaceLine(x, it.line, it.fix);
               const own = x.similarity.items.find((y) => y.id === it.id);
               own.line = it.fix;

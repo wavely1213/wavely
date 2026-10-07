@@ -22,6 +22,7 @@ export function renderTranslate(song, lyricOpts) {
   const groups = status === 'none' ? [] : compareLines(song, lang);
   const rows = groups.flatMap((g) => g.rows);
   const off = rows.filter((r) => r.fit === false).length;
+  const missing = rows.filter((r) => !r.tr).length;
   const lyrics = status === 'none' ? '' : buildLyrics(translatedSong(song, lang), lyricOpts);
   const style = [buildStyle(song.style), L.suno].filter(Boolean).join(', ');
   const copyBlock = (id, label, text, limit, n) => {
@@ -46,7 +47,9 @@ export function renderTranslate(song, lyricOpts) {
     }, `${v.name}${song.translations?.[k] ? ' ✓' : ''}`))),
     status === 'none' ? null : h('div', { class: 'stack' },
       status === 'stale' ? h('p', { class: 'warn' }, '번안한 뒤 원문 가사가 바뀌었어요. 다시 번안해 주세요.') : null,
-      off ? h('p', { class: 'warn' }, `${off}줄이 원문과 ${FIT_TOLERANCE}음 넘게 차이 나요 (빨간 숫자). 멜로디에 안 맞으면 다시 번안하거나 Suno에서 들어 보고 고르세요.`) : h('p', { class: 'good-text' }, '모든 줄이 원문 음 수와 비슷해요.'),
+      missing ? h('p', { class: 'warn', id: 'tr-missing' }, `${missing}줄은 번안이 빠졌어요 (—). Suno 가사에는 원문 그대로 들어가요. 다시 번안해 주세요.`) : null,
+      off ? h('p', { class: 'warn' }, `${off}줄이 원문과 ${FIT_TOLERANCE}음 넘게 차이 나요 (빨간 숫자). 멜로디에 안 맞으면 다시 번안하거나 Suno에서 들어 보고 고르세요.`)
+        : missing ? null : h('p', { class: 'good-text' }, '모든 줄이 원문 음 수와 비슷해요.'),
       h('div', { class: 'tr-table' }, groups.map((g) => h('div', { class: 'tr-sec' },
         h('span', { class: 'tag mono' }, `[${g.label}]`),
         g.rows.map((r) => h('div', { class: 'tr-row' },

@@ -5,7 +5,7 @@ import { MAX_VERSIONS } from './constants.js';
 import { exampleSong } from './example.js';
 import { normalizeMusic } from './music/arrangement.js';
 import { newAlbum as makeAlbum, normalizeAlbum } from './album/model.js';
-import { emptyTaste, normalizeTaste } from './learn/taste.js';
+import { emptyTaste, normalizeTaste, MAX_LOG } from './learn/taste.js';
 import { setTasteGetter } from './learn/context.js';
 import { forgetSong } from './album/session.js';
 
@@ -123,15 +123,25 @@ export async function applyRestore(plan) {
     song.versions = metas;
     normalizeMusic(song);
   }
-  if (plan.songs.length) state.songs = state.songs.filter((s) => !s.example);
-  state.songs.unshift(...plan.songs.map((x) => x.song));
-  plan.songs.forEach((x) => schedule(x.song.id));
-  plan.albums.forEach((a) => { normalizeAlbum(a); state.albums.unshift(a); schedule(a.id); });
-  if (plan.report.taste || plan.taste.profile !== state.taste.profile) {
-    state.taste = normalizeTaste(plan.taste);
+  // 기다리는 동안 상태가 바뀌었을 수 있으니 반영할 때 다시 본다: 이미 있는 id는 넣지 않고, 취향은 지금 기록에 합친다
+  const songs = plan.songs.map((x) => x.song).filter((x) => !state.songs.some((s) => s.id === x.id && !s.example));
+  if (songs.length) state.songs = state.songs.filter((s) => !s.example);
+  state.songs.unshift(...songs);
+  songs.forEach((x) => schedule(x.id));
+  plan.albums.filter((a) => !state.albums.some((b) => b.id === a.id)).forEach((a) => { normalizeAlbum(a); state.albums.unshift(a); schedule(a.id); });
+  const have = new Set(state.taste.log.map((e) => e.id));
+  const add = plan.taste.log.filter((e) => !have.has(e.id));
+  const p = state.taste.profile;
+  const emptyProfile = !p.lyrics.trim() && !p.sound.trim() && !p.avoid.trim();
+  if (add.length || (emptyProfile && plan.taste.profile !== p)) {
+    state.taste = normalizeTaste({
+      ...state.taste,
+      log: [...state.taste.log, ...add].sort((x, y) => (x.at || 0) - (y.at || 0)).slice(-MAX_LOG),
+      profile: emptyProfile ? plan.taste.profile : p,
+    });
     schedule(TASTE_ID);
   }
-  if (plan.songs.length) { state.currentId = plan.songs[0].song.id; state.mode = 'song'; }
+  if (songs.length) { state.currentId = songs[0].id; state.mode = 'song'; }
   emit('all');
 }
 
@@ -265,6 +275,8 @@ function findItem(id) {
 
 function restoreSnapshot({ item, album }, snap) {
   const data = JSON.parse(snap);
+  // 한 번 고쳐 내 곡이 된 곡은 되돌려도 예시 곡으로 돌아가지 않는다 (예시 곡은 저장·백업에서 빠짐)
+  if (!album && item.example === false) data.example = false;
   Object.keys(item).forEach((k) => { if (!['id', 'versions', 'createdAt'].includes(k)) delete item[k]; });
   Object.assign(item, data, { id: item.id }, album ? {} : { versions: item.versions });
   if (album) normalizeAlbum(item); else normalizeMusic(item);

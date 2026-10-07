@@ -143,5 +143,15 @@ S.mutateAlbum((a) => { a.promo.intro = '소개글'; }, 'quiet');
 S.undo();
 assert.equal(AL.promo.intro, '', '앨범 타이핑도 묶어서 되돌림');
 assert.ok(AL.cover && AL.promo && Array.isArray(AL.tracks), '되돌린 뒤에도 앨범 형식 유지');
+// 예시 곡을 고친 뒤 처음까지 되돌려도 예시 곡으로 돌아가지 않음
+{
+  await S.init(fakeStore()); // 빈 저장소 → 예시 곡 하나
+  const ex = S.getState().songs.find((s) => s.example);
+  assert.ok(ex, '예시 곡이 있어야 함');
+  S.mutateSong(ex.id, (x) => { x.title = '고친 예시'; });
+  assert.equal(ex.example, false);
+  while (S.undo(ex.id)) { /* 처음까지 */ }
+  assert.equal(ex.example, false, '되돌려도 내 곡으로 남음');
+}
 console.log('state OK');
 process.exit(0);
