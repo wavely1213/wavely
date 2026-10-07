@@ -94,9 +94,15 @@ server.listen(0, async () => {
       out[target] = { ms: Math.round(performance.now() - t2), before: m.before, after: m.after, gr: m.maxReduction, reached: m.reached, via: m.via,
         wav: await toB64(T.encodeWav({ channels: m.channels, sampleRate: m.rate }, { bits: 24, normalize: false })) };
     }
-    return { sineLufs, sustain, allPacks, loadMs, packs, renderMs, rms: Math.sqrt(sum / ch.length), nan, out };
+    // 곡 끝 자르기: 5초에서 끝내기 → 길이 정확히 5초, 끝은 짧은 페이드로 0, 음량은 남긴 부분 기준으로 목표 그대로
+    const c = await T.master(buf, { preset: 'kpop', target: -14, trim: false, fadeOut: 0, endAt: 5 });
+    const cl = c.channels[0];
+    const cut = { len: cl.length / c.rate, cutAt: c.cutAt, last: Math.abs(cl[cl.length - 1]), lufs: c.after.lufs };
+    return { sineLufs, sustain, allPacks, loadMs, packs, renderMs, rms: Math.sqrt(sum / ch.length), nan, out, cut };
   });
-  let ok = r.sustain.late > r.sustain.early * 0.5 && Math.abs(r.sineLufs + 20) < 0.1 && Object.values(r.allPacks).every(Boolean) && Object.values(r.packs).every(Boolean) && !r.nan && r.rms > 0.01;
+  const cutOk = Math.abs(r.cut.len - 5) < 0.001 && r.cut.cutAt === 5 && r.cut.last < 0.001 && Math.abs(r.cut.lufs + 14) < 0.6;
+  console.log('end cut', JSON.stringify(r.cut), cutOk ? 'OK' : 'FAIL');
+  let ok = cutOk && r.sustain.late > r.sustain.early * 0.5 && Math.abs(r.sineLufs + 20) < 0.1 && Object.values(r.allPacks).every(Boolean) && Object.values(r.packs).every(Boolean) && !r.nan && r.rms > 0.01;
   console.log('all packs', r.allPacks);
   console.log('long pad sustain', r.sustain);
   console.log('sine LUFS', r.sineLufs.toFixed(2), '| samples', r.packs, `load ${r.loadMs}ms render ${r.renderMs}ms rms ${r.rms.toFixed(3)}`);

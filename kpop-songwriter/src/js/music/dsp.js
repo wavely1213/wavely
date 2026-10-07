@@ -77,8 +77,9 @@ function applyGain(channels, gain, curve) {
 
 // 앞뒤 무음 정리 + 페이드. 유통사는 앞쪽 긴 무음을 싫어한다.
 // trim: 앞은 소리 시작 50ms 전부터, 뒤는 소리 끝 0.5초 뒤까지 남긴다. fadeOut: 끝 페이드 길이(초).
+// cut: 곡 끝을 중간에서 잘랐음 — 정리를 꺼도 끝에 짧은 페이드를 넣어 딸깍 소리를 막는다.
 const SILENCE = 0.001; // -60 dBFS
-export function finishEdges(channels, rate, { trim = true, fadeOut = 0 } = {}) {
+export function finishEdges(channels, rate, { trim = true, fadeOut = 0, cut = false } = {}) {
   const n = channels[0].length;
   let start = 0;
   let end = n;
@@ -95,7 +96,7 @@ export function finishEdges(channels, rate, { trim = true, fadeOut = 0 } = {}) {
   const out = channels.map((c) => c.slice(start, end));
   const len = out[0].length;
   const fadeIn = Math.min(len, Math.round(0.01 * rate)); // 잘린 자리 딸깍 소리 방지
-  const fade = Math.min(len, Math.round(Math.max(fadeOut, trim ? 0.05 : 0) * rate));
+  const fade = Math.min(len, Math.round(Math.max(fadeOut, trim || cut ? 0.05 : 0) * rate));
   out.forEach((c) => {
     if (start > 0) for (let i = 0; i < fadeIn; i++) c[i] *= i / fadeIn;
     for (let i = 0; i < fade; i++) c[len - 1 - i] *= (i / fade) ** (fadeOut ? 2 : 1);
@@ -108,7 +109,7 @@ export function measure(channels, rate) {
 }
 
 // src: 원본 채널(원래 샘플레이트), toned: EQ·컴프를 거친 44.1kHz 채널
-export function processMaster({ src, srcRate, toned, target = -14, trim = true, fadeOut = 0 }, onStep = () => {}) {
+export function processMaster({ src, srcRate, toned, target = -14, trim = true, fadeOut = 0, cut = false }, onStep = () => {}) {
   onStep('원본 음량 재는 중');
   const before = measure(src, srcRate);
   onStep('피크 분석 중');
@@ -129,7 +130,7 @@ export function processMaster({ src, srcRate, toned, target = -14, trim = true, 
     gainDb += target - l;
   }
   onStep('앞뒤 정리·최종 확인');
-  const edges = finishEdges(out, OUTPUT_RATE, { trim, fadeOut });
+  const edges = finishEdges(out, OUTPUT_RATE, { trim, fadeOut, cut });
   out = edges.channels;
   let peak = maxOf(truePeakEnvelope(out));
   if (peak > ceiling) {

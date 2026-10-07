@@ -71,3 +71,21 @@ console.log('unit OK');
   assert.equal(findProgression('minor', [1, 7, 6, 5]).id, 'descend');
   console.log('progressions OK');
 }
+
+// 분:초 표시·입력 (마스터링 곡 끝 자르기)
+import { mmss, parseMmss } from '../src/js/timefmt.js';
+{
+  assert.equal(parseMmss('3:25'), 205);
+  assert.equal(parseMmss(' 3:25.5 '), 205.5);
+  assert.equal(parseMmss('205'), 205);
+  assert.equal(parseMmss('0：20'), 20);
+  assert.equal(parseMmss(''), 0);
+  assert.ok(Number.isNaN(parseMmss('9:99')));
+  assert.ok(Number.isNaN(parseMmss('abc')));
+  assert.ok(Number.isNaN(parseMmss('1:2:3')));
+  assert.equal(mmss(205), '3:25');
+  assert.equal(mmss(205.5, { tenths: true }), '3:25.5');
+  assert.equal(mmss(65.04, { tenths: true }), '1:05');
+  assert.equal(mmss(5.5, { tenths: true }), '0:05.5');
+  console.log('timefmt OK');
+}

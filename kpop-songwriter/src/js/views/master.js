@@ -16,12 +16,13 @@ import { stereoCorrelation, clippedRuns, CLIP_WARN } from '../music/qc.js';
 import { uid } from '../dom.js';
 import { getState, newAlbum } from '../state.js';
 import { setMaster, setSongMaster } from '../album/session.js';
+import { mmss, parseMmss } from '../timefmt.js';
 
 // 오디오 버퍼는 커서 저장하지 않고 화면 메모리에만 둔다. 곡마다 따로 (다른 곡 결과가 섞이지 않게).
 const byId = {};
 let ui = null;
 function uiFor(songId) {
-  if (!byId[songId]) byId[songId] = { source: null, sourceName: '', result: null, busy: '', bits: 24, listen: null, matched: true, linked: 0 };
+  if (!byId[songId]) byId[songId] = { source: null, sourceName: '', result: null, busy: '', bits: 24, listen: null, matched: true, linked: 0, endAt: 0, playAt: 0 };
   // 다른 곡의 원본·결과 오디오(4분 곡이면 수백 MB)는 놓아 준다. 발매용 WAV는 setSongMaster로 따로 남아 있다.
   Object.entries(byId).forEach(([id, u]) => {
     if (id !== songId && !u.busy) { u.source = null; u.result = null; u.hl = null; u.listen = null; }
@@ -48,7 +49,8 @@ function stopListen() {
   ui.listen = null;
 }
 
-function listen(which) {
+// fadeOut: 끝 부분 듣기('end')에서 미리 들려줄 끝 페이드 길이(초)
+function listen(which, fadeOut = 0) {
   stopPlayer();
   if (ui.listen === which) { stopListen(); refresh(); return; }
   stopListen();
@@ -56,8 +58,12 @@ function listen(which) {
   if (audioCtx.state === 'suspended') audioCtx.resume();
   const r = ui.result;
   let buffer;
-  if (which === 'before') {
+  let offset = 0;
+  let dur;
+  if (which === 'before' || which === 'end') {
     buffer = ui.source;
+    // 끝 부분 듣기: 자를 곳 8초 전부터 자를 곳까지 (끝 페이드도 미리 들려줌)
+    if (which === 'end') { offset = Math.max(0, ui.endAt - 8); dur = ui.endAt - offset; }
   } else if (which === 'hl') {
     const c = highlightOf(r).clip;
     buffer = audioCtx.createBuffer(2, c[0].length, r.rate);
@@ -70,13 +76,20 @@ function listen(which) {
   src.buffer = buffer;
   const g = audioCtx.createGain();
   // 음량 맞춰 비교: 큰 쪽을 줄여 같은 크기로 듣는다 (커서 좋게 들리는 착각 방지)
-  if (ui.matched && which !== 'hl' && Number.isFinite(r.before.lufs)) {
+  if (r && ui.matched && which !== 'hl' && which !== 'end' && Number.isFinite(r.before.lufs)) {
     const diff = r.after.lufs - r.before.lufs;
     g.gain.value = which === 'after' ? Math.min(1, 10 ** (-diff / 20)) : Math.min(1, 10 ** (diff / 20));
   }
+  const fade = which === 'end' ? Math.min(dur, Math.max(fadeOut, 0.05)) : 0;
+  if (fade) {
+    const t = audioCtx.currentTime + dur;
+    g.gain.setValueAtTime(g.gain.value, t - fade);
+    g.gain.linearRampToValueAtTime(0, t);
+  }
   src.connect(g).connect(audioCtx.destination);
   src.onended = () => { if (playing === src) { playing = null; ui.listen = null; refresh(); } };
-  src.start();
+  if (dur === undefined) src.start(0, offset); else src.start(0, offset, dur);
+  ui.playAt = audioCtx.currentTime - offset; // "여기서 끝내기"가 지금 위치를 계산할 기준
   playing = src;
   ui.listen = which;
   refresh();
@@ -91,6 +104,7 @@ async function loadFile(f, songId) {
   try {
     ui.source = await decodeFile(f);
     ui.sourceName = f.name.replace(/\.[^.]+$/, '');
+    ui.endAt = 0; // 곡 끝 자르기는 원본마다 다르다
   } catch {
     toast('이 파일은 읽지 못했어요. WAV나 MP3로 다시 시도해 주세요');
   } finally {
@@ -107,6 +121,7 @@ async function loadDemo(song) {
   refresh();
   try {
     ui.source = await renderSong(song);
+    ui.endAt = 0;
     ui.sourceName = `${song.title.replace(/^예시:\s*/, '')} (앱 데모)`;
   } catch {
     toast('데모를 만들지 못했어요');
@@ -124,16 +139,17 @@ async function run(song) {
   ui.busy = '준비 중';
   refresh();
   try {
-    ui.result = await master(ui.source, st, (t) => {
+    ui.result = await master(ui.source, { ...st, endAt: ui.endAt }, (t) => {
       ui.busy = t;
       const el = document.getElementById('master-status');
       if (el) el.textContent = t;
     });
     // 발매 전 점검: 원본의 하드 클리핑, 결과의 좌우 위상 상관
-    const src = Array.from({ length: ui.source.numberOfChannels }, (_, i) => ui.source.getChannelData(i));
+    const keep = ui.result.cutAt ? Math.round(ui.result.cutAt * ui.source.sampleRate) : ui.source.length;
+    const src = Array.from({ length: ui.source.numberOfChannels }, (_, i) => ui.source.getChannelData(i).subarray(0, keep));
     ui.result.qc = { clips: clippedRuns(src), corr: stereoCorrelation(ui.result.channels[0], ui.result.channels[1]) };
     ui.result.target = st.target;
-    ui.result.settings = { ...st }; // 받기·보고서는 실제로 마스터링한 설정으로
+    ui.result.settings = { ...st, endAt: ui.result.cutAt }; // 받기·보고서는 실제로 마스터링한 설정으로
     mutateSong(song.id, (x) => { x.progress = { ...(x.progress || {}), mastered: true }; }, 'quiet');
   } catch {
     toast('마스터링 중 문제가 생겼어요. 다른 파일로 시도해 주세요');
@@ -160,6 +176,7 @@ async function download(song) {
       `결과: ${r.after.lufs.toFixed(1)} LUFS, ${r.after.peak.toFixed(1)} dBTP, ${OUTPUT_RATE} Hz ${ui.bits}bit 스테레오 WAV`,
       `원본 측정: ${Number.isFinite(r.before.lufs) ? r.before.lufs.toFixed(1) : '무음'} LUFS, ${r.before.peak.toFixed(1)} dBTP`,
       `리미터 최대 감소: ${r.maxReduction.toFixed(1)} dB`,
+      ...(r.cutAt ? [`곡 끝: 원본 ${mmss(r.cutAt, { tenths: true })}에서 자름${st.fadeOut ? ` (끝 페이드 ${st.fadeOut}초)` : ''}`] : []),
       ...(r.qc ? [`원본 잘린 파형: ${r.qc.clips}곳 / 스테레오 상관: ${r.qc.corr.toFixed(2)} (1=모노, 0 아래=위상 반대)`] : []),
       '',
       ...masterWarnings(r, st.target),
@@ -359,12 +376,42 @@ export function renderMaster(song) {
         h('label', { class: 'check' }, '끝 페이드 아웃',
           h('select', { id: 'master-fade', onchange: (e) => mutate((s) => { s.master = { ...settings(s), fadeOut: Number(e.target.value) }; }) },
             [[0, '없음'], [2, '2초'], [4, '4초'], [8, '8초']].map(([v, t]) => h('option', { value: String(v), selected: st.fadeOut === v }, t))))),
+      renderEndCut(st),
       h('div', { class: 'row' },
         h('button', { type: 'button', class: 'btn primary', disabled: busy || !ui.source, onclick: () => run(song) }, '마스터링 하기'),
         busy ? h('span', { class: 'status' }, h('span', { class: 'dot' }), h('span', { id: 'master-status' }, ui.busy)) : null,
         !ui.source && !busy ? h('span', { class: 'muted' }, '먼저 파일을 넣어 주세요') : null)),
     r ? renderResult(song, r) : null,
   );
+}
+
+// 곡 끝 자르기: Suno가 끝을 늘이거나 이상하게 끝내면 원본을 들으며 끝낼 곳을 고른다 (원본마다 따로, 화면 메모리에만)
+function setEnd(t) {
+  if (Number.isNaN(t)) { toast('분:초로 적어 주세요 (예: 3:25)'); refresh(); return; }
+  if (t && t >= ui.source.duration) { toast(`원본 길이(${mmss(ui.source.duration)})보다 짧게 적어 주세요`); refresh(); return; }
+  ui.endAt = Math.round(t * 10) / 10;
+  refresh();
+}
+
+function renderEndCut(st) {
+  if (!ui.source) return null;
+  const hearing = ui.listen === 'before';
+  const here = () => {
+    const t = (audioCtx?.currentTime ?? 0) - ui.playAt;
+    stopListen();
+    setEnd(Math.max(0.1, Math.min(t, ui.source.duration - 0.1)));
+  };
+  return h('div', { class: 'field', id: 'end-cut' },
+    h('span', { class: 'field-label' }, '곡 끝 자르기'),
+    h('div', { class: 'row' },
+      h('input', { type: 'text', id: 'master-end', class: 'mono end-input', inputmode: 'decimal', placeholder: '끝까지', 'aria-label': '곡 끝 시각 (분:초)', value: ui.endAt ? mmss(ui.endAt, { tenths: true }) : '', onchange: (e) => setEnd(parseMmss(e.target.value)) }),
+      h('button', { type: 'button', class: `btn small${hearing ? ' primary' : ''}`, id: 'end-src', onclick: () => listen('before') }, hearing ? '■ 원본 정지' : '▶ 원본 듣기'),
+      hearing ? h('button', { type: 'button', class: 'btn small primary', id: 'end-here', onclick: here }, '여기서 끝내기') : null,
+      ui.endAt ? h('button', { type: 'button', class: `btn small${ui.listen === 'end' ? ' primary' : ''}`, id: 'end-listen', onclick: () => listen('end', st.fadeOut) }, ui.listen === 'end' ? '■ 정지' : '▶ 끝 부분 듣기') : null,
+      ui.endAt ? h('button', { type: 'button', class: 'btn small ghost', id: 'end-clear', onclick: () => { if (ui.listen === 'end') stopListen(); ui.endAt = 0; refresh(); } }, '자르지 않기') : null),
+    h('span', { class: 'muted small', id: 'end-note' }, ui.endAt
+      ? `원본 ${mmss(ui.source.duration)} 중 ${mmss(ui.endAt, { tenths: true })}에서 끝내요${st.fadeOut ? ` (끝 ${st.fadeOut}초 페이드)` : ' — 끝 페이드 아웃(2~4초)을 함께 쓰면 자연스러워요'}. "끝 부분 듣기"로 확인하세요.`
+      : 'Suno 곡 끝이 늘어지거나 이상하게 끝나면, 원본을 들으며 끝낼 곳에서 "여기서 끝내기"를 누르거나 분:초로 적으세요.'));
 }
 
 // 숏폼 하이라이트: 결과·길이가 같으면 다시 계산하지 않는다
@@ -387,7 +434,6 @@ async function downloadHighlight(song) {
   else if (res === 'unavailable') toast('이 화면에서는 파일을 받을 수 없어요');
 }
 
-const mmss = (t) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
 
 function renderHighlight(song, r) {
   const hl = highlightOf(r);
@@ -421,7 +467,7 @@ function renderResult(song, r) {
         h('tr', null, h('th', null, '리미터 최대 감소'), h('td', null, ''), h('td', { class: 'mono' }, `${r.maxReduction.toFixed(1)} dB`)),
         r.qc ? h('tr', null, h('th', null, '잘린 파형 (원본) ', help('clipping')), h('td', { class: `mono${r.qc.clips >= CLIP_WARN ? ' over' : ''}`, id: 'qc-clips' }, `${r.qc.clips}곳`), h('td', null, '')) : null,
         r.qc ? h('tr', null, h('th', null, '스테레오 상관 ', help('correlation')), h('td', null, ''), h('td', { class: `mono${r.qc.corr < 0 ? ' over' : ''}`, id: 'qc-corr' }, r.qc.corr.toFixed(2))) : null,
-        h('tr', null, h('th', null, '길이'), h('td', { class: 'mono' }, `${ui.source.duration.toFixed(1)}초`), h('td', { class: 'mono' }, `${(r.channels[0].length / r.rate).toFixed(1)}초${r.trimmedStart + r.trimmedEnd > 0.05 ? ` (앞 ${r.trimmedStart.toFixed(1)}초·뒤 ${r.trimmedEnd.toFixed(1)}초 정리)` : ''}`)))),
+        h('tr', null, h('th', null, '길이'), h('td', { class: 'mono' }, `${ui.source.duration.toFixed(1)}초`), h('td', { class: 'mono' }, `${(r.channels[0].length / r.rate).toFixed(1)}초${r.cutAt ? ` (${mmss(r.cutAt, { tenths: true })}에서 자름)` : ''}${r.trimmedStart + r.trimmedEnd > 0.05 ? ` (앞 ${r.trimmedStart.toFixed(1)}초·뒤 ${r.trimmedEnd.toFixed(1)}초 정리)` : ''}`)))),
     warnings.length ? h('ul', { class: 'warn-list' }, warnings.map((w) => h('li', null, w))) : null,
     h('div', { class: 'row' },
       h('button', { type: 'button', class: `btn${ui.listen === 'before' ? ' primary' : ''}`, onclick: () => listen('before') }, ui.listen === 'before' ? '■ 원본 정지' : '▶ 원본 듣기'),

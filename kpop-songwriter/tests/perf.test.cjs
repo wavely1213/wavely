@@ -34,6 +34,16 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
   await p.reload();
   await p.waitForSelector('.tab');
   const sections = await p.locator('.song-item').count();
+  // 곡 찾기: "곡 1" → 1, 10~19 (11곡). 탭을 바꿔 다시 그려도 찾기가 유지. 없는 말이면 안내.
+  const visible = () => p.$$eval('#song-list > li', (els) => els.filter((e) => !e.hidden).length);
+  await p.fill('#song-search', '곡 1');
+  const found = await visible();
+  await p.click('.tab:text-is("편곡")');
+  const kept = (await visible()) === found && (await p.inputValue('#song-search')) === '곡 1';
+  await p.fill('#song-search', '없는노래');
+  const none = (await visible()) === 0 && await p.isVisible('#song-none');
+  await p.fill('#song-search', '');
+  const searchOk = found === 11 && kept && none && (await visible()) === 50 && !(await p.isVisible('#song-none'));
   // 탭 전환: 클릭부터 다음 그리기까지
   const tabs = await p.$$eval('.tab', (els) => els.map((e) => e.textContent));
   const times = {};
@@ -65,9 +75,9 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     localStorage.setItem('kpop-writer-songs', JSON.stringify(list));
     return performance.now() - t;
   });
-  const out = { songs: sections, storageKB: Math.round(bytes / 1024), tabMs: times, tabMedian: median, keyMs: Math.round(perKey * 10) / 10, saveMs: Math.round(saveMs) };
+  const out = { songs: sections, search: { found, kept, none }, storageKB: Math.round(bytes / 1024), tabMs: times, tabMedian: median, keyMs: Math.round(perKey * 10) / 10, saveMs: Math.round(saveMs) };
   console.log(JSON.stringify(out, null, 1));
-  const ok = !errs.length && median < 150 && perKey < 30 && saveMs < 150;
+  const ok = !errs.length && searchOk && median < 150 && perKey < 30 && saveMs < 150;
   if (errs.length) console.log('ERRORS', errs);
   console.log(ok ? 'perf OK' : 'perf FAILED');
   if (!ok) process.exitCode = 1;

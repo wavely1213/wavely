@@ -106,24 +106,37 @@ async function tonal(buffer, preset) {
 
 
 
-// 반환: { channels: [L, R], rate, before, after, maxReduction(dB), reached, trimmedStart, trimmedEnd }
+// 반환: { channels: [L, R], rate, before, after, maxReduction(dB), reached, trimmedStart, trimmedEnd, cutAt(초, 0 = 안 자름) }
 // preset 'ref'면 eq(레퍼런스 맞춤 설정, music/tonematch.js)를 쓴다
 export function presetOf({ preset, eq }) {
   return preset === 'ref' && eq ? eq : MASTER_PRESETS[preset] || MASTER_PRESETS.natural;
 }
 
-export async function master(buffer, { preset = 'kpop', eq = null, target = -14, trim = true, fadeOut = 0 } = {}, onStep = () => {}) {
+// 곡 끝 자르기: endAt(초) 뒤를 버린 새 버퍼. 자를 게 없으면(0·원본보다 김) null.
+export function cutBuffer(buffer, endAt) {
+  const len = Math.round(endAt * buffer.sampleRate);
+  if (!(endAt > 0) || len >= buffer.length) return null;
+  const out = new AudioBuffer({ numberOfChannels: buffer.numberOfChannels, length: len, sampleRate: buffer.sampleRate });
+  for (let c = 0; c < buffer.numberOfChannels; c++) out.copyToChannel(buffer.getChannelData(c).subarray(0, len), c);
+  return out;
+}
+
+// endAt: 곡 끝 시각(초, 0 = 끝까지). Suno가 끝을 늘이거나 이상하게 끝낼 때 잘라 낸다.
+export async function master(buffer, { preset = 'kpop', eq = null, target = -14, trim = true, fadeOut = 0, endAt = 0 } = {}, onStep = () => {}) {
   const p = presetOf({ preset, eq });
+  const cut = cutBuffer(buffer, endAt);
+  if (cut) buffer = cut;
+  const cutAt = cut ? endAt : 0;
   onStep('톤 보정·컴프레서');
   await tick();
   const toned = channelsOf(await tonal(buffer, p));
-  const payload = { src: channelsOf(buffer), srcRate: buffer.sampleRate, toned, target, trim, fadeOut };
+  const payload = { src: channelsOf(buffer), srcRate: buffer.sampleRate, toned, target, trim, fadeOut, cut: !!cut };
   const viaWorker = inWorker('master', payload, onStep);
   if (viaWorker) {
-    try { return { ...(await viaWorker), via: 'worker' }; } catch { onStep('다시 계산 중'); /* 워커가 도중에 실패(메모리 등) → 화면 스레드로 */ }
+    try { return { ...(await viaWorker), via: 'worker', cutAt }; } catch { onStep('다시 계산 중'); /* 워커가 도중에 실패(메모리 등) → 화면 스레드로 */ }
   }
   await tick();
-  return { ...processMaster(payload, onStep), via: 'main' };
+  return { ...processMaster(payload, onStep), via: 'main', cutAt };
 }
 
 export function masterWarnings(res, target) {

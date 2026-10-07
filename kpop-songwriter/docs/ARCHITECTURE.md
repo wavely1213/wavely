@@ -76,6 +76,8 @@
 | 전체 백업·복원 | backup.js, views/backup.js, music/pack.js(unzip) | 곡(버전 포함)·앨범·취향을 파일 하나로, 덮어쓰지 않고 합치는 복원, 가져오기(json·zip) |
 | 버전 비교 | textdiff.js, views/versions.js | 줄 단위 LCS 비교로 버전 → 지금 빠진 줄·새 줄 표시 |
 | 되돌리기 | state.js (undo/redo), views/undo-buttons.js | 곡·앨범마다 최근 40단계, 타이핑은 2초 묶음. 머리말 ↶↷ + Ctrl+Z |
+| 곡 끝 자르기 | timefmt.js, music/master.js (cutBuffer), views/master.js | 원본을 들으며 "여기서 끝내기" 또는 분:초 입력 → 그 뒤를 버리고 마스터링(음량은 남긴 부분 기준) |
+| 곡 찾기 | views/song-search.js | 곡 8개 이상이면 목록 위 찾기 칸. 다시 그리지 않고 목록 줄만 숨김(한글 조합 안 끊김) |
 | 취향 학습 | learn/taste.js, learn/context.js | 반응 기록·통계·프롬프트 블록·JSONL, AI 모듈이 취향을 읽는 연결점 |
 | 반응 UI | learn/feedback.js, learn/summarize.js, views/taste.js, music/melodytext.js | 👍/👎 막대, 줄 단위 ♥, 멜로디 고침 기록, 선호 쌍 내보내기(learn/taste.js preferencePairs), 고친 내용 추적, AI 취향 정리, 내 취향 화면 |
 | 가사 최적화 | optimize/lyricscore.js, optimize/improve.js, optimize/calibrate.js | 섹션·곡 채점과 고칠 점, 오른 것만 반영하는 자동 개선, 내 가사로 줄 길이 기준 보정 |

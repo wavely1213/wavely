@@ -96,6 +96,13 @@ import { finishEdges } from '../src/js/music/master.js';
   assert.equal(c[0], 0, '페이드 인 시작');
   const none = finishEdges([make()], rate, { trim: false, fadeOut: 0 });
   assert.equal(none.channels[0].length, n, '끄면 길이 그대로');
+  // 곡 끝을 잘랐으면 정리를 꺼도 끝에 짧은 페이드(딸깍 방지)
+  const cutEnd = () => { const c = new Float32Array(n).fill(0.5); return c; };
+  const raw = finishEdges([cutEnd()], rate, { trim: false, fadeOut: 0 }).channels[0];
+  assert.equal(raw[n - 1], 0.5, '자르지 않았으면 그대로');
+  const cut = finishEdges([cutEnd()], rate, { trim: false, fadeOut: 0, cut: true }).channels[0];
+  assert.equal(cut.length, n);
+  assert.ok(Math.abs(cut[n - 1]) < 0.02 && cut[n - 100] === 0.5, '끝 50ms 페이드');
   console.log('master edges OK');
 }
 

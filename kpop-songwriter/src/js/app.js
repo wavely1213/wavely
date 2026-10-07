@@ -4,6 +4,7 @@ import { openStore } from './store.js';
 import { init, subscribe, getState, current, currentAlbum, newSong, selectSong, setTab, deleteSong, refresh, newAlbum, selectAlbum, showTaste, undo, redo, duplicateSong } from './state.js';
 import { undoButtons } from './views/undo-buttons.js';
 import { backupSection, importFile } from './views/backup.js';
+import { songSearch } from './views/song-search.js';
 import { renderAlbum } from './views/album/index.js';
 import { renderTaste } from './views/taste.js';
 import { newSinceSummary, SUMMARY_EVERY } from './learn/taste.js';
@@ -65,6 +66,7 @@ const pick = (fn) => () => { ui.navOpen = false; stopPlayer(); fn(); };
 
 function renderSidebar() {
   const st = getState();
+  const find = songSearch(st.songs);
   return h('nav', { class: `songs${ui.navOpen ? '' : ' collapsed'}`, 'aria-label': '곡·앨범 목록' },
     h('button', { type: 'button', class: 'nav-toggle', 'aria-expanded': ui.navOpen ? 'true' : 'false', onclick: () => { ui.navOpen = !ui.navOpen; refresh(); } },
       h('span', { 'aria-hidden': 'true' }, ui.navOpen ? '✕' : '☰'),
@@ -79,13 +81,15 @@ function renderSidebar() {
         } }),
         h('label', { for: 'import-song', class: 'btn small ghost', title: '전체 백업 파일, 또는 제작 패키지(zip·project.json)로 곡 되살리기' }, '가져오기'),
         h('button', { type: 'button', class: 'btn small primary', onclick: pick(newSong) }, '+ 새 곡'))),
-    h('ul', null, st.songs.map((s) => {
+    find.field,
+    h('ul', { id: 'song-list' }, st.songs.map((s) => {
       const active = st.mode === 'song' && s.id === st.currentId;
-      return h('li', null,
+      return find.item(s, h('li', null,
         h('button', { type: 'button', class: `song-item${active ? ' active' : ''}`, 'aria-current': active ? 'true' : null, onclick: pick(() => selectSong(s.id)) },
           h('span', { class: 'song-title' }, s.title || '제목 없음'),
-          h('span', { class: 'song-meta mono' }, s.example ? '예시' : formatTime(s.updatedAt))));
+          h('span', { class: 'song-meta mono' }, s.example ? '예시' : formatTime(s.updatedAt)))));
     })),
+    find.field ? find.none : null,
     h('div', { class: 'side-head' }, h('span', { class: 'field-label' }, '앨범·발매'),
       h('button', { type: 'button', class: 'btn small', onclick: pick(() => newAlbum()) }, '+ 새 앨범')),
     st.albums.length

@@ -92,6 +92,21 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     global.hlRange = await p.textContent('#hl-range');
     const [hlDl] = await Promise.all([p.waitForEvent('download', { timeout: 30000 }), p.click('#hl-download')]);
     global.hlOk = (global.hlOk ?? true) && /_highlight_15s\.zip$/.test(hlDl.suggestedFilename()) && /^\d+:\d\d ~ \d+:\d\d$/.test(global.hlRange);
+    // 곡 끝 자르기: 0:20에서 끝내기 → 다시 마스터링 → 결과 길이 20초 이하, "자름" 표시. 잘못 적으면 그대로.
+    await p.fill('#master-end', '0:20');
+    await p.press('#master-end', 'Tab');
+    await p.waitForSelector('#end-note:has-text("0:20에서 끝내요")');
+    await p.fill('#master-end', '9:99');
+    await p.press('#master-end', 'Tab');
+    await p.waitForSelector('#end-note:has-text("0:20에서 끝내요")');
+    await p.click('#end-listen');
+    await p.click('#end-listen:has-text("정지")');
+    await p.click('text=마스터링 하기');
+    await p.waitForSelector('.compare td:has-text("0:20에서 자름")', { timeout: 120000 });
+    const cutLen = Number((await p.textContent('.compare td:has-text("에서 자름")')).match(/^([\d.]+)초/)[1]);
+    global.endCutOk = cutLen > 15 && cutLen <= 20.05;
+    await p.click('#end-clear');
+    global.endCutOk = global.endCutOk && (await p.inputValue('#master-end')) === '';
     // 테이크 비교: 앱 데모 마스터(편곡과 일치) vs 단순 사인파 → 앞의 것이 "가장 가까움"
     const sine = path.join(TMP, 'take-sine.wav');
     if (!fs.existsSync(sine)) require('child_process').execFileSync('ffmpeg', ['-v', 'error', '-f', 'lavfi', '-i', 'sine=frequency=523:duration=15', sine]);
@@ -310,6 +325,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
   if (!global.backupOk) errs.push(`백업·복원 이상: ${JSON.stringify(global.backupInfo)}`);
   if (!global.zipLrc) errs.push('제출 패키지에 .lrc 없음');
   if (global.takeBest !== undefined && global.takeBest !== 'master-14') errs.push(`테이크 비교 결과 이상: ${global.takeBest}`);
+  if (global.endCutOk !== true) errs.push('곡 끝 자르기 결과 이상');
   if (!global.keysOk) errs.push('피아노롤 키보드 안 됨');
   if (!global.helpOk) errs.push('도움말 안 열림');
   if (!global.persistOk) errs.push('새로고침 후 마스터·커버 유실');
