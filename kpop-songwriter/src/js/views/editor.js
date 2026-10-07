@@ -159,10 +159,14 @@ function renderSection(song, s, index, label, result) {
   fillGutter(analysis);
   // 가사·마디 맞춤: 빠듯하거나 느슨할 때만 보인다 (입력할 때마다 다시 잼)
   const fitOf = (text) => lyricFit(text, { bars: song.music.sections[s.id]?.bars, bpm: song.music.bpm, type: s.type });
+  // 이유는 가사 칸 아래 글로도 보인다 (터치 화면·화면 읽기 프로그램은 title을 못 봄)
   const fitPill = h('span', { id: `fit-${s.id}`, class: 'pill warn-pill' });
+  const fitTip = h('p', { id: `fit-tip-${s.id}`, class: 'muted small fit-tip' });
   const showFit = (fit) => {
-    fitPill.hidden = !fit || fit.level === 'ok';
-    if (fit) { fitPill.textContent = fit.label; fitPill.title = fit.tip; }
+    const off = !fit || fit.level === 'ok';
+    fitPill.hidden = off;
+    fitTip.hidden = off;
+    if (fit) { fitPill.textContent = fit.label; fitPill.title = fit.tip; fitTip.textContent = fit.tip; }
   };
   showFit(fitOf(s.text));
   const ta = h('textarea', {
@@ -228,6 +232,7 @@ function renderSection(song, s, index, label, result) {
         } }, '×')),
     memberChips,
     h('div', { class: 'lyric-box' }, ta, gutter),
+    fitTip,
     result && result.tips.length && result.score < 90 ? h('ul', { class: 'tips' }, result.tips.map((t) => h('li', null, t))) : null,
     h('div', { class: 'row' },
       h('button', { type: 'button', class: 'btn small', disabled: busy, onclick: () => runJob(`${label} 쓰는 중`, async (signal, progress) => {

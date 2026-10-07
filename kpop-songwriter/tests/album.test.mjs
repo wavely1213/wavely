@@ -358,7 +358,13 @@ import { titleIssues } from '../src/js/album/titlecheck.js';
   assert.ok(has('Signal 🔥', '이모지'));
   assert.ok(has('Signal  Lost', '빈칸'));
   assert.ok(has(' Signal', '빈칸'));
-  for (const ok of ['LOVE DIVE', 'Left Behind', 'Product of Love', 'Clean Slate', 'Gift', 'Official Girl', '새벽 신호 (Midnight Signal)', 'Featuring'.slice(0, 4) + 'ure', 'Signal © 2026', 'Midnight Signal (Inst.)']) {
+  assert.ok(has('Love (Feat.pH-1)', '피처링'));
+  assert.ok(has('Love (feat.Jay)', '피처링'));
+  assert.ok(has('Love ft.이름', '피처링'));
+  assert.ok(has('Seoul 🇰🇷', '이모지'));
+  assert.ok(has('Track 1️⃣', '이모지'));
+  assert.ok(has('새벽 신호 [19금]', 'Official'));
+  for (const ok of ['LOVE DIVE', 'Left Behind', 'Left.', 'Product of Love', 'Clean Slate', 'Gift', 'Official Girl', '사랑의 공식', '연애공식', '당신곡', '새벽 신호 (Midnight Signal)', 'Featuring'.slice(0, 4) + 'ure', 'Signal © 2026', 'Midnight Signal (Inst.)']) {
     assert.deepEqual(titleIssues(ok), [], ok);
   }
   // 점검표에 앨범·트랙 제목 경고로 들어감

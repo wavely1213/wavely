@@ -114,13 +114,27 @@ import { memberSources, importMembers } from '../src/js/members.js';
 }
 
 // 저장 공간 사용량·꽉 참 오류 알아보기
-import { storageUsage, isQuotaError, LOCAL_LIMIT } from '../src/js/storage-usage.js';
+import { storageUsage, isQuotaError, LOCAL_LIMIT, WEBKIT_LIMIT, isWebKit, limitFor } from '../src/js/storage-usage.js';
 {
   const data = { ab: 'x'.repeat(98), c: '' };
   const fake = { get length() { return Object.keys(data).length; }, key: (i) => Object.keys(data)[i], getItem: (k) => data[k] };
   const u = storageUsage(fake);
   assert.equal(u.used, 2 + 98 + 1);
-  assert.equal(u.ratio, 101 / LOCAL_LIMIT);
+  assert.equal(storageUsage(fake, LOCAL_LIMIT).ratio, 101 / LOCAL_LIMIT);
+  assert.equal(storageUsage(fake, WEBKIT_LIMIT).ratio, 101 / WEBKIT_LIMIT);
+  // WebKit 알아보기: 맥 Safari·iPhone(크롬 포함)·데스크톱 모드 iPad는 WebKit, 크롬·엣지·안드로이드·파이어폭스는 아님
+  const UA = {
+    macSafari: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15',
+    iphoneChrome: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/126.0 Mobile/15E148 Safari/604.1',
+    macChrome: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+    edge: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0',
+    android: 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Mobile Safari/537.36',
+    firefox: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:127.0) Gecko/20100101 Firefox/127.0',
+  };
+  assert.deepEqual(Object.values(UA).map((ua) => isWebKit(ua, 0)), [true, true, false, false, false, false]);
+  assert.equal(isWebKit(UA.macSafari, 5), true, '데스크톱 모드 iPad');
+  assert.equal(limitFor(UA.iphoneChrome, 5), WEBKIT_LIMIT);
+  assert.equal(limitFor(UA.android, 5), LOCAL_LIMIT);
   assert.equal(storageUsage(null), null);
   assert.equal(storageUsage({ get length() { throw new Error('blocked'); } }), null);
   assert.ok(isQuotaError({ name: 'QuotaExceededError' }));

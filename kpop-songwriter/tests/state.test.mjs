@@ -248,10 +248,25 @@ assert.ok(AL.cover && AL.promo && Array.isArray(AL.tracks), '되돌린 뒤에도
   const instA = S.addInstVersion(S.currentAlbum().id, src);
   S.selectAlbum(S.currentAlbum().id);
   S.undo();
+  // 그 사이 원곡 제목·BPM이 바뀌면, 손대지 않은 사본은 원곡의 지금 상태로 다시 (같은 id)
+  S.mutateSong(src, (x) => { x.title = 'Midnight Signal'; x.music.bpm = 140; });
   const instB = S.addInstVersion(S.currentAlbum().id, src);
   assert.equal(instB.id, instA.id);
+  assert.equal(instB.title, 'Midnight Signal (Inst.)');
+  assert.equal(instB.music.bpm, 140);
   assert.equal(S.getState().songs.filter((x) => x.instOf === src).length, 1);
   assert.equal(S.currentAlbum().tracks.filter((t) => t.songId === instA.id).length, 1);
+  // 고친 사본은 편곡을 그대로 두고 제목만 원곡을 따라감
+  S.selectAlbum(S.currentAlbum().id);
+  S.undo();
+  const touched = S.getState().songs.find((x) => x.id === instA.id);
+  touched.createdAt -= 5000; // 만든 지 5초 뒤에 고친 것으로
+  S.mutateSong(instA.id, (x) => { x.music.bpm = 99; });
+  S.mutateSong(src, (x) => { x.title = 'Signal 2'; });
+  const instC = S.addInstVersion(S.currentAlbum().id, src);
+  assert.equal(instC.id, instA.id);
+  assert.equal(instC.music.bpm, 99);
+  assert.equal(instC.title, 'Signal 2 (Inst.)');
   console.log('new song in album OK');
 }
 

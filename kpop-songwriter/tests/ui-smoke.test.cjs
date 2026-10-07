@@ -22,9 +22,10 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     const welcome = await p.locator('#welcome').count();
     await p.click('#welcome-close');
     const welcomeClosed = await p.locator('#welcome').count();
+    const welcomeFocus = await p.evaluate(() => document.activeElement?.classList.contains('tab'));
     await p.reload();
     await p.waitForSelector('.tab');
-    global.welcomeOk = (global.welcomeOk ?? true) && welcome === 1 && welcomeClosed === 0 && (await p.locator('#welcome').count()) === 0;
+    global.welcomeOk = (global.welcomeOk ?? true) && welcome === 1 && welcomeClosed === 0 && welcomeFocus && (await p.locator('#welcome').count()) === 0;
     // 가사·마디 맞춤: 벌스(8마디)에 가사를 잔뜩 넣으면 "빠듯해요", 원래대로 돌리면 사라짐
     await p.click('.tab:text-is("구조·가사")');
     const verse = p.locator('textarea.lyrics').nth(1);
@@ -32,7 +33,8 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     const fitId = (await verse.getAttribute('id')).replace(/^lyr-/, 'fit-');
     const fitHiddenBefore = await p.isHidden(`#${fitId}`);
     await verse.fill(Array(12).fill('가나다라마바사아자차카타').join('\n'));
-    const fitTight = (await p.isVisible(`#${fitId}`)) && (await p.textContent(`#${fitId}`)).includes('빠듯');
+    const fitTight = (await p.isVisible(`#${fitId}`)) && (await p.textContent(`#${fitId}`)).includes('빠듯')
+      && (await p.textContent(`#${fitId.replace('fit-', 'fit-tip-')}`)).includes('마디');
     await verse.fill(verseText);
     global.fitOk = (global.fitOk ?? true) && fitHiddenBefore && fitTight && await p.isHidden(`#${fitId}`);
     const tabs = await p.$$eval('.tab', els => els.map(e => e.textContent));
@@ -328,8 +330,17 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
         await p.click('#tr-0');
         const transPlaying = await p.waitForSelector('#tr-0:has-text("정지")', { timeout: 30000 }).then(() => true).catch(() => false);
         await p.click('#tr-0');
-        global.transition = { transBefore, transPlaying, stopped: (await p.textContent('#tr-0')).includes('이어 듣기') };
-        global.transitionOk = transBefore === 0 && transPlaying && global.transition.stopped;
+        const stopped = (await p.textContent('#tr-0')).includes('이어 듣기');
+        // 누르자마자 다른 탭으로 가면 (파일을 푸는 사이) 소리를 내지 않음 → 돌아와도 "정지" 상태가 아님
+        await p.evaluate(() => {
+          document.getElementById('tr-0').click();
+          [...document.querySelectorAll('.tab')].find((t) => t.textContent === '정보·크레딧').click();
+        });
+        await p.waitForTimeout(800);
+        await p.click('.tab:text-is("수록곡")');
+        const noLatePlay = (await p.textContent('#tr-0')).includes('이어 듣기');
+        global.transition = { transBefore, transPlaying, stopped, noLatePlay };
+        global.transitionOk = transBefore === 0 && transPlaying && stopped && noLatePlay;
       } else global.transitionOk = true;
       // 앨범의 새 곡: 수록곡 탭 → 새 곡의 컨셉 탭으로, 타이틀곡 멤버 4명 이어받음, 앨범 트랙 하나 늘어남
       const tracksBefore = await p.locator('.track-title').count();

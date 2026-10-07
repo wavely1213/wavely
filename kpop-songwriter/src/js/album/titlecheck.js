@@ -1,11 +1,11 @@
 // 제목 표기 점검: 유통사·스토어가 제목에 넣지 말라고 하는 것들 (피처링·프로듀서 표기, 홍보 문구, 이모지, 겹친 빈칸).
-// 흔한 단어 속(예: Left, Product, Clean Slate)은 걸리지 않게 좁게 잡는다. K-pop은 대문자 제목이 흔해 대문자는 보지 않는다.
+// 흔한 단어 속(예: Left, Product, Clean Slate, 사랑의 공식)은 걸리지 않게 좁게 잡는다 (한국어 설명어는 괄호 안만). K-pop은 대문자 제목이 흔해 대문자는 보지 않는다.
 // 반환: 고칠 점 문장 목록 (없으면 [])
 
-const FEAT = /\b(feat\.?|ft\.?|featuring)\s/i;
+const FEAT = /\b(?:feat|ft)\.|\b(?:feat|ft|featuring)\s/i;
 const PROD = /\bprod\.?(\s*by)?\b|프로듀스드\s*바이/i;
-const PROMO = /\bofficial\s*(audio|video|music\s*video|m\/?v)\b|\((explicit|clean)( version)?\)|\b(explicit|clean)\s+version\b|\bfree\s+download\b|\(?(공식|신곡|19금)\)?/i;
-const EMOJI = /(?![©®™])\p{Extended_Pictographic}/u;
+const PROMO = /\bofficial\s*(audio|video|music\s*video|m\/?v)\b|\((explicit|clean)( version)?\)|\b(explicit|clean)\s+version\b|\bfree\s+download\b|[(\[]\s*(공식|신곡|19금)\s*[)\]]/i;
+const EMOJI = /(?![©®™])\p{Extended_Pictographic}|\p{Regional_Indicator}|\u20E3/u;
 
 export function titleIssues(title) {
   const t = String(title || '');

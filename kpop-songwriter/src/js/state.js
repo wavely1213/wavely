@@ -151,8 +151,9 @@ export function addInstVersion(albumId, songId) {
   const at = album ? album.tracks.findIndex((t) => t.songId === songId) : -1;
   if (at < 0) return null;
   // 이미 만든 Inst. 곡(되돌리기로 트랙만 빠졌거나 다른 앨범에 든 것)이 있으면 다시 쓴다 — 같은 곡이 쌓이지 않게
-  const song = state.songs.find((x) => x.instOf === songId && !album.tracks.some((t) => t.songId === x.id))
-    || copySong(songId, { suffix: ' (Inst.)', inst: true });
+  let song = state.songs.find((x) => x.instOf === songId && !album.tracks.some((t) => t.songId === x.id));
+  if (song) song = refreshInst(song, songId);
+  else song = copySong(songId, { suffix: ' (Inst.)', inst: true });
   remember(album, 'all');
   const src = album.tracks[at];
   album.tracks.splice(at + 1, 0, { ...src, songId: song.id, isTitle: false, isrc: '', lyricists: '', featuring: '', explicit: false, splits: { music: src.splits?.music, arrange: src.splits?.arrange } });
@@ -162,6 +163,21 @@ export function addInstVersion(albumId, songId) {
   schedule(album.id);
   emit('all');
   return song;
+}
+
+// 다시 쓰는 Inst. 사본을 원곡의 지금 상태에 맞춘다: 손대지 않은 사본은 원곡에서 새로 복사(같은 id),
+// 고친 사본은 그대로 두고 자동으로 붙인 제목만 원곡 제목을 따라가게.
+function refreshInst(inst, srcId) {
+  const src = state.songs.find((x) => x.id === srcId);
+  if (!src) return inst;
+  if (inst.updatedAt - inst.createdAt < 1000) {
+    const fresh = copySong(srcId, { suffix: ' (Inst.)', inst: true });
+    fresh.id = inst.id;
+    state.songs = state.songs.filter((x) => x !== inst);
+    return fresh;
+  }
+  if (/ \(Inst\.\)$/.test(inst.title)) inst.title = `${String(src.title || '제목 없음').replace(/^예시:\s*/, '')} (Inst.)`;
+  return inst;
 }
 
 function copySong(id, { suffix = ' (사본)', inst = false } = {}) {
