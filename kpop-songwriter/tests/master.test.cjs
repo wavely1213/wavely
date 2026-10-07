@@ -12,7 +12,7 @@ const { chromium } = require(execSync('npm root -g').toString().trim() + '/playw
 const ROOT = path.join(__dirname, '..');
 const TMP = path.join(__dirname, '.tmp');
 fs.mkdirSync(TMP, { recursive: true });
-buildSync({ entryPoints: [path.join(__dirname, 'engine-entry.js')], bundle: true, format: 'iife', outfile: path.join(TMP, 'bundle.js') });
+buildSync({ entryPoints: [path.join(__dirname, 'engine-entry.js')], bundle: true, format: 'iife', tsconfigRaw: '{}', outfile: path.join(TMP, 'bundle.js') });
 fs.writeFileSync(path.join(TMP, 'index.html'), '<meta charset=utf-8><script src=bundle.js></script>');
 
 const server = http.createServer((req, res) => {

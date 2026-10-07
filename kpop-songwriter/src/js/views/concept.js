@@ -1,5 +1,5 @@
 // 컨셉 탭: 제목, 주제, 분위기, 한/영 비율, 멤버.
-import { h, field, uid } from '../dom.js';
+import { h, field, uid, afterBlur } from '../dom.js';
 import { mutate } from '../state.js';
 import { GROUP_TYPES, MOODS, POSITIONS } from '../constants.js';
 
@@ -30,7 +30,7 @@ export function renderConcept(song) {
     h('section', { class: 'card' },
       h('h2', null, '곡 컨셉'),
       h('div', { class: 'grid2' },
-        field('곡 제목', h('input', { id: 'title', value: song.title, oninput: quiet((s, v) => { s.title = v; }), onchange: () => mutate(() => {}) })),
+        field('곡 제목', h('input', { id: 'title', value: song.title, oninput: quiet((s, v) => { s.title = v; }), onchange: afterBlur(() => mutate(() => {})) })),
         field('그룹 형태', h('select', { id: 'group', onchange: (e) => mutate((s) => { s.concept.group = e.target.value; }) },
           Object.entries(GROUP_TYPES).map(([k, v]) => h('option', { value: k, selected: c.group === k }, v)))),
       ),

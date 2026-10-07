@@ -1,0 +1,192 @@
+// 앨범: 곡 묶음 + 발매 메타데이터 + 커버 설정 + 일정 체크. 오디오·이미지는 저장하지 않는다(용량).
+import { uid } from '../dom.js';
+
+export const ALBUM_TYPES = {
+  single: { name: '싱글', min: 1, max: 3 },
+  ep: { name: 'EP (미니앨범)', min: 4, max: 6 },
+  album: { name: '정규 앨범', min: 7, max: 30 },
+};
+
+export function newAlbum() {
+  const year = new Date().getFullYear();
+  return {
+    id: `album_${uid()}`,
+    kind: 'album',
+    title: '새 앨범',
+    artist: '',
+    type: 'single',
+    genre: 'K-Pop',
+    subgenre: 'Dance',
+    language: '한국어',
+    releaseDate: isoDate(addDays(new Date(), 42)),
+    label: '',
+    upc: '',
+    cLine: `${year} `,
+    pLine: `${year} `,
+    explicit: false,
+    ai: { lyrics: true, composition: true, vocals: true, note: '' },
+    description: '',
+    tracks: [],
+    cover: { template: 'gradient', palette: 0, subtitle: '' },
+    schedule: {},
+    promo: { intro: '', tracks: {}, sns: [], hashtags: '' },
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  };
+}
+
+export function newTrack(songId) {
+  return { songId, isTitle: false, isrc: '', lyricists: '', composers: '', arrangers: '', featuring: '', explicit: false };
+}
+
+export function normalizeAlbum(a) {
+  const base = newAlbum();
+  Object.keys(base).forEach((k) => { if (a[k] === undefined) a[k] = base[k]; });
+  a.ai = { ...base.ai, ...a.ai };
+  a.cover = { ...base.cover, ...a.cover };
+  a.promo = { ...base.promo, ...a.promo };
+  a.tracks = a.tracks.map((t) => ({ ...newTrack(t.songId), ...t }));
+  return a;
+}
+
+// ---------- 날짜 ----------
+export function addDays(d, n) {
+  const x = new Date(d);
+  x.setDate(x.getDate() + n);
+  return x;
+}
+export function isoDate(d) {
+  const p = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+export function parseDate(s) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || '');
+  return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : null;
+}
+export function daysUntil(s, today = new Date()) {
+  const d = parseDate(s);
+  if (!d) return null;
+  const t = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  return Math.round((d - t) / 86400000);
+}
+
+// ---------- 발매 일정표 ----------
+// offset: 발매일 기준 날짜 차이(음수 = 발매 전)
+export const SCHEDULE = [
+  { id: 'final-songs', offset: -42, title: '수록곡·마스터 확정', detail: '마스터링 탭에서 곡마다 발매용 WAV(-14 LUFS, -1 dBTP)를 받아 둔다.' },
+  { id: 'cover-meta', offset: -35, title: '커버·메타데이터·크레딧 확정', detail: '커버 3000×3000, 작사·작곡·편곡 크레딧, 장르, 언어.' },
+  { id: 'distributor', offset: -28, title: '유통사에 제출', detail: '제출 패키지 zip으로 업로드. 국내 플랫폼 검수 기간은 유통사 안내를 확인.' },
+  { id: 'copyright', offset: -21, title: '저작권 신고 준비', detail: '한국음악저작권협회(KOMCA) 등 작품 신고 대상인지 확인하고 작사·작곡 정보를 맞춘다.' },
+  { id: 'pitch', offset: -14, title: '플레이리스트 피칭', detail: 'Spotify for Artists는 발매 최소 7일 전까지 미발매곡 한 곡을 피칭할 수 있다.' },
+  { id: 'teaser-plan', offset: -14, title: '티저 계획', detail: '컨셉 이미지·하이라이트 공개 날짜를 정한다.' },
+  { id: 'teaser', offset: -7, title: '티저·하이라이트 공개', detail: '숏폼용 15~30초 하이라이트(코러스) 공개.' },
+  { id: 'final-check', offset: -3, title: '플랫폼 등록 정보 확인', detail: '유통사 대시보드에서 제목·크레딧·발매일·커버가 맞는지 확인.' },
+  { id: 'release', offset: 0, title: '발매', detail: 'SNS 공지, 링크 공유.' },
+  { id: 'verify', offset: 1, title: '플랫폼 반영 확인', detail: '가사·크레딧·커버가 각 플랫폼에 제대로 보이는지.' },
+  { id: 'week1', offset: 7, title: '1주 차 점검', detail: '재생 수·저장 수 확인, 숏폼 2차 공개.' },
+  { id: 'next', offset: 14, title: '다음 활동 계획', detail: '반응 좋은 곡·구간을 정리해 다음 곡 컨셉에 반영.' },
+];
+
+export function scheduleFor(album, today = new Date()) {
+  const rel = parseDate(album.releaseDate);
+  return SCHEDULE.map((s) => {
+    const date = rel ? addDays(rel, s.offset) : null;
+    const left = date ? daysUntil(isoDate(date), today) : null;
+    const done = !!album.schedule[s.id];
+    return { ...s, date: date ? isoDate(date) : '', left, done, overdue: !done && left != null && left < 0 };
+  });
+}
+
+// ---------- 발매 전 점검표 ----------
+// masters: { [songId]: {sampleRate, bits, lufs, peak, name} } (화면 메모리), coverInfo: {width, height} | null
+export function releaseChecklist(album, songs, { masters = {}, coverInfo = null, today = new Date() } = {}) {
+  const items = [];
+  const add = (level, text) => items.push({ level, text });
+  const type = ALBUM_TYPES[album.type];
+  const tracks = album.tracks.filter((t) => songs.some((s) => s.id === t.songId));
+
+  if (!album.title.trim() || album.title === '새 앨범') add('error', '앨범 제목을 정해 주세요.');
+  if (!album.artist.trim()) add('error', '아티스트명을 적어 주세요.');
+  if (!tracks.length) add('error', '수록곡이 없어요.');
+  else if (tracks.length < type.min || tracks.length > type.max) add('warn', `${type.name}은 보통 ${type.min}~${type.max}곡이에요 (지금 ${tracks.length}곡).`);
+  if (tracks.length > 1 && !tracks.some((t) => t.isTitle)) add('warn', '타이틀곡을 정해 주세요.');
+  const left = daysUntil(album.releaseDate, today);
+  if (left == null) add('error', '발매 예정일을 정해 주세요.');
+  else if (left < 28) add('warn', `발매일까지 ${left}일 남았어요. 유통사 검수·피칭을 생각하면 4주 이상 여유를 두는 게 안전해요.`);
+  if (!album.cLine.trim() || /^\d{4}\s*$/.test(album.cLine)) add('warn', '© 표기(저작권자)를 적어 주세요. 예: 2026 물결뮤직');
+  if (!album.pLine.trim() || /^\d{4}\s*$/.test(album.pLine)) add('warn', '℗ 표기(음원 제작자)를 적어 주세요.');
+
+  tracks.forEach((t, i) => {
+    const song = songs.find((s) => s.id === t.songId);
+    const n = `${i + 1}번 「${song.title.replace(/^예시:\s*/, '')}」`;
+    if (!t.lyricists.trim()) add('error', `${n}: 작사 크레딧이 비어 있어요.`);
+    if (!t.composers.trim()) add('error', `${n}: 작곡 크레딧이 비어 있어요.`);
+    if (!song.sections.some((s) => s.text.trim())) add('warn', `${n}: 가사가 없어요 (연주곡이면 무시).`);
+    const m = masters[t.songId];
+    if (!m) add('error', `${n}: 마스터 WAV를 넣어 주세요.`);
+    else {
+      if (!/\.wav$/i.test(m.name)) add('error', `${n}: 마스터는 WAV여야 해요 (지금 ${m.name}).`);
+      if (m.sampleRate && m.sampleRate < 44100) add('error', `${n}: 샘플레이트가 ${m.sampleRate}Hz예요. 44.1kHz 이상이어야 해요.`);
+      if (m.bits && m.bits < 16) add('error', `${n}: ${m.bits}비트예요. 16비트 이상이어야 해요.`);
+      if (Number.isFinite(m.peak) && m.peak > -0.5) add('warn', `${n}: 트루 피크 ${m.peak.toFixed(1)} dBTP — 마스터링 탭에서 -1 dBTP로 맞추는 걸 권해요.`);
+      if (Number.isFinite(m.lufs) && (m.lufs < -18 || m.lufs > -6)) add('warn', `${n}: 음량 ${m.lufs.toFixed(1)} LUFS — 일반적인 범위(-18~-6)를 벗어났어요.`);
+    }
+  });
+
+  if (!coverInfo) add('error', '커버 이미지를 만들거나 넣어 주세요.');
+  else {
+    if (coverInfo.width !== coverInfo.height) add('error', `커버가 정사각형이 아니에요 (${coverInfo.width}×${coverInfo.height}).`);
+    if (Math.min(coverInfo.width, coverInfo.height) < 3000) add('warn', `커버가 ${coverInfo.width}×${coverInfo.height}예요. 대부분의 유통사는 3000×3000을 권해요.`);
+  }
+  if (album.ai.lyrics || album.ai.composition || album.ai.vocals) add('info', 'AI 생성 사용을 표기했어요. 유통사·플랫폼의 AI 음원 정책을 제출 전에 확인하세요.');
+  return items;
+}
+
+// ---------- 메타데이터 CSV ----------
+function csvCell(v) {
+  const s = String(v ?? '');
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+export function toCsv(rows) {
+  return `﻿${rows.map((r) => r.map(csvCell).join(',')).join('\r\n')}\r\n`;
+}
+
+export function trackFileName(i, title) {
+  const clean = (title || 'Untitled').replace(/^예시:\s*/, '').replace(/[\\/:*?"<>|]+/g, '').trim();
+  return `${String(i + 1).padStart(2, '0')} ${clean}.wav`;
+}
+
+export function metadataRows(album, songs, masters = {}) {
+  const head = ['Disc', 'Track', 'Title', 'Artist', 'Featuring', 'Lyricist', 'Composer', 'Arranger', 'ISRC', 'Title Track', 'Explicit', 'Language', 'Genre', 'Sub-genre', 'Duration (s)', 'File'];
+  const rows = [head];
+  album.tracks.forEach((t, i) => {
+    const song = songs.find((s) => s.id === t.songId);
+    if (!song) return;
+    const m = masters[t.songId];
+    rows.push(['1', String(i + 1), song.title.replace(/^예시:\s*/, ''), album.artist, t.featuring, t.lyricists, t.composers, t.arrangers, t.isrc,
+      t.isTitle ? 'Y' : 'N', t.explicit ? 'Y' : 'N', album.language, album.genre, album.subgenre, m?.duration ? String(Math.round(m.duration)) : '', trackFileName(i, song.title)]);
+  });
+  return rows;
+}
+
+export function albumRows(album) {
+  const aiUsed = [album.ai.lyrics && '가사', album.ai.composition && '작곡', album.ai.vocals && '보컬'].filter(Boolean).join(', ') || '없음';
+  return [
+    ['Field', 'Value'],
+    ['Album Title', album.title],
+    ['Artist', album.artist],
+    ['Type', ALBUM_TYPES[album.type].name],
+    ['Release Date', album.releaseDate],
+    ['Genre', album.genre],
+    ['Sub-genre', album.subgenre],
+    ['Language', album.language],
+    ['Label', album.label],
+    ['UPC', album.upc],
+    ['(C) Line', album.cLine],
+    ['(P) Line', album.pLine],
+    ['Explicit', album.explicit ? 'Y' : 'N'],
+    ['AI Generated', aiUsed],
+    ['AI Note', album.ai.note],
+    ['Description', album.description],
+  ];
+}

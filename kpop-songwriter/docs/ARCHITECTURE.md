@@ -57,6 +57,11 @@
 | 샘플 | music/samples.js | samples/*.json 불러오기·디코딩, 악기·음색 → 묶음 매핑 |
 | 음량 측정 | music/loudness.js | BS.1770 통합 LUFS, 4배 오버샘플링 트루 피크 |
 | 마스터링 | music/master.js, views/master.js | EQ·컴프 → LUFS 맞춤 → 트루 피크 리미터 → WAV |
+| 앨범 모델 | album/model.js | 앨범·트랙, 발매 일정표, 발매 전 점검표, 메타데이터 CSV |
+| 커버 | album/cover.js | 3000×3000 템플릿 캔버스 → JPG |
+| 발매 준비 | album/release.js, album/session.js | 마스터 규격 점검, 가사지·크레딧, 제출 zip, AI 홍보 문구 |
+| 앨범 화면 | views/album/* | 수록곡·정보·커버·일정·홍보·제출 탭 |
+| 플랫폼 | platform/download.js | 파일 저장 (아티팩트 downloads / 웹 일반 다운로드) |
 | AI 작사 | ai.js | 가사·스타일·훅·검토 |
 | AI 작곡 | ai-music.js | 편곡·멜로디 (응답을 선택지 범위로 검사) |
 

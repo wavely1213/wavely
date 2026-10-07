@@ -1,7 +1,8 @@
 // 진입점: 저장소 열기 → 상태 초기화 → 화면 그리기.
 import { h, formatTime } from './dom.js';
 import { openStore } from './store.js';
-import { init, subscribe, getState, current, newSong, selectSong, setTab, deleteSong, refresh } from './state.js';
+import { init, subscribe, getState, current, currentAlbum, newSong, selectSong, setTab, deleteSong, refresh, newAlbum, selectAlbum } from './state.js';
+import { renderAlbum } from './views/album/index.js';
 import { getSample } from './ai.js';
 import { renderConcept } from './views/concept.js';
 import { renderEditor } from './views/editor.js';
@@ -33,7 +34,7 @@ const ui = { confirmDelete: '', aiAvailable: true };
 function saveLabel() {
   const st = getState();
   const song = current();
-  if (song?.example) return '예시 곡 · 고치면 내 곡으로 저장돼요';
+  if (st.mode === 'song' && song?.example) return '예시 곡 · 고치면 내 곡으로 저장돼요';
   const where = st.store?.kind === 'account' ? '내 계정에' : '이 브라우저에';
   if (st.saveStatus === 'pending') return '저장 중…';
   if (st.saveStatus === 'error') return '저장 실패 · 잠시 후 다시 시도해요';
@@ -42,15 +43,27 @@ function saveLabel() {
 
 function renderSidebar() {
   const st = getState();
-  return h('nav', { class: 'songs', 'aria-label': '곡 목록' },
-    h('button', { type: 'button', class: 'btn primary wide', onclick: newSong }, '+ 새 곡'),
+  return h('nav', { class: 'songs', 'aria-label': '곡·앨범 목록' },
+    h('div', { class: 'side-head' }, h('span', { class: 'field-label' }, '곡'),
+      h('button', { type: 'button', class: 'btn small primary', onclick: () => { stopPlayer(); newSong(); } }, '+ 새 곡')),
     h('ul', null, st.songs.map((s) => {
-      const active = s.id === st.currentId;
+      const active = st.mode === 'song' && s.id === st.currentId;
       return h('li', null,
         h('button', { type: 'button', class: `song-item${active ? ' active' : ''}`, 'aria-current': active ? 'true' : null, onclick: () => { stopPlayer(); selectSong(s.id); } },
           h('span', { class: 'song-title' }, s.title || '제목 없음'),
           h('span', { class: 'song-meta mono' }, s.example ? '예시' : formatTime(s.updatedAt))));
     })),
+    h('div', { class: 'side-head' }, h('span', { class: 'field-label' }, '앨범·발매'),
+      h('button', { type: 'button', class: 'btn small', onclick: () => { stopPlayer(); newAlbum(); } }, '+ 새 앨범')),
+    st.albums.length
+      ? h('ul', null, st.albums.map((a) => {
+        const active = st.mode === 'album' && a.id === st.albumId;
+        return h('li', null,
+          h('button', { type: 'button', class: `song-item${active ? ' active' : ''}`, 'aria-current': active ? 'true' : null, onclick: () => { stopPlayer(); selectAlbum(a.id); } },
+            h('span', { class: 'song-title' }, a.title || '새 앨범'),
+            h('span', { class: 'song-meta mono' }, `${a.tracks.length}곡 · ${a.releaseDate || '발매일 미정'}`)));
+      }))
+      : h('p', { class: 'muted small' }, '곡을 묶어 발매 준비(메타데이터·커버·제출 패키지·일정)를 해요.'),
   );
 }
 
@@ -79,13 +92,37 @@ function renderTabs(active) {
     }, label))));
 }
 
+// 다시 그리기 전후로 포커스와 커서 위치를 id 기준으로 유지한다
+function keepFocus(draw) {
+  const a = document.activeElement;
+  const id = a && a !== document.body ? a.id : '';
+  let sel = null;
+  try { if (id && typeof a.selectionStart === 'number') sel = [a.selectionStart, a.selectionEnd]; } catch { /* 선택 범위 없는 입력 */ }
+  draw();
+  if (!id) return;
+  const el = document.getElementById(id);
+  if (!el || el === document.activeElement) return;
+  el.focus({ preventScroll: true });
+  if (sel) { try { el.setSelectionRange(sel[0], sel[1]); } catch { /* 무시 */ } }
+}
+
 function render() {
+  keepFocus(draw);
+}
+
+function draw() {
   const root = document.getElementById('app');
   const st = getState();
   const song = current();
   if (!song) return;
-  const [, , view] = TABS.find(([k]) => k === st.tab) || TABS[0];
   const y = window.scrollY;
+  const album = st.mode === 'album' ? currentAlbum() : null;
+  if (album) {
+    root.replaceChildren(renderSidebar(), renderAlbum(album, saveLabel));
+    window.scrollTo(0, y);
+    return;
+  }
+  const [, , view] = TABS.find(([k]) => k === st.tab) || TABS[0];
   root.replaceChildren(
     renderSidebar(),
     h('main', { class: 'main' },

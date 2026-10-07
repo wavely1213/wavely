@@ -4,22 +4,12 @@ import { refresh } from '../state.js';
 import { buildLyrics, buildStyle } from '../suno.js';
 import { SUNO_LIMITS } from '../constants.js';
 import { buildPackage } from '../package.js';
+import { saveFile } from '../platform/download.js';
 
 const opts = { memberTags: true, arrangeHints: false, keepAdlibs: true };
-const pkg = { includeWav: true, busy: '', downloads: undefined };
-
-function getDownloads() {
-  if (pkg.downloads === undefined) {
-    pkg.downloads = null;
-    const p = window.claude?.use ? window.claude.use('downloads').catch(() => null) : Promise.resolve(null);
-    pkg.ready = p.then((d) => { pkg.downloads = d; return d; });
-  }
-  return pkg.ready;
-}
+const pkg = { includeWav: true, busy: '' };
 
 async function downloadPackage(song) {
-  const dl = await getDownloads();
-  if (!dl) { toast('이 화면에서는 파일을 받을 수 없어요. claude.ai에서 열어 주세요'); return; }
   pkg.busy = '준비 중';
   refresh();
   try {
@@ -30,10 +20,11 @@ async function downloadPackage(song) {
     });
     pkg.busy = '저장 확인 창을 확인해 주세요';
     refresh();
-    await dl.save({ filename, data: blob });
-    toast('받았어요');
-  } catch (e) {
-    if (e?.code !== 'declined') toast('파일을 만들지 못했어요. 다시 눌러 주세요');
+    const res = await saveFile(filename, blob);
+    if (res === 'saved') toast('받았어요');
+    else if (res === 'unavailable') toast('이 화면에서는 파일을 받을 수 없어요');
+  } catch {
+    toast('파일을 만들지 못했어요. 다시 눌러 주세요');
   } finally {
     pkg.busy = '';
     refresh();
@@ -41,7 +32,6 @@ async function downloadPackage(song) {
 }
 
 export function renderExport(song) {
-  getDownloads();
   const lyrics = buildLyrics(song, opts);
   const style = buildStyle(song.style);
   const title = song.title.replace(/^예시:\s*/, '');

@@ -1,0 +1,47 @@
+// 앨범 화면: 머리말 + 탭(수록곡·정보·커버·일정·홍보·제출).
+import { h } from '../../dom.js';
+import { getState, setAlbumTab, deleteAlbum, refresh } from '../../state.js';
+import { ALBUM_TYPES, daysUntil } from '../../album/model.js';
+import { renderTracks } from './tracks.js';
+import { renderMeta } from './meta.js';
+import { renderCover } from './cover.js';
+import { renderSchedule, renderPromo } from './plan.js';
+import { renderSubmit } from './submit.js';
+
+const TABS = [
+  ['tracks', '수록곡', renderTracks],
+  ['meta', '정보·크레딧', renderMeta],
+  ['cover', '커버', renderCover],
+  ['schedule', '일정', renderSchedule],
+  ['promo', '홍보', renderPromo],
+  ['submit', '제출', renderSubmit],
+];
+
+const ui = { confirmDelete: '' };
+
+export function renderAlbum(album, saveLabel) {
+  const st = getState();
+  const [, , view] = TABS.find(([k]) => k === st.albumTab) || TABS[0];
+  const left = daysUntil(album.releaseDate);
+  const confirming = ui.confirmDelete === album.id;
+  return h('main', { class: 'main' },
+    h('header', { class: 'top' },
+      h('div', { class: 'top-title' },
+        h('p', { class: 'eyebrow' }, `앨범 · ${ALBUM_TYPES[album.type].name}${left != null ? ` · 발매 ${left > 0 ? `D-${left}` : left === 0 ? 'D-day' : `D+${-left}`}` : ''}`),
+        h('h1', null, album.title || '새 앨범'),
+        h('p', { class: 'save mono', id: 'save-status' }, saveLabel())),
+      h('div', { class: 'row' },
+        confirming
+          ? [h('span', { class: 'warn' }, '앨범 정보만 지워져요. 곡은 남아요.'),
+            h('button', { type: 'button', class: 'btn danger', onclick: () => { ui.confirmDelete = ''; deleteAlbum(album.id); } }, '삭제'),
+            h('button', { type: 'button', class: 'btn ghost', onclick: () => { ui.confirmDelete = ''; refresh(); } }, '취소')]
+          : h('button', { type: 'button', class: 'btn ghost', onclick: () => { ui.confirmDelete = album.id; refresh(); } }, '앨범 삭제'))),
+    h('div', { class: 'tabs-wrap' },
+      h('div', { class: 'tabs', role: 'tablist' }, TABS.map(([key, label]) => h('button', {
+        type: 'button', role: 'tab', class: `tab${key === st.albumTab ? ' on' : ''}`,
+        'aria-selected': key === st.albumTab ? 'true' : 'false',
+        onclick: () => setAlbumTab(key),
+      }, label)))),
+    h('div', { class: 'view' }, view(album)),
+  );
+}

@@ -66,7 +66,33 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     await p.click('.version >> text=복원');
     await p.waitForTimeout(300);
     const vcount = await p.locator('.version').count();
-    console.log(tag, { custom, prog, before, after, refs, masterPill, vbodyStart: vbody.slice(0, 30), vcount });
+    // 앨범: 새 앨범 → 곡 넣기 → 마스터 WAV → 정보 → 커버 → 제출 패키지
+    await p.click('text=+ 새 앨범');
+    await p.screenshot({ path: path.join(TMP, `${tag}-앨범새로.png`), fullPage: true });
+    if (await p.locator('text=+ 곡 넣기').count()) await p.click('text=+ 곡 넣기');
+    const masterWav = path.join(TMP, 'master-14.wav');
+    if (fs.existsSync(masterWav)) {
+      await p.setInputFiles('input[id^="master-"]', masterWav);
+      await p.waitForSelector('.pill:has-text("규격 OK")', { timeout: 60000 });
+    }
+    await p.click('.tab:text-is("정보·크레딧")');
+    await p.fill('#album-title', 'Midnight Signal');
+    await p.fill('#album-artist', '물결');
+    await p.press('#album-artist', 'Tab');
+    await p.click('text=빈 크레딧을');
+    await p.click('.tab:text-is("커버")');
+    await p.click('text=이 커버 쓰기');
+    await p.waitForSelector('.cover-thumb', { timeout: 30000 });
+    if (tag === 'desk') await p.screenshot({ path: path.join(TMP, `${tag}-앨범커버.png`), fullPage: true });
+    await p.click('.tab:text-is("일정")');
+    await p.click('.schedule input[type=checkbox] >> nth=0');
+    await p.click('.tab:text-is("제출")');
+    if (tag === 'desk') await p.screenshot({ path: path.join(TMP, `${tag}-앨범제출.png`), fullPage: true });
+    const errorsLeft = await p.locator('.checklist .lv-error').count();
+    const [download] = await Promise.all([p.waitForEvent('download', { timeout: 60000 }), p.click('text=제출 패키지 받기')]);
+    const zipPath = path.join(TMP, `${tag}-release.zip`);
+    await download.saveAs(zipPath);
+    console.log(tag, { custom, prog, before, after, refs, masterPill, errorsLeft, zip: fs.statSync(zipPath).size, vbodyStart: vbody.slice(0, 30), vcount });
     await c.close();
   }
   console.log('ERRORS:', errs);

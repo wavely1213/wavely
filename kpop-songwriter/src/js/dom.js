@@ -58,3 +58,9 @@ export function formatTime(ts) {
   const p = (n) => String(n).padStart(2, '0');
   return `${d.getMonth() + 1}/${d.getDate()} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
+
+// 칸을 벗어날 때(change) 화면을 다시 그리면, 그 순간 클릭한 다음 칸이 갈아 끼워져 포커스를 잃는다.
+// 포커스 이동이 끝난 뒤에 다시 그리도록 미룬다.
+export function afterBlur(fn) {
+  return () => setTimeout(fn, 0);
+}

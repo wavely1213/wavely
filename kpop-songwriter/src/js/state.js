@@ -1,15 +1,20 @@
-// 앱 상태: 곡 목록, 현재 곡, 자동 저장, 버전 스냅샷.
+// 앱 상태: 곡·앨범 목록, 지금 보는 것(곡/앨범), 자동 저장, 버전 스냅샷.
 import { uid } from './dom.js';
 import { sectionsFromTemplate, autoDistribute } from './structure.js';
 import { MAX_VERSIONS } from './constants.js';
 import { exampleSong } from './example.js';
 import { normalizeMusic } from './music/arrangement.js';
+import { newAlbum as makeAlbum, normalizeAlbum } from './album/model.js';
 
 const state = {
   store: null,
   songs: [],
   currentId: null,
   tab: 'concept',
+  albums: [],
+  albumId: null,
+  albumTab: 'tracks',
+  mode: 'song', // song | album
   saveStatus: 'saved', // saved | pending | error
 };
 const listeners = new Set();
@@ -18,6 +23,7 @@ let saveTimer;
 
 export function getState() { return state; }
 export function current() { return state.songs.find((s) => s.id === state.currentId) || null; }
+export function currentAlbum() { return state.albums.find((a) => a.id === state.albumId) || null; }
 export function subscribe(fn) { listeners.add(fn); }
 function emit(scope) { listeners.forEach((fn) => fn(scope)); }
 
@@ -33,6 +39,8 @@ export async function init(store) {
   songs.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
   state.songs = songs;
   state.currentId = songs[0].id;
+  try { state.albums = (await store.listAlbums()).map(normalizeAlbum); } catch { state.albums = []; }
+  state.albums.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
   emit('all');
 }
 
@@ -60,6 +68,51 @@ export function newSong() {
 
 export function selectSong(id) {
   state.currentId = id;
+  state.mode = 'song';
+  emit('all');
+}
+
+// ---------- 앨범 ----------
+export function newAlbum() {
+  const album = makeAlbum();
+  // 지금 보고 있던 곡을 첫 트랙으로 넣어 준다 (예시 곡 제외)
+  const song = current();
+  if (song && !song.example) album.tracks.push({ songId: song.id, isTitle: true, isrc: '', lyricists: '', composers: '', arrangers: '', featuring: '', explicit: false });
+  state.albums.unshift(album);
+  state.albumId = album.id;
+  state.mode = 'album';
+  state.albumTab = 'tracks';
+  schedule(album.id);
+  emit('all');
+}
+
+export function selectAlbum(id) {
+  state.albumId = id;
+  state.mode = 'album';
+  emit('all');
+}
+
+export function setAlbumTab(tab) {
+  state.albumTab = tab;
+  emit('all');
+}
+
+export function mutateAlbum(fn, scope = 'all') {
+  const album = currentAlbum();
+  if (!album) return;
+  fn(album);
+  normalizeAlbum(album);
+  album.updatedAt = Date.now();
+  schedule(album.id);
+  emit(scope);
+}
+
+export async function deleteAlbum(id) {
+  state.albums = state.albums.filter((a) => a.id !== id);
+  pending.delete(id);
+  try { await state.store.removeAlbum(id); } catch { /* 무시 */ }
+  state.mode = 'song';
+  state.albumId = null;
   emit('all');
 }
 
@@ -101,11 +154,16 @@ async function flush() {
     for (const id of ids) {
       const song = state.songs.find((s) => s.id === id);
       if (song) await state.store.save(song);
+      const album = state.albums.find((a) => a.id === id);
+      if (album) await state.store.saveAlbum(album);
     }
     state.saveStatus = pending.size ? 'pending' : 'saved';
   } catch {
     ids.forEach((id) => pending.add(id));
     state.saveStatus = 'error';
+    // 일시적인 실패일 수 있으니 조금 뒤 다시 저장한다
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(flush, 5000);
   }
   flushing = false;
   emit('status');

@@ -9,6 +9,7 @@ const result = await build({
   target: 'es2020',
   write: false,
   legalComments: 'none',
+  tsconfigRaw: '{}', // 상위 폴더(wavely)의 tsconfig를 읽지 않게
 });
 const script = result.outputFiles[0].text.replace(/<\/script/gi, '<\\/script');
 const css = readFileSync('src/styles.css', 'utf8');

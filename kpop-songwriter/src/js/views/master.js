@@ -4,6 +4,7 @@ import { mutate, refresh } from '../state.js';
 import { decodeFile, master, masterWarnings, MASTER_PRESETS, LOUDNESS_TARGETS, OUTPUT_RATE } from '../music/master.js';
 import { renderSong, stop as stopPlayer } from '../music/player.js';
 import { encodeWav, zip } from '../music/pack.js';
+import { saveFile } from '../platform/download.js';
 
 // 오디오 버퍼는 커서 저장하지 않고 화면 메모리에만 둔다
 const ui = { source: null, sourceName: '', result: null, busy: '', bits: 24, listen: null, matched: true };
@@ -104,8 +105,6 @@ async function run(song) {
 }
 
 async function download(song) {
-  const dl = window.claude?.use ? await window.claude.use('downloads').catch(() => null) : null;
-  if (!dl) { toast('이 화면에서는 파일을 받을 수 없어요. claude.ai에서 열어 주세요'); return; }
   const r = ui.result;
   const st = settings(song);
   const base = (ui.sourceName || 'master').replace(/[\\/:*?"<>|]+/g, '').trim().slice(0, 60) || 'master';
@@ -129,10 +128,11 @@ async function download(song) {
     const blob = zip([{ name: wavName, data: wav }, { name: 'mastering_report.txt', data: report }]);
     ui.busy = '저장 확인 창을 확인해 주세요';
     refresh();
-    await dl.save({ filename: `${base}_master.zip`, data: blob });
-    toast('받았어요');
-  } catch (e) {
-    if (e?.code !== 'declined') toast('파일을 만들지 못했어요. 다시 눌러 주세요');
+    const res = await saveFile(`${base}_master.zip`, blob);
+    if (res === 'saved') toast('받았어요');
+    else if (res === 'unavailable') toast('이 화면에서는 파일을 받을 수 없어요');
+  } catch {
+    toast('파일을 만들지 못했어요. 다시 눌러 주세요');
   } finally {
     ui.busy = '';
     refresh();

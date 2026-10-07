@@ -41,6 +41,8 @@ claude.ai 아티팩트로 배포되며, AI는 사용자 본인의 Claude 사용�
 | 중요한 기술 결정을 내리거나 과거 결정을 확인할 때 | `docs/DECISION_LOG.md` |
 | 버그·제약·임시방편을 만나거나 남길 때 | `docs/KNOWN_ISSUES.md` |
 | 도메인 용어·서비스 규칙이 헷갈릴 때 | `docs/DOMAIN_KNOWLEDGE.md` |
+| 무엇을 왜 만드는지(방향·순서) | `docs/ROADMAP.md` |
+| 다음 작업 고르기, 개선점 탐색 결과 기록 | `docs/BACKLOG.md` |
 
 전부 매번 읽을 필요는 없다. 작업 유형에 해당하는 문서만 읽되,
 `DEVELOPMENT_RULES.md`와 `AI_WORKFLOW.md`는 모든 작업의 공통 전제다.

@@ -5,7 +5,7 @@ const { buildSync } = require('esbuild');
 // 음악 엔진 점검: MIDI·zip 생성, WAV 렌더(무음/NaN/클리핑), 레퍼런스 분석 정확도. 실행: npm run test:engine
 const TMP = path.join(__dirname, '.tmp');
 fs.mkdirSync(TMP, { recursive: true });
-buildSync({ entryPoints: [path.join(__dirname, 'engine-entry.js')], bundle: true, format: 'iife', outfile: path.join(TMP, 'bundle.js') });
+buildSync({ entryPoints: [path.join(__dirname, 'engine-entry.js')], bundle: true, format: 'iife', tsconfigRaw: '{}', outfile: path.join(TMP, 'bundle.js') });
 fs.writeFileSync(path.join(TMP, 'index.html'), '<meta charset=utf-8><script src=bundle.js></script>');
 (async () => {
   const b = await chromium.launch();
