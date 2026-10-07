@@ -37,6 +37,15 @@ function fakeClaude() {
     if (p.includes('영어 훅 후보')) return [{ hook: 'Signal on', meaning: '신호 켜', use: '코러스 첫 줄' }, { hook: 'Midnight call', meaning: '한밤의 전화', use: '프리코러스 끝' }];
     if (p.includes('Suno 스타일 프롬프트 재료')) return { genre: 'K-pop', subgenre: 'dark trap', bpm: 140, key: 'C minor', vocals: 'airy', instruments: '808', production: 'wide', extra: 'night', exclude: 'metal', why: '가짜 이유' };
     if (p.includes('반응 기록이다')) return { lyrics: '가짜 정리: 이미지로 감정을 보여 준다', sound: '가짜 정리: 808', avoid: '가짜 정리: 뻔한 단어', basis: '가짜 근거' };
+    if (p.includes('번안 작사가')) {
+      // 줄마다 원문 음절 수만큼의 가짜 번안 (마지막 줄만 일부러 5음 길게, 애드립만 있는 줄은 괄호)
+      const src = JSON.parse(p.split('원문: ')[1].split('\n')[0]);
+      const all = src.flatMap((s) => s.줄);
+      return { sections: src.map((s) => ({ id: s.id, lines: s.줄.map((l) => {
+        const n = l.음절수 + (l === all[all.length - 1] ? 5 : 0);
+        return n ? { text: `テスト${'ラ'.repeat(n)}`.slice(0, n), kana: `てすと${'ら'.repeat(n)}`.slice(0, n) } : { text: '(オー)', kana: '(おー)' };
+      }) })) };
+    }
     if (p.includes('음악 저작권 검토')) {
       const first = (p.split('가사 (줄마다):\n')[1] || '').split('\n')[0].replace(/^- /, '');
       return { summary: '가짜 점검 요약', items: [{ line: first, like: '가짜 곡 - 가짜 가수', why: '훅 구절이 같음', level: 'high', fix: '가짜 새 줄 signal' }, { line: '가사에 없는 줄', like: 'x', why: 'x', level: 'check', fix: 'x' }] };
@@ -170,6 +179,16 @@ function fakeClaude() {
     && (await p.$$eval('textarea.lyrics', (els) => els.some((t) => t.value.includes('가짜 새 줄 signal'))))
     && !(await p.$$eval('textarea.lyrics', (els, l) => els.some((t) => t.value.split('\n').some((x) => x.trim() === l)), flaggedLine));
 
+  // 번안 가사: 내보내기 탭 → 일본어로 번안 → 원문과 음 수 비교, 길게 만든 한 줄만 경고, Suno 가사에 일본어
+  await p.click('.tab:text-is("내보내기")');
+  await p.click('#translate-run');
+  await p.waitForSelector('.tr-row');
+  results.trOff = await p.locator('.tr-dst .over').count();
+  results.trLyrics = (await p.inputValue('#out-lyrics-tr')).includes('テス');
+  results.trStyle = (await p.inputValue('#out-style-tr')).endsWith('Japanese lyrics');
+  await p.locator('#translate-run').evaluate((el) => el.closest('.card').scrollIntoView());
+  await p.screenshot({ path: path.join(TMP, 'translate.png') });
+
   // 느린 AI 편곡 중 다른 곡으로 바꿔도 결과는 원래 곡에만
   await p.locator('.song-item').first().click();
   const songA = await p.evaluate(() => document.querySelector('h1').textContent);
@@ -214,7 +233,7 @@ function fakeClaude() {
 
   console.log(JSON.stringify(results, null, 1));
   const ok = results.lyricsApplied && results.review && results.improve.length > 0 && results.improve.every((t) => t.includes('반영')) && results.arrangeKey.includes('A minor') && results.melodyNotes === 3 && results.styleBpm === '140'
-    && results.editRecorded && results.tasteLog.some((x) => x.startsWith('lyrics:-1(유치해요)')) && results.tasteLog.includes('hook:1') && results.lineLiked === 1 && results.similarCount === 1 && results.similarFixed && results.tasteLog.includes('arrange:1')
+    && results.editRecorded && results.tasteLog.some((x) => x.startsWith('lyrics:-1(유치해요)')) && results.tasteLog.includes('hook:1') && results.lineLiked === 1 && results.similarCount === 1 && results.similarFixed && results.trOff === 1 && results.trLyrics && results.trStyle && results.tasteLog.includes('arrange:1')
     && results.tasteLog.includes('melody:1') && results.promptHasTaste && results.promo && results.draft.arranged && results.draft.bpm === 128 && results.draft.styleBpm === 128 && results.draft.styleKey === 'A minor' && results.draft.melodySections > 0 && results.draft.lyrics.split('/')[0] === results.draft.lyrics.split('/')[1] && results.keptBridge === '언젠가 너도 이 밤을 보면\n같은 불빛을 찾게 될 거야' && results.melodyPromptRange && results.raceA === 133 && results.raceB === 120 && results.saved.includes('taste-feedback.zip') && !errs.length;
   if (errs.length) console.log('ERRORS', errs);
   console.log(ok ? 'ai OK' : 'ai FAILED');

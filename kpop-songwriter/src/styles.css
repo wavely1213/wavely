@@ -380,3 +380,11 @@ input[type=radio] { accent-color: var(--accent); }
 .similar.ok { opacity: .65; }
 .similar-line { overflow-wrap: anywhere; }
 .good-text { color: var(--r2); font-weight: 600; }
+
+/* 번안 가사 */
+.tr-table { display: grid; gap: 12px; }
+.tr-sec { display: grid; gap: 4px; }
+.tr-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 14px; }
+.tr-src, .tr-dst { min-width: 0; overflow-wrap: anywhere; }
+.tr-kana { display: block; }
+@media (max-width: 640px) { .tr-row { grid-template-columns: 1fr; gap: 0; padding-bottom: 6px; } .tr-dst { padding-left: 10px; border-left: 2px solid var(--line); } }

@@ -1,4 +1,4 @@
-// 내보내기 탭: Suno Custom 모드 칸별 복사 + 제작 패키지(zip) 받기.
+// 내보내기 탭: Suno Custom 모드 칸별 복사 + 제작 패키지(zip) 받기 + 다른 언어 버전.
 import { h, copyText, toast } from '../dom.js';
 import { refresh, mutateSong } from '../state.js';
 import { applyToStyle } from './arrange.js';
@@ -8,6 +8,7 @@ import { buildLyrics, buildStyle } from '../suno.js';
 import { SUNO_LIMITS } from '../constants.js';
 import { buildPackage } from '../package.js';
 import { saveFile } from '../platform/download.js';
+import { renderTranslate } from './translate.js';
 
 // 가사·스타일을 복사하거나 패키지를 받으면 진행 상황의 'Suno 생성' 단계 완료로 친다
 const markSuno = (songId) => mutateSong(songId, (x) => { x.progress = { ...(x.progress || {}), suno: true }; }, 'quiet');
@@ -90,5 +91,6 @@ export function renderExport(song) {
     block('out-style', 'Styles', style, SUNO_LIMITS.style, 3),
     song.style.exclude ? block('out-exclude', 'Exclude styles', song.style.exclude, 0, 2) : null,
     block('out-title', 'Title', title, SUNO_LIMITS.title, 1),
+    renderTranslate(song, opts),
   );
 }
