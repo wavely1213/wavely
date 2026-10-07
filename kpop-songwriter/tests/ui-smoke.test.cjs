@@ -48,6 +48,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     }
     // 편곡: 빠른 바꾸기, 드럼 직접 찍기, 재생/정지
     await p.click('.tab:text-is("편곡")');
+    global.lengthOk = (global.lengthOk ?? true) && /^편곡 기준 길이 \d+:\d\d \(\d+마디\)/.test(await p.textContent('#song-length'));
     const energyBefore = await p.locator('.sec-row >> nth=1 >> .energy button.on').count();
     await p.click('.sec-row >> nth=1 >> text=더 신나게');
     const energyUp = await p.locator('.sec-row >> nth=1 >> .energy button.on').count();
@@ -389,6 +390,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
   if (!global.instOk) errs.push('Inst. 버전 추가 이상');
   if (!global.fitOk) errs.push('가사·마디 맞춤 표시 이상');
   if (!global.lyricCardOk) errs.push(`가사 카드 이상: ${JSON.stringify(global.lyricCard)}`);
+  if (!global.lengthOk) errs.push('곡 길이 표시 이상');
   if (!global.welcomeOk) errs.push('처음 안내 카드 이상');
   if (!global.transitionOk) errs.push(`곡 사이 듣기 이상: ${JSON.stringify(global.transition)}`);
   if (!global.albumNewSongOk) errs.push(`앨범의 새 곡 이상: ${JSON.stringify(global.albumNewSong)}`);

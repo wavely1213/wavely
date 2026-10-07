@@ -166,3 +166,16 @@ import { lyricFit } from '../src/js/lyricfit.js';
   assert.ok(f.tip.includes('4마디(8.0초)에 64음절') && f.label.includes('초당 8.0음절'));
   console.log('lyric fit OK');
 }
+
+// 곡 길이 예상: 마디 합 × 4박 / BPM, 길거나 짧으면 안내
+import { songLength, lengthNote } from '../src/js/music/length.js';
+{
+  const song = { music: { bpm: 120, sections: { a: { bars: 40 }, b: { bars: 48 } } }, sections: [{ id: 'a' }, { id: 'b' }, { id: 'gone' }] };
+  assert.deepEqual(songLength(song), { bars: 88, seconds: 176 });
+  assert.equal(lengthNote(songLength(song)), '편곡 기준 길이 2:56 (88마디)');
+  assert.ok(lengthNote(songLength(song, 80)).includes('길어요'), '80 BPM이면 4:24');
+  assert.ok(lengthNote({ bars: 40, seconds: 80 }).includes('짧아요'));
+  assert.ok(!lengthNote({ bars: 72, seconds: 144 }).includes('짧아요'), '기본 구조(2:24)는 경고 없음');
+  assert.equal(lengthNote({ bars: 0, seconds: 0 }), '');
+  console.log('song length OK');
+}

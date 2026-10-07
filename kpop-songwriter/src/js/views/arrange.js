@@ -17,6 +17,7 @@ import { playBar, playButton } from './playbar.js';
 import { uid } from '../dom.js';
 import { help } from '../help.js';
 import { feedbackBar } from '../learn/feedback.js';
+import { songLength, lengthNote } from '../music/length.js';
 
 const memo = {};
 const memoOf = (id) => (memo[id] = memo[id] || { request: '', summary: '', grids: {} });
@@ -34,6 +35,7 @@ function renderGlobal(song, m) {
   const mu = song.music;
   const busy = isBusy();
   const bpmOut = h('span', { class: 'mono' }, `${mu.bpm} BPM · ${tempoWord(mu.bpm)}`);
+  const lenOut = h('span', { class: 'muted small', id: 'song-length' }, lengthNote(songLength(song)));
   const refs = song.references.filter((r) => r.use).length;
   return h('section', { class: 'card' },
     h('h2', null, '곡 전체'),
@@ -44,9 +46,11 @@ function renderGlobal(song, m) {
         h('input', { id: 'bpm', 'aria-label': '빠르기 (BPM)', type: 'range', min: '60', max: '180', value: String(mu.bpm), oninput: (e) => {
           const v = Number(e.target.value);
           bpmOut.textContent = `${v} BPM · ${tempoWord(v)}`;
+          lenOut.textContent = lengthNote(songLength(song, v));
           mutate((s) => { s.music.bpm = v; }, 'quiet');
         }, onchange: () => refresh() }),
-        bpmOut),
+        bpmOut,
+        lenOut),
       h('div', { class: 'field' },
         h('span', { class: 'field-label' }, '키 (노래 높이와 분위기) ', help('key')),
         h('div', { class: 'row' },
