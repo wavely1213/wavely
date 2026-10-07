@@ -4,6 +4,7 @@ import { getState, mutateSong, refresh, setAlbumTab } from '../../state.js';
 import { mastersOf, fillFromSongMasters } from '../../album/session.js';
 import { syncLines, lyricsKey, syncStatus, SYNC_LABEL, lrcTime, makeSync, shiftTimes, nudgeTime, toLrc } from '../../album/lrc.js';
 import { trackFileName } from '../../album/model.js';
+import { help } from '../../help.js';
 import { zip } from '../../music/pack.js';
 import { saveFile, isArtifact } from '../../platform/download.js';
 
@@ -152,7 +153,7 @@ export function renderSync(album) {
 
   return h('div', { class: 'stack' },
     h('section', { class: 'card' },
-      h('h2', null, '싱크 가사 (LRC)'),
+      h('h2', null, '싱크 가사 (LRC) ', help('lrc')),
       h('p', { class: 'muted' }, '멜론·스포티파이·애플뮤직의 "가사 따라가기"용 파일이에요. 마스터를 틀고, 각 줄을 부르기 시작할 때 버튼(또는 스페이스)을 누르면 돼요. 만든 파일은 제출 패키지에도 들어가요. 이 탭에서 ↶는 고른 곡의 싱크를 되돌려요.'),
       h('div', { class: 'chips' }, tracks.map((x) => h('button', {
         type: 'button', class: `chip${x.s.id === s.id ? ' on' : ''}`, 'aria-pressed': x.s.id === s.id ? 'true' : 'false',

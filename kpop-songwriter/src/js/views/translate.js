@@ -6,6 +6,7 @@ import { LANGS, translateLyrics, translationStatus, compareLines, translatedSong
 import { FIT_TOLERANCE } from '../translate/mora.js';
 import { buildLyrics, buildStyle } from '../suno.js';
 import { SUNO_LIMITS } from '../constants.js';
+import { help } from '../help.js';
 
 const ui = { lang: 'ja' };
 
@@ -40,7 +41,7 @@ export function renderTranslate(song, lyricOpts) {
     h('div', { class: 'card-head' },
       h('h2', null, '다른 언어 버전 (번안 가사)'),
       h('button', { type: 'button', class: 'btn', id: 'translate-run', disabled: busy || !hasLyrics, onclick: run }, status === 'none' ? `${L.name}로 번안하기` : '다시 번안')),
-    h('p', { class: 'muted small' }, `같은 멜로디로 부를 수 있게 줄마다 ${L.unit} 수를 원문 음절 수에 맞춘 가사를 만들어요. Suno에 같은 스타일로 넣으면 ${L.name} 버전이 나와요. 발매 전에 원어민 확인을 권해요.`),
+    h('p', { class: 'muted small' }, lang === 'ja' ? help('mora') : null, `같은 멜로디로 부를 수 있게 줄마다 ${L.unit} 수를 원문 음절 수에 맞춘 가사를 만들어요. Suno에 같은 스타일로 넣으면 ${L.name} 버전이 나와요. 발매 전에 원어민 확인을 권해요.`),
     h('div', { class: 'chips' }, Object.entries(LANGS).map(([k, v]) => h('button', {
       type: 'button', class: `chip${k === lang ? ' on' : ''}`, 'aria-pressed': k === lang ? 'true' : 'false',
       onclick: () => { ui.lang = k; refresh(); },

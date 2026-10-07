@@ -5,6 +5,7 @@ import { scheduleFor } from '../../album/model.js';
 import { writePromo, PITCH_LIMIT } from '../../album/release.js';
 import { isBusy, runJob, stopJob, job } from '../../aijob.js';
 import { scheduleIcs } from '../../album/ics.js';
+import { help } from '../../help.js';
 import { zip } from '../../music/pack.js';
 import { saveFile, isArtifact } from '../../platform/download.js';
 
@@ -80,7 +81,7 @@ export function renderPromo(album) {
         (v) => mutateAlbum((a) => { const sns = [...a.promo.sns]; sns[k] = v; a.promo.sns = sns; }, 'quiet'))),
       copyable('promo-tags', '해시태그', p.hashtags, 2, (v) => mutateAlbum((a) => { a.promo.hashtags = v; }, 'quiet'))),
     h('section', { class: 'card' },
-      h('h2', null, '플레이리스트 피칭 (Spotify for Artists)'),
+      h('h2', null, '플레이리스트 피칭 (Spotify for Artists) ', help('pitch')),
       h('p', { class: 'muted small' }, `발매 최소 7일 전(일정의 D-14 단계 권장)에 미발매 타이틀곡 한 곡을 에디터에게 소개하는 글이에요. ${PITCH_LIMIT}자까지 들어가요.`),
       copyable('promo-pitch', '영어', p.pitch || '', 5, (v) => mutateAlbum((a) => { a.promo.pitch = v; }, 'quiet'), PITCH_LIMIT),
       copyable('promo-pitch-ko', '한국어', p.pitchKo || '', 5, (v) => mutateAlbum((a) => { a.promo.pitchKo = v; }, 'quiet'), PITCH_LIMIT)),

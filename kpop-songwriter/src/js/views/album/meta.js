@@ -21,7 +21,7 @@ function renderSplits(t, i) {
     }))();
   };
   return h('div', { class: 'splits' },
-    h('span', { class: 'field-label' }, '지분 (역할마다 합 100%, 저작권 신고·정산 기준)'),
+    h('span', { class: 'field-label' }, '지분 (역할마다 합 100%) ', help('split')),
     roles.map((r) => h('div', { class: 'split-row' },
       h('strong', null, r.name),
       r.people.map((p, k) => h('label', { class: 'split-person' }, p.name,
