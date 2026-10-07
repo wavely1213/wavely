@@ -108,6 +108,33 @@ export function importSong(data) {
   return true;
 }
 
+// 전체 백업 되살리기 (backup.js planRestore의 결과를 반영). 버전 본문은 먼저 따로 저장한다.
+export async function applyRestore(plan) {
+  const max = state.store.maxVersions || MAX_VERSIONS;
+  for (const { song, versions } of plan.songs) {
+    const metas = [];
+    for (const v of versions.slice(0, max)) {
+      try {
+        await state.store.putVersion(song.id, v);
+        const { data, ...meta } = v;
+        metas.push(meta);
+      } catch { /* 저장 공간이 모자라면 그 버전은 건너뜀 */ }
+    }
+    song.versions = metas;
+    normalizeMusic(song);
+  }
+  if (plan.songs.length) state.songs = state.songs.filter((s) => !s.example);
+  state.songs.unshift(...plan.songs.map((x) => x.song));
+  plan.songs.forEach((x) => schedule(x.song.id));
+  plan.albums.forEach((a) => { normalizeAlbum(a); state.albums.unshift(a); schedule(a.id); });
+  if (plan.report.taste || plan.taste.profile !== state.taste.profile) {
+    state.taste = normalizeTaste(plan.taste);
+    schedule(TASTE_ID);
+  }
+  if (plan.songs.length) { state.currentId = plan.songs[0].song.id; state.mode = 'song'; }
+  emit('all');
+}
+
 // ---------- 앨범 ----------
 // 아직 저장 안 된 예시 곡을 앨범에 넣으면 새로고침 때 사라지므로 내 곡으로 저장한다
 export function keepSong(id) {

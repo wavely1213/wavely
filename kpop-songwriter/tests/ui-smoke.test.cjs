@@ -159,6 +159,24 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     await p.waitForSelector('.cover-thumb', { timeout: 15000 }).catch(() => {});
     const keptCover = await p.locator('.cover-thumb').count();
     global.persistOk = (global.persistOk ?? true) && keptMaster === 1 && keptCover === 1;
+    // 백업: 이 브라우저 데이터를 받아, 빈 브라우저에 되살리기 (넓은 화면만)
+    if (tag === 'desk') {
+      const [bdl] = await Promise.all([p.waitForEvent('download', { timeout: 30000 }), p.click('#backup-all')]);
+      const bpath = path.join(TMP, 'backup.json');
+      await bdl.saveAs(bpath);
+      const c2 = await b.newContext({ viewport: { width: w, height: hgt } });
+      const p2 = await c2.newPage();
+      p2.on('pageerror', (e) => errs.push('restore ' + e.message));
+      await p2.goto('file://' + path.join(__dirname, '..', 'dist', 'index.html'));
+      await p2.waitForSelector('.tab');
+      await p2.setInputFiles('#import-song', bpath);
+      await p2.waitForSelector('.toast:has-text("되살렸어요"), #toast:has-text("되살렸어요")', { timeout: 15000 }).catch(() => {});
+      const restoredSongs = await p2.locator('.song-item:has-text("Midnight Signal")').count();
+      const restoredExample = await p2.locator('.song-meta:text-is("예시")').count(); // 빈 브라우저의 예시 자리 곡은 빠져야 함
+      global.backupInfo = { name: bdl.suggestedFilename(), restoredSongs, restoredExample, toast: await p2.textContent('#toast') };
+      global.backupOk = /^kpop-backup-\d{8}-\d{4}\.json$/.test(bdl.suggestedFilename()) && restoredSongs >= 2 && restoredExample === 0;
+      await c2.close();
+    }
     console.log(tag, { custom, prog, before, after, refs, masterPill, takeBest: global.takeBest, sync: global.syncInfo, stepHint, autoMaster, keptMaster, keptCover, errorsLeft, zip: fs.statSync(zipPath).size, vbodyStart: vbody.slice(0, 30), vcount });
     await c.close();
   }
@@ -167,6 +185,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
   if (!global.albumUndoOk) errs.push('앨범 되돌리기 안 됨');
   if (!global.syncOk) errs.push('싱크 가사 맞추기 안 됨');
   if (!global.navOk) errs.push('폰 목록 접기 이상');
+  if (!global.backupOk) errs.push(`백업·복원 이상: ${JSON.stringify(global.backupInfo)}`);
   if (!global.zipLrc) errs.push('제출 패키지에 .lrc 없음');
   if (global.takeBest !== undefined && global.takeBest !== 'master-14') errs.push(`테이크 비교 결과 이상: ${global.takeBest}`);
   if (!global.keysOk) errs.push('피아노롤 키보드 안 됨');

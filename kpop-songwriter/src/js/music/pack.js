@@ -101,6 +101,26 @@ export function zip(files) {
   return new Blob([...parts, ...central, new Uint8Array(end.buffer)]);
 }
 
+// 이 앱이 만든 zip(압축 없음) 읽기. 반환: [{ name, data: Uint8Array }]. 압축된 항목은 건너뛴다.
+export function unzip(bytes) {
+  const u8 = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+  const v = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+  const dec = new TextDecoder();
+  const out = [];
+  let o = 0;
+  while (o + 30 <= u8.length && v.getUint32(o, true) === 0x04034b50) {
+    const method = v.getUint16(o + 8, true);
+    const size = v.getUint32(o + 18, true);
+    const nameLen = v.getUint16(o + 26, true);
+    const extraLen = v.getUint16(o + 28, true);
+    const start = o + 30 + nameLen + extraLen;
+    if (start + size > u8.length) break;
+    if (method === 0) out.push({ name: dec.decode(u8.subarray(o + 30, o + 30 + nameLen)), data: u8.slice(start, start + size) });
+    o = start + size;
+  }
+  return out;
+}
+
 // 큰 파일용 zip: data가 Blob이면 메모리로 복사하지 않고 그대로 이어 붙인다 (마스터 WAV 여러 개).
 // files: [{name, data: Uint8Array | string | Blob}], onProgress(읽은 바이트, 전체 바이트)
 export async function zipAsync(files, onProgress = () => {}) {
