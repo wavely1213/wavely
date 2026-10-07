@@ -137,6 +137,11 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     await p.waitForSelector('.tab:text-is("수록곡")');
     const autoMaster = await p.locator('.pill:has-text("마스터링 탭 결과")').count();
     global.autoOk = (global.autoOk ?? true) && autoMaster === 1;
+    // 앨범 진행 단계: 처음엔 정보·크레딧이 다음 (마스터는 이미 연결됨), '하러 가기'로 그 탭
+    global.albumStep1 = await p.textContent('#album-step-hint strong');
+    await p.click('#album-step-go');
+    global.albumStepTab = await p.textContent('.tab.on');
+    await p.click('.tab:text-is("수록곡")');
     // 앨범 되돌리기: 트랙 빼기 → ↶ → 트랙과 마스터가 그대로 돌아옴
     await p.click('button[aria-label="앨범에서 빼기"]');
     const tracksGone = await p.locator('button[aria-label="앨범에서 빼기"]').count();
@@ -190,6 +195,8 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     const zipPath = path.join(TMP, `${tag}-release.zip`);
     await download.saveAs(zipPath);
     global.zipLrc = (global.zipLrc ?? true) && fs.readFileSync(zipPath).includes(Buffer.from('.lrc'));
+    await p.waitForTimeout(300);
+    global.albumStep2 = await p.textContent('#album-step-hint strong');
     global.splitOk = (global.splitOk ?? true) && global.splitSum === '합 100%' && fs.readFileSync(zipPath).includes(Buffer.from('하늘,70')) === false && fs.readFileSync(zipPath).includes(Buffer.from('물결,70')) && fs.readFileSync(zipPath).includes(Buffer.from('하늘,30'));
     // 가사집: 제출 패키지에 booklet.html, 따로 받기도 됨 → 열어서 화면 확인
     const [bkDl] = await Promise.all([p.waitForEvent('download', { timeout: 30000 }), p.click('#booklet-download')]);
@@ -242,7 +249,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
       global.backupOk = /^kpop-backup-\d{8}-\d{4}\.json$/.test(bdl.suggestedFilename()) && restoredSongs >= 2 && restoredExample === 0;
       await c2.close();
     }
-    console.log(tag, { custom, prog, before, after, refs, masterPill, sylOk: global.sylOk, hlRange: global.hlRange, takeBest: global.takeBest, toneNote: global.toneNote, sync: global.syncInfo, stepHint, autoMaster, keptMaster, keptCover, errorsLeft, zip: fs.statSync(zipPath).size, vbodyStart: vbody.slice(0, 30), vcount });
+    console.log(tag, { custom, prog, before, after, refs, masterPill, albumSteps: [global.albumStep1, global.albumStepTab, global.albumStep2], sylOk: global.sylOk, hlRange: global.hlRange, takeBest: global.takeBest, toneNote: global.toneNote, sync: global.syncInfo, stepHint, autoMaster, keptMaster, keptCover, errorsLeft, zip: fs.statSync(zipPath).size, vbodyStart: vbody.slice(0, 30), vcount });
     await c.close();
   }
   // 태블릿 세로(834px, 목록이 옆에 있는 가장 좁은 폭): 어떤 탭을 골라도 그 탭이 탭 줄 안에 보임
@@ -266,6 +273,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
   if (!global.icsOk) errs.push('캘린더 파일 이상');
   if (!global.diffSame) errs.push('버전 비교 이상');
   if (!global.qcOk) errs.push('소리 점검(QC) 표시 이상');
+  if (global.albumStep1 !== '다음: 정보·크레딧' || global.albumStepTab !== '정보·크레딧' || global.albumStep2 !== '다음: 발매 후 기록') errs.push(`앨범 진행 단계 이상: ${global.albumStep1} / ${global.albumStepTab} / ${global.albumStep2}`);
   if (global.sylOk !== true) errs.push('가사 음절 넣기 이상');
   if (!global.statOk) errs.push('성과 기록 이상');
   if (!global.bookletOk) errs.push('가사집 이상');

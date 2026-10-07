@@ -1,6 +1,6 @@
 // 앨범 > 제출: 발매 전 점검표 + 유통사 제출 패키지(zip) 받기 + 가사집.
 import { h, toast } from '../../dom.js';
-import { refresh, getState, setAlbumTab, selectSong, setTab } from '../../state.js';
+import { refresh, getState, setAlbumTab, selectSong, setTab, mutateAlbumById } from '../../state.js';
 import { releaseChecklist } from '../../album/model.js';
 import { buildReleasePackage } from '../../album/release.js';
 import { mastersOf, coverOf, fillFromSongMasters } from '../../album/session.js';
@@ -24,7 +24,7 @@ async function download(album) {
     ui.busy = '저장 확인 창을 확인해 주세요';
     refresh();
     const res = await saveFile(filename, blob);
-    if (res === 'saved') toast('받았어요');
+    if (res === 'saved') { toast('받았어요'); mutateAlbumById(album.id, (a) => { a.submittedAt = Date.now(); }); }
     else if (res === 'unavailable') toast('이 화면에서는 파일을 받을 수 없어요');
   } catch {
     toast('패키지를 만들지 못했어요. 다시 눌러 주세요');

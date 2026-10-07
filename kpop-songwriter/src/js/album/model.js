@@ -34,6 +34,7 @@ export function newAlbum() {
     cover: { template: 'gradient', palette: 0, subtitle: '' },
     schedule: {},
     promo: { intro: '', tracks: {}, sns: [], hashtags: '', pitch: '', pitchKo: '' },
+    submittedAt: 0, // 제출 패키지를 마지막으로 받은 때 (진행 단계용)
     stats: [], // 발매 후 성과 기록 [{ date, plays: { songId: 누적 재생 수 } }]
     createdAt: Date.now(),
     updatedAt: Date.now(),

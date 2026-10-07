@@ -9,7 +9,8 @@ import { renderSchedule, renderPromo } from './plan.js';
 import { renderSubmit } from './submit.js';
 import { renderSync, syncSongId } from './sync.js';
 import { renderStats } from './stats.js';
-import { restoreAlbum, forgetAlbum } from '../../album/session.js';
+import { restoreAlbum, forgetAlbum, mastersOf, coverOf, fillFromSongMasters } from '../../album/session.js';
+import { albumProgress } from '../../workflow/album-progress.js';
 import { undoButtons } from '../undo-buttons.js';
 
 const TABS = [
@@ -24,6 +25,22 @@ const TABS = [
 ];
 
 const ui = { confirmDelete: '' };
+
+// 발매까지 단계 + 다음 할 일 (곡 화면의 진행 단계와 같은 모양)
+function renderAlbumProgress(album) {
+  const { songs } = getState();
+  fillFromSongMasters(album);
+  const { steps, next } = albumProgress(album, songs, { masters: mastersOf(album.id), coverInfo: coverOf(album.id) });
+  return h('section', { class: 'progress-steps', 'aria-label': '앨범 발매 진행 상황' },
+    h('ol', { class: 'steps-row' }, steps.map((s, i) => h('li', null,
+      h('button', { type: 'button', class: `step${s.done ? ' done' : ''}${next?.id === s.id ? ' next' : ''}`, 'aria-current': next?.id === s.id ? 'step' : null, onclick: () => setAlbumTab(s.tab) },
+        h('span', { class: 'step-mark', 'aria-hidden': 'true' }, s.done ? '✓' : String(i + 1)),
+        s.name)))),
+    next
+      ? h('p', { class: 'step-hint', id: 'album-step-hint' }, h('strong', null, `다음: ${next.name}`), ` — ${next.hint} `,
+        h('button', { type: 'button', class: 'btn small primary', id: 'album-step-go', onclick: () => setAlbumTab(next.tab) }, '하러 가기'))
+      : h('p', { class: 'step-hint', id: 'album-step-hint' }, h('strong', null, '모든 단계 완료'), ' — 발매 후 기록까지 했어요.'));
+}
 
 export function renderAlbum(album, saveLabel) {
   const st = getState();
@@ -45,6 +62,7 @@ export function renderAlbum(album, saveLabel) {
             h('button', { type: 'button', class: 'btn danger', onclick: () => { ui.confirmDelete = ''; forgetAlbum(album.id); deleteAlbum(album.id); } }, '삭제'),
             h('button', { type: 'button', class: 'btn ghost', onclick: () => { ui.confirmDelete = ''; refresh(); } }, '취소')]
           : h('button', { type: 'button', class: 'btn ghost', onclick: () => { ui.confirmDelete = album.id; refresh(); } }, '앨범 삭제'))),
+    renderAlbumProgress(album),
     h('div', { class: 'tabs-wrap' },
       h('div', { class: 'tabs', role: 'tablist' }, TABS.map(([key, label]) => h('button', {
         type: 'button', role: 'tab', class: `tab${key === st.albumTab ? ' on' : ''}`,

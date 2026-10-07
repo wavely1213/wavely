@@ -54,3 +54,32 @@ console.log('workflow OK');
   console.log('ideas OK');
 }
 
+
+// 앨범 진행 단계: 빈 앨범 → 수록곡부터, 다 채우면 제출 패키지, 받으면 발매 후 기록, 기록하면 모두 완료
+{
+  const { albumProgress } = await import('../src/js/workflow/album-progress.js');
+  const { newAlbum, newTrack } = await import('../src/js/album/model.js');
+  const { exampleSong } = await import('../src/js/example.js');
+  const { normalizeMusic } = await import('../src/js/music/arrangement.js');
+  const song = normalizeMusic(exampleSong());
+  const today = new Date(2026, 9, 7);
+  const al = { ...newAlbum(), title: '새 앨범', artist: '', releaseDate: '2026-12-01' };
+  let p = albumProgress(al, [song], { today });
+  assert.equal(p.next.id, 'tracks');
+  al.title = 'Midnight Signal'; al.artist = '물결'; al.cLine = '2026 물결'; al.pLine = '2026 물결';
+  al.tracks = [{ ...newTrack(song.id), isTitle: true, lyricists: '물결', composers: '물결', arrangers: '물결' }];
+  p = albumProgress(al, [song], { today });
+  assert.equal(p.next.id, 'tracks', '마스터가 없으면 아직 수록곡 단계');
+  const masters = { [song.id]: { name: 'a.wav', sampleRate: 44100, bits: 24, format: 1, channels: 2, lufs: -14, peak: -1, duration: 200 } };
+  p = albumProgress(al, [song], { masters, today });
+  assert.equal(p.next.id, 'cover');
+  p = albumProgress(al, [song], { masters, coverInfo: { width: 3000, height: 3000 }, today });
+  assert.equal(p.next.id, 'package', '점검 통과 → 제출 패키지');
+  al.submittedAt = Date.now();
+  p = albumProgress(al, [song], { masters, coverInfo: { width: 3000, height: 3000 }, today });
+  assert.equal(p.next.id, 'after');
+  assert.ok(p.next.hint.includes('D-55'));
+  al.stats = [{ date: '2026-12-08', plays: { [song.id]: 10 } }];
+  assert.equal(albumProgress(al, [song], { masters, coverInfo: { width: 3000, height: 3000 }, today }).next, null);
+  console.log('album progress OK');
+}
