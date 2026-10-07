@@ -62,7 +62,7 @@ export async function buildPackage(song, { includeWav, lyricOpts, onStep }) {
     onStep('WAV 저장 중');
     files.push({ name: `${name}/demo.wav`, data: encodeWav(buf) });
   }
-  const { versions, ...project } = song;
+  const { versions, memo, ...project } = song; // 작업 메모는 나만 보는 것이라 공유하는 패키지엔 넣지 않음
   files.push({ name: `${name}/project.json`, data: JSON.stringify(project, null, 1) });
   files.push({ name: `${name}/README.txt`, data: guide(song) });
   return { blob: zip(files), filename: `${name}.zip` };

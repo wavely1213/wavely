@@ -2,7 +2,7 @@
 import { scoreSong } from '../optimize/lyricscore.js';
 import { INSTRUMENTAL_TYPES } from '../constants.js';
 import { releaseChecklist } from '../album/model.js';
-import { mastersOf, coverOf, songMaster } from '../album/session.js';
+import { mastersOf, coverOf, songMaster, sessionRev } from '../album/session.js';
 
 export const STEPS = [
   { id: 'concept', name: '컨셉', tab: 'concept' },
@@ -47,12 +47,13 @@ export function songProgress(song, { albums = [], songs = [] } = {}) {
 }
 
 // 곡 목록에 보일 "끝난 단계 수". 가사 채점·점검표가 들어 있어 곡이 많으면 무거우므로,
-// 곡·앨범 수정 시각과 마스터·커버 유무가 같으면 지난 값을 쓴다.
+// 결과에 영향을 주는 것(이 곡·앨범·같은 앨범 다른 곡의 수정 시각, 마스터·커버 변경 번호, 취향 기록 — 가사 채점 기준)이 같으면 지난 값을 쓴다.
 const countCache = new Map();
-export function progressCount(song, { albums = [], songs = [] } = {}) {
+export function progressCount(song, { albums = [], songs = [], taste = null } = {}) {
   const album = albums.find((a) => a.tracks.some((t) => t.songId === song.id));
-  const key = [song.updatedAt, album?.id, album?.updatedAt, !!songMaster(song.id),
-    album ? !!mastersOf(album.id)[song.id] : '', album ? !!coverOf(album.id) : ''].join('|');
+  const others = album ? album.tracks.map((t) => songs.find((x) => x.id === t.songId)?.updatedAt || 0).join(',') : '';
+  const log = taste?.log || [];
+  const key = [song.updatedAt, album?.id, album?.updatedAt, others, sessionRev(), log.length, log[log.length - 1]?.id].join('|');
   const hit = countCache.get(song.id);
   if (hit?.key === key) return hit.done;
   const done = songProgress(song, { albums, songs }).steps.filter((s) => s.done).length;

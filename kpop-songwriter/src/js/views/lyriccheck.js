@@ -22,7 +22,7 @@ export function renderLyricCheck(song) {
     h('ol', { class: 'check-lines' }, lines.map((l, i) => h('li', null,
       h('button', {
         type: 'button', class: `check-line${ok.has(i) ? ' ok' : off.has(i) ? ' off' : ''}`, id: `lc-line-${i}`,
-        'aria-pressed': ok.has(i) ? 'true' : 'false', 'aria-label': `${l} — ${ok.has(i) ? '맞게 불렀음' : off.has(i) ? '다르게 불렀음' : '표시 없음'}`,
+        'aria-label': `${l} — ${ok.has(i) ? '맞게 불렀음' : off.has(i) ? '다르게 불렀음' : '표시 없음'}`,
         // 줄마다 되돌리기 단계가 쌓이지 않게 'quiet'로 저장하고 화면은 바로 다시 그림
         onclick: () => { mutateSong(song.id, (x) => cycleLine(x, i), 'quiet'); refresh(); },
       }, h('span', { class: 'check-mark', 'aria-hidden': 'true' }, ok.has(i) ? '✓' : off.has(i) ? '✗' : '·'), l)))),

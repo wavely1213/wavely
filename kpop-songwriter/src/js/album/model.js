@@ -48,12 +48,16 @@ export function newAlbum() {
 // 새 앨범에 지난 앨범의 아티스트 정보를 이어받는다 (아티스트명·레이블·장르·언어·©/℗·AI 표기).
 // ©/℗ 표기는 "올해 이름"으로: 앞의 기호(© ℗ (c) (p))·연도(범위 포함)와 끝에 붙은 최근 연도를 떼고 올해를 앞에 붙인다.
 // 제목·발매일·UPC·수록곡·커버·일정·홍보는 앨범마다 다르므로 그대로 둔다.
-const LEAD = /^\s*(?:[©℗]|\([cp]\))?\s*(?:\d{4}(?:\s*[-–]\s*\d{4})?)?[\s,.]*/i;
+const MARKS = /^\s*(?:(?:[©℗Ⓟ&]|\([cp]\))\s*)*/i;
+const LEAD_YEAR = /^(?:19|20)\d{2}(?:\s*[-–~]\s*(?:19|20)\d{2})?[\s,.]*/;
 export function lineName(line, year = new Date().getFullYear()) {
-  let name = String(line || '').replace(LEAD, '').trim();
-  // 끝의 연도는 최근 것(±10년)만 뗀다 — "Studio 1984" 같은 이름은 둔다
-  const tail = name.match(/[\s,]*(\d{4})$/);
-  if (tail && Math.abs(Number(tail[1]) - year) <= 10 && tail.index > 0) name = name.slice(0, tail.index).trim();
+  const rest = String(line || '').replace(MARKS, '');
+  let name = rest.replace(LEAD_YEAR, '').trim();
+  // 앞에 연도가 없었을 때만, 빈칸·쉼표 뒤 끝의 최근 연도(±10년)를 뗀다 — "스튜디오2020"·"Studio 1984"·"1004 Music"은 둔다
+  if (name === rest.trim()) {
+    const tail = name.match(/[\s,]+((?:19|20)\d{2})$/);
+    if (tail && Math.abs(Number(tail[1]) - year) <= 10) name = name.slice(0, tail.index).trim();
+  }
   return name;
 }
 export function inheritAlbumInfo(album, prev, year = new Date().getFullYear()) {

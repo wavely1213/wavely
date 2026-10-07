@@ -22,18 +22,17 @@ function findLine(songId, sectionId, line, at) {
   return best;
 }
 
-// 되돌리기(↶)로 바꾼 자리(j)에 원래 줄이 돌아오면 그 선택 기록을 지우고, 다시 하기(↷)로 고른 줄이 돌아오면 되살린다.
+// 되돌리기(↶)로 섹션 가사가 바꾸기 직전(before)과 똑같아지면 그 선택 기록을 지우고,
+// 다시 하기(↷)로 바꾼 직후(after)와 똑같아지면 되살린다 — 지울 때 기록에 실제로 있던 것만 (사용자가 지운 기록은 그대로 둠).
 // 다시 그릴 때마다 확인하고, 취향 저장은 그리기가 끝난 뒤에.
 function syncPicks(s, st) {
-  const rows = s.text.split('\n').map((r) => r.trim());
   st.picks.forEach((p) => {
-    const now = rows[p.j];
-    if (!p.removed && now === p.old) {
+    if (!p.removed && s.text === p.before) {
       p.removed = true;
-      queueMicrotask(() => mutateTaste((t) => removeEntry(t, p.entry.id), 'quiet'));
-    } else if (p.removed && now === p.opt) {
+      queueMicrotask(() => mutateTaste((t) => { p.had = t.log.some((e) => e.id === p.entry.id); removeEntry(t, p.entry.id); }, 'quiet'));
+    } else if (p.removed && s.text === p.after) {
       p.removed = false;
-      queueMicrotask(() => mutateTaste((t) => addEntry(t, p.entry), 'quiet'));
+      if (p.had) queueMicrotask(() => mutateTaste((t) => addEntry(t, p.entry), 'quiet'));
     }
   });
 }
@@ -76,14 +75,18 @@ export function lineSwapPanel(song, s) {
     const rejected = [old, ...st.options.filter((o) => o !== opt)];
     // line: true — 섹션 전체 예시가 아니라 "특히 좋다고 고른 줄"로 프롬프트에 들어가게
     const entry = makeEntry({ kind: 'lyrics', rating: 1, text: opt, context: { ref: `line:${s.id}:${Date.now()}`, song: song.title, section: s.type, line: true, rejected } });
+    let before = '';
+    let after = '';
     mutateSong(song.id, (x) => {
       const sec = x.sections.find((y) => y.id === s.id);
+      before = sec.text;
       const rows = sec.text.split('\n');
       rows[j] = rows[j].replace(old, () => opt); // 줄 앞뒤 빈칸은 그대로
       sec.text = rows.join('\n');
+      after = sec.text;
     });
     mutateTaste((t) => addEntry(t, entry));
-    st.picks = [...st.picks, { entry, j, old, opt, removed: false }].slice(-MAX_PICKS);
+    st.picks = [...st.picks, { entry, before, after, removed: false }].slice(-MAX_PICKS);
     st.options = [];
     st.index = j;
     toast('줄을 바꿨어요. ↶로 되돌릴 수 있고, 고른 것은 취향에 배워요');

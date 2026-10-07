@@ -6,6 +6,9 @@ const masters = {}; // albumId → { songId → { file, name, sampleRate, bits, 
 const covers = {}; // albumId → { blob, url, width, height, source: 'template' | 'upload', name? }
 const songMasters = {}; // songId → 마스터링 탭 결과 (앨범 트랙에 자동 연결)
 const restored = new Set();
+// 마스터·커버가 바뀔 때마다 올라가는 번호 (이걸로 계산한 값을 캐시하는 곳이 다시 계산하게)
+let rev = 0;
+export const sessionRev = () => rev;
 
 export function mastersOf(albumId) {
   if (!masters[albumId]) masters[albumId] = {};
@@ -13,6 +16,7 @@ export function mastersOf(albumId) {
 }
 
 export function setMaster(albumId, songId, info) {
+  rev += 1;
   mastersOf(albumId)[songId] = info;
   putFile(`master:${albumId}:${songId}`, info);
 }
@@ -31,6 +35,7 @@ export async function coverBitmap(albumId) {
 }
 
 export function setCover(albumId, cover) {
+  rev += 1;
   if (covers[albumId]?.url) URL.revokeObjectURL(covers[albumId].url);
   covers[albumId] = cover ? { ...cover, url: URL.createObjectURL(cover.blob) } : null;
   if (cover) putFile(`cover:${albumId}`, { blob: cover.blob, width: cover.width, height: cover.height, source: cover.source, name: cover.name || '', drawnWith: cover.drawnWith || null });
@@ -38,6 +43,7 @@ export function setCover(albumId, cover) {
 }
 
 export function setSongMaster(songId, info) {
+  rev += 1;
   songMasters[songId] = info;
   putFile(`songmaster:${songId}`, info);
 }
@@ -71,10 +77,12 @@ export async function restoreAlbum(album) {
     const m = await getFile(`master:${album.id}:${t.songId}`) || await getFile(`songmaster:${t.songId}`);
     if (m?.file) { mastersOf(album.id)[t.songId] = m; changed = true; }
   }
+  if (changed) rev += 1;
   return changed;
 }
 
 export function forgetAlbum(albumId) {
+  rev += 1;
   Object.keys(mastersOf(albumId)).forEach((songId) => deleteFile(`master:${albumId}:${songId}`));
   // 이번에 불러오지 않은(앨범에서 뺀 곡의) 보관 파일까지 지운다
   listKeys(`master:${albumId}:`).then((keys) => keys.forEach((k) => deleteFile(k)));
@@ -85,6 +93,7 @@ export function forgetAlbum(albumId) {
 
 // 곡을 지울 때: 그 곡의 마스터링 결과와 앨범별 마스터 보관 파일을 지운다
 export function forgetSong(songId, albumIds = []) {
+  rev += 1;
   delete songMasters[songId];
   deleteFile(`songmaster:${songId}`);
   albumIds.forEach((aid) => forgetTrack(aid, songId));
@@ -92,6 +101,7 @@ export function forgetSong(songId, albumIds = []) {
 
 // 앨범에서 트랙을 뺄 때
 export function forgetTrack(albumId, songId) {
+  rev += 1;
   delete mastersOf(albumId)[songId];
   deleteFile(`master:${albumId}:${songId}`);
 }
@@ -103,6 +113,6 @@ export async function restoreSong(songId) {
   restoredSongs.add(songId);
   if (songMasters[songId]) return false;
   const m = await getFile(`songmaster:${songId}`);
-  if (m?.file) { songMasters[songId] = m; return true; }
+  if (m?.file) { songMasters[songId] = m; rev += 1; return true; }
   return false;
 }

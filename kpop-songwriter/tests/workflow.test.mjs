@@ -93,3 +93,29 @@ console.log('workflow OK');
   assert.equal(albumProgress(al, [song], { masters, coverInfo: { width: 3000, height: 3000 }, today }).next, null);
   console.log('album progress OK');
 }
+
+// 곡 목록 진행 단계 수(캐시)가 마스터·커버·다른 트랙·취향 기록이 바뀌면 다시 계산됨 — 늘 songProgress와 같아야 함
+import { progressCount } from '../src/js/workflow/progress.js';
+import { setMaster, setCover } from '../src/js/album/session.js';
+{
+  // (Node의 URL.createObjectURL은 진짜 Blob만 받으므로 커버에 Blob을 넣는다)
+  const a = normalizeMusic(exampleSong());
+  const b = normalizeMusic(exampleSong());
+  a.concept.theme = 'A'; b.concept.theme = 'B';
+  a.progress = { arranged: true, suno: true }; b.progress = { arranged: true, suno: true };
+  const al = { ...newAlbum(), title: 'Two', artist: 'Y', cLine: '2026 Y', pLine: '2026 Y', releaseDate: '2026-12-20', tracks: [{ ...newTrack(a.id), isTitle: true, lyricists: 'Y', composers: 'Y' }, { ...newTrack(b.id), lyricists: 'Y', composers: 'Y' }] };
+  const ctx = { albums: [al], songs: [a, b], taste: { log: [] } };
+  const truth = () => songProgress(a, ctx).steps.filter((s) => s.done).length;
+  const wav = { file: {}, name: 'a.wav', sampleRate: 44100, bits: 24, format: 1, channels: 2, lufs: -14, peak: -1, duration: 100 };
+  setMaster(al.id, a.id, wav);
+  assert.equal(progressCount(a, ctx), truth());
+  setMaster(al.id, b.id, wav); // 다른 트랙 마스터
+  assert.equal(progressCount(a, ctx), truth());
+  setCover(al.id, { blob: new Blob(['x']), width: 3000, height: 3000, source: 'template' });
+  assert.equal(progressCount(a, ctx), truth());
+  b.updatedAt += 1; b.sections.forEach((s) => { s.text = ''; }); // 다른 트랙 가사가 비면 점검표 결과가 바뀔 수 있음
+  assert.equal(progressCount(a, ctx), truth());
+  ctx.taste.log.push({ id: 'x', at: 1, kind: 'lyrics', rating: 1, text: '가 나 다', reasons: [], context: {} });
+  assert.equal(progressCount(a, ctx), truth());
+  console.log('progress count cache OK');
+}
