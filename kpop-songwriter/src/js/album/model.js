@@ -2,6 +2,7 @@
 import { uid } from '../dom.js';
 import { syncStatus } from './lrc.js';
 import { similarityStatus } from '../optimize/similarity.js';
+import { splitsFor, splitIssues } from './splits.js';
 
 export const ALBUM_TYPES = {
   single: { name: '싱글', min: 1, max: 3 },
@@ -38,7 +39,7 @@ export function newAlbum() {
 }
 
 export function newTrack(songId) {
-  return { songId, isTitle: false, isrc: '', lyricists: '', composers: '', arrangers: '', featuring: '', explicit: false };
+  return { songId, isTitle: false, isrc: '', lyricists: '', composers: '', arrangers: '', featuring: '', explicit: false, splits: {} };
 }
 
 export function normalizeAlbum(a) {
@@ -129,6 +130,9 @@ export function releaseChecklist(album, songs, { masters = {}, coverInfo = null,
     if (!t.lyricists.trim()) add('error', `${n}: 작사 크레딧이 비어 있어요.`, { tab: 'meta' });
     if (t.isrc.trim() && !ISRC.test(t.isrc.replace(/[\s-]/g, '').toUpperCase())) add('warn', `${n}: ISRC 형식이 아니에요 (예: KR-A01-26-00001, 12자리).`, { tab: 'meta' });
     if (!t.composers.trim()) add('error', `${n}: 작곡 크레딧이 비어 있어요.`, { tab: 'meta' });
+    splitIssues(t).forEach((r) => add('warn', `${n}: ${r.name} 지분 합이 ${r.sum}%예요. 100%가 되게 맞춰 주세요.`, { tab: 'meta' }));
+    const shared = splitsFor(t).filter((r) => r.people.length > 1 && !r.custom).map((r) => r.name);
+    if (shared.length) add('info', `${n}: ${shared.join('·')}을 여럿이 했는데 지분을 안 적어 똑같이 나눈 것으로 적었어요. 합의한 비율이 다르면 정보·크레딧에서 고치세요.`, { tab: 'meta' });
     if (!song.sections.some((s) => s.text.trim())) add('warn', `${n}: 가사가 없어요 (연주곡이면 무시).`, { song: song.id, tab: 'editor' });
     const m = masters[t.songId];
     const sim = similarityStatus(song);

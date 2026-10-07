@@ -2,9 +2,34 @@
 import { h, field, afterBlur } from '../../dom.js';
 import { mutateAlbum, getState } from '../../state.js';
 import { help } from '../../help.js';
+import { splitsFor } from '../../album/splits.js';
 
 const LANGUAGES = ['한국어', '영어', '한국어·영어', '일본어', '연주곡(가사 없음)'];
 const GENRES = ['K-Pop', 'Pop', 'Dance', 'R&B/Soul', 'Hip-Hop/Rap', 'Ballad', 'Electronic', 'Rock', 'Indie'];
+
+// 여러 명이 한 역할(작사·작곡·편곡)은 지분 %를 적는다. 안 적으면 똑같이 나눈 것으로 본다.
+function renderSplits(t, i) {
+  const roles = splitsFor(t).filter((r) => r.people.length > 1);
+  if (!roles.length) return null;
+  // 칸을 벗어난 뒤 다시 그린다 (afterBlur는 이벤트를 넘기지 않으므로 값을 먼저 읽어 둠)
+  const setShare = (r, name) => (e) => {
+    const v = Math.max(0, Math.min(100, Number(e.target.value) || 0));
+    afterBlur(() => mutateAlbum((a) => {
+      const cur = Object.fromEntries(r.people.map((p) => [p.name, p.share]));
+      cur[name] = v;
+      a.tracks[i].splits = { ...(a.tracks[i].splits || {}), [r.key]: cur };
+    }))();
+  };
+  return h('div', { class: 'splits' },
+    h('span', { class: 'field-label' }, '지분 (역할마다 합 100%, 저작권 신고·정산 기준)'),
+    roles.map((r) => h('div', { class: 'split-row' },
+      h('strong', null, r.name),
+      r.people.map((p, k) => h('label', { class: 'split-person' }, p.name,
+        h('input', { id: `split-${t.songId}-${r.key}-${k}`, type: 'number', min: '0', max: '100', step: '0.01', value: String(p.share), onchange: setShare(r, p.name) }), '%')),
+      h('span', { class: `mono small${Math.abs(r.sum - 100) > 0.01 ? ' over' : ' muted'}` }, `합 ${r.sum}%`),
+      r.custom ? h('button', { type: 'button', class: 'btn small ghost', onclick: () => mutateAlbum((a) => { const sp = { ...(a.tracks[i].splits || {}) }; delete sp[r.key]; a.tracks[i].splits = sp; }) }, '똑같이 나누기')
+        : h('span', { class: 'muted small' }, '똑같이 나눔'))));
+}
 
 export function renderMeta(album) {
   const { songs } = getState();
@@ -15,16 +40,18 @@ export function renderMeta(album) {
   const trackRows = album.tracks.map((t, i) => {
     const song = songs.find((s) => s.id === t.songId);
     if (!song) return null;
+    const rerender = afterBlur(() => mutateAlbum(() => {})); // 이름이 바뀌면 지분 칸이 생기거나 사라짐
     const set = (k) => (e) => mutateAlbum((a) => { a.tracks[i][k] = e.target.type === 'checkbox' ? e.target.checked : e.target.value; }, e.target.type === 'checkbox' ? 'all' : 'quiet');
     return h('article', { class: 'section' },
       h('header', { class: 'section-head' }, h('span', { class: 'tag mono' }, String(i + 1).padStart(2, '0')), h('strong', null, song.title)),
       h('div', { class: 'grid2' },
-        field('작사', h('input', { id: `lyr-${t.songId}`, value: t.lyricists, placeholder: '실명 또는 활동명, 여러 명은 쉼표', oninput: set('lyricists') })),
-        field('작곡', h('input', { id: `com-${t.songId}`, value: t.composers, placeholder: '쉼표로 구분', oninput: set('composers') })),
-        field('편곡', h('input', { id: `arr-${t.songId}`, value: t.arrangers, placeholder: '쉼표로 구분', oninput: set('arrangers') })),
+        field('작사', h('input', { id: `lyr-${t.songId}`, value: t.lyricists, placeholder: '실명 또는 활동명, 여러 명은 쉼표', oninput: set('lyricists'), onchange: rerender })),
+        field('작곡', h('input', { id: `com-${t.songId}`, value: t.composers, placeholder: '쉼표로 구분', oninput: set('composers'), onchange: rerender })),
+        field('편곡', h('input', { id: `arr-${t.songId}`, value: t.arrangers, placeholder: '쉼표로 구분', oninput: set('arrangers'), onchange: rerender })),
         field('피처링 (선택)', h('input', { id: `feat-${t.songId}`, value: t.featuring, oninput: set('featuring') })),
         field(['ISRC (유통사 발급 후) ', help('isrc')], h('input', { id: `isrc-${t.songId}`, class: 'mono', value: t.isrc, placeholder: 'KRA0X2600001', oninput: set('isrc') }))),
-      h('label', { class: 'check' }, h('input', { type: 'checkbox', id: `exp-${t.songId}`, checked: t.explicit, onchange: set('explicit') }), '19금(Explicit) 가사'));
+      h('label', { class: 'check' }, h('input', { type: 'checkbox', id: `exp-${t.songId}`, checked: t.explicit, onchange: set('explicit') }), '19금(Explicit) 가사'),
+      renderSplits(t, i));
   });
 
   return h('div', { class: 'stack' },

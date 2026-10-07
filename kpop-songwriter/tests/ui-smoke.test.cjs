@@ -139,6 +139,17 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     await p.fill('#album-artist', '물결');
     await p.press('#album-artist', 'Tab');
     await p.click('text=빈 크레딧을');
+    // 지분: 작사를 두 명으로 → 70/30으로 적기 → 합 100%
+    await p.fill('input[id^="lyr-"]', '물결, 하늘');
+    await p.press('input[id^="lyr-"]', 'Tab');
+    await p.waitForSelector('input[id^="split-"][id$="-lyric-0"]');
+    await p.fill('input[id^="split-"][id$="-lyric-0"]', '70');
+    await p.press('input[id^="split-"][id$="-lyric-0"]', 'Tab');
+    await p.waitForTimeout(100);
+    await p.fill('input[id^="split-"][id$="-lyric-1"]', '30');
+    await p.press('input[id^="split-"][id$="-lyric-1"]', 'Tab');
+    await p.waitForTimeout(100);
+    global.splitSum = await p.textContent('.split-row .mono');
     await p.click('.tab:text-is("커버")');
     await p.click('text=이 커버 쓰기');
     await p.waitForSelector('.cover-thumb', { timeout: 30000 });
@@ -169,6 +180,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     const zipPath = path.join(TMP, `${tag}-release.zip`);
     await download.saveAs(zipPath);
     global.zipLrc = (global.zipLrc ?? true) && fs.readFileSync(zipPath).includes(Buffer.from('.lrc'));
+    global.splitOk = (global.splitOk ?? true) && global.splitSum === '합 100%' && fs.readFileSync(zipPath).includes(Buffer.from('하늘,70')) === false && fs.readFileSync(zipPath).includes(Buffer.from('물결,70')) && fs.readFileSync(zipPath).includes(Buffer.from('하늘,30'));
     // 가사집: 제출 패키지에 booklet.html, 따로 받기도 됨 → 열어서 화면 확인
     const [bkDl] = await Promise.all([p.waitForEvent('download', { timeout: 30000 }), p.click('#booklet-download')]);
     const bkPath = path.join(TMP, `${tag}-booklet.html`);
@@ -234,6 +246,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
   if (!global.navOk) errs.push('폰 목록 접기 이상');
   if (!global.icsOk) errs.push('캘린더 파일 이상');
   if (!global.bookletOk) errs.push('가사집 이상');
+  if (!global.splitOk) errs.push(`지분 이상: ${global.splitSum}`);
   if (!global.hlOk) errs.push(`하이라이트 이상: ${global.hlRange}`);
   if (global.toneOk === false) errs.push(`레퍼런스 음색 맞추기 이상: ${global.toneNote}`);
   if (!global.backupOk) errs.push(`백업·복원 이상: ${JSON.stringify(global.backupInfo)}`);

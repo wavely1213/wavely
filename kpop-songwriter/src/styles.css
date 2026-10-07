@@ -409,3 +409,9 @@ input[type=radio] { accent-color: var(--accent); }
 /* AI 글·가사·파일 이름이 들어가는 버튼은 줄바꿈 (폰 가로 넘침 방지) */
 .btn.wrap { white-space: normal; text-align: left; overflow-wrap: anywhere; max-width: 100%; }
 .highlight { display: grid; gap: 8px; padding-top: 12px; border-top: 1px solid var(--line); }
+
+/* 지분 */
+.splits { display: grid; gap: 6px; padding-top: 8px; border-top: 1px dashed var(--line); }
+.split-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.split-person { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; }
+.split-person input { width: 76px; }

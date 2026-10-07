@@ -226,3 +226,26 @@ import { extOf } from '../src/js/album/model.js';
   assert.ok(bookletHtml(al, [song], 'data:image/jpeg;base64,AAAA').includes('<img src="data:image/jpeg;base64,AAAA"'));
   console.log('booklet OK');
 }
+
+// 지분: 이름 나누기, 똑같이 나누기(합 100), 직접 적은 비율, 합 경고·안 적음 참고, 시트 CSV
+{
+  const { names, equalShares, splitsFor, splitIssues, splitRows } = await import('../src/js/album/splits.js');
+  assert.deepEqual(names('A, B & C·D / A and E'), ['A', 'B', 'C', 'D', 'E']);
+  assert.equal(equalShares(['a', 'b', 'c']).reduce((x, y) => x + y.share, 0).toFixed(2), '100.00');
+  const t = { ...newTrack(song.id), lyricists: '물결, 하늘', composers: '물결', arrangers: '바다 & 하늘 & 별', splits: { lyric: { 물결: 60, 하늘: 30 } } };
+  const sp = splitsFor(t);
+  assert.deepEqual(sp[0].people, [{ name: '물결', share: 60 }, { name: '하늘', share: 30 }]);
+  assert.equal(sp[0].sum, 90);
+  assert.deepEqual(splitIssues(t).map((r) => r.name), ['작사']);
+  assert.equal(sp[2].custom, false);
+  assert.equal(sp[2].sum, 100, '안 적으면 똑같이 (합 100)');
+  const al = { ...newAlbum(), title: 'X', artist: '물결', cLine: '2026 a', pLine: '2026 a', releaseDate: '2026-12-01', tracks: [{ ...t, isTitle: true }] };
+  const items = releaseChecklist(al, [song], { masters: { [song.id]: { name: 'a.wav', sampleRate: 44100, bits: 24, format: 1, channels: 2, lufs: -14, peak: -1, duration: 200 } }, coverInfo: { width: 3000, height: 3000 }, today });
+  assert.ok(items.some((i) => i.level === 'warn' && i.text.includes('작사 지분 합이 90%')));
+  assert.ok(items.some((i) => i.level === 'info' && i.text.includes('편곡을 여럿이')));
+  const rows = splitRows(al, [song]);
+  assert.deepEqual(rows[0], ['Track', 'Title', 'Role', 'Name', 'Share %', 'Agreed']);
+  assert.equal(rows.length, 1 + 2 + 1 + 3);
+  assert.deepEqual(rows.find((r) => r[3] === '별'), [1, '새벽 신호', '편곡', '별', 33.34, 'equal (not set)']);
+  console.log('splits OK');
+}

@@ -6,6 +6,7 @@ import { ALBUM_TYPES, scheduleFor, releaseChecklist, metadataRows, albumRows, to
 import { plainLyrics } from './lyrics.js';
 import { syncStatus, toLrc } from './lrc.js';
 import { bookletHtml, blobToDataUrl } from './booklet.js';
+import { splitRows } from './splits.js';
 
 export { plainLyrics };
 
@@ -89,6 +90,7 @@ export async function buildReleasePackage(album, songs, masters, cover, onStep =
   onStep('메타데이터 정리 중');
   files.push({ name: `${root}/metadata_tracks.csv`, data: toCsv(metadataRows({ ...album, tracks }, songs, masters)) });
   files.push({ name: `${root}/metadata_album.csv`, data: toCsv(albumRows(album)) });
+  files.push({ name: `${root}/split_sheet.csv`, data: toCsv(splitRows({ ...album, tracks }, songs)) });
   files.push({ name: `${root}/credits.txt`, data: credits({ ...album, tracks }, songs) });
   files.push({ name: `${root}/release_schedule.txt`, data: scheduleText(album) });
   const check = releaseChecklist(album, songs, { masters, coverInfo: cover });
@@ -108,6 +110,7 @@ export async function buildReleasePackage(album, songs, masters, cover, onStep =
     '- audio/: 트랙 번호 순 마스터 WAV (유통사 업로드용)',
     '- cover.jpg / cover.png: 커버 (정사각형, 3000×3000 권장)',
     '- metadata_album.csv / metadata_tracks.csv: 유통사 입력 화면에 옮겨 적을 값',
+    '- split_sheet.csv: 트랙·역할별 지분(%) — 공동 작업자와 확인 후 저작권 신고·정산에 사용',
     '- lyrics/: 트랙별 가사 .txt (플랫폼 가사 등록용), 싱크 가사 .lrc (맞춘 곡만, 가사 따라가기용)',
     '- credits.txt: 크레딧 시트, release_schedule.txt: 발매 일정, checklist.txt: 제출 전 점검 결과',
     '- booklet.html: 가사집 (브라우저로 열어 인쇄 → PDF로 저장하면 디지털 부클릿)',
