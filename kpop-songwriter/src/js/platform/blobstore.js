@@ -34,3 +34,5 @@ function run(mode, fn) {
 export const putFile = (key, value) => run('readwrite', (s) => s.put(value, key));
 export const getFile = (key) => run('readonly', (s) => s.get(key));
 export const deleteFile = (key) => run('readwrite', (s) => s.delete(key));
+// prefix로 시작하는 키 목록 (없거나 막혔으면 [])
+export const listKeys = (prefix) => run('readonly', (s) => s.getAllKeys(IDBKeyRange.bound(prefix, `${prefix}\uffff`))).then((v) => v || []);

@@ -1,7 +1,8 @@
 // 진입점: 저장소 열기 → 상태 초기화 → 화면 그리기.
 import { h, formatTime, toast } from './dom.js';
 import { openStore } from './store.js';
-import { init, subscribe, getState, current, currentAlbum, newSong, selectSong, setTab, deleteSong, refresh, newAlbum, selectAlbum, showTaste, importSong, undo, redo, canUndo, canRedo } from './state.js';
+import { init, subscribe, getState, current, currentAlbum, newSong, selectSong, setTab, deleteSong, refresh, newAlbum, selectAlbum, showTaste, importSong, undo, redo } from './state.js';
+import { undoButtons } from './views/undo-buttons.js';
 import { renderAlbum } from './views/album/index.js';
 import { renderTaste } from './views/taste.js';
 import { newSinceSummary, SUMMARY_EVERY } from './learn/taste.js';
@@ -96,8 +97,7 @@ function renderHeader(song) {
       h('h1', null, song.title || '제목 없음'),
       h('p', { class: 'save mono', id: 'save-status' }, saveLabel())),
     h('div', { class: 'row' },
-      h('button', { type: 'button', class: 'icon-btn', 'aria-label': '되돌리기 (Ctrl+Z)', title: '되돌리기 (Ctrl+Z)', disabled: !canUndo(song.id), onclick: () => undo(song.id) }, '↶'),
-      h('button', { type: 'button', class: 'icon-btn', 'aria-label': '다시 하기 (Ctrl+Shift+Z)', title: '다시 하기 (Ctrl+Shift+Z)', disabled: !canRedo(song.id), onclick: () => redo(song.id) }, '↷'),
+      undoButtons(song.id),
       confirming ? null : h('button', { type: 'button', class: 'btn', onclick: () => {
         const existing = getState().albums.find((a) => a.tracks.some((t) => t.songId === song.id));
         if (existing) selectAlbum(existing.id); else newAlbum({ fromSong: song });
@@ -225,7 +225,7 @@ document.addEventListener('keydown', (e) => {
   const t = e.target;
   if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
   const st = getState();
-  if (st.mode !== 'song') return;
+  if (st.mode !== 'song' && st.mode !== 'album') return;
   const k = e.key.toLowerCase();
   if (k === 'z' && !e.shiftKey) { if (undo()) e.preventDefault(); } else if ((k === 'z' && e.shiftKey) || k === 'y') { if (redo()) e.preventDefault(); }
 });

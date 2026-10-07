@@ -61,6 +61,7 @@
 | 커버 | album/cover.js | 3000×3000 템플릿 캔버스 → JPG |
 | 발매 준비 | album/release.js, album/session.js | 마스터 규격 점검, 가사지·크레딧, 제출 zip, AI 홍보 문구 |
 | 앨범 화면 | views/album/* | 수록곡·정보·커버·일정·홍보·제출 탭 |
+| 되돌리기 | state.js (undo/redo), views/undo-buttons.js | 곡·앨범마다 최근 40단계, 타이핑은 2초 묶음. 머리말 ↶↷ + Ctrl+Z |
 | 취향 학습 | learn/taste.js, learn/context.js | 반응 기록·통계·프롬프트 블록·JSONL, AI 모듈이 취향을 읽는 연결점 |
 | 반응 UI | learn/feedback.js, learn/summarize.js, views/taste.js | 👍/👎 막대, 고친 내용 추적, AI 취향 정리, 내 취향 화면 |
 | 가사 최적화 | optimize/lyricscore.js, optimize/improve.js | 섹션·곡 채점과 고칠 점, 오른 것만 반영하는 자동 개선 |

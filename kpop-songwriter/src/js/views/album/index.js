@@ -8,6 +8,7 @@ import { renderCover } from './cover.js';
 import { renderSchedule, renderPromo } from './plan.js';
 import { renderSubmit } from './submit.js';
 import { restoreAlbum, forgetAlbum } from '../../album/session.js';
+import { undoButtons } from '../undo-buttons.js';
 
 const TABS = [
   ['tracks', '수록곡', renderTracks],
@@ -34,6 +35,7 @@ export function renderAlbum(album, saveLabel) {
         h('h1', null, album.title || '새 앨범'),
         h('p', { class: 'save mono', id: 'save-status' }, saveLabel())),
       h('div', { class: 'row' },
+        undoButtons(album.id),
         confirming
           ? [h('span', { class: 'warn' }, '앨범 정보만 지워져요. 곡은 남아요.'),
             h('button', { type: 'button', class: 'btn danger', onclick: () => { ui.confirmDelete = ''; forgetAlbum(album.id); deleteAlbum(album.id); } }, '삭제'),

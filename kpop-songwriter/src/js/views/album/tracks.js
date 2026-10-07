@@ -3,7 +3,7 @@ import { h, toast } from '../../dom.js';
 import { mutateAlbum, refresh, selectSong, setTab, getState, keepSong } from '../../state.js';
 import { newTrack, ALBUM_TYPES } from '../../album/model.js';
 import { inspectMaster } from '../../album/release.js';
-import { mastersOf, setMaster, fillFromSongMasters, forgetTrack } from '../../album/session.js';
+import { mastersOf, setMaster, fillFromSongMasters } from '../../album/session.js';
 import { keyName } from '../../music/theory.js';
 
 const busy = {};
@@ -66,7 +66,7 @@ export function renderTracks(album) {
         h('span', { class: 'push' }),
         h('button', { type: 'button', class: 'icon-btn', 'aria-label': '위로', disabled: i === 0, onclick: () => move(-1) }, '↑'),
         h('button', { type: 'button', class: 'icon-btn', 'aria-label': '아래로', disabled: i === album.tracks.length - 1, onclick: () => move(1) }, '↓'),
-        h('button', { type: 'button', class: 'icon-btn', 'aria-label': '앨범에서 빼기', onclick: () => { forgetTrack(album.id, t.songId); mutateAlbum((a) => { a.tracks.splice(i, 1); }); } }, '×')),
+        h('button', { type: 'button', class: 'icon-btn', 'aria-label': '앨범에서 빼기', onclick: () => mutateAlbum((a) => { a.tracks.splice(i, 1); }) }, '×')),
       h('p', { class: 'muted' }, `${keyName(song.music.root, song.music.mode)} · ${song.music.bpm} BPM · 가사 ${filled}/${song.sections.length} 섹션`),
       h('div', { class: 'row' },
         h('label', { class: 'check' }, h('input', { type: 'radio', name: 'title-track', id: `title-${t.songId}`, checked: t.isTitle,

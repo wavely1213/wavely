@@ -121,5 +121,27 @@ assert.equal(U.music.bpm, 99, '다시 하기');
 S.mutate((s) => { s.title = '새 갈래'; });
 assert.equal(S.canRedo(), false, '새로 바꾸면 다시 하기 목록은 비워짐');
 assert.ok(Array.isArray(U.versions) && U.id, 'id·버전 목록은 유지');
+
+// 앨범 되돌리기: 앨범 화면에서는 Ctrl+Z가 앨범을 되돌린다 (곡 스택과 섞이지 않음)
+S.newAlbum({ fromSong: U });
+const AL = S.currentAlbum();
+const firstTitle = AL.title;
+const songUndoBefore = S.canUndo(U.id);
+S.mutateAlbum((a) => { a.title = '앨범 하나'; });
+S.mutateAlbum((a) => { a.tracks.splice(0, 1); });
+assert.equal(AL.tracks.length, 0);
+assert.equal(S.undo(), true, '앨범 화면 기본 대상은 앨범');
+assert.equal(AL.tracks.length, 1, '뺀 트랙 되돌림');
+assert.equal(AL.tracks[0].songId, U.id);
+S.undo();
+assert.equal(AL.title, firstTitle, '앨범 제목 되돌림');
+assert.equal(S.redo(), true);
+assert.equal(AL.title, '앨범 하나', '앨범 다시 하기');
+assert.equal(S.canUndo(U.id), songUndoBefore, '곡 되돌리기 목록은 그대로');
+S.mutateAlbum((a) => { a.promo.intro = '소개'; }, 'quiet');
+S.mutateAlbum((a) => { a.promo.intro = '소개글'; }, 'quiet');
+S.undo();
+assert.equal(AL.promo.intro, '', '앨범 타이핑도 묶어서 되돌림');
+assert.ok(AL.cover && AL.promo && Array.isArray(AL.tracks), '되돌린 뒤에도 앨범 형식 유지');
 console.log('state OK');
 process.exit(0);

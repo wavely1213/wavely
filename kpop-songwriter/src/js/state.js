@@ -165,6 +165,7 @@ export function mutateAlbum(fn, scope = 'all') {
 export function mutateAlbumById(id, fn, scope = 'all') {
   const album = state.albums.find((a) => a.id === id);
   if (!album) return;
+  remember(album, scope);
   fn(album);
   normalizeAlbum(album);
   album.updatedAt = Date.now();
@@ -195,66 +196,71 @@ export function mutate(fn, scope = 'all') {
 }
 
 // ---------- 되돌리기 ----------
-// 곡마다 바꾸기 전 상태를 쌓아 둔다 (버전 목록 제외, 최근 UNDO_MAX개). 타이핑은 2초 단위로 묶는다.
+// 곡·앨범마다 바꾸기 전 상태를 쌓아 둔다 (버전 목록 제외, 최근 UNDO_MAX개). 타이핑은 2초 단위로 묶는다.
+// 곡과 앨범은 id가 겹치지 않으므로 같은 스택 표를 쓴다.
 const UNDO_MAX = 40;
 const undoStacks = {};
 const redoStacks = {};
 const lastQuiet = {};
 
-function snapshot(song) {
-  const { versions, ...rest } = song;
+function snapshot(item) {
+  const { versions, ...rest } = item;
   return JSON.stringify(rest);
 }
 
-function remember(song, scope) {
+function remember(item, scope) {
   const now = Date.now();
   if (scope === 'quiet') {
-    if (now - (lastQuiet[song.id] || 0) < 2000) { lastQuiet[song.id] = now; return; }
-    lastQuiet[song.id] = now;
+    if (now - (lastQuiet[item.id] || 0) < 2000) { lastQuiet[item.id] = now; return; }
+    lastQuiet[item.id] = now;
   } else {
-    lastQuiet[song.id] = 0;
+    lastQuiet[item.id] = 0;
   }
-  const stack = undoStacks[song.id] || (undoStacks[song.id] = []);
-  const snap = snapshot(song);
+  const stack = undoStacks[item.id] || (undoStacks[item.id] = []);
+  const snap = snapshot(item);
   if (stack[stack.length - 1] === snap) return;
   stack.push(snap);
   if (stack.length > UNDO_MAX) stack.shift();
-  redoStacks[song.id] = [];
+  redoStacks[item.id] = [];
 }
 
-function restoreSnapshot(song, snap) {
+// 지금 화면의 대상: 앨범 화면이면 앨범, 아니면 곡
+function activeId() {
+  return state.mode === 'album' ? state.albumId : state.currentId;
+}
+
+function findItem(id) {
+  const song = state.songs.find((s) => s.id === id);
+  if (song) return { item: song, album: false };
+  const album = state.albums.find((a) => a.id === id);
+  return album ? { item: album, album: true } : null;
+}
+
+function restoreSnapshot({ item, album }, snap) {
   const data = JSON.parse(snap);
-  Object.keys(song).forEach((k) => { if (!['id', 'versions', 'createdAt'].includes(k)) delete song[k]; });
-  Object.assign(song, data, { id: song.id, versions: song.versions });
-  normalizeMusic(song);
-  song.updatedAt = Date.now();
-  schedule(song.id);
+  Object.keys(item).forEach((k) => { if (!['id', 'versions', 'createdAt'].includes(k)) delete item[k]; });
+  Object.assign(item, data, { id: item.id }, album ? {} : { versions: item.versions });
+  if (album) normalizeAlbum(item); else normalizeMusic(item);
+  item.updatedAt = Date.now();
+  schedule(item.id);
 }
 
-export function canUndo(id = state.currentId) { return !!undoStacks[id]?.length; }
-export function canRedo(id = state.currentId) { return !!redoStacks[id]?.length; }
+export function canUndo(id = activeId()) { return !!undoStacks[id]?.length; }
+export function canRedo(id = activeId()) { return !!redoStacks[id]?.length; }
 
-export function undo(id = state.currentId) {
-  const song = state.songs.find((s) => s.id === id);
-  const snap = undoStacks[id]?.pop();
-  if (!song || !snap) return false;
-  (redoStacks[id] = redoStacks[id] || []).push(snapshot(song));
-  restoreSnapshot(song, snap);
+function step(id, from, to) {
+  const found = findItem(id);
+  const snap = from[id]?.pop();
+  if (!found || !snap) return false;
+  (to[id] = to[id] || []).push(snapshot(found.item));
+  restoreSnapshot(found, snap);
   lastQuiet[id] = 0;
   emit('all');
   return true;
 }
 
-export function redo(id = state.currentId) {
-  const song = state.songs.find((s) => s.id === id);
-  const snap = redoStacks[id]?.pop();
-  if (!song || !snap) return false;
-  (undoStacks[id] = undoStacks[id] || []).push(snapshot(song));
-  restoreSnapshot(song, snap);
-  lastQuiet[id] = 0;
-  emit('all');
-  return true;
-}
+export function undo(id = activeId()) { return step(id, undoStacks, redoStacks); }
+export function redo(id = activeId()) { return step(id, redoStacks, undoStacks); }
 
 // 특정 곡을 고친다. 오래 걸리는 작업(AI·복원·분석)은 시작할 때의 곡 id로 이걸 불러야
 // 그 사이 다른 곡을 열어도 엉뚱한 곡을 덮어쓰지 않는다.

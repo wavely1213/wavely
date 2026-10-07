@@ -104,6 +104,12 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     await p.waitForSelector('.tab:text-is("수록곡")');
     const autoMaster = await p.locator('.pill:has-text("마스터링 탭 결과")').count();
     global.autoOk = (global.autoOk ?? true) && autoMaster === 1;
+    // 앨범 되돌리기: 트랙 빼기 → ↶ → 트랙과 마스터가 그대로 돌아옴
+    await p.click('button[aria-label="앨범에서 빼기"]');
+    const tracksGone = await p.locator('button[aria-label="앨범에서 빼기"]').count();
+    await p.click('button[aria-label^="되돌리기"]');
+    const masterBack = await p.locator('.pill:has-text("마스터링 탭 결과")').count();
+    global.albumUndoOk = (global.albumUndoOk ?? true) && tracksGone === 0 && masterBack === 1;
     await p.screenshot({ path: path.join(TMP, `${tag}-앨범새로.png`), fullPage: true });
     await p.click('.tab:text-is("정보·크레딧")');
     await p.fill('#album-title', 'Midnight Signal');
@@ -138,6 +144,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
   }
   if (!global.autoOk) errs.push('마스터 자동 연결 안 됨');
   if (!global.undoOk) errs.push('되돌리기·다시 하기 안 됨');
+  if (!global.albumUndoOk) errs.push('앨범 되돌리기 안 됨');
   if (global.takeBest !== undefined && global.takeBest !== 'master-14') errs.push(`테이크 비교 결과 이상: ${global.takeBest}`);
   if (!global.keysOk) errs.push('피아노롤 키보드 안 됨');
   if (!global.helpOk) errs.push('도움말 안 열림');

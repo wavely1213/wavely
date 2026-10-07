@@ -1,6 +1,6 @@
 // 앨범 작업에 쓰는 큰 데이터: 트랙별 마스터 파일, 커버 이미지, 곡별 마스터링 결과.
 // 메모리에 두고, 브라우저 IndexedDB에도 보관해 새로고침해도 남게 한다 (계정 저장소에는 올리지 않음).
-import { putFile, getFile, deleteFile } from '../platform/blobstore.js';
+import { putFile, getFile, deleteFile, listKeys } from '../platform/blobstore.js';
 
 const masters = {}; // albumId → { songId → { file, name, sampleRate, bits, lufs, peak, duration, fromTab? } }
 const covers = {}; // albumId → { blob, url, width, height, source: 'template' | 'upload', name? }
@@ -54,6 +54,9 @@ export async function restoreAlbum(album) {
   let changed = false;
   const cover = covers[album.id] ? null : await getFile(`cover:${album.id}`);
   if (cover?.blob) { covers[album.id] = { ...cover, url: URL.createObjectURL(cover.blob) }; changed = true; }
+  // 앨범에서 뺀 곡의 마스터는 되돌리기용으로 그 세션 동안만 남겨 두고, 다음에 열 때 정리한다
+  const keep = new Set(album.tracks.map((t) => `master:${album.id}:${t.songId}`));
+  (await listKeys(`master:${album.id}:`)).filter((k) => !keep.has(k)).forEach((k) => deleteFile(k));
   for (const t of album.tracks) {
     if (mastersOf(album.id)[t.songId]) continue;
     const m = await getFile(`master:${album.id}:${t.songId}`) || await getFile(`songmaster:${t.songId}`);
@@ -64,6 +67,8 @@ export async function restoreAlbum(album) {
 
 export function forgetAlbum(albumId) {
   Object.keys(mastersOf(albumId)).forEach((songId) => deleteFile(`master:${albumId}:${songId}`));
+  // 이번에 불러오지 않은(앨범에서 뺀 곡의) 보관 파일까지 지운다
+  listKeys(`master:${albumId}:`).then((keys) => keys.forEach((k) => deleteFile(k)));
   deleteFile(`cover:${albumId}`);
   delete masters[albumId];
   delete covers[albumId];
