@@ -170,7 +170,8 @@ import { lyricFit } from '../src/js/lyricfit.js';
 // 곡 길이 예상: 마디 합 × 4박 / BPM, 길거나 짧으면 안내
 import { songLength, lengthNote } from '../src/js/music/length.js';
 {
-  const song = { music: { bpm: 120, sections: { a: { bars: 40 }, b: { bars: 48 } } }, sections: [{ id: 'a' }, { id: 'b' }, { id: 'gone' }] };
+  // 편곡 정보가 없는 섹션은 재생과 같이 4마디로 친다
+  const song = { music: { bpm: 120, sections: { a: { bars: 40 }, b: { bars: 44 } } }, sections: [{ id: 'a' }, { id: 'b' }, { id: 'new' }] };
   assert.deepEqual(songLength(song), { bars: 88, seconds: 176 });
   assert.equal(lengthNote(songLength(song)), '편곡 기준 길이 2:56 (88마디)');
   assert.ok(lengthNote(songLength(song, 80)).includes('길어요'), '80 BPM이면 4:24');

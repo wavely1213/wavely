@@ -24,7 +24,7 @@ import { renderReferences } from './views/references.js';
 import { renderMaster, stopMasterPreview } from './views/master.js';
 import { stopSyncAudio, syncSongId } from './views/album/sync.js';
 import { stopTransition } from './views/album/transitions.js';
-import { onPlayer, stop as stopPlayer } from './music/player.js';
+import { onPlayer, stop as stopPlayer, play as playSong, isPlaying, isLoading } from './music/player.js';
 
 const TABS = [
   ['concept', '컨셉·멤버', renderConcept],
@@ -267,6 +267,21 @@ document.addEventListener('keydown', (e) => {
   const id = album && st.albumTab === 'sync' ? syncSongId(album) || album.id : undefined;
   const k = e.key.toLowerCase();
   if (k === 'z' && !e.shiftKey) { if (undo(id)) e.preventDefault(); } else if ((k === 'z' && e.shiftKey) || k === 'y') { if (redo(id)) e.preventDefault(); }
+});
+
+// 스페이스바 = 전체 듣기/정지 (재생 막대가 있는 편곡·멜로디·사운드 탭). 글 입력·버튼·선택 칸에 있을 때는 그쪽 동작 그대로
+const PLAY_TABS = ['arrange', 'melody', 'sound'];
+document.addEventListener('keydown', (e) => {
+  if (e.key !== ' ' || e.ctrlKey || e.metaKey || e.altKey || e.shiftKey || e.repeat) return;
+  const t = e.target;
+  if (t && (/^(INPUT|TEXTAREA|SELECT|BUTTON|A|SUMMARY)$/.test(t.tagName) || t.isContentEditable || t.closest?.('[role=slider],[role=tab]'))) return;
+  const st = getState();
+  const song = current();
+  if (st.mode !== 'song' || !song || !PLAY_TABS.includes(st.tab)) return;
+  e.preventDefault();
+  if (isPlaying() || isLoading()) { stopPlayer(); refresh(); return; }
+  playSong(song, { label: '전체' }).then(() => refresh());
+  refresh();
 });
 
 subscribe((scope) => {

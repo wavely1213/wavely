@@ -1,12 +1,14 @@
 // 곡 길이 예상: 편곡의 섹션 마디 수 합 × 4박 × 60 / BPM (4/4박자). 요즘 K-pop은 대개 2분 30초~3분 30초.
 // 앱 데모·MIDI 길이이고, Suno 결과 길이는 가사 양에 따라 달라질 수 있다. 기본 구조(120 BPM 약 2분 24초)에는 경고하지 않게 2분부터 짧다고 본다.
 import { mmss } from '../timefmt.js';
+import { sectionBars } from './arrangement.js';
 
 export const SHORT = 120;
 export const LONG = 240;
 
+// 재생 막대의 전체 길이(arrangement.js songSeconds)와 같은 계산. bpm: 빠르기를 끄는 동안 미리 보기용
 export function songLength(song, bpm = song.music.bpm) {
-  const bars = song.sections.reduce((n, s) => n + (song.music.sections[s.id]?.bars || 0), 0);
+  const bars = sectionBars(song).reduce((a, b) => a + b, 0);
   return { bars, seconds: bpm ? (bars * 4 * 60) / bpm : 0 };
 }
 
