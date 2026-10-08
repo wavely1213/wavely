@@ -1,0 +1,403 @@
+// AI 흐름 점검: 가짜 Claude(window.claude)를 넣어 claude.ai 밖에서도 AI 기능 전체를 돌려 본다.
+// - 작사·훅·편곡·멜로디·스타일·홍보·취향 정리 응답이 화면에 반영되는지
+// - 👍/👎·고친 내용이 취향 기록에 쌓이고, 다음 AI 요청 프롬프트에 취향이 들어가는지
+// 실행: npm run build && npm run test:ai
+const path = require('path');
+const fs = require('fs');
+const { execSync } = require('child_process');
+const { chromium } = require(execSync('npm root -g').toString().trim() + '/playwright');
+const TMP = path.join(__dirname, '.tmp');
+fs.mkdirSync(TMP, { recursive: true });
+
+// 브라우저 안에서 실행될 가짜 Claude
+function fakeClaude() {
+  window.__prompts = [];
+  const idsAfter = (p, label) => {
+    const m = p.match(new RegExp(`${label}: (\\[[^\\]]*\\])`));
+    return m ? JSON.parse(m[1]) : [];
+  };
+  const answer = (p) => {
+    if (p.includes('섹션의 한 줄만 다르게')) return { lines: ['가짜 한 줄 A', '가짜 한 줄 B', '가짜 한 줄 A', '가짜 한 줄 C'] };
+    if (p.includes('점수가 낮은 섹션을 고친다') && window.__worse) {
+      return { sections: idsAfter(p, '가사를 쓸 섹션 id').map((id) => ({ id, lines: ['음'] })) };
+    }
+    if (p.includes('점수가 낮은 섹션을 고친다')) {
+      return { sections: idsAfter(p, '가사를 쓸 섹션 id').map((id) => ({ id, lines: ['새벽 거리 위 너를 불러', '멈춘 시계 앞 너를 불러', 'signal on 다시 불러', '이 밤 끝에 너를 불러'] })) };
+    }
+    if (p.includes('가사를 쓸 섹션 id')) {
+      return { sections: idsAfter(p, '가사를 쓸 섹션 id').map((id) => ({ id, lines: ['가짜 AI 첫 줄 너를 불러', '가짜 AI 둘째 줄 signal'] })) };
+    }
+    if (p.includes('편곡할 섹션 id')) {
+      const ids = idsAfter(p, '편곡할 섹션 id');
+      return { bpm: window.__arrBpm || 124, root: 'A', mode: 'minor', summary: '가짜 편곡 요약', sections: ids.map((id) => ({ id, bars: 4, chords: [1, 6, 3, 7], seventh: false, energy: 4, instruments: ['drums', 'b808', 'pluck', 'nope'], drum: 'trap', bass: 'halftime' })) };
+    }
+    if (p.includes('탑라이너(멜로디 작곡가)')) {
+      const ids = [...p.matchAll(/"id":"([a-z0-9]+)","이름"/g)].map((x) => x[1]);
+      return { sections: ids.map((id) => ({ id, notes: [{ s: 0, l: 4, d: 2, syl: '가' }, { s: 2, l: 2, d: 4, syl: '짜' }, { s: 8, l: 4, d: 30, syl: '멜' }] })) };
+    }
+    if (p.includes('영어 훅 후보')) return [{ hook: 'Signal on', meaning: '신호 켜', use: '코러스 첫 줄' }, { hook: 'Midnight call', meaning: '한밤의 전화', use: '프리코러스 끝' }];
+    if (p.includes('Suno 스타일 프롬프트 재료')) return { genre: 'K-pop', subgenre: 'dark trap', bpm: 140, key: 'C minor', vocals: 'airy', instruments: '808', production: 'wide', extra: 'night', exclude: 'metal', why: '가짜 이유' };
+    if (p.includes('반응 기록이다')) return { lyrics: '가짜 정리: 이미지로 감정을 보여 준다', sound: '가짜 정리: 808', avoid: '가짜 정리: 뻔한 단어', basis: '가짜 근거' };
+    if (p.includes('음원 유통 가사 검수자')) {
+      const ls = (p.split('가사 (줄마다):\n')[1] || '').split('\n').filter((l) => l.startsWith('- ')).map((l) => l.slice(2));
+      const words = ls.filter((l) => !l.startsWith('('));
+      return { items: [{ line: words[0], fixed: `${words[0]} 고침`, why: '띄어쓰기' }, { line: words[1], fixed: `${words[1]} 고침`, why: '맞춤법' }, { line: words[2], fixed: words[2] }] };
+    }
+    if (p.includes('새 곡의 컨셉을')) return { concepts: [
+      { title: '가짜 컨셉 하나', theme: '하나 주제', story: '하나 이야기', moods: ['청량'], keywords: ['a'], hook: 'One' },
+      { title: '가짜 컨셉 둘', theme: '둘 주제', story: '둘 이야기', moods: ['다크', '몽환'], keywords: ['밤', '거울'], hook: 'Mirror' },
+      { title: '가짜 컨셉 셋', theme: '셋 주제', story: '셋 이야기', moods: ['키치'], keywords: 'c', hook: '' },
+    ] };
+    if (p.includes('세 방향으로 뽑아')) return { variants: [
+      { idea: '가짜 원안', genre: 'K-pop dance pop', production: 'punchy drop' },
+      { idea: '가짜 밝게', genre: 'K-pop', subgenre: 'bright synth-pop', vocals: 'bright' },
+      { idea: '가짜 미니멀', genre: 'minimal R&B', instruments: 'sub bass, snaps' },
+    ] };
+    if (p.includes('번안 작사가')) {
+      // 줄마다 원문 음절 수만큼의 가짜 번안 (마지막 줄만 일부러 5음 길게, 애드립만 있는 줄은 괄호)
+      const src = JSON.parse(p.split('원문: ')[1].split('\n')[0]);
+      const all = src.flatMap((s) => s.줄);
+      return { sections: src.map((s) => ({ id: s.id, lines: s.줄.map((l) => {
+        const n = l.음절수 + (l === all[all.length - 1] ? 5 : 0);
+        return n ? { text: `テスト${'ラ'.repeat(n)}`.slice(0, n), kana: `てすと${'ら'.repeat(n)}`.slice(0, n) } : { text: '(オー)', kana: '(おー)' };
+      }) })) };
+    }
+    if (p.includes('음악 저작권 검토')) {
+      const first = (p.split('가사 (줄마다):\n')[1] || '').split('\n')[0].replace(/^- /, '');
+      return { summary: '가짜 점검 요약', items: [{ line: first, like: '가짜 곡 - 가짜 가수', why: '훅 구절이 같음', level: 'high', fix: '가짜 새 줄 signal' }, { line: '가사에 없는 줄', like: 'x', why: 'x', level: 'check', fix: 'x' }] };
+    }
+    if (p.includes('레이블 홍보 담당자')) return { intro: '가짜 앨범 소개', tracks: [], sns: ['가짜 공지', '가짜 티저', '가짜 하이'], hashtags: '#가짜', pitch: 'Fake pitch', pitchKo: '가'.repeat(520) };
+    return {};
+  };
+  const sample = async (input, opts = {}) => {
+    const p = typeof input === 'string' ? input : input.map((t) => t.content).join('\n');
+    window.__prompts.push(p);
+    const text = '1. 가짜 검토 결과\n2. 훅이 좋아요';
+    opts.onText?.({ text, delta: text });
+    return { text, truncated: false, modelTierApplied: 'default' };
+  };
+  sample.json = async (input) => {
+    const p = typeof input === 'string' ? input : input.map((t) => t.content).join('\n');
+    window.__prompts.push(p);
+    await new Promise((r) => setTimeout(r, window.__delay || 30));
+    return JSON.parse(JSON.stringify(answer(p)));
+  };
+  window.__saved = [];
+  window.claude = {
+    use: async (name) => {
+      if (name === 'sample') return sample;
+      if (name === 'downloads') return { save: async ({ filename }) => { window.__saved.push(filename); return { status: 'saved' }; } };
+      return null; // db·user 없음 → 브라우저 저장
+    },
+  };
+}
+
+(async () => {
+  const b = await chromium.launch();
+  const errs = [];
+  const p = await b.newPage({ viewport: { width: 1280, height: 900 } });
+  p.on('pageerror', (e) => errs.push(e.message));
+  p.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
+  await p.addInitScript(fakeClaude);
+  await p.goto('file://' + path.join(__dirname, '..', 'dist', 'index.html'));
+  await p.waitForSelector('.tab');
+  const prompts = () => p.evaluate(() => window.__prompts);
+  const taste = () => p.evaluate(() => JSON.parse(localStorage.getItem('kpop-writer-taste') || 'null'));
+  const results = {};
+
+  // 작사: Verse 다시 쓰기 → 반영 + 👎(이유) + 고치기 → 기록
+  await p.click('.tab:text-is("구조·가사")');
+  const verse = p.locator('article.section.t-verse').first();
+  await verse.locator('text=AI로 다시 쓰기').click();
+  await p.waitForFunction(() => [...document.querySelectorAll('textarea.lyrics')].some((t) => t.value.includes('가짜 AI 첫 줄')));
+  results.lyricsApplied = true;
+  await p.locator('article.section.t-verse').first().locator('text=👎 별로').click();
+  await p.locator('article.section.t-verse').first().locator('.feedback .chip:text-is("유치해요")').click();
+  // 줄 단위 ♥: 펼쳐서 한 줄만 좋아요 → 다시 그려도 펼친 채 ♥ 표시
+  await p.locator('article.section.t-verse').first().locator('.line-likes summary').click();
+  await p.locator('article.section.t-verse').first().locator('.line-likes button').first().click();
+  results.lineLiked = await p.locator('article.section.t-verse').first().locator('.line-likes[open] button[aria-pressed="true"]').count();
+  await p.locator('article.section.t-verse').first().screenshot({ path: path.join(TMP, 'line-likes.png') });
+  const ta = p.locator('article.section.t-verse').first().locator('textarea.lyrics');
+  // 고쳤다가 AI 초안대로 되돌리면 '고침' 기록도 지워짐
+  const aiDraft = await ta.inputValue();
+  const lyricEdits = async () => (await taste())?.log.filter((e) => e.kind === 'lyrics' && e.rating === 0).length || 0;
+  await ta.fill(`${aiDraft} 임시`);
+  await p.waitForTimeout(5500);
+  const editedOnce = (await lyricEdits()) === 1;
+  await ta.fill(aiDraft);
+  await p.waitForTimeout(1800);
+  results.lyricEditRevert = editedOnce && (await lyricEdits()) === 0;
+  // ↶로 되돌려도 지워지고, 다시 하기로 고친 상태가 되면 다시 남음 (2초 안에 이어 친 것은 한 단계로 묶이므로 조금 쉬었다가)
+  await p.waitForTimeout(800);
+  await ta.fill(`${aiDraft} 임시2`);
+  await p.waitForTimeout(5500);
+  const editedTwice = (await lyricEdits()) === 1;
+  await p.click('button[aria-label^="되돌리기"]');
+  await p.waitForTimeout(1800);
+  const undoClears = (await ta.inputValue()) === aiDraft && (await lyricEdits()) === 0;
+  await p.click('button[aria-label^="다시 하기"]');
+  await p.waitForTimeout(5500);
+  results.lyricEditUndo = editedTwice && undoClears && (await lyricEdits()) === 1;
+  await p.click('button[aria-label^="되돌리기"]');
+  await p.waitForTimeout(1800);
+  await ta.fill('내가 고친 첫 줄 새벽을 불러\n가짜 AI 둘째 줄 signal');
+  await p.waitForTimeout(5500); // 고친 내용은 멈춘 지 4초 뒤 기록
+  // 자동 개선: 점수 낮은 섹션을 다시 쓰고 오른 것만 반영
+  await p.click('button:has-text("섹션 자동 개선")');
+  await p.waitForSelector('.report li');
+  results.improve = await p.$$eval('.report li', (els) => els.map((e) => e.textContent));
+  // 자동 개선 결과가 더 나쁘면 그대로 둔다
+  await p.locator('article.section.t-bridge').first().locator('textarea.lyrics').fill('언젠가 너도 이 밤을 보면\n같은 불빛을 찾게 될 거야');
+  await p.locator('article.section.t-bridge').first().locator('textarea.lyrics').press('Tab');
+  await p.evaluate(() => { window.__worse = true; });
+  await p.click('button:has-text("섹션 자동 개선")');
+  await p.waitForFunction(() => [...document.querySelectorAll('.report li')].some((li) => li.textContent.includes('그대로 둠')));
+  results.keptBridge = await p.locator('article.section.t-bridge textarea.lyrics').first().inputValue();
+  await p.evaluate(() => { window.__worse = false; });
+  // 훅 👍
+  await p.click('text=훅 6개 추천받기');
+  await p.waitForSelector('.hooks li');
+  await p.locator('.hooks li').first().locator('text=👍 좋아요').click();
+  // 검토(스트리밍 텍스트)
+  await p.click('text=검토받기');
+  await p.waitForSelector('#review-out:has-text("가짜 검토 결과")');
+  results.review = true;
+
+  // 편곡: 전체 AI 편곡 → 유효하지 않은 악기 id 걸러짐 + 👍
+  await p.click('.tab:text-is("편곡")');
+  await p.click('text=AI가 곡 전체 편곡하기');
+  await p.waitForSelector('.note:has-text("가짜 편곡 요약")');
+  results.arrangeKey = await p.textContent('.muted:has-text("현재")');
+  await p.locator('.feedback').first().locator('text=👍 좋아요').click();
+
+  // 멜로디: AI → 범위 밖 음(d=30)은 10으로 잘림
+  await p.click('.tab:text-is("멜로디")');
+  await p.click('button:has-text("AI로"):has-text("멜로디")');
+  await p.waitForSelector('.pr-note:has-text("멜")');
+  results.melodyNotes = await p.locator('.roll-grid .pr-note').count();
+  results.melodyPromptRange = (await prompts()).filter((x) => x.includes('탑라이너')).pop().match(/"음역":"d -?\d+~-?\d+ \(/) !== null;
+  await p.locator('text=👍 좋아요').first().click();
+  // AI 멜로디를 고치면(음표 하나 높이기) 4초 뒤 취향 기록에 전·후, 다음 멜로디 요청에 들어감
+  await p.locator('.roll-grid .pr-note').first().click();
+  await p.keyboard.press('ArrowUp');
+  await p.waitForTimeout(5500);
+  const melEdits = async () => (await taste()).log.filter((e) => e.kind === 'melody' && e.rating === 0).length;
+  results.melodyEdit = (await taste()).log.some((e) => e.kind === 'melody' && e.rating === 0 && e.before && e.after && e.before !== e.after);
+  // 되돌려 AI 초안으로 돌아가면 그 기록은 지워지고, 다시 하기로 고친 상태가 되면 다시 남음
+  await p.click('button[aria-label^="되돌리기"]');
+  await p.waitForTimeout(1800);
+  results.melodyEditUndo = (await melEdits()) === 0;
+  await p.click('button[aria-label^="다시 하기"]');
+  await p.waitForTimeout(5500);
+  results.melodyEditRedo = (await melEdits()) === 1;
+  await p.click('button:has-text("AI로"):has-text("멜로디")');
+  await p.waitForFunction(() => window.__prompts.filter((x) => x.includes('탑라이너')).length >= 2);
+  const melPrompt = (await prompts()).filter((x) => x.includes('탑라이너')).pop();
+  results.melodyEditPrompt = melPrompt.includes('멜로디 표기') && melPrompt.includes('AI 초안을 작곡가가 이렇게 고쳤다');
+  results.melodyLikedPitch = /좋아한 예시[^\n]*\n- [^\n]*가-?\d+ 짜-?\d+/.test(melPrompt); // 👍한 멜로디가 음높이까지 예시로
+
+  // 스타일
+  await p.click('.tab:text-is("Suno 스타일")');
+  await p.click('text=컨셉으로 AI 제안');
+  await p.waitForSelector('.note:has-text("가짜 이유")');
+  results.styleBpm = await p.inputValue('#style-bpm');
+
+  // 취향: 기록 확인 → AI 정리 → 프로필 반영
+  await p.waitForTimeout(1800); // 자동 저장(1.2초 디바운스) 기다림
+  const t1 = await taste();
+  results.tasteLog = t1.log.map((e) => `${e.kind}:${e.rating}${e.reasons.length ? `(${e.reasons})` : ''}`);
+  results.editRecorded = t1.log.some((e) => e.rating === 0 && e.after.includes('내가 고친'));
+  await p.click('.song-item:has-text("내 취향")');
+  await p.fill('#taste-lyrics', '내가 직접 쓴 스타일');
+  await p.click('text=기록으로 AI가 정리하기');
+  await p.waitForFunction(() => document.querySelector('#taste-lyrics')?.value.includes('가짜 정리'));
+  await p.screenshot({ path: path.join(TMP, 'taste.png'), fullPage: true });
+  // 정리 전 프로필로 되돌리기 → 저장됨 → 다시 누르면 AI 정리로
+  await p.click('#taste-revert');
+  await p.waitForFunction(() => document.querySelector('#taste-lyrics')?.value === '내가 직접 쓴 스타일');
+  await p.waitForTimeout(1800);
+  const t2 = await taste();
+  await p.click('#taste-revert');
+  await p.waitForFunction(() => document.querySelector('#taste-lyrics')?.value.includes('가짜 정리'));
+  results.profileRevert = t2.profile.lyrics === '내가 직접 쓴 스타일' && t2.profile.prev?.lyrics.includes('가짜 정리');
+  // 이 흐름에선 👍/👎가 10개가 안 돼 안내 문구가 보여야 함 (추이 계산은 perf 테스트에서 기록을 넣어 확인)
+  results.trendRow = (await p.textContent('#taste-trend')).includes('10개 넘게 쌓이면');
+  await p.click('text=기록 내보내기');
+
+  // 다음 AI 요청에 취향이 들어가는지
+  await p.locator('.song-item').first().click();
+  await p.click('.tab:text-is("구조·가사")');
+  const before = (await prompts()).length;
+  await p.locator('article.section.t-chorus').first().locator('text=AI로 다시 쓰기').click();
+  await p.waitForFunction((n) => window.__prompts.length > n, before);
+  const last = (await prompts()).slice(-1)[0];
+  results.promptHasTaste = last.includes('작곡가의 취향') && last.includes('가짜 정리: 이미지로') && last.includes('내가 고친 첫 줄') && last.includes('유치해요') && last.includes('특히 좋다고 고른 줄');
+  // 유사 표현 점검: 걸린 줄만 표시(가사에 없는 줄은 버림) → 제안으로 바꾸기
+  await p.click('#similarity-run');
+  await p.waitForSelector('.similar');
+  results.similarCount = await p.locator('.similar').count();
+  await p.locator('.similar').first().evaluate((el) => el.closest('.card').scrollIntoView());
+  await p.locator('.similar').first().evaluate((el) => el.closest('.card').id = 'sim-card');
+  await p.locator('#sim-card').screenshot({ path: path.join(TMP, 'similarity.png') });
+  const flaggedLine = await p.textContent('.similar-line');
+  await p.locator('.similar button:has-text("로 바꾸기")').click();
+  results.similarFixed = (await p.textContent('.similar .pill')) === '바꿈'
+    && (await p.$$eval('textarea.lyrics', (els) => els.some((t) => t.value.includes('가짜 새 줄 signal'))))
+    && !(await p.$$eval('textarea.lyrics', (els, l) => els.some((t) => t.value.split('\n').some((x) => x.trim() === l)), flaggedLine));
+
+  // 한 줄만 바꾸기: 벌스 첫 줄 → 후보 3개(겹친 것은 버림) → 둘째로 바꿈 → 원래 줄·나머지는 버린 것으로 취향에
+  const verseCard = p.locator('article.section.t-verse').first();
+  const verseBefore = await verseCard.locator('textarea.lyrics').inputValue();
+  const firstLine = verseBefore.split('\n').map((l) => l.trim()).find(Boolean);
+  await verseCard.locator('button[id^="ls-open-"]').click();
+  await verseCard.locator('button[id^="ls-run-"]').click();
+  await p.waitForSelector('button[id^="ls-pick-"]');
+  const lsOptions = await verseCard.locator('.line-option').allTextContents();
+  const lsLabel = await verseCard.locator('button[id^="ls-pick-"] >> nth=1').getAttribute('aria-label');
+  await verseCard.locator('button[id^="ls-pick-"] >> nth=1').click();
+  const lsFocus = await p.evaluate(() => document.activeElement?.id || '');
+  const verseAfter = await verseCard.locator('textarea.lyrics').inputValue();
+  const linePrompt = (await prompts()).filter((x) => x.includes('섹션의 한 줄만 다르게')).pop();
+  const lineTaste = await p.waitForFunction(() => (JSON.parse(localStorage.getItem('kpop-writer-taste') || '{"log":[]}').log || [])
+    .some((e) => e.kind === 'lyrics' && e.text === '가짜 한 줄 B' && e.context?.rejected?.length === 3 && e.context?.line === true), null, { timeout: 8000 }).then(() => true).catch(() => false);
+  // 되돌리면(↶) 원래 줄이 돌아오고 그 선택 기록도 지워짐 → 다시 하기(↷)로 줄과 기록이 함께 돌아옴
+  await p.click('button[aria-label^="되돌리기"]');
+  const verseUndone = await verseCard.locator('textarea.lyrics').inputValue();
+  const lineForgot = await p.waitForFunction(() => !(JSON.parse(localStorage.getItem('kpop-writer-taste') || '{"log":[]}').log || [])
+    .some((e) => e.text === '가짜 한 줄 B'), null, { timeout: 8000 }).then(() => true).catch(() => false);
+  await p.click('button[aria-label^="다시 하기"]');
+  // 다시 하기로 고른 줄이 돌아오면 기록도 되살아남
+  const lineBack = await p.waitForFunction(() => (JSON.parse(localStorage.getItem('kpop-writer-taste') || '{"log":[]}').log || [])
+    .some((e) => e.text === '가짜 한 줄 B' && e.context?.line === true), null, { timeout: 8000 }).then(() => true).catch(() => false);
+  results.lineSwap = lsOptions.join('|') === '가짜 한 줄 A|가짜 한 줄 B|가짜 한 줄 C'
+    && verseAfter.split('\n').some((l) => l.trim() === '가짜 한 줄 B') && !verseAfter.split('\n').some((l) => l.trim() === firstLine)
+    && linePrompt.includes(`바꿀 줄: ${JSON.stringify(firstLine)}`) && lineTaste
+    && lsLabel === '이걸로: 가짜 한 줄 B' && lsFocus.startsWith('ls-line-')
+    && verseUndone.split('\n').some((l) => l.trim() === firstLine) && lineForgot && lineBack;
+
+  // 스타일 변형: 3개 만들기 → B로 정하기 → B만 "지금 스타일"
+  await p.click('.tab:text-is("Suno 스타일")');
+  await p.click('#variants-run');
+  await p.waitForSelector('.variant');
+  results.variantCount = await p.locator('.variant').count();
+  await p.locator('.variant >> nth=1 >> text=이걸로 정하기').click();
+  results.variantChosen = await p.locator('.variant.chosen .tag').allTextContents();
+  results.variantStyle = await p.inputValue('#style-subgenre');
+  // 취향 저장(1.2초 뒤, 다른 저장이 이어지면 더 늦어짐)을 기다림
+  results.variantPair = await p.waitForFunction(() => (JSON.parse(localStorage.getItem('kpop-writer-taste') || '{"log":[]}').log || [])
+    .some((e) => e.kind === 'style' && e.context?.variant === 'B' && e.context?.rejected?.length === 2), null, { timeout: 8000 }).then(() => true).catch(() => false);
+  // 맞춤법: 점검 → 고칠 곳 2개(같은 줄은 버림) → 모두 고치기 → 가사에 반영
+  await p.click('.tab:text-is("구조·가사")');
+  await p.click('#spell-run');
+  await p.waitForSelector('.spell-new');
+  results.spellCount = await p.locator('.spell-new').count();
+  await p.click('#spell-all');
+  results.spellApplied = (await p.$$eval('textarea.lyrics', (els) => els.map((t) => t.value).join('\n').split(' 고침').length - 1)) >= 2
+    && (await p.locator('.similar .pill:text-is("고침")').count()) === 2;
+  // 번안 가사: 내보내기 탭 → 일본어로 번안 → 원문과 음 수 비교, 길게 만든 한 줄만 경고, Suno 가사에 일본어
+  await p.click('.tab:text-is("내보내기")');
+  await p.click('#translate-run');
+  await p.waitForSelector('.tr-row');
+  results.trOff = await p.locator('.tr-dst .over').count();
+  results.trLyrics = (await p.inputValue('#out-lyrics-tr')).includes('テス');
+  results.trStyle = (await p.inputValue('#out-style-tr')).endsWith('Japanese lyrics');
+  await p.locator('#translate-run').evaluate((el) => el.closest('.card').scrollIntoView());
+  await p.screenshot({ path: path.join(TMP, 'translate.png') });
+
+  // 느린 AI 편곡 중 다른 곡으로 바꿔도 결과는 원래 곡에만
+  await p.locator('.song-item').first().click();
+  const songA = await p.evaluate(() => document.querySelector('h1').textContent);
+  await p.click('.tab:text-is("편곡")');
+  await p.evaluate(() => { window.__delay = 1500; window.__arrBpm = 133; });
+  await p.click('text=AI가 곡 전체 편곡하기');
+  await p.click('text=+ 새 곡');
+  await p.waitForTimeout(3500);
+  await p.evaluate(() => { window.__delay = 0; });
+  const songs = await p.evaluate(() => JSON.parse(localStorage.getItem('kpop-writer-songs')));
+  const songAData = songs.find((x) => x.title === songA);
+  const songBData = songs.find((x) => x.title === '제목 없는 곡');
+  results.raceA = songAData.music.bpm;
+  results.raceB = songBData.music.bpm;
+
+  // 컨셉 아이디어: 새 곡에서 3개 받기 → 둘째 고르기 → 제목·주제·분위기 채워짐
+  await p.click('text=+ 새 곡');
+  await p.fill('#ideas-hint', '밤, 거울');
+  await p.click('#ideas-run');
+  await p.waitForSelector('#idea-use-1');
+  results.ideasPromptHint = (await prompts()).filter((x) => x.includes('새 곡의 컨셉을')).pop().includes('작곡가가 원하는 방향: 밤, 거울');
+  await p.click('#idea-use-1');
+  results.ideaTitle = await p.inputValue('#title');
+  results.ideaTheme = await p.inputValue('#theme');
+  results.ideaKeywords = await p.inputValue('#keywords');
+  results.ideaMoods = await p.$$eval('.chip.on', (els) => els.map((e) => e.textContent).filter((t) => ['다크', '몽환', '청량'].includes(t)).join());
+  // 원클릭 초안: 주제만 적은 새 곡 → 가사·편곡·멜로디·스타일
+  await p.evaluate(() => { window.__arrBpm = 128; });
+  await p.click('text=+ 새 곡');
+  await p.fill('#theme', '첫눈 오는 날 고백');
+  await p.press('#theme', 'Tab');
+  const melBefore = (await prompts()).filter((x) => x.includes('탑라이너')).length;
+  await p.click('button:text-is("초안 만들기")');
+  await p.waitForSelector('.tab.on:text-is("구조·가사")', { timeout: 60000 });
+  await p.waitForTimeout(1600);
+  const draft = (await p.evaluate(() => JSON.parse(localStorage.getItem('kpop-writer-songs')))).find((x) => x.concept.theme === '첫눈 오는 날 고백');
+  const lyricSecs = draft.sections.filter((x) => !['Intro', 'Outro', 'Dance Break'].includes(x.type));
+  results.draft = {
+    lyrics: lyricSecs.filter((x) => x.text.trim()).length + '/' + lyricSecs.length,
+    arranged: !!draft.progress?.arranged,
+    bpm: draft.music.bpm,
+    melodySections: Object.values(draft.music.sections).filter((x) => x.melody.length).length,
+    styleBpm: draft.style.bpm,
+    styleKey: draft.style.key,
+  };
+  // 같은 가사를 다시 부르는 섹션은 AI에 다시 안 묻고 첫 섹션 멜로디를 받음
+  const melIds = (await prompts()).filter((x) => x.includes('탑라이너')).slice(melBefore).flatMap((x) => [...x.matchAll(/"id":"([a-z0-9]+)","이름"/g)].map((m) => m[1]));
+  const sungSecs = draft.sections.filter((x) => x.text.trim());
+  results.draft.melodyAsked = `${melIds.length}/${sungSecs.length}`;
+  results.draft.melodyCopied = melIds.length < sungSecs.length && sungSecs.every((x) => draft.music.sections[x.id].melody.length > 0);
+
+  // 앨범 홍보
+  await p.click('text=+ 새 앨범');
+  await p.click('.tab:text-is("홍보")');
+  await p.click('text=AI로 초안 쓰기');
+  await p.waitForFunction(() => document.querySelector('#promo-intro')?.value === '가짜 앨범 소개');
+  results.promo = true;
+  results.pitch = (await p.inputValue('#promo-pitch')) === 'Fake pitch'
+    && (await p.textContent('#promo-pitch-count')) === '10 / 500자'
+    && (await p.getAttribute('#promo-pitch-ko-count', 'class')).includes('over');
+  // 트랙 순서 추천: 곡을 더 넣고 → 제안이 있으면 바꾸기 → 자연스럽다고 바뀜 → ↶로 되돌림
+  await p.click('.tab:text-is("수록곡")');
+  for (let k = 0; k < 2; k++) {
+    if (await p.locator('#album-add-song option').count()) await p.click('text=+ 곡 넣기');
+  }
+  results.orderTracks = await p.locator('button[aria-label="앨범에서 빼기"]').count();
+  if (await p.locator('#order-suggest').count()) {
+    await p.click('text=이 순서로 바꾸기');
+    results.orderApplied = (await p.locator('#order-ok').count()) === 1;
+    await p.click('button[aria-label^="되돌리기"]');
+    results.orderUndo = (await p.locator('#order-suggest').count()) === 1;
+  } else {
+    results.orderApplied = results.orderUndo = (await p.locator('#order-ok').count()) === 1;
+  }
+  // 발매 후 성과: 트랙마다 재생 수 기록 → 반응 좋은 곡 표시 → 취향 기록에 넣기
+  await p.click('.tab:text-is("성과")');
+  const statInputs = await p.$$eval('input[id^="stat-"][type=number]', (els) => els.map((e) => e.id));
+  for (const [k, id] of statInputs.entries()) await p.fill(`#${id}`, String(k === statInputs.length - 1 ? 9000 : 1000));
+  await p.click('#stat-save');
+  await p.waitForSelector('#stat-learn');
+  await p.click('#stat-learn');
+  await p.waitForSelector('#stat-learned');
+  await p.waitForTimeout(1500);
+  results.statLearn = (await taste()).log.filter((e) => e.context?.source === 'release').map((e) => e.kind).join();
+  await p.screenshot({ path: path.join(TMP, 'stats.png'), fullPage: true });
+  results.saved = await p.evaluate(() => window.__saved);
+
+  console.log(JSON.stringify(results, null, 1));
+  const ok = results.trendRow && results.lineSwap && results.lyricsApplied && results.review && results.improve.length > 0 && results.improve.every((t) => t.includes('반영')) && results.arrangeKey.includes('A minor') && results.melodyNotes === 3 && results.styleBpm === '140'
+    && results.editRecorded && results.tasteLog.some((x) => x.startsWith('lyrics:-1(유치해요)')) && results.tasteLog.includes('hook:1') && results.lineLiked === 1 && results.similarCount === 1 && results.similarFixed && results.trOff === 1 && results.trLyrics && results.trStyle && results.variantCount === 3 && results.variantChosen.join() === 'B' && results.variantStyle === 'bright synth-pop' && results.variantPair && results.orderTracks >= 2 && results.orderApplied && results.orderUndo && results.statLearn.startsWith('arrange') && results.ideasPromptHint && results.melodyEdit && results.melodyEditUndo && results.melodyEditRedo && results.melodyEditPrompt && results.pitch && results.spellCount === 2 && results.spellApplied && results.ideaTitle === '가짜 컨셉 둘' && results.ideaTheme === '둘 주제' && results.ideaKeywords === '밤, 거울, Mirror' && results.ideaMoods === '몽환,다크' && results.tasteLog.includes('arrange:1')
+    && results.tasteLog.includes('melody:1') && results.promptHasTaste && results.profileRevert && results.melodyLikedPitch && results.lyricEditRevert && results.lyricEditUndo && results.promo && results.draft.arranged && results.draft.bpm === 128 && results.draft.styleBpm === 128 && results.draft.styleKey === 'A minor' && results.draft.melodySections > 0 && results.draft.melodyCopied && results.draft.lyrics.split('/')[0] === results.draft.lyrics.split('/')[1] && results.keptBridge === '언젠가 너도 이 밤을 보면\n같은 불빛을 찾게 될 거야' && results.melodyPromptRange && results.raceA === 133 && results.raceB === 120 && results.saved.includes('taste-feedback.zip') && !errs.length;
+  if (errs.length) console.log('ERRORS', errs);
+  console.log(ok ? 'ai OK' : 'ai FAILED');
+  if (!ok) process.exitCode = 1;
+  await b.close();
+})();
