@@ -1,0 +1,16 @@
+{
+  "name": "풋살사관학교 스튜디오 원격",
+  "short_name": "풋살 스튜디오",
+  "description": "PC의 풋살사관학교 스튜디오 작업을 휴대폰에서 보고 시켜요",
+  "lang": "ko",
+  "start_url": "/futsal",
+  "scope": "/futsal",
+  "display": "standalone",
+  "theme_color": "#0f7a3d",
+  "background_color": "#f3f4f6",
+  "icons": [
+    { "src": "/futsal/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/futsal/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/futsal/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

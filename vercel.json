@@ -8,7 +8,8 @@
     { "source": "/post/:id", "destination": "/post/[id]" },
     { "source": "/store/:id", "destination": "/store/[id]" },
     { "source": "/place/:id", "destination": "/place/[id]" },
-    { "source": "/chat/:id", "destination": "/chat/[id]" }
+    { "source": "/chat/:id", "destination": "/chat/[id]" },
+    { "source": "/futsal", "destination": "/futsal/index" }
   ],
   "headers": [
     {
@@ -20,6 +21,13 @@
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
         { "key": "Permissions-Policy", "value": "geolocation=(self), camera=(), microphone=(), payment=(self)" },
         { "key": "Cross-Origin-Opener-Policy", "value": "same-origin-allow-popups" }
+      ]
+    },
+    {
+      "source": "/futsal/sw.js",
+      "headers": [
+        { "key": "Service-Worker-Allowed", "value": "/futsal" },
+        { "key": "Cache-Control", "value": "no-cache" }
       ]
     }
   ]
