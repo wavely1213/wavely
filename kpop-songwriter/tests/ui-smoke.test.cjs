@@ -112,6 +112,14 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
       const syls = await p.$$eval('.pr-note', (els) => els.map((e) => e.textContent));
       global.sylOk = (global.sylOk ?? true) && syls.filter(Boolean).length >= Math.min(3, syls.length);
     }
+    // 반복 코러스: 비워 둔 Chorus 2에서 Chorus 1 멜로디 그대로 쓰기 → 같은 음표 수, 가사 참고 칸엔 다시 부르는 가사
+    const ch1Notes = await p.locator('.pr-note').count();
+    await p.locator('.chips .chip', { hasText: 'Chorus 2' }).first().click();
+    await p.click('#mel-copy');
+    if (await p.locator('#mel-copy-confirm').count()) await p.click('#mel-copy-confirm');
+    const ch2Notes = await p.locator('.pr-note').count();
+    const ref = await p.textContent('.lyric-ref');
+    global.copyOk = (global.copyOk ?? true) && ch2Notes === ch1Notes && ch2Notes > 0 && ref.includes('Midnight signal');
     // 도움말 열기
     await p.click('.tab:text-is("편곡")');
     await p.click('details.help >> nth=0 >> summary');
@@ -441,6 +449,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
   if (!global.spaceOk) errs.push('스페이스바 재생 이상');
   if (!global.shareOk) errs.push('파트 분배 표시 이상');
   if (!global.matchOk) errs.push('같은 멜로디 맞추기 안내 이상');
+  if (!global.copyOk) errs.push('반복 코러스 멜로디 그대로 쓰기 이상');
   if (global.tracklistOk === false || (global.tracklist && !global.tracklistOk)) errs.push(`트랙리스트 이미지 이상: ${JSON.stringify(global.tracklist)}`);
   if (!global.lyricCheckOk) errs.push('가사 맞춰 듣기 이상');
   if (!global.memoOk) errs.push('작업 메모 저장 이상');

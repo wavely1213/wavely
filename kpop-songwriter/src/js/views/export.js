@@ -1,17 +1,18 @@
 // 내보내기 탭: Suno Custom 모드 칸별 복사 + 제작 패키지(zip) 받기 + 다른 언어 버전.
 import { h, copyText, toast } from '../dom.js';
-import { refresh, mutateSong, getState } from '../state.js';
+import { refresh, mutateSong, markProgress, getState } from '../state.js';
 import { applyToStyle } from './arrange.js';
 import { keyName } from '../music/theory.js';
 
 import { buildLyrics, buildStyle } from '../suno.js';
 import { SUNO_LIMITS } from '../constants.js';
 import { buildPackage } from '../package.js';
+import { placeholderTitle } from '../album/titlecheck.js';
 import { saveFile } from '../platform/download.js';
 import { renderTranslate } from './translate.js';
 
 // 가사·스타일을 복사하거나 패키지를 받으면 진행 상황의 'Suno 생성' 단계 완료로 친다
-const markSuno = (songId) => mutateSong(songId, (x) => { x.progress = { ...(x.progress || {}), suno: true }; }, 'quiet');
+const markSuno = (songId) => markProgress(songId, 'suno');
 
 const opts = { memberTags: true, arrangeHints: false, keepAdlibs: true };
 const pkg = { includeWav: true, busy: '' };
@@ -53,6 +54,7 @@ export function renderExport(song) {
           limit ? h('span', { class: `mono muted${over ? ' over' : ''}` }, `${text.length} / ${limit}자`) : null,
           h('button', { type: 'button', class: 'btn primary', onclick: () => { copyText(ta.value, ta); markSuno(song.id); } }, '복사'))),
       over ? h('p', { class: 'warn' }, '한도를 넘었어요. Suno가 뒷부분을 경고 없이 자를 수 있어요.') : null,
+      id === 'out-title' && placeholderTitle(text) ? h('p', { class: 'muted small' }, '아직 기본 제목이에요. 컨셉·멤버 탭에서 곡 제목을 정하면 발매 패키지 파일 이름에도 그대로 쓰여요.') : null,
       !over && id === 'out-lyrics' && text.length > SUNO_LIMITS.lyricsOld ? h('p', { class: 'muted small' }, `V4 이하 모델을 쓸 거라면 가사는 ${SUNO_LIMITS.lyricsOld.toLocaleString()}자까지예요 (V4.5 이후는 ${limit.toLocaleString()}자).`) : null,
       ta);
   };

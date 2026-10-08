@@ -30,7 +30,7 @@ async function download(album) {
       // 꼭 고칠 것이 없을 때 받은 패키지만 '제출 패키지' 단계로 친다 (받은 뒤 바뀌면 지문이 달라져 다시 받으라고 안내)
       const opts = { masters: mastersOf(album.id), coverInfo: coverOf(album.id) };
       if (!releaseChecklist(album, songs, opts).some((i) => i.level === 'error')) {
-        mutateAlbumById(album.id, (a) => { a.submittedAt = Date.now(); a.submittedKey = packageKey(a, opts); });
+        mutateAlbumById(album.id, (a) => { a.submittedAt = Date.now(); a.submittedKey = packageKey(a, songs, opts); });
       }
     }
     else if (res === 'unavailable') toast('이 화면에서는 파일을 받을 수 없어요');

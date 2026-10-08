@@ -2,7 +2,7 @@
 // 빈 칸을 누르면 음표 추가, 음표를 누르면 선택 → 아래 버튼으로 옮기기·길이·가사 수정.
 import { h } from '../dom.js';
 import { mutate, mutateSong, refresh } from '../state.js';
-import { sectionLabels } from '../structure.js';
+import { sectionLabels, sungText } from '../structure.js';
 import { degreeToMidi, NOTE_NAMES } from '../music/theory.js';
 import { countSyllables, syllableTokens } from '../lyrictools.js';
 import { writeMelody } from '../ai-music.js';
@@ -10,8 +10,9 @@ import { isBusy, runJob, stopJob, job } from '../aijob.js';
 import { playButton } from './playbar.js';
 import { uid } from '../dom.js';
 import { feedbackBar, trackEdit, cancelEdit } from '../learn/feedback.js';
-import { melodyText } from '../music/melodytext.js';
+import { melodyText, melodyFeedbackText } from '../music/melodytext.js';
 import { help } from '../help.js';
+import { melodyPlan, applyCopies, repeatSource, fitCopy } from '../music/melodycopy.js';
 import { sectionRange, outOfRange, foldIntoRange, midiName as rangeName } from '../music/range.js';
 
 const TOP = 10;
@@ -20,7 +21,7 @@ const CELL_W = 22;
 const CELL_H = 26;
 
 // gen·origin·lastAfter는 곡+섹션으로 (가져온 곡은 섹션 id가 같을 수 있음)
-const ui = { sectionId: '', selected: -1, confirmClear: false, request: '', scroll: 0, gen: {}, origin: {}, lastAfter: {} };
+const ui = { sectionId: '', selected: -1, confirmClear: false, confirmCopy: false, request: '', scroll: 0, gen: {}, origin: {}, lastAfter: {} };
 const genKey = (songId, sectionId) => `${songId}:${sectionId}`;
 
 function midiName(n) { return `${NOTE_NAMES[n % 12]}${Math.floor(n / 12) - 1}`; }
@@ -38,8 +39,11 @@ export function renderMelody(song) {
   const sm = song.music.sections[s.id];
   const label = labels[song.sections.indexOf(s)];
   const busy = isBusy();
-  const withLyrics = song.sections.filter((x) => x.text.trim()).map((x) => x.id);
-  const syl = s.text.split('\n').filter((l) => l.trim()).reduce((a, l) => a + countSyllables(l), 0);
+  const idx = song.sections.indexOf(s);
+  const plan = melodyPlan(song.sections); // 같은 가사를 다시 부르는 반복 섹션은 AI에 안 맡기고 첫 섹션 멜로디를 옮긴다
+  const sung = sungText(song.sections, idx);
+  const syl = sung.split('\n').filter((l) => l.trim()).reduce((a, l) => a + countSyllables(l), 0);
+  const src = repeatSource(song, idx);
   // AI가 만든 멜로디를 고치면 (멈춘 지 4초 뒤) 전·후를 취향 기록에 남긴다.
   // 화면을 다시 그릴 때마다 부르므로 멜로디가 실제로 바뀐 때만, 원래대로 돌아가면(되돌리기) 기록을 지우고, 다 지우면 남기지 않는다.
   const gk = genKey(song.id, s.id);
@@ -61,33 +65,34 @@ export function renderMelody(song) {
         h('button', { type: 'button', class: 'btn primary', disabled: busy, onclick: () => runJob(`${label} 멜로디 만드는 중`, async (signal) => {
           applyMelody(song.id, await writeMelody(song, { targetIds: [s.id], request: ui.request, signal }));
         }) }, `AI로 ${label} 멜로디`),
-        h('button', { type: 'button', class: 'btn', disabled: busy || !withLyrics.length, onclick: () => runJob('전체 멜로디 만드는 중', async (signal) => {
+        h('button', { type: 'button', class: 'btn', disabled: busy || !plan.targets.length, onclick: () => runJob('전체 멜로디 만드는 중', async (signal) => {
           // 한 번에 너무 길면 끊기므로 섹션 3개씩 나눠 요청
-          for (let i = 0; i < withLyrics.length; i += 3) {
+          for (let i = 0; i < plan.targets.length; i += 3) {
             if (signal.aborted) break;
-            applyMelody(song.id, await writeMelody(song, { targetIds: withLyrics.slice(i, i + 3), request: ui.request, signal }));
+            applyMelody(song.id, await writeMelody(song, { targetIds: plan.targets.slice(i, i + 3), request: ui.request, signal }), plan);
           }
         }) }, '가사 있는 섹션 전부'),
         busy ? h('button', { type: 'button', class: 'btn ghost', onclick: stopJob }, '중지') : null,
         busy ? h('span', { class: 'status' }, h('span', { class: 'dot' }), job.label) : null)),
     h('div', { class: 'chips' }, song.sections.map((x, i) => h('button', {
       type: 'button', class: `chip${x.id === s.id ? ' on' : ''}`, 'aria-pressed': x.id === s.id ? 'true' : 'false',
-      onclick: () => { ui.sectionId = x.id; ui.selected = -1; ui.confirmClear = false; ui.scroll = 0; refresh(); },
+      onclick: () => { ui.sectionId = x.id; ui.selected = -1; ui.confirmClear = false; ui.confirmCopy = false; ui.scroll = 0; refresh(); },
     }, `${labels[i]}${song.music.sections[x.id]?.melody.length ? ' ♪' : ''}`))),
     h('section', { class: 'card' },
       h('div', { class: 'card-head' },
         h('h2', null, `[${label}] ${sm.bars}마디`),
         h('div', { class: 'row' },
           h('span', { class: `mono ${sm.melody.length && syl && Math.abs(sm.melody.length - syl) > Math.max(2, syl * 0.15) ? 'over' : 'muted'}`, id: 'mel-count', title: '음표 수와 가사 음절 수가 많이 다르면 가사가 바뀌었거나 멜로디가 덜 맞은 거예요' }, `음표 ${sm.melody.length} · 가사 음절 ${syl}`),
+          src >= 0 ? copyButton(song, s, sm, labels[src], song.sections[src]) : null,
           sm.melody.length && syl ? h('button', { type: 'button', class: 'btn small', id: 'mel-fill-syl', title: '음표에 가사 음절을 앞에서부터 차례로 넣어요 (손으로 찍은 음표용)', onclick: () => mutate((x) => {
-            const tokens = x.sections.find((y) => y.id === s.id).text.split('\n').flatMap(syllableTokens);
+            const tokens = sungText(x.sections, x.sections.findIndex((y) => y.id === s.id)).split('\n').flatMap(syllableTokens);
             [...x.music.sections[s.id].melody].sort((a, b) => a.s - b.s).forEach((n, i) => { n.syl = tokens[i] || ''; });
           }) }, '가사 음절 넣기') : null,
           playButton(song, { onlyIds: [s.id], label, text: '▶ 이 부분 듣기', cls: 'btn small primary' }))),
-      s.text.trim() ? h('pre', { class: 'lyric-ref' }, s.text.trim()) : null,
+      sung.trim() ? h('pre', { class: 'lyric-ref' }, sung.trim()) : null,
       renderRange(song, s, sm),
       renderRoll(song, s, sm),
-      ui.gen[genKey(song.id, s.id)] ? feedbackBar({ kind: 'melody', ref: ui.gen[genKey(song.id, s.id)], text: `${label}: ${sm.melody.map((n) => n.syl).join('')}`.slice(0, 200), context: { section: s.type, song: song.title, range: sm.melody.length ? [Math.min(...sm.melody.map((n) => n.d)), Math.max(...sm.melody.map((n) => n.d))] : null }, label: 'AI 멜로디가 마음에 드나요?' }) : null,
+      ui.gen[genKey(song.id, s.id)] ? feedbackBar({ kind: 'melody', ref: ui.gen[genKey(song.id, s.id)], text: melodyFeedbackText(label, sm.melody), context: { section: s.type, song: song.title, range: sm.melody.length ? [Math.min(...sm.melody.map((n) => n.d)), Math.max(...sm.melody.map((n) => n.d))] : null }, label: 'AI 멜로디가 마음에 드나요?' }) : null,
       renderNoteTools(song, s, sm),
       h('div', { class: 'row' },
         h('button', { type: 'button', class: 'btn small', onclick: () => shiftAll(s.id, 1) }, '전체 한 음 올리기'),
@@ -99,9 +104,42 @@ export function renderMelody(song) {
   );
 }
 
-function applyMelody(songId, out) {
+function applyMelody(songId, out, plan = null) {
   out.forEach(({ id, notes }) => { const k = genKey(songId, id); ui.gen[k] = uid(); ui.origin[k] = melodyText(notes); ui.lastAfter[k] = ui.origin[k]; });
-  mutateSong(songId, (x) => { out.forEach(({ id, notes }) => { if (x.music.sections[id]) x.music.sections[id].melody = notes; }); });
+  mutateSong(songId, (x) => {
+    out.forEach(({ id, notes }) => { if (x.music.sections[id]) x.music.sections[id].melody = notes; });
+    // 옮겨 받은 섹션은 AI 초안이 아니므로, 예전 초안 기준으로 '고침'을 기록하지 않게 지운다
+    if (plan) applyCopies(x, plan, out.map((m) => m.id)).forEach((id) => forgetGen(songId, id));
+  });
+}
+
+function forgetGen(songId, id) {
+  const k = genKey(songId, id);
+  delete ui.gen[k];
+  delete ui.origin[k];
+  delete ui.lastAfter[k];
+}
+
+// 앞의 같은 가사 섹션 멜로디를 그대로 쓰기 (이미 음표가 있으면 한 번 더 확인)
+function copyButton(song, s, sm, fromLabel, from) {
+  const apply = () => {
+    ui.confirmCopy = false;
+    ui.selected = -1;
+    forgetGen(song.id, s.id);
+    mutate((x) => {
+      const to = x.sections.find((y) => y.id === s.id);
+      x.music.sections[s.id].melody = fitCopy(x, to, x.music.sections[from.id].melody);
+    });
+  };
+  if (ui.confirmCopy) {
+    return [h('button', { type: 'button', class: 'btn small danger', id: 'mel-copy-confirm', onclick: apply }, '바꾸기 확인'),
+      h('button', { type: 'button', class: 'btn small ghost', onclick: () => { ui.confirmCopy = false; refresh(); } }, '취소')];
+  }
+  return h('button', {
+    type: 'button', class: 'btn small', id: 'mel-copy',
+    title: `${fromLabel}와 같은 가사라 멜로디를 그대로 가져와요. 마디 수가 다르면 잘리고, 부를 멤버 음역에 맞춰 옥타브를 옮겨요.`,
+    onclick: () => { if (sm.melody.length) { ui.confirmCopy = true; refresh(); } else apply(); },
+  }, `${fromLabel} 멜로디 그대로 쓰기`);
 }
 
 function shiftAll(id, d) {

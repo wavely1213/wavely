@@ -11,4 +11,9 @@ export function melodyText(notes) {
   return out.join(' ');
 }
 
+// 👍/👎 기록용: 섹션 이름 + 멜로디 표기 (음절만 남기면 음높이·길이가 빠져 AI 예시로 쓸모가 없음)
+export function melodyFeedbackText(label, notes) {
+  return `${label}: ${melodyText(notes)}`;
+}
+
 export const MELODY_TEXT_NOTE = '취향 예시의 멜로디 표기: 음절+스케일 인덱스(d), ~는 4칸 이상 긴 음, /는 4칸 이상 쉼.';

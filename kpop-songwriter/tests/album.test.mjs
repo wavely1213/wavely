@@ -377,6 +377,33 @@ import { titleIssues } from '../src/js/album/titlecheck.js';
   console.log('title check OK');
 }
 
+// 기본 제목: '제목 없는 곡'·빈 제목·'새 앨범'은 오류, '제목 없음'·'가져온 곡'은 경고. 앱이 붙인 꼬리표는 떼고 본다
+import { placeholderTitle } from '../src/js/album/titlecheck.js';
+{
+  for (const t of ['', '  ', null, '제목 없는 곡', '새 앨범', '제목 없는 곡 (Inst.)', '제목 없는 곡 (사본) (Inst.)', '예시: 제목 없는 곡']) assert.equal(placeholderTitle(t), 'error', String(t));
+  for (const t of ['제목 없음', '가져온 곡', '제목 없음 (백업)', '가져온 곡 (가져옴)']) assert.equal(placeholderTitle(t), 'warn', t);
+  for (const t of ['Untitled', '새벽 신호', '새벽 신호 (Inst.)', '새벽 신호 (사본)', '제목 없는 곡들의 밤', '무제 (Untitled, 2014)']) assert.equal(placeholderTitle(t), null, t);
+  const s4 = normalizeMusic(exampleSong());
+  s4.title = '제목 없는 곡';
+  const al4 = { ...album, title: '제목 없는 곡', tracks: [{ ...newTrack(s4.id), isTitle: true, lyricists: '물결', composers: '물결' }] };
+  const m4 = { [s4.id]: { name: 'a.wav', sampleRate: 44100, bits: 24, lufs: -14, peak: -1, duration: 200 } };
+  let items = releaseChecklist(al4, [s4], { masters: m4, coverInfo: { width: 3000, height: 3000 }, today });
+  assert.ok(items.some((i) => i.level === 'error' && i.text === '앨범 제목을 정해 주세요.' && i.go.tab === 'meta'));
+  const trackErr = items.find((i) => i.level === 'error' && i.text.includes('1번 곡 제목을 정해 주세요'));
+  assert.deepEqual(trackErr.go, { song: s4.id, tab: 'concept' });
+  s4.title = '';
+  items = releaseChecklist({ ...al4, title: 'Midnight' }, [s4], { masters: m4, coverInfo: { width: 3000, height: 3000 }, today });
+  assert.ok(items.some((i) => i.level === 'error' && i.text.includes('빈 제목')));
+  assert.ok(!items.some((i) => i.text === '앨범 제목을 정해 주세요.'));
+  s4.title = '제목 없음';
+  items = releaseChecklist({ ...al4, title: 'Midnight' }, [s4], { masters: m4, coverInfo: { width: 3000, height: 3000 }, today });
+  assert.ok(!items.some((i) => i.level === 'error' && i.go?.tab === 'concept'), '제목 없음은 오류가 아님');
+  assert.ok(items.some((i) => i.level === 'warn' && i.text.includes('기본 제목')));
+  assert.equal(trackFileName(0, '   '), '01 Untitled.wav');
+  assert.equal(trackFileName(0, '예시: 새벽 신호'), '01 새벽 신호.wav');
+  console.log('placeholder title OK');
+}
+
 // 곡 사이 넘어가는 부분: 앞뒤 자르기, 이어 붙이기(모노는 양쪽), 이웃 쌍과 음량 차이
 import { edgesOf, joinClips, transitionPairs } from '../src/js/album/transition.js';
 {

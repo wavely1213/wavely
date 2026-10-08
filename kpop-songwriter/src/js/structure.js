@@ -47,7 +47,7 @@ export function autoDistribute(sections, members) {
 }
 
 // 비워 둔 반복 섹션은 앞의 같은 종류 가사를 다시 부른다 (Suno 가사·가사지와 같은 규칙)
-function sungText(sections, i) {
+export function sungText(sections, i) {
   const s = sections[i];
   if (s.text.trim()) return s.text;
   return sections.slice(0, i).reverse().find((p) => p.type === s.type && p.text.trim())?.text || '';

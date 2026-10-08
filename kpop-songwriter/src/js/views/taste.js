@@ -1,7 +1,7 @@
 // 내 취향 화면: 취향 프로필(직접 고치기·AI 정리), 반응 기록, 내보내기.
 import { h, field, formatTime, toast } from '../dom.js';
 import { getState, mutateTaste } from '../state.js';
-import { tasteStats, toJsonl, removeEntry, newSinceSummary, SUMMARY_EVERY, preferencePairs, pairsJsonl, satisfactionTrend, trendText, TREND_MIN } from '../learn/taste.js';
+import { tasteStats, toJsonl, removeEntry, newSinceSummary, SUMMARY_EVERY, preferencePairs, pairsJsonl, satisfactionTrend, trendText, TREND_MIN, applySummary, swapPrevProfile, profileText } from '../learn/taste.js';
 import { summarizeTaste } from '../learn/summarize.js';
 import { isBusy, runJob, stopJob, job } from '../aijob.js';
 import { INSTRUMENT_BY_ID } from '../music/instruments.js';
@@ -52,8 +52,13 @@ export function renderTaste(saveLabel) {
           h('button', { type: 'button', class: 'btn primary', disabled: busy || st.total < 3, onclick: () => runJob('취향 정리 중', async (signal) => {
             const res = await summarizeTaste(taste, { signal });
             ui.basis = res.basis;
-            mutateTaste((t) => { t.profile = { ...t.profile, lyrics: res.lyrics || t.profile.lyrics, sound: res.sound || t.profile.sound, avoid: res.avoid || t.profile.avoid, updatedAt: Date.now(), summarizedAt: Date.now() }; });
+            mutateTaste((t) => applySummary(t, res));
           }) }, '기록으로 AI가 정리하기'),
+          p.prev ? h('button', { type: 'button', class: 'btn ghost', id: 'taste-revert', disabled: busy, title: `${formatTime(p.prev.at)}에 바뀌기 전 프로필과 맞바꿔요. 다시 누르면 되돌아와요.`, onclick: () => {
+            ui.basis = '';
+            mutateTaste((t) => swapPrevProfile(t));
+            toast('이전 프로필로 바꿨어요');
+          } }, '이전 프로필로 되돌리기') : null,
           busy ? h('button', { type: 'button', class: 'btn ghost', onclick: stopJob }, '중지') : null,
           busy ? h('span', { class: 'status' }, h('span', { class: 'dot' }), job.label) : null,
           st.total < 3 ? h('span', { class: 'muted small' }, '반응이 3개 이상 쌓이면 정리할 수 있어요') : null),
@@ -72,7 +77,7 @@ export function renderTaste(saveLabel) {
             const res = await saveFile('taste-feedback.zip', zip([
               { name: 'taste-feedback.jsonl', data: toJsonl(taste) },
               { name: 'preference-pairs.jsonl', data: pairsJsonl(taste) },
-              { name: 'profile.json', data: JSON.stringify(taste.profile, null, 1) },
+              { name: 'profile.json', data: JSON.stringify({ ...profileText(taste.profile), updatedAt: taste.profile.updatedAt, summarizedAt: taste.profile.summarizedAt }, null, 1) },
             ]));
             if (res === 'saved') toast('받았어요');
           } }, '기록 내보내기 (JSONL)'),

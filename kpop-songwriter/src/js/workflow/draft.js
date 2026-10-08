@@ -5,6 +5,7 @@ import { arrangeSong, writeMelody } from '../ai-music.js';
 import { mutateSong, getState } from '../state.js';
 import { INSTRUMENTAL_TYPES } from '../constants.js';
 import { keyName } from '../music/theory.js';
+import { melodyPlan, applyCopies } from '../music/melodycopy.js';
 
 const songById = (id) => getState().songs.find((s) => s.id === id);
 
@@ -40,16 +41,21 @@ export async function makeDraft(songId, { signal, onStep = () => {} }) {
   done.push('편곡');
   if (signal?.aborted) return done;
 
-  // 3) 멜로디: 가사 있는 섹션, 3개씩 (한 번에 많이 요청하면 잘림)
+  // 3) 멜로디: 가사 있는 섹션, 3개씩 (한 번에 많이 요청하면 잘림). 같은 가사를 다시 부르는 반복 섹션은 첫 섹션 멜로디를 그대로
   song = songById(songId);
-  const withLyrics = song.sections.filter((s) => s.text.trim()).map((s) => s.id);
-  for (let i = 0; i < withLyrics.length; i += 3) {
+  const plan = melodyPlan(song.sections);
+  const targets = plan.targets;
+  let copied = 0;
+  for (let i = 0; i < targets.length; i += 3) {
     if (signal?.aborted) return done;
-    onStep(`3/4 멜로디 만드는 중 (${Math.min(i + 3, withLyrics.length)}/${withLyrics.length})`);
-    const mel = await writeMelody(songById(songId), { targetIds: withLyrics.slice(i, i + 3), signal });
-    mutateSong(songId, (x) => mel.forEach(({ id, notes }) => { if (x.music.sections[id]) x.music.sections[id].melody = notes; }));
+    onStep(`3/4 멜로디 만드는 중 (${Math.min(i + 3, targets.length)}/${targets.length})`);
+    const mel = await writeMelody(songById(songId), { targetIds: targets.slice(i, i + 3), signal });
+    mutateSong(songId, (x) => {
+      mel.forEach(({ id, notes }) => { if (x.music.sections[id]) x.music.sections[id].melody = notes; });
+      copied += applyCopies(x, plan, mel.map((m) => m.id)).length;
+    });
   }
-  if (withLyrics.length) done.push(`멜로디 ${withLyrics.length}개 섹션`);
+  if (targets.length) done.push(`멜로디 ${targets.length + copied}개 섹션`);
   if (signal?.aborted) return done;
 
   // 4) Suno 스타일 (편곡에서 정한 빠르기·키를 그대로)

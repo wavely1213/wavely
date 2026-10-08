@@ -43,6 +43,8 @@ console.log('unit OK');
   const { melodyText } = await import('../src/js/music/melodytext.js');
   assert.equal(melodyText([{ s: 8, l: 2, d: 3, syl: '꺼' }, { s: 0, l: 2, d: 2, syl: '불' }, { s: 10, l: 6, d: 5, syl: '진' }, { s: 24, l: 2, d: 1, syl: '' }]), '불2 / 꺼3 진5~ / ·1');
   assert.equal(melodyText([]), '');
+  const { melodyFeedbackText } = await import('../src/js/music/melodytext.js');
+  assert.equal(melodyFeedbackText('Chorus 1', [{ s: 0, l: 2, d: 4, syl: '불' }, { s: 2, l: 2, d: 5, syl: '꺼' }, { s: 4, l: 6, d: 7, syl: '진' }]), 'Chorus 1: 불4 꺼5 진7~');
   console.log('melodytext OK');
 }
 
@@ -219,4 +221,48 @@ import { matchFirst, matchNote } from '../src/js/lyricmatch.js';
   // 줄 번호는 가사 칸의 실제 줄 (애드립 줄이 앞에 있어도)
   assert.deepEqual(matchFirst(sections, 2, '(yeah)\n가나다라마바\n가나다').lines, [{ n: 3, have: 3, want: 8 }]);
   console.log('lyric match OK');
+}
+
+// 반복 섹션 멜로디: 같은 가사(비워 둔 반복 포함)는 첫 섹션 것만 AI에 맡기고 멜로디를 옮긴다
+{
+  const { melodyPlan, applyCopies, copyMelody, repeatSource, sungKey } = await import('../src/js/music/melodycopy.js');
+  const { sungText } = await import('../src/js/structure.js');
+  const { exampleSong } = await import('../src/js/example.js');
+  const { normalizeMusic } = await import('../src/js/music/arrangement.js');
+  const { buildTimeline } = await import('../src/js/music/timeline.js');
+  const song = normalizeMusic(exampleSong());
+  const ch = song.sections.filter((x) => x.type === 'Chorus');
+  const plan = melodyPlan(song.sections);
+  assert.deepEqual(plan.targets, song.sections.filter((x) => x.text.trim()).map((x) => x.id), '가사 있는 섹션은 모두 대상');
+  assert.deepEqual(plan.copies, [{ from: ch[0].id, to: ch[1].id, emptyText: true }]);
+  assert.equal(sungText(song.sections, song.sections.indexOf(ch[1])), ch[0].text);
+  const lead = (s) => buildTimeline(s, [ch[1].id]).events.filter((e) => e.inst === 'lead').length;
+  const before = lead(song);
+  assert.equal(repeatSource(song, song.sections.indexOf(ch[1])), song.sections.indexOf(ch[0]));
+  assert.deepEqual(applyCopies(song, plan, [ch[0].id]), [ch[1].id]);
+  const m1 = song.music.sections[ch[0].id].melody;
+  const m2 = song.music.sections[ch[1].id].melody;
+  assert.deepEqual(m2, m1, 'Chorus 2가 Chorus 1 멜로디를 받음');
+  assert.notEqual(m2[0], m1[0], '복사본 (한쪽을 고쳐도 다른 쪽은 그대로)');
+  assert.ok(lead(song) > before, `데모에서 Chorus 2 멜로디가 울림 (${before} → ${lead(song)})`);
+  // 비워 둔 반복에 손으로 찍은 음표가 있으면 두고, 가사를 따로 적은 반복은 덮는다
+  song.music.sections[ch[1].id].melody = [{ s: 0, l: 2, d: 1, syl: '' }];
+  assert.deepEqual(applyCopies(song, plan, [ch[0].id]), []);
+  assert.equal(song.music.sections[ch[1].id].melody.length, 1);
+  // 마디가 짧으면 잘림
+  assert.deepEqual(copyMelody([{ s: 0, l: 4 }, { s: 60, l: 8 }, { s: 70, l: 2 }], 4), [{ s: 0, l: 4 }, { s: 60, l: 4 }]);
+  // 빈칸·빈 줄만 다른 같은 가사는 같은 묶음, 가사가 다른 코러스는 따로
+  const secs = [
+    { id: 'a', type: 'Chorus', text: '하나\n둘' },
+    { id: 'b', type: 'Chorus', text: '  하나\n\n둘 ' },
+    { id: 'c', type: 'Chorus', text: '셋' },
+    { id: 'd', type: 'Verse', text: '하나\n둘' },
+    { id: 'e', type: 'Dance Break', text: '' },
+  ];
+  assert.equal(sungKey(secs, 0), sungKey(secs, 1));
+  assert.equal(sungKey(secs, 4), '');
+  const p2 = melodyPlan(secs);
+  assert.deepEqual(p2.targets, ['a', 'c', 'd']);
+  assert.deepEqual(p2.copies, [{ from: 'a', to: 'b', emptyText: false }]);
+  console.log('melody copy OK');
 }

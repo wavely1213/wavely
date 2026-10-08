@@ -17,3 +17,17 @@ export function titleIssues(title) {
   if (t !== t.trim() || /\s{2,}/.test(t)) out.push('제목 앞뒤나 중간에 빈칸이 겹쳐 있어요.');
   return out;
 }
+
+// 앱이 붙여 둔 기본 제목인지: 'error'(빈 제목·'제목 없는 곡'·'새 앨범'), 'warn'(일부러 고른 제목일 수도 있는 '제목 없음'·'가져온 곡'), 없으면 null.
+// 복제·Inst.·백업·가져오기가 붙이는 꼬리표는 떼고 본다. 영어 'Untitled'는 실제 제목으로 흔해 보지 않는다.
+const AUTO_TAIL = /\s*\((?:Inst\.|사본|백업|가져옴)\)\s*$/;
+const PLACEHOLDER_ERROR = ['', '제목 없는 곡', '새 앨범'];
+const PLACEHOLDER_WARN = ['제목 없음', '가져온 곡'];
+
+export function placeholderTitle(title) {
+  let t = String(title || '').replace(/^예시:\s*/, '').trim();
+  while (AUTO_TAIL.test(t)) t = t.replace(AUTO_TAIL, '').trim();
+  if (PLACEHOLDER_ERROR.includes(t)) return 'error';
+  if (PLACEHOLDER_WARN.includes(t)) return 'warn';
+  return null;
+}

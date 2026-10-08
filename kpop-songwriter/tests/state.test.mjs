@@ -2,13 +2,16 @@
 // 취향을 못 불러왔을 때 덮어쓰지 않는지, 예시 곡을 앨범에 넣으면 저장되는지. 실행: npm run test:state
 import assert from 'node:assert/strict';
 import * as S from '../src/js/state.js';
+import { addEntry, makeEntry } from '../src/js/learn/taste.js';
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-function fakeStore({ failSave = () => false, tasteFails = false } = {}) {
+function fakeStore({ failSave = () => false, tasteFails = false, storedTaste = null, tasteDelay = 0 } = {}) {
   const saved = {};
   const versions = {};
+  const ctl = { tasteFails, storedTaste, tasteDelay }; // 테스트 중에 바꿀 수 있게
   return {
     kind: 'local',
+    ctl,
     saved,
     async list() { return []; },
     async save(song) { await wait(5); if (failSave(song.id)) throw new Error('full'); saved[song.id] = JSON.parse(JSON.stringify(song)); },
@@ -19,7 +22,7 @@ function fakeStore({ failSave = () => false, tasteFails = false } = {}) {
     async listAlbums() { return []; },
     async saveAlbum(a) { saved[a.id] = a; },
     async removeAlbum() {},
-    async loadTaste() { if (tasteFails) throw new Error('down'); return null; },
+    async loadTaste() { await wait(ctl.tasteDelay); if (ctl.tasteFails) throw new Error('down'); return ctl.storedTaste; },
     async saveTaste(t) { saved.taste = t; },
   };
 }
@@ -66,6 +69,50 @@ await S.init(store);
 S.mutateTaste((t) => { t.profile.lyrics = '새 값'; });
 await wait(1400);
 assert.equal(store.saved.taste, undefined, '불러오기 실패한 취향은 덮어쓰지 않음');
+assert.equal(S.getState().saveStatus, 'error', '저장됨이라고 하지 않음');
+
+// 4b) 처음에 못 불러온 취향은 저장할 때 다시 불러와 이번 세션의 반응을 얹는다
+{
+  const stored = {
+    profile: { lyrics: '기존' },
+    log: [
+      { id: 'old', at: 1, kind: 'lyrics', rating: 1, text: 'a', context: { ref: 'x' }, reasons: [] },
+      { id: 'keep', at: 2, kind: 'hook', rating: 1, text: 'h', context: { ref: 'y' }, reasons: [] },
+    ],
+  };
+  const st = fakeStore({ tasteFails: true, storedTaste: stored });
+  await S.init(st);
+  assert.equal(S.getState().tasteLoaded, false);
+  st.ctl.tasteFails = false; // 잠깐의 실패였음
+  S.mutateTaste((t) => {
+    addEntry(t, makeEntry({ kind: 'hook', rating: 1, text: 'z', context: { ref: 'z' } }));
+    addEntry(t, makeEntry({ kind: 'lyrics', rating: -1, text: 'b', context: { ref: 'x' } }));
+    t.profile.lyrics = '이번 세션';
+  });
+  await wait(1400);
+  assert.equal(S.getState().saveStatus, 'saved');
+  assert.equal(S.getState().tasteLoaded, true);
+  const log = st.saved.taste.log;
+  assert.deepEqual(log.map((e) => e.id).slice(0, 1), ['keep']);
+  assert.ok(!log.some((e) => e.id === 'old'), '같은 대상의 예전 평가는 새 평가로 바뀜');
+  assert.ok(log.some((e) => e.context.ref === 'x' && e.rating === -1));
+  assert.ok(log.some((e) => e.context.ref === 'z'));
+  assert.equal(st.saved.taste.profile.lyrics, '기존', '저장된 프로필이 있으면 그것을 둠');
+  assert.equal(S.getState().taste.log.length, 3, '화면이 쓰는 취향도 합친 것');
+
+  // 다시 불러오는 동안 생긴 반응도 남는다
+  const st2 = fakeStore({ tasteFails: true, storedTaste: stored, tasteDelay: 0 });
+  await S.init(st2);
+  st2.ctl.tasteFails = false;
+  st2.ctl.tasteDelay = 300;
+  S.mutateTaste((t) => { addEntry(t, makeEntry({ kind: 'hook', rating: 1, text: 'p', context: { ref: 'p' } })); });
+  await wait(1300); // 저장 시작 → 불러오는 중
+  S.mutateTaste((t) => { addEntry(t, makeEntry({ kind: 'hook', rating: 1, text: 'q', context: { ref: 'q' } })); });
+  await wait(2000);
+  const refs = st2.saved.taste.log.map((e) => e.context.ref);
+  assert.ok(refs.includes('p') && refs.includes('q') && refs.includes('y'), refs.join(','));
+  console.log('taste reload OK');
+}
 
 // 5) 예시 곡으로 싱글 앨범을 만들면 그 곡이 저장된다
 store = fakeStore();
@@ -282,6 +329,95 @@ assert.ok(AL.cover && AL.promo && Array.isArray(AL.tracks), '되돌린 뒤에도
   S.mutateSong(src, (x) => { x.title = 'Signal 4'; });
   assert.equal(S.addInstVersion(S.currentAlbum().id, src).title, 'Signal 4 (Inst.)');
   console.log('new song in album OK');
+}
+
+// 칸을 벗어날 때의 빈 변경·버전 저장·진행 표시는 되돌리기 단계를 남기지 않는다
+{
+  await S.init(fakeStore());
+  S.newSong();
+  const T = S.current();
+  S.mutate((s) => { s.title = 'Old'; });
+  S.mutate((s) => { s.title = 'N'; }, 'quiet');
+  S.mutate((s) => { s.title = 'New'; }, 'quiet');
+  S.mutate(() => {}); // 칸을 벗어남
+  S.undo();
+  assert.equal(T.title, 'Old', '한 번의 ↶로 타이핑 전으로');
+  S.redo();
+  assert.equal(T.title, 'New');
+  S.undo();
+  S.mutate(() => {});
+  assert.equal(S.canRedo(), true, '빈 변경은 다시 하기 목록을 지우지 않음');
+  S.redo();
+  S.mutate((s) => { s.sections[0].text = '가사'; });
+  assert.equal(await S.saveVersion('x'), true);
+  S.undo();
+  assert.equal(T.sections[0].text, '', '버전 저장 뒤 ↶는 마지막 고침을 되돌림');
+  S.mutate((s) => { s.sections[0].text = '가사2'; });
+  S.markProgress(T.id, 'suno');
+  assert.equal(T.progress.suno, true);
+  S.undo();
+  assert.equal(T.sections[0].text, '', '진행 표시는 단계를 남기지 않음');
+  assert.equal(T.progress.suno, true, '되돌려도 Suno 진행은 유지');
+  S.redo();
+  assert.equal(T.progress.suno, true);
+  // 빈 변경 뒤 2초 안에 다른 칸을 타이핑해도 앞 타이핑과 묶이지 않음
+  S.mutate((s) => { s.story = '가'; }, 'quiet');
+  S.mutate(() => {});
+  S.mutate((s) => { s.theme = '나'; }, 'quiet');
+  S.undo();
+  assert.equal(T.story, '가', '다른 칸 타이핑은 따로 되돌림');
+  S.newAlbum({ fromSong: T });
+  const AL2 = S.currentAlbum();
+  S.mutateAlbum((a) => { a.title = 'A1'; });
+  S.mutateAlbum((a) => { a.title = 'A12'; }, 'quiet');
+  S.mutateAlbum(() => {});
+  S.undo();
+  assert.equal(AL2.title, 'A1', '앨범도 한 번의 ↶로');
+  console.log('no-op undo OK');
+}
+
+// 버전 보관: 복원하는 버전은 지우지 않고, 넘치면 복원 전 자동 저장부터 지운다
+{
+  const setup = async () => {
+    const st = fakeStore();
+    st.maxVersions = 8;
+    const removed = [];
+    st.removeVersion = async (songId, vid) => { removed.push(vid); };
+    await S.init(st);
+    S.newSong();
+    for (let i = 1; i <= 8; i++) {
+      S.mutate((s) => { s.title = `draft ${i}`; });
+      await S.saveVersion(`v${i}`);
+    }
+    return { song: S.current(), removed };
+  };
+  let { song, removed } = await setup();
+  const v1 = song.versions.find((v) => v.note === 'v1');
+  const v2 = song.versions.find((v) => v.note === 'v2');
+  assert.equal(await S.restoreVersion(v1.id), true);
+  assert.equal(song.versions.length, 8);
+  assert.ok(song.versions.some((v) => v.id === v1.id), '복원한 가장 오래된 버전이 남음');
+  assert.ok(!removed.includes(v1.id));
+  assert.equal(song.versions[0].note, '복원 전 자동 저장');
+  assert.equal(song.versions[0].auto, true);
+  assert.equal(song.title, 'draft 1');
+  assert.deepEqual(removed, [v2.id], '이름 붙인 버전 하나(v2)만 지움');
+
+  ({ song, removed } = await setup());
+  const v5 = song.versions.find((v) => v.note === 'v5');
+  for (let i = 0; i < 3; i++) assert.equal(await S.restoreVersion(v5.id), true);
+  assert.equal(song.versions.length, 8);
+  assert.equal(song.versions.filter((v) => S.isAutoVersion(v)).length, 1, '자동 저장은 가장 최근 하나만');
+  assert.deepEqual(song.versions.filter((v) => !v.auto).map((v) => v.note), ['v8', 'v7', 'v6', 'v5', 'v4', 'v3', 'v2']);
+  assert.equal(removed.length, 3, 'v1과 앞선 자동 저장 둘');
+
+  // 예전 기록(auto 표시 없음)도 메모로 알아보고, 방금 만든 것·keepId는 지우지 않음
+  const list = [{ id: 'new' }, { id: 'a', note: '복원 전 자동 저장' }, { id: 'b', note: 'b' }, { id: 'c', note: 'c' }];
+  assert.deepEqual(S.versionsToDrop(list, 3, 'c').map((v) => v.id), ['a']);
+  assert.deepEqual(S.versionsToDrop(list, 2, 'c').map((v) => v.id), ['a', 'b']);
+  assert.deepEqual(S.versionsToDrop(list, 1, 'c').map((v) => v.id), ['a', 'b'], '방금 만든 것과 keep은 남김');
+  assert.deepEqual(S.versionsToDrop(list, 4, 'c'), []);
+  console.log('version keep OK');
 }
 
 console.log('state OK');

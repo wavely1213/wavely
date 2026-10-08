@@ -1,6 +1,6 @@
 // Claude에게 편곡·멜로디를 맡기는 호출. 결과는 앱이 쓰는 형식으로 검사해서만 반영한다.
 import { getSample } from './ai.js';
-import { sectionLabels } from './structure.js';
+import { sectionLabels, sungText } from './structure.js';
 import { chordName, keyName, NOTE_NAMES } from './music/theory.js';
 import { ARRANGE_INSTRUMENTS } from './music/instruments.js';
 import { DRUM_PATTERNS, BASS_PATTERNS } from './music/patterns.js';
@@ -111,7 +111,8 @@ export async function writeMelody(song, { targetIds, request, signal }) {
         const d = sm.chords[b % sm.chords.length];
         return `${b + 1}마디 ${chordName(m.root, m.mode, d, sm.seventh)} (도수${d}, 코드톤 인덱스 ${[d - 1, d + 1, d + 3].join('/')})`;
       }),
-      가사줄: s.text.split('\n').map((l) => l.trim()).filter(Boolean).map((l) => ({ 가사: l, 음절수: countSyllables(l) })),
+      // 비워 둔 반복 섹션은 앞 섹션 가사를 다시 부른다 (허밍이 아니라)
+      가사줄: sungText(song.sections, i).split('\n').map((l) => l.trim()).filter(Boolean).map((l) => ({ 가사: l, 음절수: countSyllables(l) })),
       음역: (() => {
         const r = sectionRange(song, s);
         const dr = r && degreeRange(m.root, m.mode, r);

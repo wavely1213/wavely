@@ -92,3 +92,72 @@ import { satisfactionTrend, trendText } from '../src/js/learn/taste.js';
   assert.equal(trendText(t), '처음 6개 33% → 최근 6개 83% (좋아지고 있어요)');
   console.log('satisfaction trend OK');
 }
+
+// 취향 합치기: 같은 id는 한 번, 시간순, 최근 MAX_LOG개. 프로필은 base가 비어 있을 때만 extra 것
+import { mergeTaste } from '../src/js/learn/taste.js';
+{
+  const e = (id, at, ref, rating = 1) => ({ id, at, kind: 'lyrics', rating, text: id, context: { ref }, reasons: [] });
+  const base = { profile: { lyrics: '내 취향' }, log: [e('a', 1, 'r1'), e('b', 3, 'r2')] };
+  const extra = { profile: { lyrics: '다른 것' }, log: [e('b', 3, 'r2'), e('c', 2, 'r3'), { at: 5 }, null] };
+  let m = mergeTaste(base, extra);
+  assert.deepEqual(m.taste.log.map((x) => x.id), ['a', 'c', 'b'], '시간순, 중복·id 없는 것 빼고');
+  assert.equal(m.added, 1);
+  assert.equal(m.changed, true);
+  assert.equal(m.taste.profile.lyrics, '내 취향', '채운 프로필은 그대로');
+  m = mergeTaste({ log: [] }, extra);
+  assert.equal(m.taste.profile.lyrics, '다른 것', '빈 프로필이면 extra 것');
+  assert.equal(mergeTaste(base, { log: [e('a', 1, 'r1')] }).changed, false);
+  // replace: 같은 대상의 이전 평가는 새것으로
+  m = mergeTaste(base, { log: [e('n', 9, 'r1', -1)] }, { replace: true });
+  assert.deepEqual(m.taste.log.map((x) => x.id), ['b', 'n']);
+  // 최근 MAX_LOG개
+  const many = { log: Array.from({ length: MAX_LOG + 5 }, (_, i) => e(`m${i}`, 100 + i, `q${i}`)) };
+  m = mergeTaste(base, many);
+  assert.equal(m.taste.log.length, MAX_LOG);
+  assert.equal(m.taste.log.at(-1).id, `m${MAX_LOG + 4}`);
+  console.log('taste merge OK');
+}
+
+// AI 정리는 바뀌기 전 프로필을 남기고, 되돌리기는 맞바꾼다 (프롬프트·내보내기에는 안 들어감)
+import { applySummary, swapPrevProfile, normalizeTaste, profileText } from '../src/js/learn/taste.js';
+{
+  const t = emptyTaste();
+  t.profile.lyrics = '손글씨';
+  t.profile.sound = '808';
+  assert.equal(swapPrevProfile(t), false, '되돌릴 것이 없음');
+  assert.equal(applySummary(t, { lyrics: 'AI', sound: '', avoid: 'AI 피할' }, 1000), true);
+  assert.equal(t.profile.lyrics, 'AI');
+  assert.equal(t.profile.sound, '808', '빈 결과는 지금 것을 둠');
+  assert.equal(t.profile.prev.lyrics, '손글씨');
+  assert.equal(t.profile.summarizedAt, 1000);
+  assert.ok(!promptBlock(t).includes('손글씨'), '이전 프로필은 AI 요청에 안 들어감');
+  assert.ok(!toJsonl(t).includes('손글씨'));
+  assert.equal(swapPrevProfile(t, 2000), true);
+  assert.equal(t.profile.lyrics, '손글씨');
+  assert.equal(t.profile.avoid, '');
+  assert.equal(t.profile.prev.lyrics, 'AI');
+  swapPrevProfile(t);
+  assert.equal(t.profile.lyrics, 'AI', '다시 누르면 AI 정리로');
+  const before = t.profile.prev;
+  assert.equal(applySummary(t, { lyrics: 'AI', sound: '808', avoid: 'AI 피할' }), false);
+  assert.equal(t.profile.prev, before, '바뀐 게 없으면 prev 그대로');
+  assert.deepEqual(normalizeTaste({ profile: { prev: { lyrics: 1, at: '5' } } }).profile.prev, { lyrics: '1', sound: '', avoid: '', at: 5 });
+  assert.equal('prev' in normalizeTaste({ profile: { prev: 'x' } }).profile, false);
+  assert.deepEqual(Object.keys(profileText(t.profile)), ['lyrics', 'sound', 'avoid']);
+  console.log('profile revert OK');
+}
+
+// 멜로디 👍는 음높이까지 예시로 들어가고, 글이 같은 👍·👎는 선호 쌍이 되지 않는다
+{
+  const t = emptyTaste();
+  addEntry(t, makeEntry({ kind: 'melody', rating: 1, text: 'Chorus 1: 불4 꺼5 진7~', context: { ref: 'm1', section: 'Chorus' } }));
+  assert.ok(promptBlock(t, 'melody').includes('- Chorus 1: 불4 꺼5 진7~'));
+  addEntry(t, makeEntry({ kind: 'lyrics', rating: 1, text: '같은 가사', context: { ref: 'l1', section: 'Verse' } }));
+  addEntry(t, makeEntry({ kind: 'lyrics', rating: -1, text: '같은 가사 ', context: { ref: 'l2', section: 'Verse' } }));
+  assert.ok(!preferencePairs(t).some((p) => p.source === 'rating' && p.chosen.trim() === p.rejected.trim()), '같은 글끼리는 쌍이 아님');
+  addEntry(t, makeEntry({ kind: 'melody', rating: -1, text: 'Chorus 1: 불2 꺼2 진2', context: { ref: 'm2', section: 'Chorus' } }));
+  const mel = preferencePairs(t).filter((p) => p.source === 'rating' && p.kind === 'melody');
+  assert.equal(mel.length, 1);
+  assert.notEqual(mel[0].chosen, mel[0].rejected);
+  console.log('melody feedback OK');
+}

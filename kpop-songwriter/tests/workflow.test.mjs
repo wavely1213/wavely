@@ -76,9 +76,9 @@ console.log('workflow OK');
   p = albumProgress(al, [song], { masters, coverInfo: { width: 3000, height: 3000 }, today });
   assert.equal(p.next.id, 'package', '점검 통과 → 제출 패키지');
   const { packageKey } = await import('../src/js/workflow/album-progress.js');
-  const opts = { masters, coverInfo: { width: 3000, height: 3000 } };
+  const opts = { masters, coverInfo: { width: 3000, height: 3000, blob: { size: 1000, type: 'image/jpeg' } } };
   al.submittedAt = Date.now();
-  al.submittedKey = packageKey(al, opts);
+  al.submittedKey = packageKey(al, [song], opts);
   p = albumProgress(al, [song], { ...opts, today });
   assert.equal(p.next.id, 'after');
   al.tracks[0].composers = '물결, 하늘';
@@ -89,8 +89,35 @@ console.log('workflow OK');
   p = albumProgress(al, [song], { ...opts, today });
   assert.equal(p.next.id, 'after', '되돌리면 다시 완료');
   assert.ok(p.next.hint.includes('D-55'));
+  // 곡 제목·가사·장르·AI 표기·커버 파일이 바뀌어도 다시 받기
+  const stepAfter = (why, change, undo) => {
+    change();
+    assert.equal(albumProgress(al, [song], { ...opts, today }).next.id, 'package', why);
+    undo();
+    assert.equal(albumProgress(al, [song], { ...opts, today }).next.id, 'after', `${why} 되돌림`);
+  };
+  const title0 = song.title;
+  stepAfter('곡 제목', () => { song.title = 'Renamed'; }, () => { song.title = title0; });
+  const sec = song.sections.find((x) => x.text.trim());
+  const text0 = sec.text;
+  stepAfter('가사', () => { sec.text += '\n새 줄'; }, () => { sec.text = text0; });
+  stepAfter('장르', () => { al.genre = 'Ballad'; }, () => { al.genre = newAlbum().genre; });
+  stepAfter('AI 표기', () => { al.ai = { ...al.ai, vocals: !al.ai.vocals }; }, () => { al.ai = { ...al.ai, vocals: !al.ai.vocals }; });
+  const blob0 = opts.coverInfo.blob;
+  stepAfter('커버 파일', () => { opts.coverInfo.blob = { size: 2000, type: 'image/jpeg' }; }, () => { opts.coverInfo.blob = blob0; });
+  // 싱크: 시간이 바뀌면 다시 받기, 같은 시간으로 다시 맞춘 것(at만 다름)은 그대로
+  const { makeSync } = await import('../src/js/album/lrc.js');
+  const times = Array.from({ length: 200 }, (_, k) => k);
+  song.sync = makeSync(song, times, { duration: 200 });
+  al.submittedKey = packageKey(al, [song], opts);
+  song.sync = { ...makeSync(song, times, { duration: 200 }), at: Date.now() + 5000 };
+  assert.equal(albumProgress(al, [song], { ...opts, today }).next.id, 'after', '같은 싱크는 그대로');
+  song.sync = makeSync(song, times.map((x, k) => (k === 3 ? x + 0.5 : x)), { duration: 200 });
+  assert.equal(albumProgress(al, [song], { ...opts, today }).next.id, 'package', '싱크 시간이 바뀌면 다시 받기');
+  delete song.sync;
+  al.submittedKey = packageKey(al, [song], opts);
   al.stats = [{ date: '2026-12-08', plays: { [song.id]: 10 } }];
-  assert.equal(albumProgress(al, [song], { masters, coverInfo: { width: 3000, height: 3000 }, today }).next, null);
+  assert.equal(albumProgress(al, [song], { ...opts, today }).next, null);
   console.log('album progress OK');
 }
 

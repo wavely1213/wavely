@@ -8,7 +8,7 @@ import { lyricFit } from '../lyricfit.js';
 import { matchFirst, matchNote } from '../lyricmatch.js';
 import { writeLyrics, suggestHooks, reviewLyrics } from '../ai.js';
 import { job, isBusy, runJob, stopJob } from '../aijob.js';
-import { feedbackBar, trackEdit, lineLikes } from '../learn/feedback.js';
+import { feedbackBar, trackEdit, cancelEdit, lineLikes } from '../learn/feedback.js';
 import { scoreSong, scoreSection } from '../optimize/lyricscore.js';
 import { improveLyrics, DEFAULT_THRESHOLD } from '../optimize/improve.js';
 import { renderSimilarity } from './similarity.js';
@@ -202,7 +202,9 @@ function renderSection(song, s, index, label, result) {
       const live = pill && scoreSection({ ...s, text: e.target.value });
       if (live) { pill.textContent = `${live.score}점`; pill.className = `pill ${scoreClass(live.score)}`; pill.title = live.tips.join(' '); }
       const origin = aiOrigin[s.id];
-      if (origin) trackEdit({ kind: 'lyrics', ref: origin.gen, before: origin.text, after: e.target.value, context: { section: s.type, song: song.title } });
+      // AI 초안대로 되돌리면 '고침' 기록도 지운다 (안 그러면 고치지 않은 것이 고친 방향으로 프롬프트에 들어감)
+      if (origin && e.target.value.trim() === origin.text.trim()) cancelEdit('lyrics', origin.gen);
+      else if (origin) trackEdit({ kind: 'lyrics', ref: origin.gen, before: origin.text, after: e.target.value, context: { section: s.type, song: song.title } });
     },
     onscroll: (e) => { gutter.scrollTop = e.target.scrollTop; },
     // 칸을 벗어나면 곡 점수·자동 개선 버튼·파트 분배를 새 가사로 다시 그린다

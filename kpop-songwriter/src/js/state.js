@@ -5,7 +5,7 @@ import { MAX_VERSIONS } from './constants.js';
 import { exampleSong } from './example.js';
 import { normalizeMusic } from './music/arrangement.js';
 import { newAlbum as makeAlbum, normalizeAlbum, newTrack, inheritAlbumInfo } from './album/model.js';
-import { emptyTaste, normalizeTaste, MAX_LOG } from './learn/taste.js';
+import { emptyTaste, normalizeTaste, mergeTaste } from './learn/taste.js';
 import { setTasteGetter } from './learn/context.js';
 import { forgetSong } from './album/session.js';
 import { storageUsage, isQuotaError } from './storage-usage.js';
@@ -53,6 +53,7 @@ export async function init(store) {
   } catch {
     state.taste = emptyTaste();
     state.tasteLoaded = false;
+    schedule(TASTE_ID); // 조금 뒤 다시 불러와 본다 (flush의 reloadTaste)
   }
   setTasteGetter(() => state.taste);
   state.albums.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
@@ -237,16 +238,9 @@ export async function applyRestore(plan) {
   state.songs.unshift(...songs);
   songs.forEach((x) => schedule(x.id));
   plan.albums.filter((a) => !state.albums.some((b) => b.id === a.id)).forEach((a) => { normalizeAlbum(a); state.albums.unshift(a); schedule(a.id); });
-  const have = new Set(state.taste.log.map((e) => e.id));
-  const add = plan.taste.log.filter((e) => !have.has(e.id));
-  const p = state.taste.profile;
-  const emptyProfile = !p.lyrics.trim() && !p.sound.trim() && !p.avoid.trim();
-  if (add.length || (emptyProfile && plan.taste.profile !== p)) {
-    state.taste = normalizeTaste({
-      ...state.taste,
-      log: [...state.taste.log, ...add].sort((x, y) => (x.at || 0) - (y.at || 0)).slice(-MAX_LOG),
-      profile: emptyProfile ? plan.taste.profile : p,
-    });
+  const merged = mergeTaste(state.taste, plan.taste);
+  if (merged.changed) {
+    state.taste = merged.taste;
     schedule(TASTE_ID);
   }
   if (songs.length) { state.currentId = songs[0].id; state.mode = 'song'; }
@@ -312,9 +306,7 @@ export function mutateAlbum(fn, scope = 'all') {
 export function mutateAlbumById(id, fn, scope = 'all') {
   const album = state.albums.find((a) => a.id === id);
   if (!album) return;
-  remember(album, scope);
-  fn(album);
-  normalizeAlbum(album);
+  track(album, scope, (x) => { fn(x); normalizeAlbum(x); });
   album.updatedAt = Date.now();
   schedule(album.id);
   emit(scope);
@@ -363,13 +355,36 @@ function remember(item, scope) {
   } else {
     lastQuiet[item.id] = 0;
   }
-  const stack = undoStacks[item.id] || (undoStacks[item.id] = []);
-  const snap = snapshot(item);
+  pushUndo(item.id, snapshot(item));
+}
+
+function pushUndo(id, snap) {
+  const stack = undoStacks[id] || (undoStacks[id] = []);
   if (stack[stack.length - 1] === snap) return;
   stack.push(snap);
   if (stack.length > UNDO_MAX) stack.shift();
-  redoStacks[item.id] = [];
+  redoStacks[id] = [];
 }
+
+// 타이핑이 아닌 변경은 실제로 바뀐 게 있을 때만 되돌리기 단계를 남긴다.
+// (칸을 벗어날 때 부르는 빈 변경이 단계를 쌓으면 첫 ↶가 아무것도 안 하고 다시 실행 목록도 지워짐)
+function track(item, scope, fn) {
+  if (scope === 'quiet') {
+    remember(item, scope);
+    fn(item);
+    return;
+  }
+  lastQuiet[item.id] = 0; // 빈 변경이어도 타이핑 묶음은 여기서 끊는다
+  const before = snapshot(item);
+  try {
+    fn(item);
+  } finally {
+    if (snapshot(item) !== before) pushUndo(item.id, before);
+  }
+}
+
+// 한 번 이룬 단계(Suno로 만들기, 마스터링)는 되돌리기로 지우지 않는다
+const KEEP_DONE = ['suno', 'mastered'];
 
 // 지금 화면의 대상: 앨범 화면이면 앨범, 아니면 곡
 function activeId() {
@@ -387,6 +402,7 @@ function restoreSnapshot({ item, album }, snap) {
   const data = JSON.parse(snap);
   // 한 번 고쳐 내 곡이 된 곡은 되돌려도 예시 곡으로 돌아가지 않는다 (예시 곡은 저장·백업에서 빠짐)
   if (!album && item.example === false) data.example = false;
+  if (!album) KEEP_DONE.forEach((k) => { if (item.progress?.[k]) data.progress = { ...(data.progress || {}), [k]: true }; });
   Object.keys(item).forEach((k) => { if (!['id', 'versions', 'createdAt'].includes(k)) delete item[k]; });
   Object.assign(item, data, { id: item.id }, album ? {} : { versions: item.versions });
   if (album) normalizeAlbum(item); else normalizeMusic(item);
@@ -416,13 +432,22 @@ export function redo(id = activeId()) { return step(id, redoStacks, undoStacks);
 export function mutateSong(id, fn, scope = 'all') {
   const song = state.songs.find((s) => s.id === id);
   if (!song) return;
-  remember(song, scope);
-  fn(song);
-  normalizeMusic(song);
+  track(song, scope, (x) => { fn(x); normalizeMusic(x); });
   song.example = false;
   song.updatedAt = Date.now();
   schedule(song.id);
   emit(scope);
+}
+
+// 진행 단계 표시만 바꾼다 (되돌리기 단계를 남기지 않음)
+export function markProgress(id, key) {
+  const song = state.songs.find((s) => s.id === id);
+  if (!song || song.progress?.[key]) return;
+  song.progress = { ...(song.progress || {}), [key]: true };
+  song.example = false;
+  song.updatedAt = Date.now();
+  schedule(song.id);
+  emit('quiet');
 }
 
 function schedule(id) {
@@ -453,8 +478,12 @@ async function flush() {
       if (song) await state.store.save(song);
       const album = state.albums.find((a) => a.id === id);
       if (album) await state.store.saveAlbum(album);
-      // 취향을 불러오지 못한 채로 저장하면 기존 기록을 빈 값으로 덮어쓰게 되므로 막는다
-      if (id === TASTE_ID && state.tasteLoaded) await state.store.saveTaste(state.taste);
+      // 취향을 불러오지 못한 채로 저장하면 기존 기록을 빈 값으로 덮어쓰게 되므로, 먼저 다시 불러와 합친다.
+      // 또 실패하면 저장 실패로 남겨 다시 시도한다 (이번 세션의 반응은 버리지 않음)
+      if (id === TASTE_ID) {
+        if (!state.tasteLoaded) await reloadTaste();
+        await state.store.saveTaste(state.taste);
+      }
     } catch (e) {
       failed.push(id);
       if (isQuotaError(e)) full = true;
@@ -473,6 +502,18 @@ async function flush() {
   }
   flushing = false;
   emit('status');
+}
+
+// 처음에 못 불러온 취향을 다시 불러와, 그사이 쌓인 반응을 얹는다 (프로필은 저장된 것이 비어 있을 때만 이번 것으로).
+// 기다리는 동안 생긴 반응도 넣으려고 합치기는 불러온 뒤에 한다.
+async function reloadTaste() {
+  const stored = await state.store.loadTaste();
+  const session = state.taste;
+  const { taste } = mergeTaste(stored, session, { replace: true });
+  taste.enabled = taste.enabled !== false && session.enabled !== false;
+  state.taste = taste;
+  state.tasteLoaded = true;
+  emit('all');
 }
 
 // 곡을 지우면 앨범 트랙·버전 사본·보관 파일도 함께 정리한다
@@ -500,24 +541,47 @@ function snapshotOf(song) {
   return JSON.parse(JSON.stringify(rest));
 }
 
-function versionMeta(song, note) {
+const AUTO_NOTE = '복원 전 자동 저장';
+export const isAutoVersion = (v) => !!v.auto || v.note === AUTO_NOTE; // 예전 기록은 메모로 알아본다
+
+function versionMeta(song, note, auto) {
   return {
     id: uid(),
     at: Date.now(),
     note: note || '메모 없음',
     filled: song.sections.filter((s) => s.text.trim()).length,
     total: song.sections.length,
+    ...(auto ? { auto: true } : {}),
   };
 }
 
-async function storeVersion(song, note) {
-  const meta = versionMeta(song, note);
+// 버전이 max개를 넘을 때 지울 것 (list는 최신순). 방금 만든 것(0번)과 keepId(복원하는 버전)는 지우지 않고,
+// 복원 전 자동 저장을 이름 붙인 버전보다 먼저, 각각 오래된 것부터 지운다.
+export function versionsToDrop(list, max, keepId) {
+  let extra = list.length - max;
+  if (extra <= 0) return [];
+  const candidates = list.slice(1).filter((v) => v.id !== keepId).reverse();
+  const out = [];
+  for (const pass of [isAutoVersion, () => true]) {
+    for (const v of candidates) {
+      if (extra <= 0) break;
+      if (!out.includes(v) && pass(v)) { out.push(v); extra--; }
+    }
+  }
+  return out;
+}
+
+async function storeVersion(song, note, { keep, auto } = {}) {
+  const meta = versionMeta(song, note, auto);
   await state.store.putVersion(song.id, { ...meta, data: snapshotOf(song) });
   song.versions.unshift(meta);
-  const max = state.store.maxVersions || MAX_VERSIONS;
-  const dropped = song.versions.slice(max);
-  song.versions = song.versions.slice(0, max);
+  const dropped = versionsToDrop(song.versions, maxVersions(), keep);
+  song.versions = song.versions.filter((v) => !dropped.includes(v));
   dropped.forEach((v) => state.store.removeVersion(song.id, v.id).catch(() => {}));
+}
+
+export function maxVersions() {
+  return state.store?.maxVersions || MAX_VERSIONS;
 }
 
 export async function saveVersion(note) {
@@ -543,7 +607,7 @@ export async function restoreVersion(versionId) {
   const v = await state.store.getVersion(song.id, versionId).catch(() => null);
   if (!v?.data) return false;
   // 복원 직전 상태를 먼저 남긴다. 이게 실패하면 복원하지 않는다 (덮어쓰면 되돌릴 수 없음).
-  await storeVersion(song, '복원 전 자동 저장');
+  await storeVersion(song, AUTO_NOTE, { keep: versionId, auto: true });
   const { id, createdAt, versions, ...data } = JSON.parse(JSON.stringify(v.data));
   mutateSong(song.id, (s) => { Object.assign(s, data); });
   return true;

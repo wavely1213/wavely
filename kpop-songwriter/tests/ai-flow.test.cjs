@@ -119,6 +119,15 @@ function fakeClaude() {
   results.lineLiked = await p.locator('article.section.t-verse').first().locator('.line-likes[open] button[aria-pressed="true"]').count();
   await p.locator('article.section.t-verse').first().screenshot({ path: path.join(TMP, 'line-likes.png') });
   const ta = p.locator('article.section.t-verse').first().locator('textarea.lyrics');
+  // 고쳤다가 AI 초안대로 되돌리면 '고침' 기록도 지워짐
+  const aiDraft = await ta.inputValue();
+  const lyricEdits = async () => (await taste())?.log.filter((e) => e.kind === 'lyrics' && e.rating === 0).length || 0;
+  await ta.fill(`${aiDraft} 임시`);
+  await p.waitForTimeout(5500);
+  const editedOnce = (await lyricEdits()) === 1;
+  await ta.fill(aiDraft);
+  await p.waitForTimeout(1800);
+  results.lyricEditRevert = editedOnce && (await lyricEdits()) === 0;
   await ta.fill('내가 고친 첫 줄 새벽을 불러\n가짜 AI 둘째 줄 signal');
   await p.waitForTimeout(5500); // 고친 내용은 멈춘 지 4초 뒤 기록
   // 자동 개선: 점수 낮은 섹션을 다시 쓰고 오른 것만 반영
@@ -173,6 +182,7 @@ function fakeClaude() {
   await p.waitForFunction(() => window.__prompts.filter((x) => x.includes('탑라이너')).length >= 2);
   const melPrompt = (await prompts()).filter((x) => x.includes('탑라이너')).pop();
   results.melodyEditPrompt = melPrompt.includes('멜로디 표기') && melPrompt.includes('AI 초안을 작곡가가 이렇게 고쳤다');
+  results.melodyLikedPitch = /좋아한 예시[^\n]*\n- [^\n]*가-?\d+ 짜-?\d+/.test(melPrompt); // 👍한 멜로디가 음높이까지 예시로
 
   // 스타일
   await p.click('.tab:text-is("Suno 스타일")');
@@ -186,9 +196,18 @@ function fakeClaude() {
   results.tasteLog = t1.log.map((e) => `${e.kind}:${e.rating}${e.reasons.length ? `(${e.reasons})` : ''}`);
   results.editRecorded = t1.log.some((e) => e.rating === 0 && e.after.includes('내가 고친'));
   await p.click('.song-item:has-text("내 취향")');
+  await p.fill('#taste-lyrics', '내가 직접 쓴 스타일');
   await p.click('text=기록으로 AI가 정리하기');
   await p.waitForFunction(() => document.querySelector('#taste-lyrics')?.value.includes('가짜 정리'));
   await p.screenshot({ path: path.join(TMP, 'taste.png'), fullPage: true });
+  // 정리 전 프로필로 되돌리기 → 저장됨 → 다시 누르면 AI 정리로
+  await p.click('#taste-revert');
+  await p.waitForFunction(() => document.querySelector('#taste-lyrics')?.value === '내가 직접 쓴 스타일');
+  await p.waitForTimeout(1800);
+  const t2 = await taste();
+  await p.click('#taste-revert');
+  await p.waitForFunction(() => document.querySelector('#taste-lyrics')?.value.includes('가짜 정리'));
+  results.profileRevert = t2.profile.lyrics === '내가 직접 쓴 스타일' && t2.profile.prev?.lyrics.includes('가짜 정리');
   // 이 흐름에선 👍/👎가 10개가 안 돼 안내 문구가 보여야 함 (추이 계산은 perf 테스트에서 기록을 넣어 확인)
   results.trendRow = (await p.textContent('#taste-trend')).includes('10개 넘게 쌓이면');
   await p.click('text=기록 내보내기');
@@ -304,6 +323,7 @@ function fakeClaude() {
   await p.click('text=+ 새 곡');
   await p.fill('#theme', '첫눈 오는 날 고백');
   await p.press('#theme', 'Tab');
+  const melBefore = (await prompts()).filter((x) => x.includes('탑라이너')).length;
   await p.click('button:text-is("초안 만들기")');
   await p.waitForSelector('.tab.on:text-is("구조·가사")', { timeout: 60000 });
   await p.waitForTimeout(1600);
@@ -317,6 +337,11 @@ function fakeClaude() {
     styleBpm: draft.style.bpm,
     styleKey: draft.style.key,
   };
+  // 같은 가사를 다시 부르는 섹션은 AI에 다시 안 묻고 첫 섹션 멜로디를 받음
+  const melIds = (await prompts()).filter((x) => x.includes('탑라이너')).slice(melBefore).flatMap((x) => [...x.matchAll(/"id":"([a-z0-9]+)","이름"/g)].map((m) => m[1]));
+  const sungSecs = draft.sections.filter((x) => x.text.trim());
+  results.draft.melodyAsked = `${melIds.length}/${sungSecs.length}`;
+  results.draft.melodyCopied = melIds.length < sungSecs.length && sungSecs.every((x) => draft.music.sections[x.id].melody.length > 0);
 
   // 앨범 홍보
   await p.click('text=+ 새 앨범');
@@ -357,7 +382,7 @@ function fakeClaude() {
   console.log(JSON.stringify(results, null, 1));
   const ok = results.trendRow && results.lineSwap && results.lyricsApplied && results.review && results.improve.length > 0 && results.improve.every((t) => t.includes('반영')) && results.arrangeKey.includes('A minor') && results.melodyNotes === 3 && results.styleBpm === '140'
     && results.editRecorded && results.tasteLog.some((x) => x.startsWith('lyrics:-1(유치해요)')) && results.tasteLog.includes('hook:1') && results.lineLiked === 1 && results.similarCount === 1 && results.similarFixed && results.trOff === 1 && results.trLyrics && results.trStyle && results.variantCount === 3 && results.variantChosen.join() === 'B' && results.variantStyle === 'bright synth-pop' && results.variantPair && results.orderTracks >= 2 && results.orderApplied && results.orderUndo && results.statLearn.startsWith('arrange') && results.ideasPromptHint && results.melodyEdit && results.melodyEditUndo && results.melodyEditRedo && results.melodyEditPrompt && results.pitch && results.spellCount === 2 && results.spellApplied && results.ideaTitle === '가짜 컨셉 둘' && results.ideaTheme === '둘 주제' && results.ideaKeywords === '밤, 거울, Mirror' && results.ideaMoods === '몽환,다크' && results.tasteLog.includes('arrange:1')
-    && results.tasteLog.includes('melody:1') && results.promptHasTaste && results.promo && results.draft.arranged && results.draft.bpm === 128 && results.draft.styleBpm === 128 && results.draft.styleKey === 'A minor' && results.draft.melodySections > 0 && results.draft.lyrics.split('/')[0] === results.draft.lyrics.split('/')[1] && results.keptBridge === '언젠가 너도 이 밤을 보면\n같은 불빛을 찾게 될 거야' && results.melodyPromptRange && results.raceA === 133 && results.raceB === 120 && results.saved.includes('taste-feedback.zip') && !errs.length;
+    && results.tasteLog.includes('melody:1') && results.promptHasTaste && results.profileRevert && results.melodyLikedPitch && results.lyricEditRevert && results.promo && results.draft.arranged && results.draft.bpm === 128 && results.draft.styleBpm === 128 && results.draft.styleKey === 'A minor' && results.draft.melodySections > 0 && results.draft.melodyCopied && results.draft.lyrics.split('/')[0] === results.draft.lyrics.split('/')[1] && results.keptBridge === '언젠가 너도 이 밤을 보면\n같은 불빛을 찾게 될 거야' && results.melodyPromptRange && results.raceA === 133 && results.raceB === 120 && results.saved.includes('taste-feedback.zip') && !errs.length;
   if (errs.length) console.log('ERRORS', errs);
   console.log(ok ? 'ai OK' : 'ai FAILED');
   if (!ok) process.exitCode = 1;

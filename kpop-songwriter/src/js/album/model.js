@@ -5,7 +5,7 @@ import { similarityStatus } from '../optimize/similarity.js';
 import { spellingStatus } from '../optimize/spelling.js';
 import { splitsFor, splitIssues } from './splits.js';
 import { explicitWords } from './explicit.js';
-import { titleIssues } from './titlecheck.js';
+import { titleIssues, placeholderTitle } from './titlecheck.js';
 import { lyricCheckStatus } from './lyriccheck.js';
 
 export const ALBUM_TYPES = {
@@ -151,7 +151,9 @@ export function releaseChecklist(album, songs, { masters = {}, coverInfo = null,
   const type = ALBUM_TYPES[album.type];
   const tracks = album.tracks.filter((t) => songs.some((s) => s.id === t.songId));
 
-  if (!album.title.trim() || album.title === '새 앨범') add('error', '앨범 제목을 정해 주세요.', { tab: 'meta' });
+  const albumPh = placeholderTitle(album.title);
+  if (albumPh === 'error') add('error', '앨범 제목을 정해 주세요.', { tab: 'meta' });
+  else if (albumPh) add('warn', `앨범 제목이 앱의 기본 제목("${album.title.trim()}")이에요. 이 이름으로 발매할 게 아니면 바꿔 주세요.`, { tab: 'meta' });
   if (!album.artist.trim()) add('error', '아티스트명을 적어 주세요.', { tab: 'meta' });
   titleIssues(album.title).forEach((x) => add('warn', `앨범 제목: ${x}`, { tab: 'meta' }));
   if (!tracks.length) add('error', '수록곡이 없어요.', { tab: 'tracks' });
@@ -167,6 +169,9 @@ export function releaseChecklist(album, songs, { masters = {}, coverInfo = null,
   tracks.forEach((t, i) => {
     const song = songs.find((s) => s.id === t.songId);
     const n = `${i + 1}번 「${song.title.replace(/^예시:\s*/, '')}」`;
+    const ph = placeholderTitle(song.title);
+    if (ph === 'error') add('error', `${i + 1}번 곡 제목을 정해 주세요 (지금 "${song.title.trim() || '빈 제목'}").`, { song: song.id, tab: 'concept' });
+    else if (ph) add('warn', `${n}: 앱의 기본 제목이에요. 이 이름으로 발매할 게 아니면 바꿔 주세요.`, { song: song.id, tab: 'concept' });
     titleIssues(song.title.replace(/^예시:\s*/, '')).forEach((x) => add('warn', `${n}: ${x}`, { song: song.id, tab: 'concept' }));
     if (!t.lyricists.trim() && !song.instOf) add('error', `${n}: 작사 크레딧이 비어 있어요.`, { tab: 'meta' });
     if (t.isrc.trim() && !ISRC.test(t.isrc.replace(/[\s-]/g, '').toUpperCase())) add('warn', `${n}: ISRC 형식이 아니에요 (예: KR-A01-26-00001, 12자리).`, { tab: 'meta' });
@@ -248,7 +253,7 @@ export function toCsv(rows) {
 }
 
 export function trackFileName(i, title, ext = 'wav') {
-  const clean = (title || 'Untitled').replace(/^예시:\s*/, '').replace(/[\\/:*?"<>|]+/g, '').trim();
+  const clean = String(title || '').replace(/^예시:\s*/, '').replace(/[\\/:*?"<>|]+/g, '').trim() || 'Untitled';
   return `${String(i + 1).padStart(2, '0')} ${clean}.${ext}`;
 }
 
