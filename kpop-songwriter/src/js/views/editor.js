@@ -17,6 +17,7 @@ import { lineSwapButton, lineSwapPanel } from './lineswap.js';
 
 // AI가 마지막으로 쓴 섹션 가사 (취향 학습용, 저장하지 않음): sectionId → { text, gen }
 const aiOrigin = {};
+const lastLyric = {}; // 섹션 id → 마지막으로 본 가사 (↶·다시 하기로 바뀐 것을 알아보려고)
 
 // 곡별 화면 메모 (저장하지 않음)
 const memo = {};
@@ -110,7 +111,7 @@ function renderScore(song, m, scores) {
           mutateSong(song.id, (x) => {
             Object.entries(res.updates).forEach(([id, text]) => {
               const sec = x.sections.find((y) => y.id === id);
-              if (sec) { sec.text = text; aiOrigin[id] = { text, gen: uid() }; }
+              if (sec) { sec.text = text; aiOrigin[id] = { text, gen: uid() }; lastLyric[id] = text; }
             });
           });
         }
@@ -131,6 +132,7 @@ function applyLyrics(songId, out) {
       if (sec) {
         sec.text = text;
         aiOrigin[id] = { text, gen: uid() };
+        lastLyric[id] = text;
       }
     });
   });
@@ -154,6 +156,13 @@ function renderShare(song) {
 }
 
 function renderSection(song, s, index, label, result) {
+  // ↶·다시 하기는 입력 이벤트가 없으므로 그릴 때 본다: AI 초안대로 돌아가면 '고침' 기록을 지우고, 다시 달라지면 남긴다
+  const origin0 = aiOrigin[s.id];
+  if (origin0 && lastLyric[s.id] !== s.text) {
+    lastLyric[s.id] = s.text;
+    if (s.text.trim() === origin0.text.trim()) cancelEdit('lyrics', origin0.gen);
+    else trackEdit({ kind: 'lyrics', ref: origin0.gen, before: origin0.text, after: s.text, context: { section: s.type, song: song.title } });
+  }
   const busy = isBusy();
   const analysis = analyzeSection(s.text);
   const gutter = h('div', { class: 'gutter', 'aria-hidden': 'true' });
@@ -202,6 +211,7 @@ function renderSection(song, s, index, label, result) {
       const live = pill && scoreSection({ ...s, text: e.target.value });
       if (live) { pill.textContent = `${live.score}점`; pill.className = `pill ${scoreClass(live.score)}`; pill.title = live.tips.join(' '); }
       const origin = aiOrigin[s.id];
+      lastLyric[s.id] = e.target.value;
       // AI 초안대로 되돌리면 '고침' 기록도 지운다 (안 그러면 고치지 않은 것이 고친 방향으로 프롬프트에 들어감)
       if (origin && e.target.value.trim() === origin.text.trim()) cancelEdit('lyrics', origin.gen);
       else if (origin) trackEdit({ kind: 'lyrics', ref: origin.gen, before: origin.text, after: e.target.value, context: { section: s.type, song: song.title } });

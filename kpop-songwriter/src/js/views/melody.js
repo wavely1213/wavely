@@ -12,7 +12,7 @@ import { uid } from '../dom.js';
 import { feedbackBar, trackEdit, cancelEdit } from '../learn/feedback.js';
 import { melodyText, melodyFeedbackText } from '../music/melodytext.js';
 import { help } from '../help.js';
-import { melodyPlan, applyCopies, repeatSource, fitCopy } from '../music/melodycopy.js';
+import { melodyPlan, applyCopies, repeatSource, putCopy } from '../music/melodycopy.js';
 import { sectionRange, outOfRange, foldIntoRange, midiName as rangeName } from '../music/range.js';
 
 const TOP = 10;
@@ -126,10 +126,7 @@ function copyButton(song, s, sm, fromLabel, from) {
     ui.confirmCopy = false;
     ui.selected = -1;
     forgetGen(song.id, s.id);
-    mutate((x) => {
-      const to = x.sections.find((y) => y.id === s.id);
-      x.music.sections[s.id].melody = fitCopy(x, to, x.music.sections[from.id].melody);
-    });
+    mutate((x) => { putCopy(x, x.sections.find((y) => y.id === s.id), x.music.sections[from.id].melody); });
   };
   if (ui.confirmCopy) {
     return [h('button', { type: 'button', class: 'btn small danger', id: 'mel-copy-confirm', onclick: apply }, '바꾸기 확인'),

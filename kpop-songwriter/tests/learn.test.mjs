@@ -110,6 +110,9 @@ import { mergeTaste } from '../src/js/learn/taste.js';
   // replace: 같은 대상의 이전 평가는 새것으로
   m = mergeTaste(base, { log: [e('n', 9, 'r1', -1)] }, { replace: true });
   assert.deepEqual(m.taste.log.map((x) => x.id), ['b', 'n']);
+  // 같은 대상의 더 새 평가가 저장돼 있으면 옛 평가가 덮지 않음 (둘 다 둠)
+  m = mergeTaste({ log: [e('s1', 2000, 'R', -1)] }, { log: [e('b1', 1000, 'R', 1)] }, { replace: true });
+  assert.deepEqual(m.taste.log.map((x) => x.id), ['b1', 's1']);
   // 최근 MAX_LOG개
   const many = { log: Array.from({ length: MAX_LOG + 5 }, (_, i) => e(`m${i}`, 100 + i, `q${i}`)) };
   m = mergeTaste(base, many);

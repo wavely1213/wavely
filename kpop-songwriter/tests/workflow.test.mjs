@@ -116,6 +116,21 @@ console.log('workflow OK');
   assert.equal(albumProgress(al, [song], { ...opts, today }).next.id, 'package', '싱크 시간이 바뀌면 다시 받기');
   delete song.sync;
   al.submittedKey = packageKey(al, [song], opts);
+  // v0.86까지 받은 패키지(예전 지문)는 바뀐 게 없으면 그대로 완료
+  const legacy = JSON.stringify([
+    al.title, al.artist, al.releaseDate, al.type, al.cLine, al.pLine, al.upc,
+    al.tracks.map((t) => [t.songId, t.isTitle, t.isrc, t.lyricists, t.composers, t.arrangers, t.featuring, t.explicit, t.splits || {}, masters[t.songId] ? [masters[t.songId].name, Math.round(masters[t.songId].duration || 0)] : null]),
+    [3000, 3000, '', null],
+  ]);
+  assert.equal(albumProgress({ ...al, submittedKey: legacy }, [song], { ...opts, today }).next.id, 'after', '예전 지문도 인정');
+  assert.equal(albumProgress({ ...al, submittedKey: legacy, upc: '123' }, [song], { ...opts, today }).next.id, 'package', '예전 지문도 바뀌면 다시 받기');
+  // 곡 제목 오류는 수록곡 단계 안내가 그 오류와 곡 화면으로
+  song.title = '제목 없는 곡';
+  const te = albumProgress(al, [song], { ...opts, today }).next;
+  assert.equal(te.id, 'tracks');
+  assert.ok(te.hint.includes('곡 제목을 정해 주세요'), te.hint);
+  assert.deepEqual(te.go, { song: song.id, tab: 'concept' });
+  song.title = title0;
   al.stats = [{ date: '2026-12-08', plays: { [song.id]: 10 } }];
   assert.equal(albumProgress(al, [song], { ...opts, today }).next, null);
   console.log('album progress OK');

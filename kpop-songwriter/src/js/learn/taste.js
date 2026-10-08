@@ -71,8 +71,9 @@ export function mergeTaste(base, extra, { replace = false } = {}) {
   const have = new Set(b.log.map((e) => e.id));
   const added = x.log.filter((e) => e && e.id && !have.has(e.id)).sort(byAt);
   const merged = { log: [...b.log] };
-  if (replace) added.forEach((e) => addEntry(merged, e));
-  else merged.log.push(...added);
+  // 같은 대상의 더 새 평가가 이미 있으면 바꾸지 않고 둘 다 둔다 (이번 세션에 되살린 백업의 옛 평가 등)
+  const newer = (e) => merged.log.some((o) => o.context?.ref && o.context.ref === e.context?.ref && o.kind === e.kind && (o.rating === 0) === (e.rating === 0) && (o.at || 0) > (e.at || 0));
+  added.forEach((e) => { if (replace && !newer(e)) addEntry(merged, e); else merged.log.push(e); });
   const filled = (p) => !!(p.lyrics.trim() || p.sound.trim() || p.avoid.trim());
   const useExtra = !filled(b.profile) && filled(x.profile);
   const taste = { ...b, log: merged.log.sort(byAt).slice(-MAX_LOG), profile: useExtra ? { ...b.profile, ...x.profile } : b.profile };

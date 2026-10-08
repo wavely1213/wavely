@@ -2,6 +2,7 @@
 // 첫 섹션 멜로디를 그대로 쓴다. 그래야 데모 WAV·MIDI의 코러스 반복 자리가 비지 않고, 훅이 매번 달라지지 않는다.
 import { sungText } from '../structure.js';
 import { sectionRange, foldIntoRange } from './range.js';
+import { melodyText } from './melodytext.js';
 
 const norm = (t) => t.split('\n').map((l) => l.trim()).filter(Boolean).join('\n');
 
@@ -49,16 +50,24 @@ export function fitCopy(song, section, notes) {
   return range && !range.conflict ? foldIntoRange(out, song.music.root, song.music.mode, range) : out;
 }
 
+// 옮겨 넣고, 손대지 않은 복사본인지 나중에 알아보게 표기를 남긴다
+export function putCopy(song, section, notes) {
+  const sm = song.music.sections[section.id];
+  sm.melody = fitCopy(song, section, notes);
+  sm.copied = melodyText(sm.melody);
+}
+
 // AI가 doneIds 멜로디를 만든 뒤 반복 섹션에 옮긴다 (mutate 안에서). 가사를 따로 적은 반복은 '전부'가 원래 덮던 자리라 늘 덮고,
-// 비워 둔 반복은 멜로디가 없을 때만 (손으로 찍은 음표를 말없이 지우지 않음). 옮긴 섹션 id를 돌려준다.
+// 비워 둔 반복은 멜로디가 없거나 손대지 않은 예전 복사본일 때만 (손으로 찍거나 고친 음표는 말없이 지우지 않음). 옮긴 섹션 id를 돌려준다.
 export function applyCopies(song, plan, doneIds) {
   const copied = [];
   plan.copies.filter((c) => doneIds.includes(c.from)).forEach((c) => {
     const from = song.music.sections[c.from];
     const sm = song.music.sections[c.to];
     const to = song.sections.find((s) => s.id === c.to);
-    if (!from?.melody.length || !sm || !to || (c.emptyText && sm.melody.length)) return;
-    sm.melody = fitCopy(song, to, from.melody);
+    if (!from?.melody.length || !sm || !to) return;
+    if (c.emptyText && sm.melody.length && melodyText(sm.melody) !== sm.copied) return;
+    putCopy(song, to, from.melody);
     copied.push(c.to);
   });
   return copied;

@@ -407,9 +407,25 @@ assert.ok(AL.cover && AL.promo && Array.isArray(AL.tracks), '되돌린 뒤에도
   const v5 = song.versions.find((v) => v.note === 'v5');
   for (let i = 0; i < 3; i++) assert.equal(await S.restoreVersion(v5.id), true);
   assert.equal(song.versions.length, 8);
-  assert.equal(song.versions.filter((v) => S.isAutoVersion(v)).length, 1, '자동 저장은 가장 최근 하나만');
+  assert.equal(song.versions.filter((v) => S.isAutoVersion(v)).length, 1, '고친 게 없으면 자동 저장을 또 만들지 않음');
   assert.deepEqual(song.versions.filter((v) => !v.auto).map((v) => v.note), ['v8', 'v7', 'v6', 'v5', 'v4', 'v3', 'v2']);
-  assert.equal(removed.length, 3, 'v1과 앞선 자동 저장 둘');
+  assert.equal(removed.length, 1, 'v1만 지움');
+
+  // 저장 안 한 작업 → v5 복원(자동 저장 A1) → 고치지 않고 v6 복원: A1이 남아 그 작업을 되살릴 수 있음
+  ({ song, removed } = await setup());
+  S.mutate((s) => { s.title = '저장 안 한 작업'; });
+  await S.restoreVersion(song.versions.find((v) => v.note === 'v5').id);
+  const a1 = song.versions[0];
+  assert.equal(a1.auto, true);
+  assert.equal(S.restoreNeedsAutoSave(song), false);
+  await S.restoreVersion(song.versions.find((v) => v.note === 'v6').id);
+  assert.equal(song.title, 'draft 6');
+  assert.ok(song.versions.some((v) => v.id === a1.id) && !removed.includes(a1.id), '앞선 자동 저장이 남음');
+  assert.equal(await S.restoreVersion(a1.id), true);
+  assert.equal(song.title, '저장 안 한 작업', '자동 저장으로 되살림');
+  // 복원 뒤 고치면 다시 자동 저장이 필요
+  S.mutate((s) => { s.title = '또 고침'; });
+  assert.equal(S.restoreNeedsAutoSave(song), true);
 
   // 예전 기록(auto 표시 없음)도 메모로 알아보고, 방금 만든 것·keepId는 지우지 않음
   const list = [{ id: 'new' }, { id: 'a', note: '복원 전 자동 저장' }, { id: 'b', note: 'b' }, { id: 'c', note: 'c' }];

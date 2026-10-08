@@ -245,7 +245,11 @@ import { matchFirst, matchNote } from '../src/js/lyricmatch.js';
   assert.deepEqual(m2, m1, 'Chorus 2가 Chorus 1 멜로디를 받음');
   assert.notEqual(m2[0], m1[0], '복사본 (한쪽을 고쳐도 다른 쪽은 그대로)');
   assert.ok(lead(song) > before, `데모에서 Chorus 2 멜로디가 울림 (${before} → ${lead(song)})`);
-  // 비워 둔 반복에 손으로 찍은 음표가 있으면 두고, 가사를 따로 적은 반복은 덮는다
+  // '전부'를 다시 돌려 Chorus 1이 바뀌면, 손대지 않은 예전 복사본은 새 멜로디로
+  song.music.sections[ch[0].id].melody = [{ s: 0, l: 4, d: 5, syl: 'Mid' }];
+  assert.deepEqual(applyCopies(song, plan, [ch[0].id]), [ch[1].id]);
+  assert.deepEqual(song.music.sections[ch[1].id].melody, [{ s: 0, l: 4, d: 5, syl: 'Mid' }]);
+  // 비워 둔 반복에 손으로 찍거나 고친 음표가 있으면 두고, 가사를 따로 적은 반복은 덮는다
   song.music.sections[ch[1].id].melody = [{ s: 0, l: 2, d: 1, syl: '' }];
   assert.deepEqual(applyCopies(song, plan, [ch[0].id]), []);
   assert.equal(song.music.sections[ch[1].id].melody.length, 1);

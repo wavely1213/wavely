@@ -23,19 +23,33 @@ export function packageKey(album, songs = [], { masters = {}, coverInfo = null }
   ]);
 }
 
+// v0.86까지의 지문 (그때 받은 패키지를 '바뀌었다'고 잘못 알리지 않으려고 같이 본다)
+function legacyPackageKey(album, { masters = {}, coverInfo = null } = {}) {
+  return JSON.stringify([
+    album.title, album.artist, album.releaseDate, album.type, album.cLine, album.pLine, album.upc,
+    album.tracks.map((t) => [t.songId, t.isTitle, t.isrc, t.lyricists, t.composers, t.arrangers, t.featuring, t.explicit, t.splits || {}, masters[t.songId] ? [masters[t.songId].name, Math.round(masters[t.songId].duration || 0)] : null]),
+    coverInfo ? [coverInfo.width, coverInfo.height, coverInfo.name || '', coverInfo.drawnWith || null] : null,
+  ]);
+}
+
 // masters·coverInfo는 album/session.js에서 (화면 메모리)
 export function albumProgress(album, songs, { masters = {}, coverInfo = null, today = new Date() } = {}) {
   const items = releaseChecklist(album, songs, { masters, coverInfo, today });
   const errorsIn = (tabs) => items.filter((i) => i.level === 'error' && tabs.includes(i.go?.song ? 'tracks' : i.go?.tab)).length;
+  // 곡 화면에서 고칠 오류(곡 제목 등)가 수록곡 단계를 막고 있으면 그 오류를 안내하고 그 곡으로 보낸다
+  const songErr = items.find((i) => i.level === 'error' && i.go?.song);
+  const tracksOtherwiseOk = !items.some((i) => i.level === 'error' && !i.go?.song && i.go?.tab === 'tracks');
+  const sameKey = album.submittedKey === packageKey(album, songs, { masters, coverInfo }) || album.submittedKey === legacyPackageKey(album, { masters, coverInfo });
   const left = daysUntil(album.releaseDate, today);
   const allClear = !items.some((i) => i.level === 'error');
   const steps = [
-    { id: 'tracks', tab: 'tracks', name: '수록곡·마스터', done: album.tracks.length > 0 && !errorsIn(['tracks']), hint: '곡을 넣고 곡마다 발매용 마스터 WAV를 연결해요.' },
+    { id: 'tracks', tab: 'tracks', name: '수록곡·마스터', done: album.tracks.length > 0 && !errorsIn(['tracks']),
+      ...(songErr && album.tracks.length && tracksOtherwiseOk ? { hint: songErr.text, go: songErr.go } : { hint: '곡을 넣고 곡마다 발매용 마스터 WAV를 연결해요.' }) },
     { id: 'meta', tab: 'meta', name: '정보·크레딧', done: !errorsIn(['meta']), hint: '앨범 제목·아티스트·작사·작곡 크레딧을 채워요.' },
     { id: 'cover', tab: 'cover', name: '커버', done: !errorsIn(['cover']), hint: '3000×3000 커버를 만들거나 넣어요.' },
     { id: 'schedule', tab: 'schedule', name: '발매일', done: !errorsIn(['schedule']), hint: '발매 예정일을 정하면 할 일 일정이 나와요.' },
     { id: 'check', tab: 'submit', name: '점검 통과', done: allClear, hint: '제출 탭의 꼭 고칠 것을 모두 해결해요.' },
-    { id: 'package', tab: 'submit', name: '제출 패키지', done: allClear && album.submittedAt > 0 && album.submittedKey === packageKey(album, songs, { masters, coverInfo }),
+    { id: 'package', tab: 'submit', name: '제출 패키지', done: allClear && album.submittedAt > 0 && sameKey,
       hint: album.submittedAt > 0 ? '패키지를 받은 뒤 바뀐 것이 있어요. 다시 받아 유통사에 올려요.' : '제출 패키지를 받아 유통사에 올려요.' },
     { id: 'after', tab: 'stats', name: '발매 후 기록', done: (album.stats || []).length > 0, hint: left != null && left > 0 ? `발매 뒤(D-${left})에 곡별 재생 수를 적어 반응을 봐요.` : '곡별 재생 수를 적어 반응 좋은 곡을 다음 곡에 반영해요.' },
   ];

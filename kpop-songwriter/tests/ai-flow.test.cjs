@@ -128,6 +128,19 @@ function fakeClaude() {
   await ta.fill(aiDraft);
   await p.waitForTimeout(1800);
   results.lyricEditRevert = editedOnce && (await lyricEdits()) === 0;
+  // ↶로 되돌려도 지워지고, 다시 하기로 고친 상태가 되면 다시 남음 (2초 안에 이어 친 것은 한 단계로 묶이므로 조금 쉬었다가)
+  await p.waitForTimeout(800);
+  await ta.fill(`${aiDraft} 임시2`);
+  await p.waitForTimeout(5500);
+  const editedTwice = (await lyricEdits()) === 1;
+  await p.click('button[aria-label^="되돌리기"]');
+  await p.waitForTimeout(1800);
+  const undoClears = (await ta.inputValue()) === aiDraft && (await lyricEdits()) === 0;
+  await p.click('button[aria-label^="다시 하기"]');
+  await p.waitForTimeout(5500);
+  results.lyricEditUndo = editedTwice && undoClears && (await lyricEdits()) === 1;
+  await p.click('button[aria-label^="되돌리기"]');
+  await p.waitForTimeout(1800);
   await ta.fill('내가 고친 첫 줄 새벽을 불러\n가짜 AI 둘째 줄 signal');
   await p.waitForTimeout(5500); // 고친 내용은 멈춘 지 4초 뒤 기록
   // 자동 개선: 점수 낮은 섹션을 다시 쓰고 오른 것만 반영
@@ -382,7 +395,7 @@ function fakeClaude() {
   console.log(JSON.stringify(results, null, 1));
   const ok = results.trendRow && results.lineSwap && results.lyricsApplied && results.review && results.improve.length > 0 && results.improve.every((t) => t.includes('반영')) && results.arrangeKey.includes('A minor') && results.melodyNotes === 3 && results.styleBpm === '140'
     && results.editRecorded && results.tasteLog.some((x) => x.startsWith('lyrics:-1(유치해요)')) && results.tasteLog.includes('hook:1') && results.lineLiked === 1 && results.similarCount === 1 && results.similarFixed && results.trOff === 1 && results.trLyrics && results.trStyle && results.variantCount === 3 && results.variantChosen.join() === 'B' && results.variantStyle === 'bright synth-pop' && results.variantPair && results.orderTracks >= 2 && results.orderApplied && results.orderUndo && results.statLearn.startsWith('arrange') && results.ideasPromptHint && results.melodyEdit && results.melodyEditUndo && results.melodyEditRedo && results.melodyEditPrompt && results.pitch && results.spellCount === 2 && results.spellApplied && results.ideaTitle === '가짜 컨셉 둘' && results.ideaTheme === '둘 주제' && results.ideaKeywords === '밤, 거울, Mirror' && results.ideaMoods === '몽환,다크' && results.tasteLog.includes('arrange:1')
-    && results.tasteLog.includes('melody:1') && results.promptHasTaste && results.profileRevert && results.melodyLikedPitch && results.lyricEditRevert && results.promo && results.draft.arranged && results.draft.bpm === 128 && results.draft.styleBpm === 128 && results.draft.styleKey === 'A minor' && results.draft.melodySections > 0 && results.draft.melodyCopied && results.draft.lyrics.split('/')[0] === results.draft.lyrics.split('/')[1] && results.keptBridge === '언젠가 너도 이 밤을 보면\n같은 불빛을 찾게 될 거야' && results.melodyPromptRange && results.raceA === 133 && results.raceB === 120 && results.saved.includes('taste-feedback.zip') && !errs.length;
+    && results.tasteLog.includes('melody:1') && results.promptHasTaste && results.profileRevert && results.melodyLikedPitch && results.lyricEditRevert && results.lyricEditUndo && results.promo && results.draft.arranged && results.draft.bpm === 128 && results.draft.styleBpm === 128 && results.draft.styleKey === 'A minor' && results.draft.melodySections > 0 && results.draft.melodyCopied && results.draft.lyrics.split('/')[0] === results.draft.lyrics.split('/')[1] && results.keptBridge === '언젠가 너도 이 밤을 보면\n같은 불빛을 찾게 될 거야' && results.melodyPromptRange && results.raceA === 133 && results.raceB === 120 && results.saved.includes('taste-feedback.zip') && !errs.length;
   if (errs.length) console.log('ERRORS', errs);
   console.log(ok ? 'ai OK' : 'ai FAILED');
   if (!ok) process.exitCode = 1;

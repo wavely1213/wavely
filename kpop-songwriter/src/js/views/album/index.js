@@ -1,6 +1,6 @@
 // 앨범 화면: 머리말 + 탭(수록곡·정보·커버·일정·홍보·제출).
 import { h } from '../../dom.js';
-import { getState, setAlbumTab, deleteAlbum, refresh } from '../../state.js';
+import { getState, setAlbumTab, deleteAlbum, refresh, selectSong, setTab } from '../../state.js';
 import { ALBUM_TYPES, daysUntil } from '../../album/model.js';
 import { renderTracks } from './tracks.js';
 import { renderMeta } from './meta.js';
@@ -38,7 +38,7 @@ function renderAlbumProgress(album) {
         s.name)))),
     next
       ? h('p', { class: 'step-hint', id: 'album-step-hint' }, h('strong', null, `다음: ${next.name}`), ` — ${next.hint} `,
-        h('button', { type: 'button', class: 'btn small primary', id: 'album-step-go', onclick: () => setAlbumTab(next.tab) }, '하러 가기'))
+        h('button', { type: 'button', class: 'btn small primary', id: 'album-step-go', onclick: () => { if (next.go?.song) { selectSong(next.go.song); setTab(next.go.tab); } else setAlbumTab(next.tab); } }, '하러 가기'))
       : h('p', { class: 'step-hint', id: 'album-step-hint' }, h('strong', null, '모든 단계 완료'), ' — 발매 후 기록까지 했어요.'));
 }
 

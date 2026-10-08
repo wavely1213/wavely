@@ -601,15 +601,29 @@ export function loadVersion(versionId) {
   return state.store.getVersion(song.id, versionId).catch(() => null);
 }
 
+// 복원한 뒤 아무것도 안 고쳤는지 보려고 곡 내용만 비교한다 (저장 시각·진행 표시는 빼고)
+const restored = {}; // songId -> { id: 복원한 버전, key }
+function contentKey(song) {
+  const { versions, updatedAt, progress, example, ...rest } = song;
+  return JSON.stringify(rest);
+}
+
+// 복원 뒤 고친 게 없고 그 버전이 아직 있으면 자동 저장이 필요 없다 (안 그러면 같은 사본이 앞선 자동 저장—저장 안 한 작업—을 밀어냄)
+export function restoreNeedsAutoSave(song) {
+  const r = restored[song.id];
+  return !(r && song.versions.some((v) => v.id === r.id) && r.key === contentKey(song));
+}
+
 export async function restoreVersion(versionId) {
   const song = current();
   if (!song) return false;
   const v = await state.store.getVersion(song.id, versionId).catch(() => null);
   if (!v?.data) return false;
   // 복원 직전 상태를 먼저 남긴다. 이게 실패하면 복원하지 않는다 (덮어쓰면 되돌릴 수 없음).
-  await storeVersion(song, AUTO_NOTE, { keep: versionId, auto: true });
+  if (restoreNeedsAutoSave(song)) await storeVersion(song, AUTO_NOTE, { keep: versionId, auto: true });
   const { id, createdAt, versions, ...data } = JSON.parse(JSON.stringify(v.data));
   mutateSong(song.id, (s) => { Object.assign(s, data); });
+  restored[song.id] = { id: versionId, key: contentKey(song) };
   return true;
 }
 
