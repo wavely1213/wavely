@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: blob: https://*.trycloudflare.com; media-src 'self' blob: https://*.trycloudflare.com; connect-src 'self' https://*.trycloudflare.com https://ntfy.sh; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-Vhq05op1F8tofSbvAegYjhz6NC03PG6zrblGTTNvs5g='; style-src 'self'; img-src 'self' data: blob: https://*.trycloudflare.com; media-src 'self' blob: https://*.trycloudflare.com; connect-src 'self' https://*.trycloudflare.com https://ntfy.sh; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#0f7a3d" media="(prefers-color-scheme: light)">
@@ -13,11 +13,8 @@
 <meta name="apple-mobile-web-app-title" content="풋살 스튜디오">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>풋살 스튜디오 원격</title>
-<link rel="manifest" href="manifest.webmanifest" crossorigin="use-credentials">
-<link rel="icon" type="image/png" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="app.css">
-<script type="module" src="app.js"></script>
+<!-- 앞머리를 주소에서 읽어 파일을 붙임 (futsal.mulgyeol.kr 은 뿌리 '/') — 다른 앞머리에 놓아도 같은 파일 (D-233 · 이 글자를 바꾸면 위 CSP 의 sha256 도) · manifest 는 쿠키와 함께(로그인한 미리보기) -->
+<script>(function(){var r=location.pathname.replace(/\/(index(\.html)?)?$/,""),h=document.head;function a(t,o){var e=document.createElement(t);for(var k in o)e.setAttribute(k,o[k]);h.appendChild(e)}a("link",{rel:"manifest",href:r+"/manifest.webmanifest",crossorigin:"use-credentials"});a("link",{rel:"icon",type:"image/png",href:r+"/icon-192.png"});a("link",{rel:"apple-touch-icon",href:r+"/icon-192.png"});a("link",{rel:"stylesheet",href:r+"/app.css",blocking:"render"});a("script",{type:"module",src:r+"/app.js"})})();</script>
 </head>
 <body>
 <header class="top">

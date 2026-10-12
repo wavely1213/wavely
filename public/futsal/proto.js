@@ -159,10 +159,15 @@ export function hostOk(url, dev) {
   return null;
 }
 
-/** QR 주소의 #pair=코드&u=힌트 */
+/** PC 스튜디오(밖에서 작업)에서 넘겨준 뒤 갈 곳 — PC 의 rstudio.NEXT_RE · hello.js 와 같은 규칙 (그 PC 주소 안의 / · /editor · /thumb 만) */
+export const NEXT_RE = /^\/(editor|thumb)?(\?[A-Za-z0-9%._~&=+\-!'()*]{0,600})?$/;
+export const nextOk = p => typeof p === "string" && NEXT_RE.test(p);
+
+/** 주소의 # 뒤: 짝짓기 QR(#pair=코드&u=힌트) · 스튜디오에서 돌아옴(#resume=갈 곳) */
 export function parseHash(hash) {
   const q = new URLSearchParams(String(hash || "").replace(/^#/, ""));
-  return { pair: normCode(q.get("pair")), u: q.get("u") || "" };
+  const r = q.get("resume");
+  return { pair: normCode(q.get("pair")), u: q.get("u") || "", resume: nextOk(r) ? r : null };
 }
 /** 힌트 u → 주소 (빠른 터널 이름 · 개발 때만 127.0.0.1:포트) — 빨리 찾는 길일 뿐, 진짜인지는 잠긴 대답으로 확인 */
 export function hintUrl(u, dev) {

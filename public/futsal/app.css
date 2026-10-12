@@ -100,6 +100,7 @@ ol.steps li { margin: 4px 0; }
 .bad { color: var(--danger); font-weight: 800; }
 .warn { color: var(--peak); font-weight: 800; }
 .warncard { border-color: var(--peak); background: var(--peak-soft); }
+.card.studio { border-color: var(--brand); }  /* PC 스튜디오 열기 (밖에서 작업) */
 .warncard p { color: var(--ink); margin-top: 6px; }
 .setup { border-color: var(--brand); }
 .btn.ghost { border-color: transparent; background: none; color: var(--ink-3); font-weight: 600; justify-self: center; }
