@@ -84,6 +84,20 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     await p.click('button[aria-label^="되돌리기"]');
     global.genreOk = (global.genreOk ?? true) && genreNow.includes('청량 댄스 팝') && drumBefore === 'four' && drumPop === 'pop' && drumGenre === 'four'
       && drumUndo === 'pop' && (await verseDrum()) === 'four';
+    // 장·단조 바꾸기: 새 조의 음계 안 화음과 같은 글자는 숫자로 (단조 안달루시안의 5M은 장조에선 음계 안 V → 5,
+    // 장조 4-4m-3-6의 4m은 단조에선 음계 안 iv → 4). 되돌리기 두 번이면 원래대로
+    const minorNow = (await p.locator('button.chip.on:has-text("어두운 느낌")').count()) === 1;
+    const [presetId, at, token, num, other] = minorNow ? ['andalusian', 3, '5M', '5', '밝은 느낌'] : ['ballad44m', 1, '4m', '4', '어두운 느낌'];
+    const chordAt = () => p.inputValue(`.sec-row >> nth=1 >> select.chord >> nth=${at}`);
+    await p.selectOption('.sec-row >> nth=1 >> select[id^="prog-"]', presetId);
+    const tokenBefore = await chordAt();
+    await p.click(`button.chip:has-text("${other}")`);
+    const tokenAfter = await chordAt();
+    await p.click('button[aria-label^="되돌리기"]');
+    await p.click('button[aria-label^="되돌리기"]');
+    const modeBack = (await p.locator('button.chip.on:has-text("어두운 느낌")').count()) === (minorNow ? 1 : 0);
+    global.modeOk = (global.modeOk ?? true) && tokenBefore === token && tokenAfter === num && modeBack && (await verseDrum()) === 'four';
+    if (!global.modeOk) console.log('mode', { minorNow, tokenBefore, tokenAfter, modeBack });
     // 스페이스바: 포커스가 버튼·입력 칸이 아닐 때 전체 듣기/정지
     await p.evaluate(() => document.activeElement?.blur());
     await p.keyboard.press('Space');
@@ -450,6 +464,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
   if (!global.autoOk) errs.push('마스터 자동 연결 안 됨');
   if (!global.undoOk) errs.push('되돌리기·다시 하기 안 됨');
   if (!global.genreOk) errs.push('장르 기본 편곡 버튼 이상');
+  if (!global.modeOk) errs.push('장·단조 바꾸기의 음계 밖 화음 정리 이상');
   if (!global.albumUndoOk) errs.push('앨범 되돌리기 안 됨');
   if (!global.syncOk) errs.push('싱크 가사 맞추기 안 됨');
   if (!global.navOk) errs.push('폰 목록 접기 이상');

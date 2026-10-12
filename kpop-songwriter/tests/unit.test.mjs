@@ -532,7 +532,7 @@ import { matchFirst, matchNote } from '../src/js/lyricmatch.js';
   assert.equal(chordName(A, 'minor', 5), 'Em', '숫자 5는 자연단음계 v 그대로');
   assert.equal(chordName(A, 'minor', '4M'), 'D', '도리안 IV');
   assert.equal(chordName(A, 'minor', 'b2M'), 'B♭', '프리지안 ♭II');
-  assert.deepEqual(chordNotes(C, 'major', 4), chordNotes(C, 'major', 4), '숫자는 예전과 같음');
+  assert.deepEqual(chordNotes(C, 'major', 4), [53, 57, 60], '숫자는 예전과 같음');
   assert.equal(chordName(C, 'major', 4, true), 'Fmaj7');
   ['4m', '5M', '3d7', 'b7M', 1, 7].forEach((c) => assert.ok(isChord(c), String(c)));
   ['8m', '4x', '', '4', 0, 8, 'IV', null].forEach((c) => assert.ok(!isChord(c), String(c)));
@@ -543,6 +543,21 @@ import { matchFirst, matchNote } from '../src/js/lyricmatch.js';
   assert.match(chordFeel('minor', '5d7'), /화성단음계/);
   assert.equal(findProgression('major', [4, '4m', 3, 6, 2, 5, 1, 1]).id, 'ballad44m');
   assert.equal(findProgression('minor', [1, 7, 6, '5M']).id, 'andalusian');
+  // 7th: 장3화음 글자는 지금 음계의 7음을 얹는다 (단조 V → V7, 도리안 IV → IV7, II → II7). ♭ 화음만 maj7
+  assert.equal(chordName(A, 'minor', '5M', true), 'E7');
+  assert.equal(chordName(A, 'minor', '4M', true), 'D7');
+  assert.equal(chordName(C, 'major', '2M', true), 'D7');
+  assert.equal(chordName(C, 'major', 'b7M', true), 'B♭maj7');
+  assert.equal(chordName(A, 'minor', 'b2M', true), 'B♭maj7');
+  assert.deepEqual(chordNotes(C, 'major', 4, true), [53, 57, 60, 64]);
+  // ♭는 장음계 기준: 장·단조를 바꿔도 같은 음 (C단조의 b7M = B♭ = 음계 안 VII)
+  assert.equal(chordName(C, 'minor', 'b7M'), 'B♭');
+  assert.equal(chordName(C, 'minor', 'b2M'), 'D♭');
+  // 음계 안 3화음과 같은 글자는 숫자로 (장·단조 바꾸기, AI 답)
+  const { canonicalChord } = await import('../src/js/music/theory.js');
+  assert.deepEqual(['4m', 'b7M', 'b6M', '5M', 'b2M', '5d7', 3].map((c) => canonicalChord('minor', c)), [4, 7, 6, '5M', 'b2M', '5d7', 3]);
+  assert.deepEqual(['5M', '4M', '6m', '4m', 'b7M', '3d7'].map((c) => canonicalChord('major', c)), [5, 4, 6, '4m', 'b7M', '3d7']);
+  assert.doesNotMatch(chordFeel('minor', '4m'), /빌려온/, '단조의 4m은 음계 안 iv');
   // 재생: 토큰 코드도 타임라인에 소리가 남 (패드 음이 Fm 구성음)
   const { buildTimeline } = await import('../src/js/music/timeline.js');
   const song = { sections: [{ id: 'x', type: 'Chorus' }], music: { bpm: 120, root: 0, mode: 'major', sections: { x: { bars: 1, chords: ['4m'], seventh: false, energy: 3, instruments: ['pad'], drum: 'none', bass: 'long', melody: [] } }, sounds: {} } };
@@ -560,6 +575,10 @@ import { matchFirst, matchNote } from '../src/js/lyricmatch.js';
   const song = normalizeMusic({ title: 't', sections: [{ id: 'v', type: 'Verse', members: [], text: '' }], members: [], references: [], style: { genre: 'K-pop ballad' }, concept: { moods: [], keywords: '', theme: '', story: '', group: 'girl' } });
   const res = await arrangeSong(song, { targetIds: ['v'] });
   assert.deepEqual(res.sections[0].chords, [4, '4m', '3d7', 1, 6, 'b7M']);
+  // 곡 전체 편곡이 단조로 정하면 그 조의 음계 안 화음과 같은 글자는 숫자로
+  globalThis.__aiJson = async () => ({ summary: 's', bpm: 90, root: 'A', mode: 'minor', sections: [{ id: 'v', bars: 4, chords: [1, '4m', 'b7M', '5M'], energy: 2, instruments: [], drum: 'none', bass: 'long' }] });
+  const whole = await arrangeSong(song, {});
+  assert.deepEqual(whole.sections[0].chords, [1, 4, 7, '5M']);
   delete globalThis.window;
   console.log('ai borrowed chords OK');
 }

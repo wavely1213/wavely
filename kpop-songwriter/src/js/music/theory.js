@@ -23,8 +23,8 @@ export function degreeToMidi(root, mode, idx, base = 60) {
 // 코드 한 칸: 도수 숫자(1~7, 음계 안 화음) 또는 음계 밖 화음 글자 (D-025, 프리셋으로만 넣는다)
 //   '4m'  = 그 도수의 단3화음 (장조의 iv, 빌려온 화음)
 //   '5M'  = 그 도수의 장3화음 (단조의 V·IV·I)
-//   '3d7' = 그 도수의 도미넌트 7 (III7·VI7·II7·I7 = 세컨더리 도미넌트, 단조의 V7)
-//   'b7M' = 반음 내린 도수의 장3화음 (장조의 ♭VII·♭VI, 단조의 ♭II)
+//   '3d7' = 그 도수의 도미넌트 7 (III7·VI7 = 세컨더리 도미넌트, 단조의 V7)
+//   'b7M' = 장음계 도수를 반음 내린 장3화음 (♭VII, 단조의 ♭II). ♭는 조와 상관없이 장음계 기준이라 장·단조를 바꿔도 같은 음이다
 const CHORD_TOKEN = /^(b?)([1-7])(M|m|d7)$/;
 const QUALITY = { M: [0, 4, 7], m: [0, 3, 7], d7: [0, 4, 7, 10] };
 
@@ -45,7 +45,8 @@ export function parseChord(c) {
 export const isDiatonic = (c) => parseChord(c).q === null;
 
 // 코드의 구성음 MIDI (3옥타브 근처). 음계 안 화음은 스케일 3도 쌓기, 음계 밖 화음은 정해진 음정
-// seventh: 섹션의 7th 켜기 (장3화음 → maj7, 단3화음 → m7, 도미넌트 7은 그대로)
+// seventh: 섹션의 7th 켜기 — 단3화음 → m7, ♭ 장3화음 → maj7(♭VIImaj7·♭IImaj7), 그 밖의 장3화음은 지금 음계의 7음을 얹는다
+// (단조의 V → V7, 도리안 IV → IV7, 장조의 II → II7), 도미넌트 7은 그대로
 export function chordNotes(root, mode, chord, seventh = false) {
   const { d, flat, q } = parseChord(chord);
   const i = d - 1;
@@ -53,9 +54,9 @@ export function chordNotes(root, mode, chord, seventh = false) {
     const idxs = seventh ? [i, i + 2, i + 4, i + 6] : [i, i + 2, i + 4];
     return idxs.map((x) => degreeToMidi(root, mode, x, 48));
   }
-  const base = degreeToMidi(root, mode, i, 48) - (flat ? 1 : 0);
+  const base = flat ? 48 + root + SCALES.major[i] - 1 : degreeToMidi(root, mode, i, 48);
   const iv = [...QUALITY[q]];
-  if (seventh && q !== 'd7') iv.push(q === 'M' ? 11 : 10);
+  if (seventh && q !== 'd7') iv.push(q === 'm' ? 10 : flat ? 11 : degreeToMidi(root, mode, i + 6, 48) - base);
   return iv.map((x) => base + x);
 }
 
@@ -80,9 +81,19 @@ export function chordPitchClasses(root, mode, chord) {
   return chordNotes(root, mode, chord, false).slice(0, 3).map((n) => ((n % 12) + 12) % 12);
 }
 
-// 음계 밖 화음의 쉬운 설명 (코드 칩)
+// 음계 밖 글자가 이 조의 음계 안 3화음과 같은 음이면 그 도수 숫자로 바꾼다 (장·단조를 바꾼 뒤, AI 답).
+// 예: 단조의 '4m' → 4, 장조의 '5M' → 5, 단조의 'b7M' → 7. 도미넌트 7과 음계 밖 화음은 그대로
+export function canonicalChord(mode, chord) {
+  const p = parseChord(chord);
+  if (!p.q || p.q === 'd7') return chord;
+  const key = chordPitchClasses(0, mode, chord).join(',');
+  for (let k = 1; k <= 7; k++) if (chordPitchClasses(0, mode, k).join(',') === key) return k;
+  return chord;
+}
+
+// 음계 밖 화음의 쉬운 설명 (코드 칩). 음계 안 3화음과 같은 글자는 그 도수의 설명으로
 export function chordFeel(mode, chord) {
-  const { d, flat, q } = parseChord(chord);
+  const { d, flat, q } = parseChord(canonicalChord(mode, chord));
   if (!q) return DEGREE_FEEL[mode][d - 1];
   if (q === 'd7') return mode === 'minor' && d === 5 ? '강하게 끌어당김 (화성단음계)' : '다음 화음으로 끌어당김 (세컨더리)';
   if (flat) return mode === 'minor' && d === 2 ? '이국적인 긴장 (♭II)' : '탁 트이는 빌려온 화음';

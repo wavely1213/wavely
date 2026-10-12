@@ -1,7 +1,7 @@
 // Claude에게 편곡·멜로디를 맡기는 호출. 결과는 앱이 쓰는 형식으로 검사해서만 반영한다.
 import { getSample } from './ai.js';
 import { sectionLabels, sungText } from './structure.js';
-import { chordName, keyName, NOTE_NAMES, isChord, isDiatonic, parseChord, chordPitchClasses, degreeToMidi } from './music/theory.js';
+import { chordName, keyName, NOTE_NAMES, isChord, isDiatonic, parseChord, chordPitchClasses, degreeToMidi, canonicalChord } from './music/theory.js';
 import { ARRANGE_INSTRUMENTS } from './music/instruments.js';
 import { DRUM_PATTERNS, BASS_PATTERNS } from './music/patterns.js';
 import { describeAnalysis } from './music/analyze.js';
@@ -63,7 +63,7 @@ export async function arrangeSong(song, { targetIds, request, signal }) {
     `악기 id: ${ARRANGE_INSTRUMENTS.map((i) => `${i.id}(${i.name})`).join(', ')}`,
     `드럼 id: none(드럼 없음), ${Object.entries(DRUM_PATTERNS).map(([k, v]) => `${k}(${v.name})`).join(', ')}`,
     `베이스 id: ${Object.entries(BASS_PATTERNS).map(([k, v]) => `${k}(${v.name})`).join(', ')}`,
-    "chords는 마디마다 하나(마디 수보다 짧으면 반복). 음계 안 화음은 스케일 도수 숫자 1~7. 음계 밖 화음은 글자로: '4m'(그 도수의 단3화음, 장조의 iv), '5M'(그 도수의 장3화음, 단조의 V·IV·I), '3d7'(그 도수의 도미넌트7, III7·VI7·II7·단조의 V7), 'b7M'(반음 내린 도수의 장3화음, 장조의 ♭VII·♭VI, 단조의 ♭II). 음계 밖 화음은 아래 장르별 진행과 프리셋에 있는 것만 쓴다." +
+    "chords는 마디마다 하나(마디 수보다 짧으면 반복). 음계 안 화음은 스케일 도수 숫자 1~7. 음계 밖 화음은 글자로: '4m'(장조의 iv), '5M'·'4M'(단조의 V·도리안 IV), '3d7'·'6d7'(장조의 III7·VI7), '5d7'(단조의 V7), 'b7M'(장조의 ♭VII), 'b2M'(단조의 ♭II). 음계 밖 화음은 아래 장르별 진행과 프리셋에 있는 것만 쓴다." +
     ' energy는 1(조용)~5(폭발). bars는 2~16, 4의 배수 권장.',
     ARRANGE_RULES,
     GENRE_CHORDS,
@@ -93,8 +93,8 @@ export async function arrangeSong(song, { targetIds, request, signal }) {
     .map((x) => ({
       id: String(x.id),
       bars: int(x.bars, 1, 16, 4),
-      // 음계 안 화음은 숫자 1~7, 음계 밖 화음은 정해진 글자('4m'·'5M'·'3d7'·'b7M')만 받는다
-      chords: (Array.isArray(x.chords) ? x.chords : []).map((d) => (typeof d === 'string' && isChord(d.trim()) ? d.trim() : int(d, 1, 7, 1))).slice(0, 16),
+      // 음계 안 화음은 숫자 1~7, 음계 밖 화음은 정해진 글자('4m'·'5M'·'3d7'·'b7M')만 받는다. 정할 조의 음계 안 화음과 같은 글자는 숫자로
+      chords: (Array.isArray(x.chords) ? x.chords : []).map((d) => (typeof d === 'string' && isChord(d.trim()) ? canonicalChord(mode, d.trim()) : int(d, 1, 7, 1))).slice(0, 16),
       seventh: !!x.seventh,
       energy: int(x.energy, 1, 5, 3),
       instruments: (Array.isArray(x.instruments) ? x.instruments : []).map(String).filter((i) => instIds.includes(i)),

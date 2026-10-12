@@ -7,7 +7,7 @@ const arranged = (fn) => (x) => { fn(x); x.progress = { ...(x.progress || {}), a
 const mutate = (fn, scope) => baseMutate(arranged(fn), scope);
 const mutateSong = (id, fn, scope) => baseMutateSong(id, arranged(fn), scope);
 import { sectionLabels } from '../structure.js';
-import { NOTE_NAMES, MODE_LABEL, PROGRESSIONS, chordName, chordFeel, isDiatonic, findProgression, tempoWord, keyName } from '../music/theory.js';
+import { NOTE_NAMES, MODE_LABEL, PROGRESSIONS, chordName, chordFeel, isDiatonic, findProgression, tempoWord, keyName, canonicalChord } from '../music/theory.js';
 import { ARRANGE_INSTRUMENTS, INSTRUMENT_BY_ID } from '../music/instruments.js';
 import { DRUM_PATTERNS, BASS_PATTERNS, DRUM_ROWS, cloneGrid } from '../music/patterns.js';
 import { QUICK_TWEAKS, applyGenreDefaults } from '../music/arrangement.js';
@@ -59,7 +59,7 @@ function renderGlobal(song, m) {
             NOTE_NAMES.map((n, i) => h('option', { value: String(i), selected: i === mu.root }, n))),
           ['major', 'minor'].map((md) => h('button', {
             type: 'button', class: `chip${mu.mode === md ? ' on' : ''}`, 'aria-pressed': mu.mode === md ? 'true' : 'false',
-            onclick: () => mutate((s) => { s.music.mode = md; }),
+            onclick: () => mutate((s) => { setMode(s, md); }),
           }, MODE_LABEL[md]))),
         h('span', { class: 'muted' }, '노래하기 편한 높이를 모르면 그대로 두고, 멜로디를 들어 보며 바꿔 보세요.'))),
     h('textarea', { id: 'arr-request', 'aria-label': 'AI 편곡 요청', rows: '2', value: m.request, placeholder: '원하는 느낌을 말로 적어 주세요. 예: 코러스에서 확 터지게, 레트로 신스 느낌, 브릿지는 피아노만', oninput: (e) => { m.request = e.target.value; } }),
@@ -92,12 +92,18 @@ function renderGenreRow(song) {
     help('genreDefaults'));
 }
 
+// 장·단조 바꾸기: 새 조의 음계 안 화음과 같은 글자는 숫자로 (단조의 '4m' → 4 등). 음계 밖 화음은 그대로 (D-025)
+function setMode(s, mode) {
+  s.music.mode = mode;
+  Object.values(s.music.sections).forEach((sm) => { sm.chords = sm.chords.map((c) => canonicalChord(mode, c)); });
+}
+
 // AI 결과는 요청한 곡에 넣는다 (그 사이 다른 곡을 열었어도)
 function applyArrangement(songId, res) {
   mutateSong(songId, (s) => {
     if (res.bpm) s.music.bpm = res.bpm;
     if (res.root != null) s.music.root = res.root;
-    if (res.mode) s.music.mode = res.mode;
+    if (res.mode) setMode(s, res.mode); // AI가 빼먹은 섹션의 글자도 새 조에 맞춘다
     res.sections.forEach((x) => {
       const sm = s.music.sections[x.id];
       if (!sm) return;
