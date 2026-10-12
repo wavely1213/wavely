@@ -17,10 +17,16 @@ self.addEventListener("fetch", e => {
   const u = new URL(r.url);
   if (u.origin !== self.location.origin || !u.pathname.startsWith(BASE)) return;
   e.respondWith(fetch(r).then(res => {
-    if (res.ok && res.type === "basic") { const copy = res.clone(); caches.open(CACHE).then(c => c.put(r, copy)).catch(() => {}); }
+    if (res.ok && res.type === "basic" && !res.redirected) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(r, copy)).catch(() => {}); }
     return res;
-  }).catch(() => caches.match(r, { ignoreSearch: true }).then(m => m || caches.match(BASE))));
+  }).catch(() => caches.match(r, { ignoreSearch: true }).then(m => m || offline(r, u))));
 });
+// 끊겼고 캐시에도 없을 때: 페이지 주소가 아니면 vercel.json 처럼 BASE 로 넘김(깊은 주소에서 상대 경로가 어긋나지 않게) · 파일은 HTML 대신 오류
+function offline(r, u) {
+  if (r.mode !== "navigate") return Response.error();
+  if (u.pathname !== BASE) return Response.redirect(new URL(BASE + u.search, self.location).href, 302);
+  return caches.match(BASE).then(m => m || Response.error());
+}
 self.addEventListener("notificationclick", e => {
   e.notification.close();
   e.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(cs => {
