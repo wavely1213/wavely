@@ -4,13 +4,13 @@ import { mutateSong, mutateTaste } from '../state.js';
 import { addEntry, makeEntry } from '../learn/taste.js';
 import { isBusy, runJob } from '../aijob.js';
 import { suggestVariants, variantStyle } from '../variants.js';
-import { buildStyle } from '../suno.js';
+import { sunoStyle } from '../suno.js';
 import { SUNO_LIMITS } from '../constants.js';
 
 export function renderVariants(song) {
   const busy = isBusy();
   const sv = song.styleVariants;
-  const current = buildStyle(song.style);
+  const current = sunoStyle(song);
   return h('section', { class: 'card' },
     h('div', { class: 'card-head' },
       h('h2', null, '스타일 변형 A/B/C (선택)'),
@@ -20,7 +20,7 @@ export function renderVariants(song) {
       }) }, sv ? '다시 만들기' : '변형 3개 만들기')),
     h('p', { class: 'muted small' }, '같은 가사로 세 방향을 Suno에서 뽑아 보고 고르는 방법이에요. 각각 복사해 Suno에 넣고, 받은 파일 이름 끝에 A·B·C를 붙여 마스터링 탭의 "테이크 비교"에 넣으면 어느 스타일인지 같이 보여요. BPM·키는 그대로예요.'),
     sv ? h('ul', { class: 'variants' }, sv.items.map((v) => {
-      const text = buildStyle(variantStyle(song, v));
+      const text = sunoStyle(song, variantStyle(song, v));
       const ta = h('textarea', { class: 'out mono', rows: '2', readonly: true, value: text, 'aria-label': `스타일 ${v.id}` });
       const chosen = text === current;
       return h('li', { class: `variant${chosen ? ' chosen' : ''}` },
@@ -33,7 +33,7 @@ export function renderVariants(song) {
           chosen ? h('span', { class: 'pill good' }, '지금 스타일')
             : h('button', { type: 'button', class: 'btn small', onclick: () => {
               // 고른 변형 vs 나머지를 선호 쌍으로 기록 (취향 학습). 스타일을 바꾸기 전에 계산해야 나머지에 고른 값이 섞이지 않음
-              const others = sv.items.filter((o) => o.id !== v.id).map((o) => buildStyle(variantStyle(song, o)).slice(0, 400)); // 취향 문서 크기 한도 때문에 자름
+              const others = sv.items.filter((o) => o.id !== v.id).map((o) => sunoStyle(song, variantStyle(song, o)).slice(0, 400)); // 취향 문서 크기 한도 때문에 자름
               mutateSong(song.id, (x) => { Object.assign(x.style, v.style); });
               mutateTaste((t) => addEntry(t, makeEntry({ kind: 'style', rating: 1, text, context: { ref: `variant:${song.id}:${sv.at}`, song: song.title, variant: v.id, rejected: others } })));
             } }, '이걸로 정하기')),

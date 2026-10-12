@@ -45,26 +45,39 @@ export function keyName(root, mode) {
   return `${NOTE_NAMES[root]} ${mode === 'minor' ? 'minor' : 'major'}`;
 }
 
-// 느낌 이름으로 고르는 코드 진행 (마디당 코드 1개, 마디 수만큼 반복)
+// 느낌 이름으로 고르는 코드 진행 (마디당 코드 1개, 마디 수만큼 반복).
+// 국내 K-pop에서 흔한 진행만 둔다 (근거: docs/research/genre-chords-2026-10-12.md). 괄호는 국내 통칭과 쓰는 곳.
+// id는 저장·기본값에서 쓰므로 바꾸지 않는다. 같은 조에서 도수가 겹치면 안 된다 (findProgression이 도수로 찾는다).
 export const PROGRESSIONS = {
   major: [
-    { id: 'hope', name: '희망차고 밝은', degrees: [1, 5, 6, 4] },
-    { id: 'emotional', name: '애절하고 감성적인', degrees: [6, 4, 1, 5] },
-    { id: 'royal', name: '두근두근 고조 (K-pop 단골)', degrees: [4, 5, 3, 6] },
-    { id: 'dreamy', name: '몽환·R&B', degrees: [2, 5, 1, 6], seventh: true },
-    { id: 'build', name: '빌드업 (프리코러스용)', degrees: [2, 3, 4, 5] },
-    { id: 'ballad', name: '발라드 (8마디)', degrees: [1, 5, 6, 3, 4, 1, 4, 5] },
-    { id: 'simple', name: '단순 반복 (두 코드)', degrees: [1, 4] },
-    { id: 'citypop', name: '시티팝 (세련된 7th)', degrees: [4, 3, 6, 1], seventh: true },
+    { id: 'hope', name: '희망차고 밝은 (1564 머니코드)', degrees: [1, 5, 6, 4], use: '발라드·청량·밴드 벌스와 후렴' },
+    { id: 'emotional', name: '애절하고 감성적인 (6415)', degrees: [6, 4, 1, 5], use: '발라드·청량·밴드 벌스와 후렴' },
+    { id: 'royal', name: '두근두근 고조 (4536 왕도)', degrees: [4, 5, 3, 6], use: '발라드·청량·밴드 후렴 첫머리, 프리코러스' },
+    { id: 'royal8', name: '벅차게 고조 (4536 왕도 확장)', degrees: [4, 5, 3, 6, 2, 5, 1, 1], use: '발라드·청량 후렴' },
+    { id: 'rise', name: '터지기 직전 (4561)', degrees: [4, 5, 6, 1], use: '청량·밴드 프리코러스' },
+    { id: 'band4156', name: '시원하게 뻗는 (4156)', degrees: [4, 1, 5, 6], use: '밴드 후렴, 프리코러스' },
+    { id: 'poem', name: '잔잔하고 서정적인 (1364)', degrees: [1, 3, 6, 4], use: '발라드·밴드 후렴과 벌스' },
+    { id: 'ballad', name: '따뜻하게 흐르는 (캐논 8코드)', degrees: [1, 5, 6, 3, 4, 1, 4, 5], use: '발라드·청량 벌스와 후렴' },
+    { id: 'lilac', name: '산뜻하고 세련된 (4236, 7th)', degrees: [4, 2, 3, 6], seventh: true, use: '청량·R&B 벌스, 후렴 루프' },
+    { id: 'dreamy', name: '그루비한 투파이브 (2516, R&B·디스코)', degrees: [2, 5, 1, 6], seventh: true, use: 'R&B·디스코 벌스와 후렴' },
+    { id: 'citypop', name: '도시적이고 세련된 (4361, 7th)', degrees: [4, 3, 6, 1], seventh: true, use: 'R&B·댄스·클럽 후렴' },
+    { id: 'build', name: '한 계단씩 오르는 (2345)', degrees: [2, 3, 4, 5], use: '프리코러스·브릿지' },
+    { id: 'simple', name: '단순 반복 (1-4 두 코드)', degrees: [1, 4], use: '벌스·랩' },
+    { id: 'drop', name: '한 코드로 미는 (원코드)', degrees: [1], use: '드롭·댄스 브레이크' },
   ],
   minor: [
-    { id: 'dark', name: '다크·걸크러시', degrees: [1, 6, 3, 7] },
-    { id: 'sad', name: '슬프고 서정적인', degrees: [1, 4, 7, 3] },
-    { id: 'epic', name: '웅장하게 터지는', degrees: [6, 7, 1, 1] },
-    { id: 'build', name: '빌드업 (프리코러스용)', degrees: [4, 5, 6, 7] },
-    { id: 'trap', name: '미니멀 반복 (힙합·트랩)', degrees: [1, 6] },
-    { id: 'mystic', name: '몽환·미스터리', degrees: [1, 7, 6, 7], seventh: true },
-    { id: 'descend', name: '내려가는 긴장감 (안달루시안)', degrees: [1, 7, 6, 5] },
+    { id: 'dark', name: '다크·걸크러시 (6415 단조형)', degrees: [1, 6, 3, 7], use: '다크·걸크러시 벌스와 후렴' },
+    { id: 'sad', name: '슬프고 서정적인 (i–iv–VII–III)', degrees: [1, 4, 7, 3], use: '다크·청량·발라드 벌스와 후렴' },
+    { id: 'epic', name: '웅장하게 터지는 (456)', degrees: [6, 7, 1, 1], use: '다크·청량 후렴 상승부, 프리코러스' },
+    { id: 'rise_m', name: '터지기 직전 (4561 단조형)', degrees: [6, 7, 1, 3], use: '다크·청량 프리코러스' },
+    { id: 'loop6514_m', name: '강렬한 반복 (6514)', degrees: [1, 7, 3, 6], use: '다크·밴드 후렴과 프리' },
+    { id: 'chorus4156_m', name: '나란한 장조로 트이는 (4156)', degrees: [6, 3, 7, 1], use: '다크 곡의 후렴' },
+    { id: 'build', name: '한 계단씩 오르는 (iv–v–VI–VII)', degrees: [4, 5, 6, 7], use: '프리코러스' },
+    { id: 'trap', name: '두 코드 반복 (i–VI)', degrees: [1, 6], use: '벌스·랩' },
+    { id: 'vamp_iv', name: '그루브 두 코드 (i–iv, 7th)', degrees: [1, 4], seventh: true, use: '다크 벌스·랩' },
+    { id: 'mystic', name: '마이너 루프 (i–VII–VI–VII, 힙합)', degrees: [1, 7, 6, 7], seventh: true, use: '힙합 벌스' },
+    { id: 'descend', name: '내려가는 긴장감 (i–VII–VI–v)', degrees: [1, 7, 6, 5], use: '다크·클럽 후렴' },
+    { id: 'drop', name: '한 코드로 미는 (원코드)', degrees: [1], use: '드롭·댄스 브레이크' },
   ],
 };
 

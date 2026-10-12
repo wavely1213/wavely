@@ -37,9 +37,21 @@ export function buildLyrics(song, opts = {}) {
   }).join('\n\n');
 }
 
-export function buildStyle(style) {
+// 한국어로 부른다는 표시 (국내판). 한국어 비율이 50% 이상이면 장르 바로 뒤에 붙인다.
+// 효과는 아직 검증 전이라 국내판 테스트에서 같은 가사로 테이크를 비교한다 (docs/research/sounds-korean-2026-10-12.md).
+const SUNG_KOREAN = /(sung|singing)\s+in\s+korean|\bkorean\b[^,]*\b(lyrics|vocals?|singing|singers?)\b/i;
+
+export function koreanTag(koRatio) {
+  const ko = Number(koRatio);
+  if (!(ko >= 50)) return '';
+  return ko >= 90 ? 'sung in Korean, Korean lyrics' : 'sung in Korean, Korean lyrics with English hook';
+}
+
+// opts.koRatio: 곡의 한국어 비율. 없으면 표시를 붙이지 않는다 (번안판처럼 다른 언어로 부를 때).
+export function buildStyle(style, opts = {}) {
   const parts = [
     style.genre,
+    '',
     style.subgenre,
     style.bpm ? `${style.bpm} BPM` : '',
     style.key,
@@ -47,6 +59,14 @@ export function buildStyle(style) {
     style.instruments,
     style.production,
     style.extra,
-  ];
-  return parts.map((p) => (p || '').trim()).filter(Boolean).join(', ');
+  ].map((p) => (p || '').trim());
+  const tag = koreanTag(opts.koRatio);
+  // 다른 칸이 다 비었으면 붙이지 않고, 이미 한국어로 부른다고 적어 두었으면 겹쳐 붙이지 않는다
+  if (tag && parts.some(Boolean) && !SUNG_KOREAN.test(parts.join(', '))) parts[1] = tag;
+  return parts.filter(Boolean).join(', ');
+}
+
+// 곡의 Suno 스타일 글 (국내판: 한국어 비율에 따라 '한국어로 부름' 표시를 붙임). style을 주면 그 스타일로 (변형 A/B/C)
+export function sunoStyle(song, style = song.style) {
+  return buildStyle(style, { koRatio: song.concept?.koRatio });
 }

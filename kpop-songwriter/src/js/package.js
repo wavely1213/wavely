@@ -1,5 +1,5 @@
 // 제작 패키지(zip): 가사·스타일 텍스트, MIDI, WAV 데모, 프로젝트 파일, 작업 안내서.
-import { buildLyrics, buildStyle } from './suno.js';
+import { buildLyrics, sunoStyle } from './suno.js';
 import { buildMidi } from './music/midi.js';
 import { renderSong } from './music/player.js';
 import { encodeWav, zip } from './music/pack.js';
@@ -52,7 +52,7 @@ export async function buildPackage(song, { includeWav, lyricOpts, onStep }) {
   const files = [];
   const name = safeName(song.title);
   files.push({ name: `${name}/lyrics_suno.txt`, data: buildLyrics(song, lyricOpts) });
-  files.push({ name: `${name}/style_suno.txt`, data: `${buildStyle(song.style)}\n${song.style.exclude || ''}\n` });
+  files.push({ name: `${name}/style_suno.txt`, data: `${sunoStyle(song)}\n${song.style.exclude || ''}\n` });
   onStep('MIDI 만드는 중');
   files.push({ name: `${name}/song.mid`, data: buildMidi(song) });
   if (includeWav) {

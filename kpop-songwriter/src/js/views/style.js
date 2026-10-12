@@ -2,7 +2,7 @@
 import { h, field } from '../dom.js';
 import { mutate, mutateSong } from '../state.js';
 import { GENRES, SUNO_LIMITS } from '../constants.js';
-import { buildStyle } from '../suno.js';
+import { sunoStyle } from '../suno.js';
 import { suggestStyle } from '../ai.js';
 import { isBusy, runJob, stopJob, job } from '../aijob.js';
 import { feedbackBar } from '../learn/feedback.js';
@@ -12,10 +12,10 @@ const why = {};
 
 export function renderStyle(song) {
   const st = song.style;
-  const preview = h('p', { class: 'style-preview mono', id: 'style-preview' }, buildStyle(st) || '아직 비어 있어요');
+  const preview = h('p', { class: 'style-preview mono', id: 'style-preview' }, sunoStyle(song) || '아직 비어 있어요');
   const count = h('span', { class: 'mono muted', id: 'style-count' });
   const updatePreview = () => {
-    const text = buildStyle(song.style);
+    const text = sunoStyle(song);
     preview.textContent = text || '아직 비어 있어요';
     count.textContent = `${text.length} / ${SUNO_LIMITS.style}자`;
     count.classList.toggle('over', text.length > SUNO_LIMITS.style);
@@ -51,7 +51,7 @@ export function renderStyle(song) {
             why[song.id] = String(res.why || '');
           }) }, busy && job.label === '스타일 제안 중' ? '제안받는 중…' : '컨셉으로 AI 제안'))),
       why[song.id] ? h('p', { class: 'note' }, why[song.id]) : null,
-      why[song.id] ? feedbackBar({ kind: 'style', ref: `style:${song.id}:${why[song.id].slice(0, 20)}`, text: buildStyle(st), label: 'AI 스타일 제안이 마음에 드나요?' }) : null,
+      why[song.id] ? feedbackBar({ kind: 'style', ref: `style:${song.id}:${why[song.id].slice(0, 20)}`, text: sunoStyle(song), label: 'AI 스타일 제안이 마음에 드나요?' }) : null,
       h('p', { class: 'muted' }, '영어로 적어요. 실존 가수·곡 이름은 Suno가 막기 때문에 넣지 마세요.'),
       genreList,
       h('div', { class: 'grid2' },

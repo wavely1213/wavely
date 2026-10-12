@@ -280,7 +280,7 @@ function renderHooks(song, m) {
   const busy = isBusy();
   return h('section', { class: 'card' },
     h('div', { class: 'card-head' },
-      h('h2', null, '영어 훅 추천'),
+      h('h2', null, '훅 추천'),
       h('button', { type: 'button', class: 'btn', disabled: busy, onclick: () => runJob('훅 찾는 중', async (signal) => {
         m.hooks = await suggestHooks(song, { signal });
       }) }, m.hooks.length ? '다시 추천' : '훅 6개 추천받기')),
@@ -290,7 +290,7 @@ function renderHooks(song, m) {
         h('span', { class: 'muted' }, ` ${x.meaning || ''}`),
         h('p', null, String(x.use || '')),
         feedbackBar({ kind: 'hook', ref: `hook:${song.id}:${x.hook}`, text: `${x.hook} (${x.meaning || ''})`, label: '' }))))
-      : h('p', { class: 'empty' }, '컨셉과 키워드를 보고 코러스에 쓸 영어 훅을 추천해요.'),
+      : h('p', { class: 'empty' }, '컨셉과 키워드를 보고 코러스에 쓸 훅을 추천해요. 한국어 비율에 맞춰 한국어 훅과 영어 훅을 섞어요.'),
   );
 }
 

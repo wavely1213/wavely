@@ -2,6 +2,7 @@
 import { sectionLabels } from './structure.js';
 import { GROUP_TYPES } from './constants.js';
 import { tasteBlock } from './learn/context.js';
+import { LYRIC_RULES, STYLE_RULES, REVIEW_ITEMS, hookRule } from './ai-rules.js';
 
 let samplePromise;
 export function getSample() {
@@ -36,6 +37,7 @@ export function songBrief(song) {
   return {
     제목: song.title,
     그룹: GROUP_TYPES[c.group] || c.group,
+    장르: song.style?.genre || '',
     주제: c.theme,
     스토리: c.story,
     분위기: c.moods.join(', '),
@@ -50,14 +52,6 @@ export function songBrief(song) {
     })),
   };
 }
-
-export const LYRIC_RULES = `규칙:
-- 한국어 중심 K-pop 가사. 영어는 전체의 약 {EN}%로, 훅·코러스·포인트 문장에 모아 쓴다.
-- 코러스는 바로 따라 부를 수 있는 반복 훅을 넣는다. 같은 Chorus는 같은 가사를 쓰고, Final Chorus만 변주한다.
-- 한 줄은 대략 6~12음절. 줄 끝 모음을 맞춰 라임을 만든다. 랩 섹션은 라임을 더 촘촘하게.
-- 담당 멤버의 포지션과 보컬 톤에 어울리게 쓴다.
-- Intro·Dance Break·Outro는 짧은 애드립 한두 줄이거나 비워 둔다. 애드립은 (괄호)로 쓴다.
-- 기존 발매곡 가사를 인용하거나 흉내 내지 않는다. 실존 아티스트 이름을 쓰지 않는다.`;
 
 // targetIds가 없으면 전체 섹션을 쓴다.
 export async function writeLyrics(song, { targetIds, request, signal, onProgress }) {
@@ -92,6 +86,7 @@ export async function suggestStyle(song, { signal }) {
   const prompt = [
     '너는 K-pop 프로듀서다. 아래 곡 컨셉에 맞는 Suno 스타일 프롬프트 재료를 영어로 제안한다.',
     '실존 아티스트·곡 이름은 쓰지 않는다 (Suno가 거부함). 각 값은 짧은 영어 구문.',
+    STYLE_RULES,
     tasteBlock('style'),
     `곡 정보(JSON):\n${JSON.stringify(songBrief(song), null, 1)}`,
     '출력은 JSON 하나만: {"genre":"","subgenre":"","bpm":120,"key":"","vocals":"","instruments":"","production":"","extra":"","exclude":"","why":"한국어로 한두 문장"}',
@@ -103,11 +98,12 @@ export async function suggestHooks(song, { signal }) {
   const sample = await getSample();
   if (!sample) throw { code: 'not_granted' };
   const prompt = [
-    '너는 K-pop 탑라이너다. 아래 곡에 쓸 영어 훅 후보 6개를 제안한다.',
-    '조건: 2~6단어, 발음이 쉽고 반복하기 좋을 것, 컨셉·키워드와 연결될 것, 기존 히트곡 훅과 겹치지 않을 것.',
+    '너는 K-pop 탑라이너다. 아래 곡의 코러스에 쓸 훅 후보 6개를 제안한다.',
+    '조건: 2~6단어(한국어는 2~8음절), 발음이 쉽고 반복하기 좋을 것, 컨셉·키워드와 연결될 것, 기존 히트곡 훅과 겹치지 않을 것.',
+    hookRule(song.concept.koRatio),
     tasteBlock('hook'),
     `곡 정보(JSON):\n${JSON.stringify(songBrief(song), null, 1)}`,
-    '출력은 JSON 배열 하나만: [{"hook":"영어 훅","meaning":"한국어 뜻","use":"어디에 어떻게 쓰면 좋은지 한 문장"}]',
+    '출력은 JSON 배열 하나만: [{"hook":"훅","meaning":"영어 훅이면 한국어 뜻, 한국어 훅이면 느낌 한 줄","use":"어디에 어떻게 쓰면 좋은지 한 문장"}]',
   ].filter(Boolean).join('\n\n');
   const res = await sample.json(prompt, { signal, cache: false });
   return Array.isArray(res) ? res.filter((r) => r && r.hook) : [];
@@ -118,7 +114,7 @@ export async function reviewLyrics(song, { signal, onText }) {
   if (!sample) throw { code: 'not_granted' };
   const prompt = [
     '너는 K-pop A&R 디렉터다. 아래 가사를 검토하고 한국어로 짧게 피드백한다.',
-    '항목: 1) 훅의 중독성 2) 파트 분배 균형 3) 라임·음절 흐름이 어색한 줄(줄을 인용) 4) 컨셉과 맞지 않는 표현 5) 바로 고칠 수 있는 제안 3개.',
+    REVIEW_ITEMS,
     '각 항목 2~3줄, 마크다운 없이 번호와 줄바꿈만.',
     tasteBlock('lyrics'),
     `곡 정보(JSON):\n${JSON.stringify(songBrief(song), null, 1)}`,

@@ -9,6 +9,8 @@ import { countSyllables } from './lyrictools.js';
 import { tasteBlock } from './learn/context.js';
 import { sectionRange, degreeRange, foldIntoRange, midiName } from './music/range.js';
 import { MELODY_TEXT_NOTE } from './music/melodytext.js';
+import { GROUP_TYPES } from './constants.js';
+import { ARRANGE_RULES, GENRE_CHORDS, MELODY_RULES, presetBrief } from './ai-rules.js';
 
 function referenceBrief(song) {
   return song.references.filter((r) => r.use).map((r) => {
@@ -23,7 +25,10 @@ function referenceBrief(song) {
 
 function conceptBrief(song) {
   const c = song.concept;
-  return { 제목: song.title, 주제: c.theme, 스토리: c.story, 분위기: c.moods.join(', '), 키워드: c.keywords };
+  return {
+    제목: song.title, 그룹: GROUP_TYPES[c.group] || c.group, 장르: [song.style?.genre, song.style?.subgenre].filter(Boolean).join(', '),
+    주제: c.theme, 스토리: c.story, 분위기: c.moods.join(', '), 키워드: c.keywords,
+  };
 }
 
 function parseRoot(v, fallback) {
@@ -57,7 +62,9 @@ export async function arrangeSong(song, { targetIds, request, signal }) {
     `드럼 id: none(드럼 없음), ${Object.entries(DRUM_PATTERNS).map(([k, v]) => `${k}(${v.name})`).join(', ')}`,
     `베이스 id: ${Object.entries(BASS_PATTERNS).map(([k, v]) => `${k}(${v.name})`).join(', ')}`,
     'chords는 스케일 도수 1~7 배열(마디마다 하나, 마디 수보다 짧으면 반복). energy는 1(조용)~5(폭발). bars는 2~16, 4의 배수 권장.',
-    '좋은 K-pop 편곡 원칙: 벌스는 비우고 코러스에서 터뜨린다, 프리코러스는 빌드업, 브릿지는 한 번 꺾는다, 섹션마다 대비를 준다. 실존 곡을 복제하지 않는다.',
+    ARRANGE_RULES,
+    GENRE_CHORDS,
+    presetBrief(),
     `곡 컨셉: ${JSON.stringify(conceptBrief(song))}`,
     `현재 설정: BPM ${m.bpm}, 키 ${keyName(m.root, m.mode)}`,
     `레퍼런스(반영할 것): ${JSON.stringify(referenceBrief(song))}`,
@@ -65,7 +72,7 @@ export async function arrangeSong(song, { targetIds, request, signal }) {
     request ? `작곡가 요청: ${request}` : '',
     `섹션: ${JSON.stringify(song.sections.map((s, i) => ({ id: s.id, 이름: labels[i], 가사줄수: s.text.split('\n').filter((l) => l.trim()).length, 현재: m.sections[s.id] })))}`,
     `편곡할 섹션 id: ${JSON.stringify(ids)}${whole ? ' (곡 전체이므로 bpm·root·mode도 정한다)' : ' (bpm·root·mode는 바꾸지 말고 생략)'}`,
-    `출력은 JSON 하나만: {${whole ? '"bpm":120,"root":"C# 처럼 음이름","mode":"major|minor",' : ''}"summary":"한국어 한두 문장","sections":[{"id":"","bars":8,"chords":[1,5,6,4],"seventh":false,"energy":3,"instruments":["drums"],"drum":"pop","bass":"sync"}]}`,
+    `출력은 JSON 하나만: {${whole ? '"bpm":120,"root":"C# 처럼 음이름","mode":"major|minor",' : ''}"summary":"한국어 한두 문장","sections":[{"id":"","bars":8,"chords":[4,5,3,6],"seventh":false,"energy":3,"instruments":["drums"],"drum":"pop","bass":"sync"}]}`,
   ].filter(Boolean).join('\n\n');
   const res = await sample.json(prompt, { signal, cache: false });
   const instIds = ARRANGE_INSTRUMENTS.map((i) => i.id);
@@ -105,6 +112,7 @@ export async function writeMelody(song, { targetIds, request, signal }) {
     return {
       id: s.id,
       이름: labels[i],
+      부르는멤버: s.members.map((id) => song.members.find((x) => x.id === id)).filter(Boolean).map((x) => `${x.name}(${x.position || '포지션 없음'})`).join(', ') || '없음',
       마디수: sm.bars,
       총칸수: sm.bars * 16,
       마디별코드: Array.from({ length: sm.bars }, (_, b) => {
@@ -127,7 +135,7 @@ export async function writeMelody(song, { targetIds, request, signal }) {
     '각 섹션의 "음역" 범위를 벗어나는 d를 쓰지 않는다 (부를 멤버의 음역).',
     '규칙: 가사 한 음절당 음표 하나(영어는 음절 단위), 음표에 그 음절을 syl로 붙인다. (괄호) 애드립도 음절로 처리. 음표끼리 겹치지 않는다. s+l은 총칸수를 넘지 않는다.',
     '강박(마디의 0, 4, 8, 12칸)에는 코드톤을 우선 쓴다. 줄 끝 음은 길게(4칸 이상) 끌어 숨 쉴 자리를 둔다. 줄은 대략 1~2마디씩 차지한다.',
-    '코러스는 음역을 높이고 반복되는 훅 리듬을 만든다. 벌스는 낮고 말하듯. 랩 섹션은 음 변화 적게 16분 리듬 위주.',
+    MELODY_RULES,
     '가사가 없는 섹션이면 "우-", "오-" 같은 허밍 멜로디를 짧게 만든다. 실존 곡 멜로디를 베끼지 않는다.',
     tasteBlock('melody') ? `${MELODY_TEXT_NOTE}\n${tasteBlock('melody')}` : '',
     request ? `작곡가 요청: ${request}` : '',

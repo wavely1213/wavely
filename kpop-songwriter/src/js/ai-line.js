@@ -1,5 +1,6 @@
 // 한 줄만 다시 쓰기: 섹션의 한 줄을 음절 수·줄 끝 라임을 맞춘 다른 후보 3개로 (나머지 가사는 그대로).
-import { getSample, songBrief, LYRIC_RULES } from './ai.js';
+import { getSample, songBrief } from './ai.js';
+import { LYRIC_RULES } from './ai-rules.js';
 import { tasteBlock } from './learn/context.js';
 import { countSyllables } from './lyrictools.js';
 

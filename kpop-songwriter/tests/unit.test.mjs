@@ -65,13 +65,56 @@ console.log('unit OK');
   console.log('patterns OK');
 }
 
-// 코드 진행 추가: 시티팝(장조, 7th), 안달루시안(단조)
+// 코드 진행 프리셋: 예전 id는 그대로 (저장된 곡·기본값), 국내 흔한 진행 추가, 같은 조에서 도수가 겹치지 않음
 {
-  const { findProgression } = await import('../src/js/music/theory.js');
+  const { findProgression, PROGRESSIONS } = await import('../src/js/music/theory.js');
   assert.equal(findProgression('major', [4, 3, 6, 1]).id, 'citypop');
   assert.equal(findProgression('major', [4, 3, 6, 1]).seventh, true);
   assert.equal(findProgression('minor', [1, 7, 6, 5]).id, 'descend');
+  assert.equal(findProgression('major', [4, 5, 3, 6, 2, 5, 1, 1]).id, 'royal8');
+  assert.equal(findProgression('major', [4, 2, 3, 6]).seventh, true, '4236은 7th');
+  assert.equal(findProgression('minor', [6, 7, 1, 3]).id, 'rise_m');
+  assert.equal(findProgression('minor', [1, 6]).id, 'trap', '도수를 바꾸지 않아 저장된 곡의 이름이 남음');
+  assert.match(findProgression('major', [1, 5, 6, 4]).name, /머니코드/);
+  for (const mode of ['major', 'minor']) {
+    const list = PROGRESSIONS[mode];
+    assert.equal(new Set(list.map((p) => p.degrees.join())).size, list.length, `${mode} 도수 중복 없음`);
+    assert.equal(new Set(list.map((p) => p.id)).size, list.length, `${mode} id 중복 없음`);
+    assert.ok(list.every((p) => p.use && p.degrees.length >= 1 && p.degrees.length <= 8 && p.degrees.every((d) => d >= 1 && d <= 7)), `${mode} 칩·AI 범위 안`);
+  }
+  ['hope', 'emotional', 'royal', 'dreamy', 'build', 'ballad', 'simple', 'citypop'].forEach((id) => assert.ok(PROGRESSIONS.major.some((p) => p.id === id), id));
+  ['dark', 'sad', 'epic', 'build', 'trap', 'mystic', 'descend'].forEach((id) => assert.ok(PROGRESSIONS.minor.some((p) => p.id === id), id));
   console.log('progressions OK');
+}
+
+// Suno 스타일 '한국어로 부름' 표시 (국내판): 한국어 비율 50% 이상이면 장르 바로 뒤, 이미 적혀 있거나 칸이 비면 붙이지 않음
+{
+  const { koreanTag, sunoStyle } = await import('../src/js/suno.js');
+  const st = { genre: 'K-pop dance pop', subgenre: 'dreamy synth-pop', bpm: 120, key: '', vocals: 'airy female group vocals' };
+  assert.equal(koreanTag(40), '');
+  assert.equal(koreanTag(70), 'sung in Korean, Korean lyrics with English hook');
+  assert.equal(koreanTag(90), 'sung in Korean, Korean lyrics');
+  assert.equal(buildStyle(st, { koRatio: 70 }), 'K-pop dance pop, sung in Korean, Korean lyrics with English hook, dreamy synth-pop, 120 BPM, airy female group vocals');
+  assert.equal(buildStyle(st), 'K-pop dance pop, dreamy synth-pop, 120 BPM, airy female group vocals', '비율을 안 주면 (번안판) 붙이지 않음');
+  assert.equal(buildStyle({ ...st, vocals: 'Korean female vocals' }, { koRatio: 100 }), 'K-pop dance pop, dreamy synth-pop, 120 BPM, Korean female vocals');
+  assert.equal(buildStyle({ genre: '', bpm: '' }, { koRatio: 80 }), '');
+  assert.match(buildStyle({ genre: 'Korean ballad' }, { koRatio: 95 }), /^Korean ballad, sung in Korean, Korean lyrics$/);
+  const song = { concept: { koRatio: 95 }, style: st };
+  assert.equal(sunoStyle(song), buildStyle(st, { koRatio: 95 }));
+  assert.equal(sunoStyle(song, { genre: 'K-pop R&B' }), 'K-pop R&B, sung in Korean, Korean lyrics', '변형 스타일에도 붙음');
+  console.log('suno korean OK');
+}
+
+// 국내 기준 AI 규칙: 훅 언어 비율, 프리셋 목록
+{
+  const { hookRule, presetBrief, LYRIC_RULES } = await import('../src/js/ai-rules.js');
+  assert.match(hookRule(95), /한국어 훅 위주/);
+  assert.match(hookRule(70), /한국어 훅을 4개 안팎/);
+  assert.match(hookRule(30), /한국어 훅을 2개 안팎/);
+  assert.ok(LYRIC_RULES.includes('{EN}'), '영어 비율 자리');
+  assert.match(presetBrief(), /4536 왕도 \(4536\)|두근두근 고조 \(4536 왕도\) \[4,5,3,6\]/);
+  assert.match(presetBrief(), /\[4,2,3,6\]\+7th/);
+  console.log('ai rules OK');
 }
 
 // 분:초 표시·입력 (마스터링 곡 끝 자르기)

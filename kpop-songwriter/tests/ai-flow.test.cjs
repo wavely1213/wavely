@@ -35,7 +35,7 @@ function fakeClaude() {
       const ids = [...p.matchAll(/"id":"([a-z0-9]+)","이름"/g)].map((x) => x[1]);
       return { sections: ids.map((id) => ({ id, notes: [{ s: 0, l: 4, d: 2, syl: '가' }, { s: 2, l: 2, d: 4, syl: '짜' }, { s: 8, l: 4, d: 30, syl: '멜' }] })) };
     }
-    if (p.includes('영어 훅 후보')) return [{ hook: 'Signal on', meaning: '신호 켜', use: '코러스 첫 줄' }, { hook: 'Midnight call', meaning: '한밤의 전화', use: '프리코러스 끝' }];
+    if (p.includes('훅 후보 6개')) return [{ hook: 'Signal on', meaning: '신호 켜', use: '코러스 첫 줄' }, { hook: 'Midnight call', meaning: '한밤의 전화', use: '프리코러스 끝' }];
     if (p.includes('Suno 스타일 프롬프트 재료')) return { genre: 'K-pop', subgenre: 'dark trap', bpm: 140, key: 'C minor', vocals: 'airy', instruments: '808', production: 'wide', extra: 'night', exclude: 'metal', why: '가짜 이유' };
     if (p.includes('반응 기록이다')) return { lyrics: '가짜 정리: 이미지로 감정을 보여 준다', sound: '가짜 정리: 808', avoid: '가짜 정리: 뻔한 단어', basis: '가짜 근거' };
     if (p.includes('음원 유통 가사 검수자')) {
@@ -202,6 +202,17 @@ function fakeClaude() {
   await p.click('text=컨셉으로 AI 제안');
   await p.waitForSelector('.note:has-text("가짜 이유")');
   results.styleBpm = await p.inputValue('#style-bpm');
+  // 국내판: 스타일 글에 '한국어로 부름' 표시, AI 요청마다 국내 기준 규칙
+  results.styleKorean = (await p.textContent('#style-preview')).startsWith('K-pop, sung in Korean, Korean lyrics');
+  const ps = await prompts();
+  results.domesticPrompts = {
+    arrange: ps.some((x) => x.includes('편곡할 섹션 id') && x.includes('국내 K-pop 편곡 원칙') && x.includes('4536 왕도') && x.includes('장르별 코드 진행')),
+    melody: ps.some((x) => x.includes('탑라이너(멜로디 작곡가)') && x.includes('국내 K-pop 멜로디 원칙') && x.includes('부르는멤버')),
+    hook: ps.some((x) => x.includes('훅 후보 6개') && x.includes('훅 언어')),
+    lyrics: ps.some((x) => x.includes('가사를 쓸 섹션 id') && x.includes('번역투') && x.includes('방송 심의')),
+    style: ps.some((x) => x.includes('Suno 스타일 프롬프트 재료') && x.includes('한국 장르로 시작')),
+    review: ps.some((x) => x.includes('A&R 디렉터다. 아래 가사를 검토') && x.includes('1절·2절')),
+  };
 
   // 취향: 기록 확인 → AI 정리 → 프로필 반영
   await p.waitForTimeout(1800); // 자동 저장(1.2초 디바운스) 기다림
@@ -393,7 +404,7 @@ function fakeClaude() {
   results.saved = await p.evaluate(() => window.__saved);
 
   console.log(JSON.stringify(results, null, 1));
-  const ok = results.trendRow && results.lineSwap && results.lyricsApplied && results.review && results.improve.length > 0 && results.improve.every((t) => t.includes('반영')) && results.arrangeKey.includes('A minor') && results.melodyNotes === 3 && results.styleBpm === '140'
+  const ok = results.trendRow && results.lineSwap && results.lyricsApplied && results.review && results.improve.length > 0 && results.improve.every((t) => t.includes('반영')) && results.arrangeKey.includes('A minor') && results.melodyNotes === 3 && results.styleBpm === '140' && results.styleKorean && Object.values(results.domesticPrompts).every(Boolean)
     && results.editRecorded && results.tasteLog.some((x) => x.startsWith('lyrics:-1(유치해요)')) && results.tasteLog.includes('hook:1') && results.lineLiked === 1 && results.similarCount === 1 && results.similarFixed && results.trOff === 1 && results.trLyrics && results.trStyle && results.variantCount === 3 && results.variantChosen.join() === 'B' && results.variantStyle === 'bright synth-pop' && results.variantPair && results.orderTracks >= 2 && results.orderApplied && results.orderUndo && results.statLearn.startsWith('arrange') && results.ideasPromptHint && results.melodyEdit && results.melodyEditUndo && results.melodyEditRedo && results.melodyEditPrompt && results.pitch && results.spellCount === 2 && results.spellApplied && results.ideaTitle === '가짜 컨셉 둘' && results.ideaTheme === '둘 주제' && results.ideaKeywords === '밤, 거울, Mirror' && results.ideaMoods === '몽환,다크' && results.tasteLog.includes('arrange:1')
     && results.tasteLog.includes('melody:1') && results.promptHasTaste && results.profileRevert && results.melodyLikedPitch && results.lyricEditRevert && results.lyricEditUndo && results.promo && results.draft.arranged && results.draft.bpm === 128 && results.draft.styleBpm === 128 && results.draft.styleKey === 'A minor' && results.draft.melodySections > 0 && results.draft.melodyCopied && results.draft.lyrics.split('/')[0] === results.draft.lyrics.split('/')[1] && results.keptBridge === '언젠가 너도 이 밤을 보면\n같은 불빛을 찾게 될 거야' && results.melodyPromptRange && results.raceA === 133 && results.raceB === 120 && results.saved.includes('taste-feedback.zip') && !errs.length;
   if (errs.length) console.log('ERRORS', errs);

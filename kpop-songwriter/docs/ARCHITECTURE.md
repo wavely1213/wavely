@@ -29,7 +29,7 @@
 | 저장 | `src/js/store.js` | db/localStorage 읽기·쓰기 | 데이터 가공 |
 | 도메인(가사) | `structure.js`, `lyrictools.js`, `suno.js`, `constants.js` | 구조·분배·음절·라임·Suno 텍스트 | DOM, 저장 |
 | 도메인(음악) | `src/js/music/` | 이론·패턴·편곡 데이터·타임라인·신스·재생·MIDI·분석·패키징 | DOM (예외: 없음), 저장 |
-| AI | `ai.js`, `ai-music.js`, `aijob.js` | 프롬프트 작성, 응답 검사, 진행 중 작업 관리 | 검사 안 된 응답을 상태에 쓰기 |
+| AI | `ai.js`, `ai-music.js`, `ai-rules.js`, `aijob.js` | 프롬프트 작성(국내 기준 규칙은 `ai-rules.js` 한곳), 응답 검사, 진행 중 작업 관리 | 검사 안 된 응답을 상태에 쓰기 |
 
 ## 3. 의존 방향 규칙
 
@@ -109,6 +109,7 @@
 | 플랫폼 | platform/download.js, platform/blobstore.js | 파일 저장 (아티팩트 downloads / 웹 일반 다운로드), 큰 파일 IndexedDB 보관 |
 | AI 작사 | ai.js | 가사·스타일·훅·검토 |
 | AI 작곡 | ai-music.js | 편곡·멜로디 (응답을 선택지 범위로 검사) |
+| AI 국내 기준 규칙 | ai-rules.js | 작사·훅·Suno 스타일·검토·편곡(장르별 코드)·멜로디 요청에 넣는 국내 K-pop 규칙 문장. 글로벌판 규칙은 국내판 테스트 뒤 (D-020) |
 
 ## 5. 데이터 모델 요약
 

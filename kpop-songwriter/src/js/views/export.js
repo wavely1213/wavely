@@ -4,7 +4,7 @@ import { refresh, mutateSong, markProgress, getState } from '../state.js';
 import { applyToStyle } from './arrange.js';
 import { keyName } from '../music/theory.js';
 
-import { buildLyrics, buildStyle } from '../suno.js';
+import { buildLyrics, sunoStyle } from '../suno.js';
 import { SUNO_LIMITS } from '../constants.js';
 import { buildPackage } from '../package.js';
 import { placeholderTitle } from '../album/titlecheck.js';
@@ -41,7 +41,7 @@ async function downloadPackage(song) {
 
 export function renderExport(song) {
   const lyrics = buildLyrics(song, opts);
-  const style = buildStyle(song.style);
+  const style = sunoStyle(song);
   const title = song.title.replace(/^예시:\s*/, '');
 
   const block = (id, label, text, limit, rows) => {
