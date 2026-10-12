@@ -1,5 +1,11 @@
 # 🚀 웹 배포 (Vercel) — 무료
 
+> **⚠️ 2026-10 바뀜 — 이 저장소의 Vercel 프로젝트 `wavely` 는 이제 풋살사관학교 스튜디오 원격 페이지 전용이에요.**
+> - 주소: **https://futsal.mulgyeol.kr** (뿌리 `/` 가 그 페이지). 빌드는 `public/futsal/` 을 `dist/` 로 복사만 해요(npm 설치·`expo export` 없음 · `vercel.json`).
+> - 옛 주소 `/futsal`·`/futsal/…` → 같은 자리의 `/…` 로, `wavely-nine.vercel.app/…` → `https://futsal.mulgyeol.kr/…` 로 넘어가요(임시 이동 307). 그 밖의 모르는 주소는 `/` 로, 없는 파일(`.js`·`.png` 처럼 확장자가 있는 것)은 404 예요. 미리보기 주소(`wavely-*-wavely1213s-projects.vercel.app`)도 그 자리 뿌리에서 같은 길로 열리지만, 이 프로젝트는 Vercel 배포 보호(Vercel Authentication)가 켜져 있어 **Vercel 로그인 뒤에만** 보여요(그냥 `curl` 하면 모든 주소가 vercel.com 로그인으로 302). 미리보기는 화면만 보는 곳이고, PC 앱과 연결(짝짓기)은 **futsal.mulgyeol.kr 에서만** 돼요. 미리보기 길 확인은 `vercel curl -sI <미리보기 주소>/futsal` 처럼 해요.
+> - **롤백 금지:** 이 프로젝트에서 이 변경 이전 배포(옛 커뮤니티 빌드)를 Instant Rollback·Promote 로 운영에 되돌리지 마세요. futsal.mulgyeol.kr 은 PC 앱이 연결 코드를 믿고 보내는 유일한 주소라, 그 자리에 커뮤니티 빌드가 다시 뜨면 연결 코드가 그 스크립트 손에 들어갈 수 있어요.
+> - 와벨리 커뮤니티 웹은 별도 저장소 **wavely-web**(Vercel 프로젝트 `wavely-web`)가 **mulgyeol.kr**(www·m 포함)에서 맡아요. 아래 Expo 웹 배포 안내는 예전 기록이에요.
+
 준비 완료 상태예요. 빌드는 검증됐고(`expo export` → 35개 라우트 OK), `vercel.json`도 있어요.
 
 ## 1) GitHub에 코드 올리기 (무료)
