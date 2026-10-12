@@ -2,16 +2,19 @@
 // 근거: docs/research/genre-chords-2026-10-12.md 3-2(섹션별 코드), composition-2026-10-12.md a5~a9(인트로·아웃트로·벌스 비트·브릿지),
 // sounds-korean-2026-10-12.md E(발라드는 피아노 → 스트링 → 풀 밴드). 결정: D-022.
 
-// 섹션 한 칸: 마디, 에너지, 악기, 드럼, 베이스, 장조 진행 id, 단조 진행 id (music/theory.js PROGRESSIONS)
+// 섹션 한 칸: 마디, 에너지, 악기, 드럼, 베이스, 장조 진행, 단조 진행 (music/theory.js PROGRESSIONS id, 또는 도수 배열)
+// 진행이 마디보다 길면 들리는 마디만큼만 쓴다 (arrangement.js). 2마디 아웃트로는 으뜸화음으로 끝나게 5→1(단조 VII→i)
 const S = (bars, energy, instruments, drum, bass, major, minor) => ({ bars, energy, instruments, drum, bass, major, minor });
 // 클럽은 곡 장르의 리듬(하우스·개러지·저지 등)을 곡 전체에 쓴다
 const GROOVE = 'groove';
+// 짧은 훅 끝(2마디)의 마침: 장조 V→I, 단조 VII→i (P27 단조 2코드)
+const END = [5, 1];
+const END_M = [7, 1];
 
-// seventh: true = 모든 섹션 7th, null = 프리셋에 붙은 대로 (예: 4236은 켜고 4536은 끔)
-// bpm: [낮음, 높음, 권장]. 템플릿·버튼이 이 범위 밖이면 권장값으로 옮긴다. null이면 빠르기를 건드리지 않는다
+// seventh: true = 모든 섹션 7th, null = 프리셋에 붙은 대로 (예: 4236은 켜고 4536은 끔). 빠르기 범위는 아래 TEMPO
 export const GENRE_PROFILES = {
   bright: {
-    name: '청량 댄스 팝', mode: 'major', seventh: null, bpm: null,
+    name: '청량 댄스 팝', mode: 'major', seventh: null,
     sections: {
       Intro: S(4, 3, ['drums', 'bass', 'pluck', 'pad'], 'four', 'root8', 'royal', 'turn6345_m'),
       Verse: S(8, 2, ['drums', 'bass', 'piano', 'pluck'], 'four', 'sync', 'lilac', 'sad'),
@@ -22,11 +25,11 @@ export const GENRE_PROFILES = {
       Bridge: S(4, 3, ['drums', 'bass', 'pad', 'strings'], 'trap', 'long', 'build', 'build'),
       'Dance Break': S(8, 5, ['drums', 'b808', 'pluck', 'arp'], 'jersey', 'halftime', 'royal', 'epic'),
       Hook: S(4, 4, ['drums', 'bass', 'pluck'], 'four', 'octave', 'royal', 'epic'),
-      Outro: S(2, 4, ['drums', 'bass', 'pad', 'pluck'], 'four', 'octave', 'royal', 'epic'),
+      Outro: S(2, 4, ['drums', 'bass', 'pad', 'pluck'], 'four', 'octave', END, END_M),
     },
   },
   ballad: {
-    name: '발라드·OST', mode: 'major', seventh: true, bpm: [60, 80, 72],
+    name: '발라드·OST', mode: 'major', seventh: true,
     sections: {
       Intro: S(4, 1, ['piano'], 'none', 'long', 'ballad', 'dark'),
       Verse: S(8, 2, ['piano', 'bass'], 'none', 'long', 'ballad', 'dark'),
@@ -37,11 +40,11 @@ export const GENRE_PROFILES = {
       Bridge: S(8, 3, ['piano', 'strings', 'pad', 'bass'], 'none', 'long', 'circle', 'bridge4236_m'),
       'Dance Break': S(8, 4, ['drums', 'bass', 'piano', 'strings'], 'ballad', 'long', 'royal8', 'sad'),
       Hook: S(4, 4, ['drums', 'bass', 'piano', 'strings', 'pad'], 'ballad', 'long', 'royal', 'sad'),
-      Outro: S(4, 1, ['piano'], 'none', 'long', 'ballad', 'dark'),
+      Outro: S(4, 1, ['piano'], 'none', 'long', [4, 5, 1, 1], 'epic'),
     },
   },
   dark: {
-    name: '다크·걸크러시·힙합', mode: 'minor', seventh: null, bpm: null,
+    name: '다크·걸크러시·힙합', mode: 'minor', seventh: null,
     sections: {
       Intro: S(4, 3, ['drums', 'b808', 'arp'], 'trap', 'halftime', 'royal', 'turn6345_m'),
       Verse: S(8, 2, ['drums', 'b808', 'pluck'], 'trap', 'halftime', 'emotional', 'sad'),
@@ -52,11 +55,11 @@ export const GENRE_PROFILES = {
       Bridge: S(4, 3, ['piano', 'pad', 'strings', 'bass'], 'none', 'long', 'build', 'bridge4236_m'),
       'Dance Break': S(8, 5, ['drums', 'b808', 'pluck', 'arp'], 'jersey', 'halftime', 'drop', 'drop'),
       Hook: S(4, 4, ['drums', 'b808', 'pluck'], 'trap', 'halftime', 'royal', 'epic'),
-      Outro: S(2, 4, ['drums', 'b808', 'pluck'], 'trap', 'halftime', 'royal', 'epic'),
+      Outro: S(2, 4, ['drums', 'b808', 'pluck'], 'trap', 'halftime', END, END_M),
     },
   },
   rnb: {
-    name: 'R&B·시티팝', mode: 'major', seventh: true, bpm: [80, 110, 96],
+    name: 'R&B·시티팝', mode: 'major', seventh: true,
     sections: {
       Intro: S(4, 3, ['drums', 'bass', 'piano', 'pad'], 'funk', 'sync', 'lilac', 'view'),
       Verse: S(8, 2, ['drums', 'bass', 'piano'], 'funk', 'sync', 'lilac', 'view'),
@@ -67,11 +70,11 @@ export const GENRE_PROFILES = {
       Bridge: S(4, 3, ['piano', 'pad', 'strings', 'bass'], 'none', 'long', 'dreamy', 'bridge4236_m'),
       'Dance Break': S(8, 4, ['drums', 'bass', 'piano', 'pad', 'strings', 'guitar'], 'funk', 'octave', 'citypop', 'view'),
       Hook: S(4, 4, ['drums', 'bass', 'piano', 'guitar'], 'funk', 'octave', 'citypop', 'view'),
-      Outro: S(2, 3, ['drums', 'bass', 'piano', 'pad'], 'funk', 'sync', 'citypop', 'view'),
+      Outro: S(2, 3, ['drums', 'bass', 'piano', 'pad'], 'funk', 'sync', END, END_M),
     },
   },
   club: {
-    name: '클럽 (하우스·개러지·저지)', mode: 'minor', seventh: true, bpm: [118, 140, 124],
+    name: '클럽 (하우스·개러지·저지)', mode: 'minor', seventh: true,
     sections: {
       Intro: S(4, 3, ['drums', 'bass', 'pad'], GROOVE, 'offbeat', 'citypop', 'view'),
       Verse: S(8, 2, ['drums', 'bass', 'pluck'], GROOVE, 'offbeat', 'citypop', 'view'),
@@ -82,11 +85,11 @@ export const GENRE_PROFILES = {
       Bridge: S(4, 2, ['pad', 'strings', 'bass'], 'none', 'long', 'citypop', 'view'),
       'Dance Break': S(8, 5, ['drums', 'b808', 'pluck', 'arp'], GROOVE, 'halftime', 'drop', 'drop'),
       Hook: S(4, 4, ['drums', 'bass', 'pluck'], GROOVE, 'offbeat', 'citypop', 'view'),
-      Outro: S(2, 3, ['drums', 'bass', 'pad'], GROOVE, 'offbeat', 'citypop', 'view'),
+      Outro: S(2, 3, ['drums', 'bass', 'pad'], GROOVE, 'offbeat', END, END_M),
     },
   },
   band: {
-    name: '밴드·록', mode: 'major', seventh: null, bpm: null,
+    name: '밴드·록', mode: 'major', seventh: null,
     sections: {
       Intro: S(4, 3, ['drums', 'bass', 'guitar'], 'pop', 'root8', 'hope', 'dark'),
       Verse: S(8, 2, ['drums', 'bass', 'guitar'], 'pop', 'root8', 'hope', 'dark'),
@@ -97,7 +100,7 @@ export const GENRE_PROFILES = {
       Bridge: S(4, 3, ['drums', 'bass', 'guitar', 'strings'], 'ballad', 'long', 'build', 'build'),
       'Dance Break': S(8, 5, ['drums', 'bass', 'guitar', 'piano', 'strings'], 'pop', 'root8', 'band4156', 'loop6514_m'),
       Hook: S(4, 4, ['drums', 'bass', 'guitar', 'piano'], 'pop', 'root8', 'band4156', 'loop6514_m'),
-      Outro: S(2, 4, ['drums', 'bass', 'guitar'], 'pop', 'root8', 'band4156', 'loop6514_m'),
+      Outro: S(2, 4, ['drums', 'bass', 'guitar'], 'pop', 'root8', END, END_M),
     },
   },
 };
@@ -106,37 +109,58 @@ export const DEFAULT_GENRE = 'bright';
 
 // 장르 칸(자유 입력)·세부 장르에서 묶음 찾기. 위에서부터 먼저 맞는 것 (예: 'K-pop R&B ballad'는 발라드)
 const RULES = [
-  ['ballad', /ballad|발라드|\bost\b|드라마/i],
+  ['ballad', /ballad|발라드|\bost\b|드라마(?!틱)/i],
   ['club', /brazilian|baile|phonk|브라질리언/i], // 브라질리언 펑크는 R&B의 funk가 아님
-  ['rnb', /r&b|r'n'b|\brnb\b|알앤비|city\s?pop|시티\s?팝|disco|디스코|\bfunk\b|neo[- ]?soul/i],
-  ['club', /house|하우스|garage|\bukg\b|2-step|jersey|저지|club|클럽|afro|아프로|moombah|뭄바|dembow|reggaeton|레게톤|baltimore|techno|테크노/i],
-  ['band', /rock|록|band|밴드|punk|indie|인디/i],
+  ['rnb', /r&b|r'n'b|\brnb\b|알앤비|알엔비|city\s?pop|시티\s?팝|disco|디스코|\bfunk\b|neo[- ]?soul|new\s?jack|뉴\s?잭/i],
+  ['club', /house|하우스|garage(?!\s*(rock|punk))|개러지|\bukg\b|2[- ]?step|jersey|저지|club|클럽|afro|아프로|moombah|뭄바|dembow|reggaeton|레게톤|baltimore|techno|테크노/i],
+  ['band', /rock|록|band|밴드|punk|팝\s?펑크|indie|인디/i],
   ['dark', /hip\s?-?hop|힙합|trap|트랩|drill|드릴|\bedm\b/i],
 ];
 
 // 클럽 묶음의 리듬 (patterns.js DRUM_PATTERNS id)
 function grooveOf(text) {
   if (/jersey|저지/i.test(text)) return 'jersey';
-  if (/garage|\bukg\b|2-step/i.test(text)) return 'ukg';
+  if (/garage|개러지|\bukg\b|2[- ]?step/i.test(text)) return 'ukg';
   if (/afro|아프로/i.test(text)) return 'afro';
   if (/moombah|뭄바|dembow|reggaeton|레게톤/i.test(text)) return 'dembow';
   return 'four';
 }
 
-// 곡의 장르 묶음: {id, name, groove}. 장르 칸에서 못 찾으면 청량, 분위기에 걸크러시·다크가 있으면 다크 (genre-chords 3-2 매핑)
+// 빠르기 범위 [낮음, 높음, 권장]. 템플릿 적용·'장르 기본 편곡' 버튼이 범위 밖일 때만 권장값으로 옮긴다. null이면 그대로.
+// 발라드·R&B·클럽 리듬별 수치는 조사(composition W15)와 도움말·AI 규칙(R&B 80~100)과 같다.
+// 청량·다크·밴드는 조사 수치가 없어 발라드 빠르기에서 돌아오기 위한 넓은 범위만 둔다 (권장값은 앱 기본 120).
+const TEMPO = {
+  ballad: [60, 80, 72],
+  rnb: [80, 100, 96],
+  bright: [95, 160, 120],
+  dark: [85, 180, 120],
+  band: [95, 200, 120],
+  club: { four: [120, 128, 124], jersey: [130, 140, 135], ukg: [130, 138, 134] }, // 아프로·뎀보는 수치 근거가 없어 그대로
+};
+const DISCO = /disco|디스코|\bfunk\b|city\s?pop|시티\s?팝/i; // R&B 묶음이어도 디스코·시티팝 결은 빠르기 범위를 두지 않는다
+
+export function tempoRange(genre) {
+  if (!genre) return null;
+  if (genre.disco) return null;
+  const r = TEMPO[genre.id];
+  return r && !Array.isArray(r) ? r[genre.groove || 'four'] || null : r || null;
+}
+
+// 곡의 장르 묶음: {id, name, groove, disco}. 장르 칸에서 못 찾으면 청량, 분위기에 걸크러시·다크가 있으면 다크 (genre-chords 3-2 매핑)
 export function songGenre(song) {
   const text = [song?.style?.genre, song?.style?.subgenre].filter(Boolean).join(' ');
   let id = (RULES.find(([, re]) => re.test(text)) || [DEFAULT_GENRE])[0];
   const moods = song?.concept?.moods || [];
   if (id === DEFAULT_GENRE && (moods.includes('걸크러시') || moods.includes('다크'))) id = 'dark';
-  return { id, name: GENRE_PROFILES[id].name, groove: grooveOf(text) };
+  return { id, name: GENRE_PROFILES[id].name, groove: grooveOf(text), disco: id === 'rnb' && DISCO.test(text) };
 }
 
-// 템플릿이 정하는 묶음: '발라드·미디엄 템포'는 발라드(장르가 R&B면 R&B), 나머지는 곡 장르대로
-export function templateGenre(key, song) {
-  const g = songGenre(song);
-  if (key !== 'ballad' || g.id === 'rnb' || g.id === 'ballad') return g;
-  return { ...g, id: 'ballad', name: GENRE_PROFILES.ballad.name };
+// '발라드·미디엄 템포' 템플릿: 장르 칸이 발라드·R&B가 아니면 'K-pop ballad'로 바꿔, 뒤에 더하는 섹션·버튼·AI 편곡도 같은 장르를 보게 한다
+export const BALLAD_GENRE = 'K-pop ballad';
+export function templateStyleGenre(key, song) {
+  if (key !== 'ballad') return null;
+  const id = songGenre(song).id;
+  return id === 'ballad' || id === 'rnb' ? null : BALLAD_GENRE;
 }
 
 // 섹션 기본값 재료 (진행 id는 조에 맞춰 고른 것)
@@ -154,9 +178,9 @@ export function genreSection(type, mode, genre = { id: DEFAULT_GENRE }) {
   };
 }
 
-// 묶음의 권장 빠르기 범위 밖이면 권장값, 안이면 그대로 (범위 없는 묶음은 그대로)
+// 권장 빠르기 범위 밖이면 권장값, 안이면 그대로 (범위가 없으면 그대로)
 export function fitBpm(bpm, genre) {
-  const r = GENRE_PROFILES[genre?.id]?.bpm;
+  const r = tempoRange(genre);
   if (!r) return bpm;
   return bpm >= r[0] && bpm <= r[1] ? bpm : r[2];
 }

@@ -82,6 +82,11 @@ export async function arrangeSong(song, { targetIds, request, signal }) {
   const genre = songGenre(song);
   const mode = whole ? (res?.mode === 'minor' ? 'minor' : 'major') : m.mode;
   const fallback = (id) => defaultSectionMusic(song.sections.find((s) => s.id === id)?.type, mode, genre);
+  // AI가 드럼 악기를 넣었는데 기본값이 '드럼 없음'이면 그 장르의 후렴 드럼으로 (드럼 칩만 켜지고 소리가 안 나지 않게)
+  const fallbackDrum = (x) => {
+    const d = fallback(String(x.id)).drum;
+    return d === 'none' && Array.isArray(x.instruments) && x.instruments.includes('drums') ? defaultSectionMusic('Chorus', mode, genre).drum : d;
+  };
   const sections = (Array.isArray(res?.sections) ? res.sections : [])
     .filter((x) => ids.includes(String(x.id)))
     .map((x) => ({
@@ -91,7 +96,7 @@ export async function arrangeSong(song, { targetIds, request, signal }) {
       seventh: !!x.seventh,
       energy: int(x.energy, 1, 5, 3),
       instruments: (Array.isArray(x.instruments) ? x.instruments : []).map(String).filter((i) => instIds.includes(i)),
-      drum: x.drum === 'none' || DRUM_PATTERNS[x.drum] ? String(x.drum) : fallback(String(x.id)).drum,
+      drum: x.drum === 'none' || DRUM_PATTERNS[x.drum] ? String(x.drum) : fallbackDrum(x),
       bass: BASS_PATTERNS[x.bass] ? String(x.bass) : fallback(String(x.id)).bass,
     }))
     .filter((x) => x.chords.length);

@@ -2,20 +2,22 @@
 // 섹션 기본값은 곡의 장르 묶음(music/genres.js)을 따른다. 이미 있는 섹션 편곡은 바꾸지 않는다.
 import { defaultSounds, INSTRUMENTS } from './instruments.js';
 import { PROGRESSIONS } from './theory.js';
-import { songGenre, templateGenre, genreSection, fitBpm } from './genres.js';
+import { songGenre, templateStyleGenre, genreSection, fitBpm } from './genres.js';
 
 function progressionFor(mode, id) {
   const list = PROGRESSIONS[mode] || PROGRESSIONS.major;
   return list.find((p) => p.id === id) || list[0];
 }
 
-// 섹션 기본 편곡. genre는 songGenre(song)의 결과 (없으면 청량 댄스 팝). 장르 묶음 표는 music/genres.js
-export function defaultSectionMusic(type, mode = 'major', genre) {
+// 섹션 기본 편곡. genre는 songGenre(song)의 결과 (없으면 청량 댄스 팝). 장르 묶음 표는 music/genres.js.
+// bars를 주면 그 마디 수에 맞춘다 (버튼은 마디를 그대로 둠). 진행이 마디보다 길면 들리는 마디만큼만 남긴다 (재생은 마디마다 코드 하나).
+export function defaultSectionMusic(type, mode = 'major', genre, bars) {
   const d = genreSection(type, mode, genre);
-  const p = progressionFor(mode, d.prog);
+  const p = Array.isArray(d.prog) ? { degrees: d.prog, seventh: false } : progressionFor(mode, d.prog);
+  const n = bars || d.bars;
   return {
-    bars: d.bars,
-    chords: [...p.degrees],
+    bars: n,
+    chords: p.degrees.slice(0, Math.max(n, 1)),
     seventh: d.seventh ?? !!p.seventh,
     energy: d.energy,
     instruments: d.instruments,
@@ -33,20 +35,22 @@ export function applyGenreDefaults(song, genre = songGenre(song), ids = null) {
   song.sections.forEach((s) => {
     const sm = m.sections[s.id];
     if (!sm || (ids && !ids.includes(s.id))) return;
-    const d = defaultSectionMusic(s.type, m.mode, genre);
+    const d = defaultSectionMusic(s.type, m.mode, genre, sm.bars);
     Object.assign(sm, { chords: d.chords, seventh: d.seventh, energy: d.energy, instruments: d.instruments, drum: d.drum, drumGrid: null, bass: d.bass });
   });
   m.bpm = fitBpm(m.bpm, genre);
   return song;
 }
 
-// 구조 템플릿을 적용한 뒤 (mutate 안에서, 섹션을 바꾼 직후): 새 섹션을 템플릿 장르로 채운다.
-// '발라드·미디엄 템포'는 장르 칸과 상관없이 발라드 기본값(R&B 곡이면 R&B)이고, 빠르기도 권장 범위로 옮긴다.
+// 구조 템플릿을 적용한 뒤 (mutate 안에서, 섹션을 바꾼 직후): 새 섹션을 곡 장르 기본값으로 채우고 빠르기를 장르 범위에 맞춘다.
+// '발라드·미디엄 템포'는 장르 칸이 발라드·R&B가 아니면 'K-pop ballad'로 바꾼다 (뒤에 더하는 섹션·버튼·AI 편곡·Suno 스타일도 같은 장르를 보게).
 export function applyTemplateDefaults(song, key) {
   const m = song.music;
-  const genre = templateGenre(key, song);
+  const g = templateStyleGenre(key, song);
+  if (g) song.style = { ...song.style, genre: g };
+  const genre = songGenre(song);
   song.sections.forEach((s) => { if (!m.sections[s.id]) m.sections[s.id] = defaultSectionMusic(s.type, m.mode, genre); });
-  if (key === 'ballad') m.bpm = fitBpm(m.bpm, genre);
+  m.bpm = fitBpm(m.bpm, genre);
   return song;
 }
 

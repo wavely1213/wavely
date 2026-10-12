@@ -235,7 +235,7 @@ import { songLength, lengthNote } from '../src/js/music/length.js';
   assert.equal(lengthNote(songLength(song)), '편곡 기준 길이 2:56 (88마디)');
   assert.ok(lengthNote(songLength(song, 80)).includes('길어요'), '80 BPM이면 4:24');
   assert.ok(lengthNote({ bars: 40, seconds: 80 }).includes('짧아요'));
-  assert.ok(!lengthNote({ bars: 72, seconds: 144 }).includes('짧아요'), '기본 구조(2:24)는 경고 없음');
+  assert.ok(!lengthNote({ bars: 70, seconds: 140 }).includes('짧아요'), '기본 구조(표준 템플릿 70마디, 2:20)는 경고 없음');
   assert.equal(lengthNote({ bars: 0, seconds: 0 }), '');
   assert.ok(lengthNote({ bars: 48, seconds: 97.6 }).startsWith('편곡 기준 길이 1:38'), '재생 막대(반올림)와 같은 표시');
   console.log('song length OK');
@@ -330,7 +330,7 @@ import { matchFirst, matchNote } from '../src/js/lyricmatch.js';
 
 // 장르 묶음별 섹션 기본값 (D-022): 장르 칸·분위기 → 묶음, 묶음 → 섹션 코드·드럼·베이스·에너지·7th
 {
-  const { songGenre, templateGenre, GENRE_PROFILES, fitBpm } = await import('../src/js/music/genres.js');
+  const { songGenre, templateStyleGenre, GENRE_PROFILES, fitBpm, tempoRange } = await import('../src/js/music/genres.js');
   const { defaultSectionMusic, applyGenreDefaults, applyTemplateDefaults, normalizeMusic: norm } = await import('../src/js/music/arrangement.js');
   const { PROGRESSIONS, findProgression } = await import('../src/js/music/theory.js');
   const { DRUM_PATTERNS, BASS_PATTERNS } = await import('../src/js/music/patterns.js');
@@ -351,16 +351,26 @@ import { matchFirst, matchNote } from '../src/js/lyricmatch.js';
   assert.equal(g('K-pop', [], 'city pop').id, 'rnb', '세부 장르도 봄');
   assert.equal(g('Jersey club').groove, 'jersey');
   assert.equal(g('UK garage').groove, 'ukg');
-  assert.equal(templateGenre('ballad', { style: { genre: 'K-pop dance pop' }, concept: { moods: [] } }).id, 'ballad');
-  assert.equal(templateGenre('ballad', { style: { genre: 'K-pop R&B' }, concept: { moods: [] } }).id, 'rnb', 'R&B 곡은 R&B 미디엄');
-  assert.equal(templateGenre('standard', { style: { genre: 'K-pop dance pop' }, concept: { moods: [] } }).id, 'bright');
+  assert.equal(g('garage rock').id, 'band', 'garage rock은 밴드');
+  assert.equal(g('드라마틱 댄스 팝').id, 'bright', '드라마틱은 발라드 아님');
+  assert.equal(g('UK 개러지').groove, 'ukg');
+  assert.equal(g('new jack swing').id, 'rnb');
+  assert.equal(g('알엔비').id, 'rnb');
+  assert.equal(g('2step').groove, 'ukg');
+  assert.equal(g('팝펑크').id, 'band');
+  const ss = (genre) => ({ style: { genre }, concept: { moods: [] } });
+  assert.equal(templateStyleGenre('ballad', ss('K-pop dance pop')), 'K-pop ballad');
+  assert.equal(templateStyleGenre('ballad', ss('K-pop R&B')), null, 'R&B 곡은 R&B 미디엄 그대로');
+  assert.equal(templateStyleGenre('ballad', ss('K-pop ballad')), null);
+  assert.equal(templateStyleGenre('standard', ss('K-pop dance pop')), null);
   // 표가 앱 선택지 안에 있음 (진행 id, 드럼·베이스·악기, 드럼이 있으면 드럼 악기)
   const inst = ARRANGE_INSTRUMENTS.map((i) => i.id);
   for (const [id, p] of Object.entries(GENRE_PROFILES)) {
     for (const type of SECTION_TYPES) {
       const d = p.sections[type];
       assert.ok(d, `${id} ${type}`);
-      assert.ok(PROGRESSIONS.major.some((x) => x.id === d.major) && PROGRESSIONS.minor.some((x) => x.id === d.minor), `${id} ${type} 진행`);
+      const ok = (mode, v) => (Array.isArray(v) ? v.length && v.every((x) => x >= 1 && x <= 7) : PROGRESSIONS[mode].some((x) => x.id === v));
+      assert.ok(ok('major', d.major) && ok('minor', d.minor), `${id} ${type} 진행`);
       assert.ok(d.drum === 'none' || d.drum === 'groove' || DRUM_PATTERNS[d.drum], `${id} ${type} 드럼`);
       assert.ok(BASS_PATTERNS[d.bass] && d.instruments.every((i) => inst.includes(i)), `${id} ${type} 베이스·악기`);
       assert.ok(d.drum === 'none' || d.instruments.includes('drums'), `${id} ${type} 드럼이 들리게`);
@@ -380,6 +390,14 @@ import { matchFirst, matchNote } from '../src/js/lyricmatch.js';
   assert.ok(intro.energy >= 3 && intro.instruments.includes('drums') && intro.drum !== 'none');
   const outro = defaultSectionMusic('Outro', 'major', bright);
   assert.ok(outro.bars === 2 && outro.energy === 4);
+  assert.deepEqual(outro.chords, [5, 1], '짧은 끝은 으뜸화음으로 마침');
+  assert.deepEqual(defaultSectionMusic('Outro', 'minor', bright).chords, [7, 1]);
+  // 모든 묶음·조·섹션: 진행이 마디보다 길지 않음 (보이는 코드 = 들리는 코드), 아웃트로는 으뜸화음으로 끝남
+  for (const id of Object.keys(GENRE_PROFILES)) for (const mode of ['major', 'minor']) for (const type of SECTION_TYPES) {
+    const d = defaultSectionMusic(type, mode, { id });
+    assert.ok(d.chords.length <= d.bars, `${id} ${mode} ${type} 코드 ${d.chords.length} > 마디 ${d.bars}`);
+    if (type === 'Outro') assert.equal(d.chords[d.chords.length - 1], 1, `${id} ${mode} 아웃트로 끝`);
+  }
   assert.deepEqual(defaultSectionMusic('Chorus', 'major'), ch, '장르를 안 주면 청량');
   assert.equal(findProgression('minor', defaultSectionMusic('Chorus', 'minor', bright).chords).id, 'epic');
   // 발라드: 모든 섹션 7th, 인트로·벌스는 피아노(드럼 없음), 후렴은 4536 확장 + 발라드 드럼
@@ -399,10 +417,19 @@ import { matchFirst, matchNote } from '../src/js/lyricmatch.js';
   assert.equal(defaultSectionMusic('Verse', 'minor', club).drum, 'jersey');
   assert.equal(defaultSectionMusic('Chorus', 'minor', { id: 'club', groove: 'ukg' }).drum, 'ukg');
   assert.equal(defaultSectionMusic('Chorus', 'minor', { id: 'club' }).drum, 'four');
-  // 빠르기: 범위 밖이면 권장값, 범위 안이면 그대로, 범위 없는 묶음은 그대로
+  // 빠르기: 범위 밖이면 권장값, 범위 안이면 그대로, 범위 없는 결은 그대로
   assert.equal(fitBpm(120, bal), 72);
   assert.equal(fitBpm(66, bal), 66);
   assert.equal(fitBpm(150, bright), 150);
+  assert.equal(fitBpm(72, bright), 120, '발라드 빠르기에서 돌아옴');
+  assert.equal(fitBpm(100, g('Jersey club')), 135);
+  assert.equal(fitBpm(100, g('UK garage')), 134);
+  assert.equal(fitBpm(140, g('house')), 124);
+  assert.equal(fitBpm(105, g('Afrobeats')), 105, '아프로는 근거가 없어 그대로');
+  assert.equal(fitBpm(108, g('moombahton')), 108);
+  assert.equal(fitBpm(112, g('K-pop R&B')), 96);
+  assert.equal(fitBpm(118, g('K-pop disco')), 118, '디스코 결은 그대로');
+  assert.deepEqual(tempoRange(g('K-pop R&B')).slice(0, 2), [80, 100], '도움말·AI 규칙과 같은 범위');
   // 새 섹션은 곡 장르로 (R&B → 펑크 그루브), 이미 있는 섹션 편곡은 그대로
   const song = { sections: [{ id: 'a', type: 'Verse', members: [], text: '' }], style: { genre: 'K-pop R&B' }, concept: { moods: [] } };
   norm(song);
@@ -422,18 +449,47 @@ import { matchFirst, matchNote } from '../src/js/lyricmatch.js';
   assert.equal(song.music.sections.a.drum, 'none');
   assert.equal(song.music.sections.a.drumGrid, null);
   assert.equal(song.music.bpm, 72, '120 → 발라드 권장 72');
-  // 발라드 템플릿: 장르 칸이 댄스 팝이어도 발라드 기본값 + 빠르기
-  const t2 = { sections: [{ id: 'c', type: 'Chorus', members: [], text: '' }], style: { genre: 'K-pop dance pop' }, concept: { moods: [] } };
+  // 버튼: 마디를 그대로 두므로 긴 진행은 그 마디만큼 (4마디 브릿지에 8코드 순환 → 4개)
+  const bb = { sections: [{ id: 'g', type: 'Bridge', members: [], text: '' }], style: { genre: 'K-pop dance pop' }, concept: { moods: [] } };
+  norm(bb);
+  bb.style.genre = 'K-pop ballad';
+  applyGenreDefaults(bb);
+  assert.deepEqual(bb.music.sections.g.chords, [4, 7, 3, 6]);
+  // 발라드 템플릿: 장르 칸을 'K-pop ballad'로 바꿔 뒤에 더하는 섹션·버튼도 발라드, 빠르기도 발라드 범위
+  const t2 = { sections: [{ id: 'c', type: 'Chorus', members: [], text: '' }], style: { genre: 'K-pop dance pop', subgenre: 'x' }, concept: { moods: [] } };
   norm(t2);
   t2.sections = [{ id: 'd', type: 'Chorus', members: [], text: '' }];
   applyTemplateDefaults(t2, 'ballad');
   norm(t2);
   assert.ok(t2.music.sections.d.drum === 'ballad' && t2.music.bpm === 72 && !t2.music.sections.c);
+  assert.equal(t2.style.genre, 'K-pop ballad');
+  assert.equal(t2.style.subgenre, 'x', '세부 장르는 그대로');
+  t2.sections.push({ id: 'd2', type: 'Chorus', members: [], text: '' });
+  norm(t2);
+  assert.equal(t2.music.sections.d2.drum, 'ballad', '뒤에 더한 섹션도 발라드');
+  applyGenreDefaults(t2);
+  assert.ok(t2.music.sections.d.drum === 'ballad' && t2.music.bpm === 72, '버튼도 발라드');
+  const t4 = { sections: [{ id: 'h', type: 'Chorus', members: [], text: '' }], style: { genre: 'K-pop R&B' }, concept: { moods: [] } };
+  norm(t4);
+  t4.sections = [{ id: 'i', type: 'Chorus', members: [], text: '' }];
+  applyTemplateDefaults(t4, 'ballad');
+  assert.ok(t4.style.genre === 'K-pop R&B' && t4.music.sections.i.drum === 'funk' && t4.music.bpm === 96, 'R&B는 R&B 미디엄');
+  // 다른 템플릿: 곡 장르대로, 빠르기는 범위 밖일 때만 (발라드 빠르기 72 → 댄스 장르로 돌아오면 120)
   const t3 = { sections: [{ id: 'e', type: 'Chorus', members: [], text: '' }], style: { genre: 'K-pop dance pop' }, concept: { moods: [] } };
   norm(t3);
+  t3.music.bpm = 135;
   t3.sections = [{ id: 'f', type: 'Chorus', members: [], text: '' }];
   applyTemplateDefaults(t3, 'standard');
-  assert.ok(t3.music.sections.f.drum === 'four' && t3.music.bpm === 120, '표준 템플릿은 빠르기 그대로');
+  assert.ok(t3.music.sections.f.drum === 'four' && t3.music.bpm === 135, '범위 안 빠르기는 그대로');
+  t3.music.bpm = 72;
+  t3.sections = [{ id: 'f2', type: 'Chorus', members: [], text: '' }];
+  applyTemplateDefaults(t3, 'standard');
+  assert.equal(t3.music.bpm, 120);
+  // 표준 템플릿 기본 길이: 70마디 (120 BPM 2:20) — length.js 주석·길이 경고 기준과 같음
+  const { sectionsFromTemplate } = await import('../src/js/structure.js');
+  const std = norm({ sections: sectionsFromTemplate('standard'), style: { genre: 'K-pop dance pop' }, concept: { moods: [] } });
+  assert.deepEqual(songLength(std), { bars: 70, seconds: 140 });
+  assert.ok(!lengthNote(songLength(std)).includes('짧아요'));
   console.log('genre defaults OK');
 }
 
@@ -449,6 +505,11 @@ import { matchFirst, matchNote } from '../src/js/lyricmatch.js';
   const res = await arrangeSong(song, { targetIds: ['v'] });
   assert.equal(res.sections[0].drum, 'funk');
   assert.equal(res.sections[0].bass, 'sync');
+  // 발라드 벌스 기본은 '드럼 없음'이지만 AI가 드럼 악기를 넣었으면 발라드 후렴 드럼으로
+  song.style.genre = 'K-pop ballad';
+  const res2 = await arrangeSong(song, { targetIds: ['v'] });
+  assert.equal(res2.sections[0].drum, 'ballad');
+  assert.equal(res2.sections[0].bass, 'long');
   delete globalThis.window;
   console.log('ai fallback OK');
 }
