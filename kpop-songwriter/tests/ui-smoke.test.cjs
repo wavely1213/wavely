@@ -71,6 +71,19 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     // 편곡: 빠른 바꾸기, 드럼 직접 찍기, 재생/정지
     await p.click('.tab:text-is("편곡")');
     global.lengthOk = (global.lengthOk ?? true) && /^편곡 기준 길이 \d+:\d\d \(\d+마디\)/.test(await p.textContent('#song-length'));
+    // 장르 기본 편곡: 예시 곡(K-pop dance pop)은 청량 댄스 팝. 벌스 드럼을 바꿨다가 버튼을 누르면 장르 기본값(four)으로, 되돌리기 두 번이면 원래대로
+    const verseDrum = () => p.inputValue('.sec-row >> nth=1 >> select[id^="drum-"]');
+    const genreNow = await p.textContent('#genre-now');
+    const drumBefore = await verseDrum();
+    await p.selectOption('.sec-row >> nth=1 >> select[id^="drum-"]', 'pop');
+    const drumPop = await verseDrum();
+    await p.click('#genre-defaults');
+    const drumGenre = await verseDrum();
+    await p.click('button[aria-label^="되돌리기"]');
+    const drumUndo = await verseDrum();
+    await p.click('button[aria-label^="되돌리기"]');
+    global.genreOk = (global.genreOk ?? true) && genreNow.includes('청량 댄스 팝') && drumBefore === 'four' && drumPop === 'pop' && drumGenre === 'four'
+      && drumUndo === 'pop' && (await verseDrum()) === 'four';
     // 스페이스바: 포커스가 버튼·입력 칸이 아닐 때 전체 듣기/정지
     await p.evaluate(() => document.activeElement?.blur());
     await p.keyboard.press('Space');
@@ -436,6 +449,7 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
   }
   if (!global.autoOk) errs.push('마스터 자동 연결 안 됨');
   if (!global.undoOk) errs.push('되돌리기·다시 하기 안 됨');
+  if (!global.genreOk) errs.push('장르 기본 편곡 버튼 이상');
   if (!global.albumUndoOk) errs.push('앨범 되돌리기 안 됨');
   if (!global.syncOk) errs.push('싱크 가사 맞추기 안 됨');
   if (!global.navOk) errs.push('폰 목록 접기 이상');

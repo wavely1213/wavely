@@ -1,6 +1,7 @@
 // 처음 열었을 때 보여 줄 예시 곡. 수정하면 내 곡으로 저장된다.
 import { uid } from './dom.js';
 import { defaultMusic, defaultSectionMusic } from './music/arrangement.js';
+import { songGenre } from './music/genres.js';
 
 export function exampleSong() {
   const m = [
@@ -52,7 +53,8 @@ export function exampleSong() {
   };
   // 예시 편곡: F# minor, 118 BPM. 첫 코러스에 가이드 멜로디 2줄.
   const music = { ...defaultMusic(), bpm: 118, root: 6, mode: 'minor' };
-  song.sections.forEach((s) => { music.sections[s.id] = defaultSectionMusic(s.type, 'minor'); });
+  const genre = songGenre(song); // 'K-pop dance pop' → 청량 댄스 팝 (단조)
+  song.sections.forEach((s) => { music.sections[s.id] = defaultSectionMusic(s.type, 'minor', genre); });
   const chorus = song.sections.find((s) => s.type === 'Chorus');
   const line = (start, sylls, ds, lens) => sylls.map((syl, i) => ({
     s: start + lens.slice(0, i).reduce((a, b) => a + b, 0), l: lens[i], d: ds[i], syl,

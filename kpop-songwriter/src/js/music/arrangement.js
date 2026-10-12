@@ -1,40 +1,53 @@
 // 편곡 데이터: 곡 전체(빠르기·키·음색) + 섹션별(마디, 코드, 에너지, 악기, 드럼, 베이스, 멜로디).
+// 섹션 기본값은 곡의 장르 묶음(music/genres.js)을 따른다. 이미 있는 섹션 편곡은 바꾸지 않는다.
 import { defaultSounds, INSTRUMENTS } from './instruments.js';
 import { PROGRESSIONS } from './theory.js';
-
-const BY_TYPE = {
-  Intro: { bars: 4, energy: 2, instruments: ['pad', 'arp'], drum: 'none', bass: 'long', prog: 'hope' },
-  Verse: { bars: 8, energy: 2, instruments: ['drums', 'bass', 'piano'], drum: 'pop', bass: 'sync', prog: 'emotional' },
-  'Pre-Chorus': { bars: 4, energy: 3, instruments: ['drums', 'bass', 'pad', 'arp'], drum: 'pop', bass: 'root8', prog: 'build' },
-  Chorus: { bars: 8, energy: 5, instruments: ['drums', 'bass', 'pad', 'pluck', 'strings'], drum: 'four', bass: 'octave', prog: 'royal' },
-  'Post-Chorus': { bars: 4, energy: 4, instruments: ['drums', 'b808', 'pluck'], drum: 'jersey', bass: 'halftime', prog: 'royal' },
-  Rap: { bars: 8, energy: 3, instruments: ['drums', 'b808'], drum: 'trap', bass: 'halftime', prog: 'simple' },
-  Bridge: { bars: 4, energy: 2, instruments: ['piano', 'strings'], drum: 'none', bass: 'long', prog: 'emotional' },
-  'Dance Break': { bars: 8, energy: 5, instruments: ['drums', 'b808', 'pluck', 'arp'], drum: 'jersey', bass: 'halftime', prog: 'simple' },
-  Hook: { bars: 4, energy: 4, instruments: ['drums', 'bass', 'pluck'], drum: 'four', bass: 'octave', prog: 'royal' },
-  Outro: { bars: 4, energy: 1, instruments: ['pad', 'piano'], drum: 'none', bass: 'long', prog: 'hope' },
-};
+import { songGenre, templateGenre, genreSection, fitBpm } from './genres.js';
 
 function progressionFor(mode, id) {
   const list = PROGRESSIONS[mode] || PROGRESSIONS.major;
   return list.find((p) => p.id === id) || list[0];
 }
 
-export function defaultSectionMusic(type, mode = 'major') {
-  const d = BY_TYPE[type] || BY_TYPE.Verse;
-  const minorId = { hope: 'sad', emotional: 'sad', royal: 'epic', build: 'build', simple: 'trap' }[d.prog];
-  const p = progressionFor(mode, mode === 'minor' ? minorId : d.prog);
+// 섹션 기본 편곡. genre는 songGenre(song)의 결과 (없으면 청량 댄스 팝). 장르 묶음 표는 music/genres.js
+export function defaultSectionMusic(type, mode = 'major', genre) {
+  const d = genreSection(type, mode, genre);
+  const p = progressionFor(mode, d.prog);
   return {
     bars: d.bars,
     chords: [...p.degrees],
-    seventh: !!p.seventh,
+    seventh: d.seventh ?? !!p.seventh,
     energy: d.energy,
-    instruments: [...d.instruments],
+    instruments: d.instruments,
     drum: d.drum,
     drumGrid: null, // 직접 찍은 드럼 (있으면 프리셋 대신 사용)
     bass: d.bass,
     melody: [],
   };
+}
+
+// '장르 기본 편곡' (편곡 탭 버튼, 발라드 템플릿): 섹션의 코드·7th·에너지·악기·드럼·베이스를 장르 기본값으로 바꾼다.
+// 마디 수와 멜로디는 그대로 두고 (가사·멜로디 맞춤을 지킴), 빠르기는 장르 권장 범위 밖일 때만 옮긴다. ids를 주면 그 섹션만.
+export function applyGenreDefaults(song, genre = songGenre(song), ids = null) {
+  const m = song.music;
+  song.sections.forEach((s) => {
+    const sm = m.sections[s.id];
+    if (!sm || (ids && !ids.includes(s.id))) return;
+    const d = defaultSectionMusic(s.type, m.mode, genre);
+    Object.assign(sm, { chords: d.chords, seventh: d.seventh, energy: d.energy, instruments: d.instruments, drum: d.drum, drumGrid: null, bass: d.bass });
+  });
+  m.bpm = fitBpm(m.bpm, genre);
+  return song;
+}
+
+// 구조 템플릿을 적용한 뒤 (mutate 안에서, 섹션을 바꾼 직후): 새 섹션을 템플릿 장르로 채운다.
+// '발라드·미디엄 템포'는 장르 칸과 상관없이 발라드 기본값(R&B 곡이면 R&B)이고, 빠르기도 권장 범위로 옮긴다.
+export function applyTemplateDefaults(song, key) {
+  const m = song.music;
+  const genre = templateGenre(key, song);
+  song.sections.forEach((s) => { if (!m.sections[s.id]) m.sections[s.id] = defaultSectionMusic(s.type, m.mode, genre); });
+  if (key === 'ballad') m.bpm = fitBpm(m.bpm, genre);
+  return song;
 }
 
 export function defaultMusic() {
@@ -48,8 +61,9 @@ export function normalizeMusic(song) {
   const sounds = defaultSounds();
   INSTRUMENTS.forEach((i) => { m.sounds[i.id] = { ...sounds[i.id], ...(m.sounds?.[i.id] || {}) }; });
   const ids = new Set(song.sections.map((s) => s.id));
+  const genre = song.sections.some((s) => !m.sections[s.id]) ? songGenre(song) : null; // 새 섹션은 곡 장르 기본값으로
   song.sections.forEach((s) => {
-    if (!m.sections[s.id]) m.sections[s.id] = defaultSectionMusic(s.type, m.mode);
+    if (!m.sections[s.id]) m.sections[s.id] = defaultSectionMusic(s.type, m.mode, genre);
     const sm = m.sections[s.id];
     if (!Array.isArray(sm.melody)) sm.melody = [];
   });

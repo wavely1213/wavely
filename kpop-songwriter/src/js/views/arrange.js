@@ -10,7 +10,8 @@ import { sectionLabels } from '../structure.js';
 import { NOTE_NAMES, MODE_LABEL, PROGRESSIONS, DEGREE_FEEL, chordName, findProgression, tempoWord, keyName } from '../music/theory.js';
 import { ARRANGE_INSTRUMENTS, INSTRUMENT_BY_ID } from '../music/instruments.js';
 import { DRUM_PATTERNS, BASS_PATTERNS, DRUM_ROWS, cloneGrid } from '../music/patterns.js';
-import { QUICK_TWEAKS } from '../music/arrangement.js';
+import { QUICK_TWEAKS, applyGenreDefaults } from '../music/arrangement.js';
+import { songGenre, GENRE_PROFILES } from '../music/genres.js';
 import { arrangeSong } from '../ai-music.js';
 import { isBusy, runJob, stopJob, job } from '../aijob.js';
 import { playBar, playButton } from './playbar.js';
@@ -74,10 +75,21 @@ function renderGlobal(song, m) {
       h('span', { class: 'muted push' }, refs ? `레퍼런스 ${refs}곡 반영` : '레퍼런스 탭에서 참고 곡을 넣으면 반영돼요')),
     m.summary ? h('p', { class: 'note' }, m.summary) : null,
     m.gen ? feedbackBar({ kind: 'arrange', ref: m.gen, text: m.summary, context: arrangeContext(song), label: 'AI 편곡이 마음에 드나요? (들어 보고 눌러 주세요)' }) : null,
+    renderGenreRow(song),
     h('div', { class: 'row' },
       h('button', { type: 'button', class: 'btn', onclick: () => mutate((s) => applyToStyle(s)) }, '편곡을 Suno 스타일에 반영'),
       h('span', { class: 'muted' }, `현재 ${keyName(mu.root, mu.mode)} · 스타일 탭의 BPM·키·악기가 바뀌어요`)),
   );
+}
+
+// 장르 기본 편곡: 곡 장르 묶음으로 모든 섹션을 다시 깐다 (마디·멜로디는 그대로, 되돌리기 가능)
+function renderGenreRow(song) {
+  const g = songGenre(song);
+  const usual = GENRE_PROFILES[g.id].mode;
+  return h('div', { class: 'row' },
+    h('button', { type: 'button', class: 'btn', id: 'genre-defaults', disabled: isBusy(), onclick: () => mutate((s) => applyGenreDefaults(s)) }, '장르 기본 편곡으로 바꾸기'),
+    h('span', { class: 'muted', id: 'genre-now' }, `지금 장르: ${g.name}${usual !== song.music.mode ? ` · 보통 ${usual === 'minor' ? '단조' : '장조'}로 써요` : ''}`),
+    help('genreDefaults'));
 }
 
 // AI 결과는 요청한 곡에 넣는다 (그 사이 다른 곡을 열었어도)

@@ -47,7 +47,8 @@
 | 저장소 | src/js/store.js | 곡 문서 + 버전 하위 컬렉션 |
 | 이론 | src/js/music/theory.js | 키·스케일·코드 이름·느낌별 코드 진행 |
 | 악기/패턴 | music/instruments.js, patterns.js | 악기 목록·음색 종류, 드럼·베이스 프리셋 |
-| 편곡 데이터 | music/arrangement.js | 섹션 기본값, 정규화, 빠른 바꾸기 |
+| 편곡 데이터 | music/arrangement.js | 섹션 기본값, 정규화, 빠른 바꾸기, 장르 기본 편곡·템플릿 기본값 적용 |
+| 장르 묶음 | music/genres.js | 장르 칸·분위기 → 장르 묶음 6개, 묶음별 섹션 기본값 표·권장 빠르기 (D-022) |
 | 타임라인 | music/timeline.js | 곡 → 음표 이벤트 (재생·WAV·MIDI 공통) |
 | 신스 | music/synth.js | Web Audio 악기 음색, 악기별 공유 필터 |
 | 재생/렌더 | music/player.js | 룩어헤드 실시간 재생, 2초 단위 오프라인 렌더 |

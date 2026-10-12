@@ -11,6 +11,7 @@ import { job, isBusy, runJob, stopJob } from '../aijob.js';
 import { feedbackBar, trackEdit, cancelEdit, lineLikes } from '../learn/feedback.js';
 import { scoreSong, scoreSection } from '../optimize/lyricscore.js';
 import { improveLyrics, DEFAULT_THRESHOLD } from '../optimize/improve.js';
+import { applyTemplateDefaults } from '../music/arrangement.js';
 import { renderSimilarity } from './similarity.js';
 import { renderSpelling } from './spelling.js';
 import { lineSwapButton, lineSwapPanel } from './lineswap.js';
@@ -50,7 +51,10 @@ function renderToolbar(song, m) {
     Object.entries(TEMPLATES).map(([k, t]) => h('option', { value: k, selected: m.confirmTemplate === k }, t.name)));
   const applyTemplate = () => {
     const key = tplSelect.value;
-    mutate((s) => { s.sections = autoDistribute(sectionsFromTemplate(key), s.members); });
+    mutate((s) => {
+      s.sections = autoDistribute(sectionsFromTemplate(key), s.members);
+      applyTemplateDefaults(s, key);
+    });
     m.confirmTemplate = '';
   };
   // 가사뿐 아니라 멜로디·편곡 작업이 있어도 지워지므로 확인한다

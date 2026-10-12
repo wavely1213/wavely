@@ -327,3 +327,128 @@ import { matchFirst, matchNote } from '../src/js/lyricmatch.js';
   assert.deepEqual(p2.copies, [{ from: 'a', to: 'b', emptyText: false }]);
   console.log('melody copy OK');
 }
+
+// 장르 묶음별 섹션 기본값 (D-022): 장르 칸·분위기 → 묶음, 묶음 → 섹션 코드·드럼·베이스·에너지·7th
+{
+  const { songGenre, templateGenre, GENRE_PROFILES, fitBpm } = await import('../src/js/music/genres.js');
+  const { defaultSectionMusic, applyGenreDefaults, applyTemplateDefaults, normalizeMusic: norm } = await import('../src/js/music/arrangement.js');
+  const { PROGRESSIONS, findProgression } = await import('../src/js/music/theory.js');
+  const { DRUM_PATTERNS, BASS_PATTERNS } = await import('../src/js/music/patterns.js');
+  const { ARRANGE_INSTRUMENTS } = await import('../src/js/music/instruments.js');
+  const { SECTION_TYPES, GENRES } = await import('../src/js/constants.js');
+  const g = (genre, moods = [], subgenre = '') => songGenre({ style: { genre, subgenre }, concept: { moods } });
+  // 앱 장르 목록 매핑 (genre-chords 3-2)
+  const want = { 'K-pop dance pop': 'bright', 'K-pop EDM': 'dark', 'K-pop hip hop': 'dark', 'K-pop R&B': 'rnb', 'K-pop ballad': 'ballad', 'synth-pop': 'bright',
+    'UK garage': 'club', 'Jersey club': 'club', Afrobeats: 'club', house: 'club', 'pop rock': 'band', moombahton: 'club' };
+  GENRES.forEach((x) => assert.equal(g(x).id, want[x], x));
+  assert.equal(g('K-pop dance pop', ['걸크러시']).id, 'dark', '분위기 걸크러시·다크 → 다크');
+  assert.equal(g('K-pop ballad', ['다크']).id, 'ballad', '장르 칸이 먼저');
+  assert.equal(g('').id, 'bright', '빈 장르는 청량');
+  assert.equal(g('Korean indie band').id, 'band');
+  assert.equal(g('K-drama OST ballad').id, 'ballad');
+  assert.equal(g('케이팝 발라드').id, 'ballad');
+  assert.equal(g('Brazilian funk').id, 'club', '브라질리언 펑크는 클럽');
+  assert.equal(g('K-pop', [], 'city pop').id, 'rnb', '세부 장르도 봄');
+  assert.equal(g('Jersey club').groove, 'jersey');
+  assert.equal(g('UK garage').groove, 'ukg');
+  assert.equal(templateGenre('ballad', { style: { genre: 'K-pop dance pop' }, concept: { moods: [] } }).id, 'ballad');
+  assert.equal(templateGenre('ballad', { style: { genre: 'K-pop R&B' }, concept: { moods: [] } }).id, 'rnb', 'R&B 곡은 R&B 미디엄');
+  assert.equal(templateGenre('standard', { style: { genre: 'K-pop dance pop' }, concept: { moods: [] } }).id, 'bright');
+  // 표가 앱 선택지 안에 있음 (진행 id, 드럼·베이스·악기, 드럼이 있으면 드럼 악기)
+  const inst = ARRANGE_INSTRUMENTS.map((i) => i.id);
+  for (const [id, p] of Object.entries(GENRE_PROFILES)) {
+    for (const type of SECTION_TYPES) {
+      const d = p.sections[type];
+      assert.ok(d, `${id} ${type}`);
+      assert.ok(PROGRESSIONS.major.some((x) => x.id === d.major) && PROGRESSIONS.minor.some((x) => x.id === d.minor), `${id} ${type} 진행`);
+      assert.ok(d.drum === 'none' || d.drum === 'groove' || DRUM_PATTERNS[d.drum], `${id} ${type} 드럼`);
+      assert.ok(BASS_PATTERNS[d.bass] && d.instruments.every((i) => inst.includes(i)), `${id} ${type} 베이스·악기`);
+      assert.ok(d.drum === 'none' || d.instruments.includes('drums'), `${id} ${type} 드럼이 들리게`);
+      assert.ok(d.bars >= 1 && d.bars <= 16 && d.energy >= 1 && d.energy <= 5);
+    }
+  }
+  const bright = { id: 'bright' };
+  // 청량: 후렴 4536(3화음), 벌스 4236+7th, 인트로는 드럼·베이스로 바로(에너지 3), 아웃트로는 짧은 훅 끝(2마디, 에너지 4)
+  const ch = defaultSectionMusic('Chorus', 'major', bright);
+  assert.equal(findProgression('major', ch.chords).id, 'royal');
+  assert.equal(ch.seventh, false);
+  const vs = defaultSectionMusic('Verse', 'major', bright);
+  assert.equal(findProgression('major', vs.chords).id, 'lilac');
+  assert.equal(vs.seventh, true);
+  assert.notEqual(vs.drum, 'pop', '벌스 비트가 서양 팝 기본 비트가 아님');
+  const intro = defaultSectionMusic('Intro', 'major', bright);
+  assert.ok(intro.energy >= 3 && intro.instruments.includes('drums') && intro.drum !== 'none');
+  const outro = defaultSectionMusic('Outro', 'major', bright);
+  assert.ok(outro.bars === 2 && outro.energy === 4);
+  assert.deepEqual(defaultSectionMusic('Chorus', 'major'), ch, '장르를 안 주면 청량');
+  assert.equal(findProgression('minor', defaultSectionMusic('Chorus', 'minor', bright).chords).id, 'epic');
+  // 발라드: 모든 섹션 7th, 인트로·벌스는 피아노(드럼 없음), 후렴은 4536 확장 + 발라드 드럼
+  const bal = { id: 'ballad' };
+  SECTION_TYPES.forEach((type) => assert.equal(defaultSectionMusic(type, 'major', bal).seventh, true, type));
+  const bv = defaultSectionMusic('Verse', 'major', bal);
+  assert.ok(bv.drum === 'none' && bv.instruments.includes('piano') && !bv.instruments.includes('drums'));
+  const bc = defaultSectionMusic('Chorus', 'major', bal);
+  assert.ok(findProgression('major', bc.chords).id === 'royal8' && bc.drum === 'ballad' && bc.bass === 'long');
+  // 다크(단조): 포스트코러스·댄스 브레이크는 원코드, 랩은 i–iv 7th
+  const dark = { id: 'dark' };
+  assert.deepEqual(defaultSectionMusic('Post-Chorus', 'minor', dark).chords, [1]);
+  const dr = defaultSectionMusic('Rap', 'minor', dark);
+  assert.ok(findProgression('minor', dr.chords).id === 'vamp_iv' && dr.seventh === true);
+  // 클럽: 곡 장르의 리듬을 곡 전체에
+  const club = g('Jersey club');
+  assert.equal(defaultSectionMusic('Verse', 'minor', club).drum, 'jersey');
+  assert.equal(defaultSectionMusic('Chorus', 'minor', { id: 'club', groove: 'ukg' }).drum, 'ukg');
+  assert.equal(defaultSectionMusic('Chorus', 'minor', { id: 'club' }).drum, 'four');
+  // 빠르기: 범위 밖이면 권장값, 범위 안이면 그대로, 범위 없는 묶음은 그대로
+  assert.equal(fitBpm(120, bal), 72);
+  assert.equal(fitBpm(66, bal), 66);
+  assert.equal(fitBpm(150, bright), 150);
+  // 새 섹션은 곡 장르로 (R&B → 펑크 그루브), 이미 있는 섹션 편곡은 그대로
+  const song = { sections: [{ id: 'a', type: 'Verse', members: [], text: '' }], style: { genre: 'K-pop R&B' }, concept: { moods: [] } };
+  norm(song);
+  assert.equal(song.music.sections.a.drum, 'funk');
+  song.style.genre = 'K-pop ballad';
+  song.sections.push({ id: 'b', type: 'Chorus', members: [], text: '' });
+  norm(song);
+  assert.equal(song.music.sections.a.drum, 'funk', '있던 섹션은 안 바뀜');
+  assert.equal(song.music.sections.b.drum, 'ballad');
+  // 버튼: 마디·멜로디는 그대로, 나머지는 장르 기본값, 빠르기는 범위 밖일 때만
+  song.music.sections.a.bars = 6;
+  song.music.sections.a.melody = [{ s: 0, l: 4, d: 2, syl: '가' }];
+  song.music.sections.a.drumGrid = { kick: [] };
+  applyGenreDefaults(song);
+  assert.equal(song.music.sections.a.bars, 6);
+  assert.equal(song.music.sections.a.melody.length, 1);
+  assert.equal(song.music.sections.a.drum, 'none');
+  assert.equal(song.music.sections.a.drumGrid, null);
+  assert.equal(song.music.bpm, 72, '120 → 발라드 권장 72');
+  // 발라드 템플릿: 장르 칸이 댄스 팝이어도 발라드 기본값 + 빠르기
+  const t2 = { sections: [{ id: 'c', type: 'Chorus', members: [], text: '' }], style: { genre: 'K-pop dance pop' }, concept: { moods: [] } };
+  norm(t2);
+  t2.sections = [{ id: 'd', type: 'Chorus', members: [], text: '' }];
+  applyTemplateDefaults(t2, 'ballad');
+  norm(t2);
+  assert.ok(t2.music.sections.d.drum === 'ballad' && t2.music.bpm === 72 && !t2.music.sections.c);
+  const t3 = { sections: [{ id: 'e', type: 'Chorus', members: [], text: '' }], style: { genre: 'K-pop dance pop' }, concept: { moods: [] } };
+  norm(t3);
+  t3.sections = [{ id: 'f', type: 'Chorus', members: [], text: '' }];
+  applyTemplateDefaults(t3, 'standard');
+  assert.ok(t3.music.sections.f.drum === 'four' && t3.music.bpm === 120, '표준 템플릿은 빠르기 그대로');
+  console.log('genre defaults OK');
+}
+
+// AI 편곡이 모르는 드럼·베이스를 주면 곡 장르의 섹션 기본값으로 (예전엔 'pop'·'long')
+{
+  const { arrangeSong } = await import('../src/js/ai-music.js');
+  const { normalizeMusic } = await import('../src/js/music/arrangement.js');
+  const fake = Object.assign(async () => ({ text: '' }), {
+    json: async () => ({ summary: 's', sections: [{ id: 'v', bars: 8, chords: [1, 2], energy: 2, instruments: ['drums'], drum: 'nope', bass: 'nope' }] }),
+  });
+  globalThis.window = { claude: { use: async () => fake } };
+  const song = normalizeMusic({ title: 't', sections: [{ id: 'v', type: 'Verse', members: [], text: '' }], members: [], references: [], style: { genre: 'K-pop R&B' }, concept: { moods: [], keywords: '', theme: '', story: '', group: 'girl' } });
+  const res = await arrangeSong(song, { targetIds: ['v'] });
+  assert.equal(res.sections[0].drum, 'funk');
+  assert.equal(res.sections[0].bass, 'sync');
+  delete globalThis.window;
+  console.log('ai fallback OK');
+}

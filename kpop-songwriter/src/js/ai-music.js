@@ -11,6 +11,8 @@ import { sectionRange, degreeRange, foldIntoRange, midiName } from './music/rang
 import { MELODY_TEXT_NOTE } from './music/melodytext.js';
 import { GROUP_TYPES } from './constants.js';
 import { ARRANGE_RULES, GENRE_CHORDS, MELODY_RULES, presetBrief } from './ai-rules.js';
+import { defaultSectionMusic } from './music/arrangement.js';
+import { songGenre } from './music/genres.js';
 
 function referenceBrief(song) {
   return song.references.filter((r) => r.use).map((r) => {
@@ -76,6 +78,10 @@ export async function arrangeSong(song, { targetIds, request, signal }) {
   ].filter(Boolean).join('\n\n');
   const res = await sample.json(prompt, { signal, cache: false });
   const instIds = ARRANGE_INSTRUMENTS.map((i) => i.id);
+  // 모르는 드럼·베이스 id는 곡 장르의 섹션 기본값으로 (예전엔 서양 팝 비트 'pop')
+  const genre = songGenre(song);
+  const mode = whole ? (res?.mode === 'minor' ? 'minor' : 'major') : m.mode;
+  const fallback = (id) => defaultSectionMusic(song.sections.find((s) => s.id === id)?.type, mode, genre);
   const sections = (Array.isArray(res?.sections) ? res.sections : [])
     .filter((x) => ids.includes(String(x.id)))
     .map((x) => ({
@@ -85,8 +91,8 @@ export async function arrangeSong(song, { targetIds, request, signal }) {
       seventh: !!x.seventh,
       energy: int(x.energy, 1, 5, 3),
       instruments: (Array.isArray(x.instruments) ? x.instruments : []).map(String).filter((i) => instIds.includes(i)),
-      drum: x.drum === 'none' || DRUM_PATTERNS[x.drum] ? String(x.drum) : 'pop',
-      bass: BASS_PATTERNS[x.bass] ? String(x.bass) : 'long',
+      drum: x.drum === 'none' || DRUM_PATTERNS[x.drum] ? String(x.drum) : fallback(String(x.id)).drum,
+      bass: BASS_PATTERNS[x.bass] ? String(x.bass) : fallback(String(x.id)).bass,
     }))
     .filter((x) => x.chords.length);
   if (!sections.length) throw { code: 'invalid_json' };
