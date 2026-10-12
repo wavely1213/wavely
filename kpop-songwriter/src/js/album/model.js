@@ -123,10 +123,10 @@ export const SCHEDULE = [
   { id: 'cover-meta', offset: -35, title: '커버·메타데이터·크레딧 확정', detail: '커버 3000×3000, 작사·작곡·편곡 크레딧, 장르, 언어.' },
   { id: 'distributor', offset: -28, title: '유통사에 제출', detail: '제출 패키지 zip으로 업로드. 국내 플랫폼 검수 기간은 유통사 안내를 확인. 국내 플랫폼에는 직접 피칭하는 창구가 없어서, 신보 소개(플랫폼 MD에게)는 유통사에 같이 요청한다.' },
   { id: 'copyright', offset: -21, title: '저작권 신고 준비', detail: '한국음악저작권협회(KOMCA) 등 작품 신고 대상인지 확인하고 작사·작곡 정보를 맞춘다.' },
-  { id: 'pitch', offset: -14, title: '스포티파이 플레이리스트 피칭 (선택)', detail: 'Spotify for Artists에서 발매 최소 7일 전까지 미발매곡 한 곡을 에디터에게 소개할 수 있다. 국내 플랫폼 신보 소개는 D-28에 유통사로.' },
+  { id: 'pitch', offset: -14, optional: true, title: '스포티파이 플레이리스트 피칭 (선택)', detail: 'Spotify for Artists에서 발매 최소 7일 전까지 미발매곡 한 곡을 에디터에게 소개할 수 있다. 국내 플랫폼 신보 소개는 D-28에 유통사로.' },
   { id: 'teaser-plan', offset: -14, title: '티저 계획', detail: '컨셉 이미지·하이라이트 공개 날짜를 정한다.' },
   { id: 'teaser', offset: -7, title: '티저·하이라이트 공개', detail: '숏폼용 15~30초 하이라이트(코러스) 공개.' },
-  { id: 'final-check', offset: -3, title: '플랫폼 등록 정보 확인', detail: '유통사 대시보드에서 제목·크레딧·발매일·발매 시각·커버가 맞는지 확인. 발매 뒤 수정은 늦게 반영되고 비용이 들 수 있다.' },
+  { id: 'final-check', offset: -3, title: '플랫폼 등록 정보 확인', detail: '유통사 대시보드에서 제목·크레딧·발매일·발매 시각·커버가 맞는지 확인. 유통사에 등록한 뒤 고치면 발매일 이후에 반영되고 비용이 들 수 있다.' },
   { id: 'release', offset: 0, title: '발매', detail: '국내는 오후 6시(KST)에 음원과 MV를 공개하는 게 관행(MV를 먼저 내는 팀도 있음). 공개 직후 국내 플랫폼 링크로 발매 공지, 숏폼 챌린지 시작.' },
   { id: 'verify', offset: 0, title: '플랫폼 반영 확인', detail: `${platformText()}에서 곡이 열렸는지, 곡명·(Feat.)·크레딧·가사·19 표시·타이틀 표시·커버가 맞는지 확인. 틀리면 유통사에 수정 요청 (주말 발매면 지니는 다음 영업일에 열림).` },
   { id: 'week1', offset: 7, title: '1주 차 점검', detail: '멜론 이용자 수(1시간·24시간), 차트 진입(멜론 TOP100·HOT100, 지니 TOP200, 벅스, FLO), 써클차트 주간 디지털, MV 조회수, 스포티파이 재생 수 확인. 숏폼 2차 공개.' },
@@ -139,7 +139,7 @@ export function scheduleFor(album, today = new Date()) {
     const date = rel ? addDays(rel, s.offset) : null;
     const left = date ? daysUntil(isoDate(date), today) : null;
     const done = !!album.schedule[s.id];
-    return { ...s, date: date ? isoDate(date) : '', left, done, overdue: !done && left != null && left < 0 };
+    return { ...s, date: date ? isoDate(date) : '', left, done, overdue: !done && !s.optional && left != null && left < 0 }; // 선택 단계는 지나도 '지남'으로 표시하지 않음
   });
 }
 
@@ -171,7 +171,8 @@ export function releaseChecklist(album, songs, { masters = {}, coverInfo = null,
   if (album.upc.trim() && !/^\d{12,13}$/.test(album.upc.replace(/[\s-]/g, ''))) add('warn', `UPC는 숫자 12~13자리예요 (지금 "${album.upc}").`, { tab: 'meta' });
   if (!album.pLine.trim() || /^\d{4}\s*$/.test(album.pLine)) add('warn', '℗ 표기(음원 제작자)를 적어 주세요.', { tab: 'meta' });
   // 장르: 국내 분류(멜론 등록 가이드)에 없는 값이면 유통사 양식에서 고를 수 없을 수 있다. 세부 장르는 2개까지 (D-024)
-  if (album.genre && !ALBUM_GENRES.includes(album.genre)) add('info', `장르 "${album.genre}"는 국내 등록 분류(${ALBUM_GENRES.join('·')})에 없어요. 유통사 양식에서 고를 수 있는지 확인하세요.`, { tab: 'meta' });
+  if (!album.genre) add('warn', `장르를 골라 주세요 (국내 등록 분류: ${ALBUM_GENRES.join('·')}).`, { tab: 'meta' });
+  else if (!ALBUM_GENRES.includes(album.genre)) add('info', `장르 "${album.genre}"는 국내 등록 분류(${ALBUM_GENRES.join('·')})에 없어요. 유통사 양식에서 고를 수 있는지 확인하세요.`, { tab: 'meta' });
   if (subgenreCount(album.subgenre) > 2) add('info', `세부 장르가 ${subgenreCount(album.subgenre)}개예요. 멜론 등록은 2개까지예요.`, { tab: 'meta' });
 
   tracks.forEach((t, i) => {

@@ -124,6 +124,22 @@ console.log('workflow OK');
   ]);
   assert.equal(albumProgress({ ...al, submittedKey: legacy }, [song], { ...opts, today }).next.id, 'after', '예전 지문도 인정');
   assert.equal(albumProgress({ ...al, submittedKey: legacy, upc: '123' }, [song], { ...opts, today }).next.id, 'package', '예전 지문도 바뀌면 다시 받기');
+  // v0.87~v0.91에 받은 패키지: 인디 칸이 없던 지문, 장르를 국내 분류로 옮기기 전 값으로 받은 것도 그대로 완료 (D-024)
+  {
+    const { v91Key } = await import('../src/js/workflow/album-progress.js');
+    const { normalizeAlbum } = await import('../src/js/album/model.js');
+    assert.equal(albumProgress({ ...al, submittedKey: v91Key(al, [song], opts) }, [song], { ...opts, today }).next.id, 'after', 'v0.91 지문');
+    const old = { ...al, genre: 'K-Pop', subgenre: 'Dance' };
+    delete old.indie;
+    const migrated = normalizeAlbum({ ...old, submittedKey: v91Key(old, [song], opts) });
+    assert.equal(migrated.genre, '댄스');
+    assert.equal(albumProgress(migrated, [song], { ...opts, today }).next.id, 'after', 'v0.91에 받고 장르만 옮겨짐');
+    assert.equal(albumProgress({ ...migrated, indie: true }, [song], { ...opts, today }).next.id, 'package', '옮긴 뒤 인디를 켜면 다시 받기');
+    assert.equal(albumProgress({ ...migrated, genre: '발라드' }, [song], { ...opts, today }).next.id, 'package', '옮긴 뒤 장르를 바꾸면 다시 받기');
+    const ind = normalizeAlbum({ ...al, genre: 'Indie', subgenre: '', submittedKey: v91Key({ ...al, genre: 'Indie', subgenre: '' }, [song], opts) });
+    assert.ok(ind.indie === true && ind.genre === '');
+  }
+  stepAfter('인디 표시', () => { al.indie = true; }, () => { al.indie = false; });
   // 곡 제목 오류는 수록곡 단계 안내가 그 오류와 곡 화면으로
   song.title = '제목 없는 곡';
   const te = albumProgress(al, [song], { ...opts, today }).next;

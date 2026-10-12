@@ -3,6 +3,7 @@
 import { uid } from './dom.js';
 import { MAX_LOG } from './learn/taste.js';
 import { unzip } from './music/pack.js';
+import { migrateAlbumGenre } from './album/domestic.js';
 
 export const BACKUP_FORMAT = 1;
 
@@ -60,7 +61,9 @@ export function planRestore(now, backup) {
     const data = clone(a);
     data.tracks = data.tracks.map((t) => ({ ...t, songId: idMap[t.songId] || t.songId }));
     const existing = now.albums.find((x) => x.id === a.id);
-    if (existing && body(existing) === body(data)) { same += 1; continue; }
+    // v0.92 전 백업은 인디 칸이 없고 장르가 영어라, 양쪽 다 그 부분만 같은 정리를 한 사본으로 비교한다 (여러 번 해도 같음)
+    const tidy = (x) => { const c = clone(x); if (c.indie === undefined) c.indie = false; return body(migrateAlbumGenre(c)); };
+    if (existing && tidy(existing) === tidy(data)) { same += 1; continue; }
     albums.push({ ...data, id: existing ? uid() : a.id, title: existing ? `${data.title} (백업)` : data.title });
   }
   // 취향: 기록은 합치고(같은 id는 한 번), 정리된 프로필은 지금 것이 비어 있을 때만 백업 것으로

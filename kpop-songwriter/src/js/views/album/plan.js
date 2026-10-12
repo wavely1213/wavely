@@ -10,6 +10,7 @@ import { zip } from '../../music/pack.js';
 import { saveFile, isArtifact } from '../../platform/download.js';
 import { renderLyricCard } from './lyriccard.js';
 import { renderTracklistCard } from './tracklistcard.js';
+import { DOMESTIC_STORES, platformText } from '../../album/domestic.js';
 
 async function downloadIcs(album) {
   const text = scheduleIcs(album);
@@ -25,7 +26,7 @@ async function downloadIcs(album) {
 
 export function renderSchedule(album) {
   const items = scheduleFor(album);
-  const next = items.find((s) => !s.done);
+  const next = items.find((s) => !s.done && !s.optional); // 선택 단계(스포티파이 피칭)는 '다음 할 일'로 고르지 않음
   return h('div', { class: 'stack' },
     h('section', { class: 'card' },
       h('div', { class: 'card-head' },
@@ -85,7 +86,7 @@ export function renderPromo(album) {
       copyable('promo-tags', '해시태그', p.hashtags, 2, (v) => mutateAlbum((a) => { a.promo.hashtags = v; }, 'quiet'))),
     h('section', { class: 'card' },
       h('h2', null, '신보 소개·피칭 ', help('pitch')),
-      h('p', { class: 'muted small' }, '국내 플랫폼(멜론·지니·벅스·FLO)은 유통사가 플랫폼 MD에게 신보를 소개해요. 한국어 소개글을 유통사에 낼 때(일정의 D-28) 같이 보내요. 분량은 유통사마다 달라요.'),
+      h('p', { class: 'muted small' }, `국내 플랫폼(${platformText(DOMESTIC_STORES)})은 유통사가 플랫폼 MD에게 신보를 소개해요. 한국어 소개글을 유통사에 낼 때(일정의 D-28) 같이 보내요. 분량은 유통사마다 달라요.`),
       copyable('promo-pitch-ko', '한국어 · 국내 플랫폼 신보 소개 (유통사 제출용)', p.pitchKo || '', 5, (v) => mutateAlbum((a) => { a.promo.pitchKo = v; }, 'quiet'), Infinity),
       h('p', { class: 'muted small' }, `스포티파이는 Spotify for Artists에서 발매 최소 7일 전까지 미발매 타이틀곡 한 곡을 에디터에게 직접 피칭할 수 있어요(선택, 일정의 D-14). ${PITCH_LIMIT}자까지 들어가요.`),
       copyable('promo-pitch', '영어 · 스포티파이 피칭 (선택)', p.pitch || '', 5, (v) => mutateAlbum((a) => { a.promo.pitch = v; }, 'quiet'), PITCH_LIMIT)),

@@ -43,6 +43,20 @@ const reordered = Object.fromEntries(Object.entries(a).reverse());
 plan = planRestore({ songs: [reordered], albums: [album], taste }, backup);
 assert.equal(plan.report.same, 2, '키 순서만 다른 곡은 사본을 만들지 않음');
 
+// 3-2) v0.92 전에 만든 백업(영어 장르, 인디 칸 없음)도 지금 정리된 앨범과 같으면 건너뜀
+{
+  const { normalizeAlbum, newAlbum } = await import('../src/js/album/model.js');
+  // v0.91에서 저장된 앨범 모양: 정리된 앨범에서 인디 칸이 없고 장르가 영어
+  const v91 = normalizeAlbum({ ...newAlbum(), id: 'al2', title: '옛 앨범', tracks: [{ songId: 'a' }] });
+  const oldAlbum = { ...JSON.parse(JSON.stringify(v91)), genre: 'K-Pop', subgenre: 'Dance' };
+  delete oldAlbum.indie;
+  delete oldAlbum.genreFrom;
+  const nowAlbum = normalizeAlbum(JSON.parse(JSON.stringify(oldAlbum)));
+  assert.ok(nowAlbum.genre === '댄스' && nowAlbum.indie === false);
+  const p2 = planRestore({ songs: [a], albums: [nowAlbum], taste }, { ...backup, albums: [oldAlbum] });
+  assert.equal(p2.report.same, 2, '예전 모양 백업은 사본을 만들지 않음');
+}
+
 // 4) 형식이 아닌 항목은 버림
 plan = planRestore({ songs: [], albums: [], taste: emptyTaste() }, { ...backup, songs: [{ id: 1 }, ...backup.songs], albums: [{ nope: 1 }] });
 assert.equal(plan.report.songs, 1);

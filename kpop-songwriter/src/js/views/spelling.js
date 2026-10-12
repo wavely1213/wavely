@@ -5,6 +5,7 @@ import { isBusy, runJob } from '../aijob.js';
 import { checkSpelling, spellingStatus } from '../optimize/spelling.js';
 import { replaceLine } from '../optimize/linecheck.js';
 import { lyricsKey } from '../album/lyrics.js';
+import { DOMESTIC_STORES, platformText } from '../album/domestic.js';
 
 // 고친 줄만 바뀌었으니 나머지 결과는 그대로 유효 — 열쇠를 지금 가사로
 function applyFix(x, ids) {
@@ -30,7 +31,7 @@ export function renderSpelling(song) {
           const res = await checkSpelling(song, { signal });
           mutateSong(song.id, (x) => { x.spelling = res; });
         }) }, r ? '다시 점검' : '점검받기'))),
-    h('p', { class: 'muted small' }, '가사는 국내 음원 사이트(멜론·지니·벅스·FLO 등)에 낸 대로 보여요. 확실히 틀린 곳만 짚고, 노래 말투(줄임말·구어)는 그대로 둬요.'),
+    h('p', { class: 'muted small' }, `가사는 국내 음원 사이트(${platformText(DOMESTIC_STORES)} 등)에 낸 대로 보여요. 확실히 틀린 곳만 짚고, 노래 말투(줄임말·구어)는 그대로 둬요.`),
     !r ? null : h('div', { class: 'stack' },
       status === 'stale' ? h('p', { class: 'warn' }, '점검한 뒤 가사가 바뀌었어요. 다시 점검해 주세요.') : null,
       r.items.length ? h('ul', { class: 'similar-list' }, r.items.map((it) => h('li', { class: `similar${it.ok ? ' ok' : ''}` },

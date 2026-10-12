@@ -2,6 +2,7 @@
 import { releaseChecklist, daysUntil } from '../album/model.js';
 import { plainLyrics } from '../album/lyrics.js';
 import { syncStatus } from '../album/lrc.js';
+import { migrateAlbumGenre } from '../album/domestic.js';
 
 const clean = (t) => String(t || '').replace(/^예시:\s*/, '');
 
@@ -12,11 +13,16 @@ function songKey(s) {
   return [clean(s.title), plainLyrics(s), sync];
 }
 
-// 제출 패키지에 들어가는 것의 지문: 받은 뒤 이게 바뀌면 다시 받아야 한다
-export function packageKey(album, songs = [], { masters = {}, coverInfo = null } = {}) {
+// 제출 패키지에 들어가는 것의 지문: 받은 뒤 이게 바뀌면 다시 받아야 한다 (v0.92부터 인디 표시 포함)
+export function packageKey(album, songs = [], opts = {}) {
+  return v91Key(album, songs, opts, [!!album.indie]);
+}
+
+// v0.87~v0.91의 지문 (인디 표시가 없던 때). extra는 새 항목. 테스트에서 예전 지문을 만들 때도 쓴다
+export function v91Key(album, songs = [], { masters = {}, coverInfo = null } = {}, extra = []) {
   return JSON.stringify([
     album.title, album.artist, album.releaseDate, album.type, album.cLine, album.pLine, album.upc,
-    album.genre, album.subgenre, album.language, album.label, !!album.explicit, album.ai || null, album.description,
+    album.genre, album.subgenre, ...extra, album.language, album.label, !!album.explicit, album.ai || null, album.description,
     album.tracks.map((t) => [t.songId, t.isTitle, t.isrc, t.lyricists, t.composers, t.arrangers, t.featuring, t.explicit, t.splits || {}, masters[t.songId] ? [masters[t.songId].name, Math.round(masters[t.songId].duration || 0)] : null,
       songKey(songs.find((x) => x.id === t.songId))]),
     coverInfo ? [coverInfo.width, coverInfo.height, coverInfo.name || '', coverInfo.drawnWith || null, coverInfo.blob?.size ?? null, coverInfo.blob?.type || ''] : null,
@@ -39,7 +45,14 @@ export function albumProgress(album, songs, { masters = {}, coverInfo = null, to
   // 곡 화면에서 고칠 오류(곡 제목 등)가 수록곡 단계를 막고 있으면 그 오류를 안내하고 그 곡으로 보낸다
   const songErr = items.find((i) => i.level === 'error' && i.go?.song);
   const tracksOtherwiseOk = !items.some((i) => i.level === 'error' && !i.go?.song && i.go?.tab === 'tracks');
-  const sameKey = album.submittedKey === packageKey(album, songs, { masters, coverInfo }) || album.submittedKey === legacyPackageKey(album, { masters, coverInfo });
+  // 예전 판에서 받은 패키지: v0.91까지의 지문(인디 표시 없음, 장르를 국내 분류로 옮기기 전 값)과 v0.86 지문도 같다고 본다
+  // 옮기기 전 값은 지금 장르가 '그 값을 옮긴 결과' 그대로일 때만 쓴다 (옮긴 뒤 사용자가 장르를 바꾸면 다시 받기)
+  const from = album.genreFrom;
+  const moved = from && migrateAlbumGenre({ ...from });
+  const before = moved && moved.genre === album.genre && moved.subgenre === album.subgenre ? { ...album, ...from } : album;
+  const sameKey = album.submittedKey === packageKey(album, songs, { masters, coverInfo })
+    || (!!album.indie === (album.genreFrom?.genre === 'Indie')) && [album, before].some((a) => album.submittedKey === v91Key(a, songs, { masters, coverInfo }))
+    || album.submittedKey === legacyPackageKey(album, { masters, coverInfo });
   const left = daysUntil(album.releaseDate, today);
   const allClear = !items.some((i) => i.level === 'error');
   const steps = [

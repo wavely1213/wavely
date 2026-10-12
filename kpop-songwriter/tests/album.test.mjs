@@ -118,6 +118,18 @@ assert.ok(check.some((i) => i.level === 'warn' && i.text.includes('트루 피크
   assert.ok(st.distributor.detail.includes('신보 소개') && st.pitch.title.includes('선택') && st.verify.offset === 0);
   assert.ok(DOMESTIC_PLATFORMS.every((p) => st.verify.detail.includes(p)));
   assert.equal(SCHEDULE.length, 12, '단계 수는 그대로 (.ics 개수)');
+  // 예전 장르: 조사가 정한 것만 옮기고 Pop·Indie는 비워서 고르게, 'Dance' 기본 세부 장르는 어떤 장르에서든 비움, 옮기기 전 값은 남김
+  const bd = norm({ ...na(), genre: 'Ballad', subgenre: 'Dance' });
+  assert.ok(bd.genre === '발라드' && bd.subgenre === '' && bd.genreFrom.genre === 'Ballad' && bd.genreFrom.subgenre === 'Dance');
+  const ind = norm({ ...na(), genre: 'Indie', subgenre: '' });
+  assert.ok(ind.genre === '' && ind.indie === true);
+  assert.equal(norm({ ...na(), genre: 'Pop' }).genre, '');
+  assert.ok(rc({ ...al, genre: '' }, [], { today }).some((i) => i.level === 'warn' && i.text.includes('장르를 골라')));
+  assert.equal(norm(norm({ ...na(), genre: 'Rock' })).genreFrom.genre, 'Rock', '두 번 정리해도 처음 값 유지');
+  // 스포티파이 피칭은 선택 단계: 지나도 '지남'으로 표시하지 않음
+  const { scheduleFor: sf } = await import('../src/js/album/model.js');
+  const past = sf({ ...na(), releaseDate: '2026-01-31', schedule: {} }, new Date(2026, 0, 30));
+  assert.ok(past.find((s) => s.id === 'pitch').overdue === false && past.find((s) => s.id === 'teaser-plan').overdue === true);
   console.log('domestic release lists OK');
 }
 
