@@ -15,7 +15,8 @@ const PAIR_NTFY = DEV && DEV_NTFY ? DEV_NTFY : P.NTFY;
 const $ = id => document.getElementById(id);
 const S = { cred: null, keys: null, tab: "progress", status: null, logs: [], logTotal: 0, lib: null, outs: null, choices: null,
   online: false, timer: null, connecting: false, prevJob: null, logOpen: false, ntfyReached: true, alertTest: null, alertTips: false,
-  resume: null, cookieHelp: false, opening: false, afterLogin: false, studioFirst: false, loginInfo: null, guestEnded: false };
+  resume: null, cookieHelp: false, opening: false, afterLogin: false, studioFirst: false, loginInfo: null, guestEnded: false,
+  loginPrefill: null, guestLook: null };
 const KIND = { own: "풋살사관학교", footage: "내 촬영본", unknown: "출처 모름" };
 const STORE_IOS = "https://apps.apple.com/app/ntfy/id1625396347";
 const STORE_ANDROID = "https://play.google.com/store/apps/details?id=io.heckel.ntfy";
@@ -45,6 +46,11 @@ function h(tag, props, ...kids) {
 const now = () => Math.floor(Date.now() / 1000);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const clock = t => new Date(t * 1000).toLocaleTimeString("ko-KR", { hour: "numeric", minute: "2-digit" });
+/** 막힌 때까지: 오늘이면 시각만 · 내일이면 '내일 오후 3:40' · 그 뒤면 '10월 14일 오후 3:40' (하루 막힘이 '벌써 지난 시각'처럼 읽히지 않게) */
+function untilText(t) {
+  const d = new Date(t * 1000), n = new Date(), tm = new Date(n.getFullYear(), n.getMonth(), n.getDate() + 1);
+  return (d.toDateString() === n.toDateString() ? "" : d.toDateString() === tm.toDateString() ? "내일 " : `${d.getMonth() + 1}월 ${d.getDate()}일 `) + clock(t);
+}
 function ago(t) {
   const s = Math.max(0, Date.now() / 1000 - t);
   return s < 60 ? "방금" : s < 3600 ? `${Math.floor(s / 60)}분 전` : s < 86400 ? `${Math.floor(s / 3600)}시간 전` : `${Math.floor(s / 86400)}일 전`;
@@ -144,7 +150,7 @@ async function api(method, path, body, ms = 8000) {
       c.skew = j.time - now(); await save(); continue;
     }
     if (r.status === 401 && j.code === "unknown_device") {
-      if (c.guest) { S.guestEnded = true; await forgetLocal(); }
+      if (c.guest) await guestOver();
       else await forgetLocal(c.via === "login" ? "이 기기는 연결이 끊겼어요 · 아이디·비밀번호로 다시 연결해 주세요" : "이 휴대폰은 연결이 끊겼어요 · PC에서 다시 연결해 주세요");
       throw new Gone();
     }
@@ -229,7 +235,7 @@ async function refreshStatus(ms) {
 // ---------- 연결 흐름 ----------
 async function connect() {
   if (S.connecting || !S.cred) return;
-  if (S.cred.guest && S.cred.exp && now() > S.cred.exp) { S.guestEnded = true; return forgetLocal(); }
+  if (S.cred.guest && S.cred.exp && now() > S.cred.exp) return guestOver();
   S.connecting = true;
   try {
     if (!S.online && !S.status) { dot("wait", "PC를 찾고 있어요"); finding(); }
@@ -240,6 +246,7 @@ async function connect() {
       S.cred.lastUrl = url; await save();
       if (await refreshStatus(6000)) return goOnline();
     }
+    if (S.cred.guest && await guestGone()) return guestOver();
     goOffline();
   } catch (e) {
     if (!(e instanceof Gone)) goOffline();
@@ -261,6 +268,27 @@ function goOnline() {
       openStudio("/").then(ok => { if (!ok) render(); });
     }
   }
+}
+/** 이번만 기기는 비콘이 없어 새 주소를 못 따라감 → 아이디로 'PC 찾기' 기록을 봐서 이 PC 가 꺼졌거나 주소가 바뀌었으면 true
+ *  (그때 PC 는 이번만 기기를 버림 · D-256). 기록이 그대로(같은 주소로 켜짐)거나 ntfy 에 닿지 않으면 false (잠깐 끊긴 것일 수 있음) */
+async function guestGone() {
+  const c = S.cred;
+  if (!c || !c.guest || !c.loginShow || P.idProblem(c.loginShow) || !navigator.onLine) return false;
+  try {
+    const d = S.guestLook && S.guestLook.show === c.loginShow ? S.guestLook.d : await P.deriveLogin(P.canonId(c.loginShow));
+    S.guestLook = { show: c.loginShow, d };
+    const later = (a, b) => a.ts > b.ts || (a.ts === b.ts && a.seq > b.seq);
+    let newest = null;
+    for (const r of await lookupRecords(d)) if (r.pc === c.pcId && (!newest || later(r, newest))) newest = r;
+    if (!newest || newest.ts < (c.pairedAt || 0) + (c.skew || 0) - 60) return false;  // 연결한 뒤로 PC 가 새로 올린 기록이 없음 (기록은 PC 시계)
+    return newest.state === "off" || P.hostOk(newest.url, DEV) !== c.lastUrl;
+  } catch (e) { return false; }
+}
+/** 이번만 기기가 끝남 → 메모리를 지우고 아이디·비밀번호 칸으로 (아이디는 채워 둠 · 비밀번호만 다시) */
+function guestOver() {
+  S.guestEnded = true;
+  S.loginPrefill = S.cred && S.cred.loginShow;
+  return forgetLocal();
 }
 function goOffline() {
   S.online = false;
@@ -385,7 +413,7 @@ function unpaired(err) {
   view(
     err && h("section", { class: "card alert" }, h("p", { text: err })),
     INAPP ? inAppCard(false) : null,
-    loginCard({ resume: !!S.resume || S.guestEnded }),
+    loginCard({ resume: !!S.resume || S.guestEnded, id: S.loginPrefill }),
     h("h3", { class: "lbl", text: "PC 앞에 있다면" }),
     h("section", { class: "card stack", id: "qrCard" }, h("p", { text: "PC 화면의 QR을 휴대폰 카메라로 찍으면 바로 연결돼요" }),
       h("p", { class: "muted", text: "QR은 PC 스튜디오 왼쪽 아래 '휴대폰으로 보기' → [원격 접속 켜기] → [휴대폰 연결하기]에 나와요" })),
@@ -436,10 +464,14 @@ function offline() {
   dot(cls, title);
   $("pcName").textContent = clean(c.pcName || "내 PC") + " · 연결 안 됨";
   const last = Math.max(c.lastContact || 0, (b && b.ts) || 0);
-  const forget = h("details", { class: "card more" }, h("summary", { text: "연결이 계속 안 되나요?" }),
+  // 이번만 기기: 지울 연결 정보가 없음 (메모리뿐) → 아이디·비밀번호 칸으로 바로
+  const forget = c.guest ? h("details", { class: "card more" }, h("summary", { text: "연결이 계속 안 되나요?" }),
+    h("p", { class: "muted", text: "이번만 연결한 기기는 PC가 다시 켜지거나 연결 주소가 바뀌면 아이디·비밀번호로 다시 연결해야 해요" }),
+    h("button", { class: "btn block", id: "guestRelogin", onclick: guestOver }, "아이디·비밀번호로 다시 연결")) : h("details", { class: "card more" }, h("summary", { text: "연결이 계속 안 되나요?" }),
     h("p", { class: "muted", text: "새 PC로 바꿨거나 PC에서 이 휴대폰을 끊었을 때만 연결 정보를 지우고 다시 연결해 주세요. PC가 꺼져 있거나 잠든 거라면 지우지 마세요 — PC가 켜지면 저절로 다시 연결돼요." }),
     h("button", { class: "btn block", onclick: async () => {
-      if (!await ask("지우면 PC 앞에서 QR을 다시 찍거나 아이디·비밀번호로 다시 연결해야 해요. PC가 꺼져 있거나 잠든 거라면 지우지 마세요. 그래도 지울까요?", "지우기", true)) return;
+      if (!await ask(c.via === "login" ? "지우면 아이디·비밀번호로 다시 연결해야 해요. PC가 꺼져 있거나 잠든 거라면 지우지 마세요. 그래도 지울까요?"
+        : "지우면 PC 앞에서 QR을 다시 찍거나 아이디·비밀번호로 다시 연결해야 해요. PC가 꺼져 있거나 잠든 거라면 지우지 마세요. 그래도 지울까요?", "지우기", true)) return;
       try { if (S.cred.lastUrl) await Promise.race([api("POST", "/r/forget", {}, 3000), sleep(3500)]); } catch (e) { /* PC 가 안 닿으면 PC 쪽 항목은 90일 뒤 저절로 정리 */ }
       forgetLocal();
     } }, "연결 정보 지우고 다시 연결"));
@@ -803,11 +835,13 @@ function renderMore() {
       st.remote && st.remote.autoOffAt ? h("p", { class: "muted", text: `쓰지 않으면 ${clock(st.remote.autoOffAt)}에 원격 접속이 저절로 꺼져요` }) : null),
     h("section", { class: "card stack" },
       c.guest ? null : h("button", { class: "btn block danger", onclick: async () => {
-        if (!await ask("이 기기의 연결을 끊을까요? 다시 쓰려면 PC 앞에서 QR을 찍거나 아이디·비밀번호로 다시 연결해야 해요.", "끊기", true)) return;
+        if (!await ask(code ? "이 기기의 연결을 끊을까요? 다시 쓰려면 PC 앞에서 QR을 찍거나 아이디·비밀번호로 다시 연결해야 해요."
+          : "이 기기의 연결을 끊을까요? 다시 쓰려면 아이디·비밀번호로 다시 연결해요.", "끊기", true)) return;
         try { await api("POST", "/r/forget", {}); } catch (e) { /* 그래도 이 기기 정보는 지움 */ }
         forgetLocal("이 기기 연결을 끊었어요");
       } }, "이 기기 연결 끊기"),
-      h("button", { class: "btn block", onclick: async () => {
+      // 이번만 기기(빌린 기기)에는 없음 — 모두의 원격 접속을 꺼 버리지 않게 (끝낼 때는 맨 위 [이 기기에서 나가기] · PC 도 거절함)
+      c.guest ? null : h("button", { class: "btn block", id: "remoteOff", onclick: async () => {
         if (!await ask("PC의 원격 접속을 끌까요? 다시 켜려면 PC에서 직접 켜야 해요.", "끄기", true)) return;
         try { const r = await api("POST", "/r/remote-off", {}); if (!r.ok) return toast(r.j.error || "끄지 못했어요"); } catch (e) { return; }
         S.cred.lastBeacon = { ts: now(), state: "off", reason: "원격 접속을 껐어요" };
@@ -831,6 +865,7 @@ function loginCard(o = {}) {
   const standalone = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone;
   const idIn = h("input", { class: "inp", name: "username", id: "loginId", autocomplete: "username", autocapitalize: "none", autocorrect: "off",
     spellcheck: "false", maxlength: "40", "aria-label": "아이디" });
+  if (o.id) idIn.value = clean(o.id).slice(0, 40);  // 이번만 기기가 끝나 다시 연결: 아이디는 채워 둠 (아이디는 비밀이 아님 · D-252)
   const pwIn = h("input", { class: "inp", type: "password", name: "password", id: "loginPw", autocomplete: "current-password", maxlength: "128", "aria-label": "비밀번호" });
   const show = h("button", { type: "button", class: "btn sm", id: "loginShow", onclick: () => {
     const t = pwIn.type === "password"; pwIn.type = t ? "text" : "password"; show.textContent = t ? "숨기기" : "보기";
@@ -928,12 +963,12 @@ function loginTexts(out) {
     case "ntfy": return { title: "PC를 찾는 서버(ntfy.sh)에 닿지 않아요 · 회사·학교 인터넷이 막았을 수 있어요 · 휴대폰 데이터로 해 보세요", again: true };
     case "old_pc": return { title: "PC 스튜디오를 업데이트해 주세요" };
     case "bad":
-      if (out.until) return { title: `비밀번호를 여러 번 틀려서 ${clock(out.until)}까지 잠겼어요` };
+      if (out.until) return { title: `비밀번호를 여러 번 틀려서 ${untilText(out.until)}까지 잠겼어요` };
       return { title: `비밀번호가 맞지 않아요 · 남은 기회 ${out.left}번`, lines: [out.left <= 2 ? "다 틀리면 잠시 막혀요" : null,
         out.same ? "맞게 쳤는데도 계속 틀린다고 나오면 PC에서 비밀번호를 확인하거나 아이디를 바꿔 주세요" : null] };
     case "locked": return out.scope === "all"
-      ? { title: `틀린 시도가 너무 많아 ${clock(out.until)}까지 아이디 연결을 막았어요 · 이미 연결된 휴대폰의 '더보기'에서 풀 수 있어요` }
-      : { title: `비밀번호를 여러 번 틀려서 ${clock(out.until)}까지 잠겼어요` };
+      ? { title: `틀린 시도가 너무 많아 ${untilText(out.until)}까지 아이디 연결을 막았어요 · 이미 연결된 휴대폰의 '더보기'에서 풀 수 있어요` }
+      : { title: `비밀번호를 여러 번 틀려서 ${untilText(out.until)}까지 잠겼어요` };
     case "suspended": return out.why === "kick"
       ? { title: "알림에서 [끊기]를 눌러 아이디 연결이 잠겨 있어요 · PC에서 새 비밀번호를 정하면 다시 돼요" }
       : { title: "비밀번호가 너무 많이 틀려서 아이디 연결이 잠겼어요 · 이미 연결된 휴대폰의 '더보기'나 PC에서 다시 켤 수 있어요" };
@@ -1053,18 +1088,23 @@ async function loginFlow(job, auto) {
   const newest = recs.slice().sort((a, b) => b.ts - a.ts || b.seq - a.seq)[0];
   let best = cands.length ? null : newest.state === "off" ? { kind: "off", reason: newest.reason, ts: newest.ts } : { kind: "not_found" };
   const keep = o => { if (!best || (RANK[o.kind] ?? -1) > (RANK[best.kind] ?? -1)) best = o; };
+  // PC 의 대답(틀림·막힘·잠김·꺼짐·바쁨)은 그 후보의 결과일 뿐 → 다음 후보도 해 봄 (같은 아이디를 쓰는 PC 가 둘이면 맞는 PC 까지 · 연결 > 대답 >
+  // 나머지 · 대답은 먼저 온 것 · '바쁨'은 다른 대답보다 뒤)
+  let said = null;
+  const heard = o => { if (!said || (said.kind === "busy" && o.kind !== "busy")) said = o; };
   for (const rec of cands) {
     const pc = await pingLogin(rec.url);
-    if (pc === 429) return { kind: "busy", collision };  // 그 PC 가 잠시 막음 (잠든 게 아님)
+    if (pc === 429) { heard({ kind: "busy" }); continue; }  // 그 PC 가 잠시 막음 (잠든 게 아님)
     if (!pc) { keep({ kind: "asleep", ts: rec.ts }); continue; }
     if (pc.pc.id !== rec.pc || !Array.isArray(pc.features) || !pc.features.includes("login")) { keep({ kind: "old_pc" }); continue; }
     if (!auto) loginStatus({ spin: "비밀번호를 확인하는 중이에요… (몇 초 걸려요)" });
     const r = await loginAt(rec, d, job);
     if (r.kind === "ok") return r;
-    if (VERDICT.includes(r.kind) || r.kind === "again" || r.kind === "net") return Object.assign(r, { collision });  // 그 PC 의 대답
+    if (r.kind === "again" || r.kind === "net") return Object.assign(r, { collision });  // 다시 한 번 처음부터 (loginAttempt)
+    if (VERDICT.includes(r.kind)) { heard(r); continue; }
     keep(r);
   }
-  return Object.assign(best || { kind: "not_found" }, { collision });
+  return Object.assign(said || best || { kind: "not_found" }, { collision });
 }
 async function loginDone(job, out) {
   if (job.remember && out.remembered && window.PasswordCredential && job.form) {  // 크롬: 기억하기일 때만 비밀번호 관리자에 (futsal.mulgyeol.kr 에 묶임)
@@ -1073,7 +1113,7 @@ async function loginDone(job, out) {
   wipeLoginSecret();
   const p = $("loginPw"); if (p) p.value = "";
   if (!await adopt(out.inner, out.keys, out.base, out.skew)) return loginStatus({ title: "PC의 대답이 맞지 않아요 · 가짜 주소가 섞여 있을 수 있어요 · 잠시 뒤 다시 해 주세요" });
-  S.guestEnded = false;
+  S.guestEnded = false; S.loginPrefill = null;
   toast("연결됐어요 ✓ · " + (out.remembered ? "이 기기를 기억했어요 · 다음부터 바로 열려요"
     : job.remember ? "기기가 꽉 차서(5대) 이번만 연결했어요 · PC에서 안 쓰는 기기를 끊어 주세요"
       : "이번만 연결했어요 · 다 쓰면 '더보기 → 이 기기에서 나가기'"));
@@ -1103,9 +1143,10 @@ function loginMoreCard() {
   }
   const box = h("section", { class: "card stack", id: "loginMore" });
   if (!L || !L.set || !L.on) { box.append(h("p", { text: "꺼져 있어요 · PC에서 켤 수 있어요" })); return box; }
-  box.append(h("p", { text: `아이디·비밀번호로 연결 · 아이디 ${L.show} (영문 자판으로는 ${L.keys})` }));
+  // 영문 자판 꼴은 한글(또는 점·-)이 든 아이디만 (영문 아이디가 두 번 나오지 않게)
+  box.append(h("p", { text: `아이디·비밀번호로 연결 · 아이디 ${L.show}${String(L.show || "").toLowerCase() === String(L.keys || "") ? "" : ` (영문 자판으로는 ${L.keys})`}` }));
   const why = L.suspended ? (L.suspended.why === "kick" ? "알림에서 [끊기]를 눌렀어요" : "비밀번호가 너무 많이 틀렸어요")
-    : L.lock ? `${clock(L.lock.until)}까지 막혔어요` : null;
+    : L.lock ? `${untilText(L.lock.until)}까지 막혔어요` : null;
   if (why) {
     box.append(h("p", { class: "warn", text: `아이디 연결이 잠겨 있어요 (${why})` }), h("button", { class: "btn block", id: "loginResume", onclick: async () => {
       if (!await ask("비밀번호를 바꾸지 않고 다시 켤까요? 누가 비밀번호를 알고 있다면 다시 들어올 수 있어요", "다시 켜기")) return;
