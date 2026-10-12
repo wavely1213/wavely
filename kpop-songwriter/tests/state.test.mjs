@@ -436,5 +436,46 @@ assert.ok(AL.cover && AL.promo && Array.isArray(AL.tracks), '되돌린 뒤에도
   console.log('version keep OK');
 }
 
+// 리메이크·번안 곡 (D-026): 만들기, 복제·Inst. 사본의 원곡 가사, 가져오기, 싱글 앨범의 원곡 크레딧
+{
+  const { parseOriginalLyrics, applyOriginalLyrics, remakeOf } = await import('../src/js/remake/model.js');
+  const R = S.newSong({ remake: 'adapt' });
+  assert.equal(R.remake.kind, 'adapt');
+  assert.equal(S.newSong().remake, undefined, '보통 새 곡엔 remake가 없음');
+  S.selectSong(R.id);
+  S.mutate((s) => {
+    Object.assign(s.remake.original, { title: '雪の華', artist: '中島美嘉', lyricists: 'Satomi', composers: '松本良喜' });
+    applyOriginalLyrics(s, parseOriginalLyrics('[Aメロ]\nのびた人陰を\n\n[サビ]\n今年、最初の雪の華を'));
+  });
+  assert.equal(R.sections.length, 2);
+  assert.ok(R.sections.every((x) => R.remake.originalLyrics.sections[x.id]?.length === 1));
+  // 섹션을 지우면 그 원곡 가사도 정리
+  S.mutate((s) => { s.sections.pop(); });
+  assert.deepEqual(Object.keys(R.remake.originalLyrics.sections), [R.sections[0].id]);
+  // 복제: 새 섹션 id로 원곡 가사를 옮긴다
+  const copy = S.duplicateSong(R.id);
+  assert.notEqual(copy.sections[0].id, R.sections[0].id);
+  assert.deepEqual(copy.remake.originalLyrics.sections[copy.sections[0].id], R.remake.originalLyrics.sections[R.sections[0].id]);
+  // 싱글 앨범: 원곡 크레딧을 미리 채운다
+  S.mutateSong(R.id, (s) => { s.title = '눈의 꽃'; });
+  S.newAlbum({ fromSong: R });
+  const al = S.currentAlbum();
+  assert.deepEqual([al.tracks[0].lyricists, al.tracks[0].composers], ['Satomi', '松本良喜']);
+  // Inst. 사본: 원곡 가사는 비우고, 권리 기록은 원곡 곡을 따른다
+  const inst = S.addInstVersion(al.id, R.id);
+  assert.deepEqual(inst.remake.originalLyrics.sections, {});
+  assert.equal(remakeOf(inst, S.getState().songs), R.remake);
+  assert.equal(al.tracks[1].koreanLyricists, '');
+  // 가져오기: 제작 패키지의 project.json(원곡 가사 뺀 것)도 remake를 지킨다
+  const data = JSON.parse(JSON.stringify(R));
+  data.remake.originalLyrics = { lang: 'ja', sections: {} };
+  data.remake.consents.adapt.status = 'weird';
+  assert.equal(S.importSong(data), true);
+  const imported = S.current();
+  assert.equal(imported.remake.original.title, '雪の華');
+  assert.equal(imported.remake.consents.adapt.status, 'none', '가져올 때 모양을 맞춘다');
+  console.log('remake state OK');
+}
+
 console.log('state OK');
 process.exit(0);

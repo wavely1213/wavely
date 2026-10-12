@@ -23,6 +23,15 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
   for (const t of atabs) { await p.click(`.tab:text-is("${t}")`); (await audit()).forEach((x) => all.add(`[앨범 ${t}] ${x}`)); }
   await p.click('.song-item:has-text("내 취향")');
   (await audit()).forEach((x) => all.add(`[취향] ${x}`));
+  // 리메이크·번안 곡: 원곡·이용 허락 카드, 원곡 가사 비교표(읽기 칸), Suno 안내
+  await p.click('#new-remake');
+  (await audit()).forEach((x) => all.add(`[리메이크 컨셉] ${x}`));
+  await p.click('.tab:text-is("구조·가사")');
+  await p.fill('#remake-paste', '[サビ]\n雪の華\nふたりで');
+  await p.click('#remake-split');
+  (await audit()).forEach((x) => all.add(`[리메이크 가사] ${x}`));
+  await p.click('.tab:text-is("내보내기")');
+  (await audit()).forEach((x) => all.add(`[리메이크 내보내기] ${x}`));
   if (all.size) { console.log([...all].join('\n')); console.log('a11y FAILED'); process.exitCode = 1; } else console.log('a11y OK');
   await b.close();
 })();

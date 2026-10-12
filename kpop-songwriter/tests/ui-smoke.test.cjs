@@ -461,6 +461,42 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     }
     await c3.close();
   }
+  // 리메이크·번안 곡 (D-026): 시작 버튼 → 원곡·이용 허락 → 원곡 가사 붙여넣기 → 음 수 비교·읽기 칸 → 내보내기 Suno 안내. 폰도 가로 넘침 없음
+  for (const [w, hgt, tag] of [[1280, 900, 'desk'], [390, 844, 'phone']]) {
+    const c4 = await b.newContext({ viewport: { width: w, height: hgt } });
+    const p4 = await c4.newPage();
+    p4.on('pageerror', (e) => errs.push(`remake ${tag} ${e.message}`));
+    await p4.goto('file://' + path.join(__dirname, '..', 'dist', 'index.html'));
+    await p4.waitForSelector('.tab');
+    const over = () => p4.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
+    if (tag === 'phone') await p4.click('.nav-toggle');
+    await p4.click('#new-remake');
+    await p4.waitForSelector('#remake-rights');
+    const noDraft = (await p4.locator('.draft-card').count()) === 0;
+    await p4.fill('#orig-title', '雪の華');
+    await p4.fill('#orig-artist', '中島美嘉');
+    await p4.selectOption('#consent-adapt', 'approved');
+    const wait = await p4.textContent('#remake-wait');
+    const rightsOver = await over();
+    await p4.screenshot({ path: path.join(TMP, `${tag}-remake-rights.png`), fullPage: true });
+    await p4.click('.tab:text-is("구조·가사")');
+    await p4.fill('#remake-paste', '[Aメロ]\n君の手を\nにぎりしめて\n\n[サビ]\n雪の華\nふたりで');
+    await p4.click('#remake-split');
+    await p4.waitForSelector('#adapt-table');
+    const rows = await p4.locator('#adapt-table .tr-row').count();
+    await p4.fill('input.tr-kana >> nth=0', 'きみのてを');
+    await p4.click('#adapt-summary');
+    await p4.waitForFunction(() => document.querySelector('#adapt-table .tr-src .mono')?.textContent.trim() === '5');
+    const lyricsOver = await over();
+    await p4.screenshot({ path: path.join(TMP, `${tag}-remake-lyrics.png`), fullPage: true });
+    await p4.click('.tab:text-is("내보내기")');
+    const suno = await p4.locator('#remake-suno').count();
+    global.remake = { tag, noDraft, wait, rows, rightsOver, lyricsOver, suno };
+    global.remakeOk = (global.remakeOk ?? true) && noDraft && wait.includes('편곡(요청 전)') && wait.includes('제목 변경(요청 전)') && !wait.includes('개사·번역') && rows === 4 && !rightsOver && !lyricsOver && suno === 1;
+    if (!global.remakeOk) console.log('remake', global.remake);
+    await c4.close();
+  }
+  if (!global.remakeOk) errs.push('리메이크·번안 곡 흐름 이상');
   if (!global.autoOk) errs.push('마스터 자동 연결 안 됨');
   if (!global.undoOk) errs.push('되돌리기·다시 하기 안 됨');
   if (!global.genreOk) errs.push('장르 기본 편곡 버튼 이상');

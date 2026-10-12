@@ -8,6 +8,7 @@ import { syncStatus, toLrc } from './lrc.js';
 import { bookletHtml, blobToDataUrl } from './booklet.js';
 import { splitRows } from './splits.js';
 import { platformText, DOMESTIC_STORES } from './domestic.js';
+import { remakeOf, originalCreditLines, rightsRows } from '../remake/model.js';
 
 export { plainLyrics };
 
@@ -50,6 +51,8 @@ function credits(album, songs) {
     if (!s) return;
     lines.push(`${i + 1}. ${s.title.replace(/^예시:\s*/, '')}${t.isTitle ? ' (타이틀)' : ''}${t.featuring ? ` (Feat. ${t.featuring})` : ''}`);
     lines.push(`   작사: ${t.lyricists || '-'} / 작곡: ${t.composers || '-'} / 편곡: ${t.arrangers || '-'}`);
+    const remake = remakeOf(s, songs);
+    if (remake) originalCreditLines(remake, s.instOf ? {} : t).forEach((l) => lines.push(`   ${l}`));
     if (t.isrc) lines.push(`   ISRC: ${t.isrc}`);
   });
   lines.push('', `© ${album.cLine}`, `℗ ${album.pLine}`);
@@ -93,6 +96,8 @@ export async function buildReleasePackage(album, songs, masters, cover, onStep =
   files.push({ name: `${root}/metadata_album.csv`, data: toCsv(albumRows(album)) });
   files.push({ name: `${root}/split_sheet.csv`, data: toCsv(splitRows({ ...album, tracks }, songs)) });
   files.push({ name: `${root}/credits.txt`, data: credits({ ...album, tracks }, songs) });
+  const rights = rightsRows({ ...album, tracks }, songs);
+  if (rights.length > 1) files.push({ name: `${root}/rights.csv`, data: toCsv(rights) });
   files.push({ name: `${root}/release_schedule.txt`, data: scheduleText(album) });
   const check = releaseChecklist(album, songs, { masters, coverInfo: cover, aiChecks: !!globalThis.window?.claude?.use });
   files.push({ name: `${root}/checklist.txt`, data: check.length ? check.map((c) => `[${c.level}] ${c.text}`).join('\n') : '점검 항목 없음 — 제출 준비 완료' });
@@ -117,6 +122,7 @@ export async function buildReleasePackage(album, songs, masters, cover, onStep =
     '- lyrics/: 트랙별 가사 .txt (플랫폼 가사 등록용), 싱크 가사 .lrc (맞춘 곡만, 가사 따라가기용)',
     '- credits.txt: 크레딧 시트, release_schedule.txt: 발매 일정, checklist.txt: 제출 전 점검 결과',
     '- booklet.html: 가사집 (브라우저로 열어 인쇄 → PDF로 저장하면 디지털 부클릿)',
+    ...(rights.length > 1 ? ['- rights.csv: 리메이크·번안 곡의 원곡 정보와 이용 허락 기록 (서면 동의서는 따로 첨부)'] : []),
     '',
     'ISRC·UPC는 보통 유통사가 발급한다. 받은 뒤 앱의 앨범 메타데이터에 적어 두면 다음 패키지에 들어간다.',
   ].join('\n') });

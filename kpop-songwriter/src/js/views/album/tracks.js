@@ -2,6 +2,7 @@
 import { h, toast } from '../../dom.js';
 import { mutateAlbum, refresh, selectSong, setTab, getState, keepSong, addInstVersion, newSongInAlbum } from '../../state.js';
 import { newTrack, ALBUM_TYPES } from '../../album/model.js';
+import { prefillTrack } from '../../remake/model.js';
 import { inspectMaster } from '../../album/release.js';
 import { mastersOf, setMaster, fillFromSongMasters } from '../../album/session.js';
 import { keyName } from '../../music/theory.js';
@@ -103,7 +104,7 @@ export function renderTracks(album) {
           if (!id) return;
           keepSong(id);
           mutateAlbum((a) => {
-            a.tracks.push(newTrack(id));
+            a.tracks.push(prefillTrack(newTrack(id), getState().songs.find((x) => x.id === id)));
             if (a.tracks.length === 1) a.tracks[0].isTitle = true;
           });
         } }, '+ 곡 넣기')] : h('span', { class: 'muted' }, '넣을 곡이 없어요.'),

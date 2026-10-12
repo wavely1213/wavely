@@ -4,6 +4,7 @@ import { sectionsFromTemplate, autoDistribute } from './structure.js';
 import { MAX_VERSIONS } from './constants.js';
 import { exampleSong } from './example.js';
 import { normalizeMusic } from './music/arrangement.js';
+import { newRemake, normalizeRemake, prefillTrack } from './remake/model.js';
 import { newAlbum as makeAlbum, normalizeAlbum, newTrack, inheritAlbumInfo } from './album/model.js';
 import { emptyTaste, normalizeTaste, mergeTaste } from './learn/taste.js';
 import { setTasteGetter } from './learn/context.js';
@@ -26,6 +27,8 @@ const state = {
   storageUsage: null, // 이 브라우저에 저장할 때만: { used, ratio }
 };
 const listeners = new Set();
+// 곡 모양 맞추기: 편곡 데이터 + 리메이크·번안 기록
+const normalizeSong = (song) => normalizeRemake(normalizeMusic(song));
 const pending = new Set();
 let saveTimer;
 
@@ -40,7 +43,7 @@ export async function init(store) {
   let songs = [];
   try { songs = await store.list(); } catch { songs = []; }
   if (!songs.length) songs = [exampleSong()];
-  songs.forEach(normalizeMusic);
+  songs.forEach(normalizeSong);
   for (const song of songs) {
     try { if (await migrateVersions(song)) schedule(song.id); } catch { /* 다음에 다시 시도 */ }
   }
@@ -64,7 +67,8 @@ export async function init(store) {
 }
 
 // from: 그룹 종류·멤버·한국어 비율·보컬 설명을 이어받을 곡 (앨범의 새 곡). 없으면 빈 곡.
-export function newSong({ from = null } = {}) {
+// remake: 리메이크·번안 곡으로 만들 때 종류('adapt' | 'remake' | 'cover')
+export function newSong({ from = null, remake = null } = {}) {
   const members = (from?.members || []).map((m) => ({ ...m, id: uid() }));
   const song = {
     id: uid(),
@@ -75,10 +79,11 @@ export function newSong({ from = null } = {}) {
     style: { genre: 'K-pop dance pop', subgenre: '', bpm: 120, key: '', vocals: from?.style?.vocals || '', instruments: '', production: '', extra: '', exclude: '' },
     versions: [],
     references: [],
+    ...(remake ? { remake: newRemake(remake) } : {}),
     createdAt: Date.now(),
     updatedAt: Date.now(),
   };
-  normalizeMusic(song);
+  normalizeSong(song);
   state.songs.unshift(song);
   state.currentId = song.id;
   state.mode = 'song'; // 앨범·취향 화면에서 눌러도 새 곡으로 간다
@@ -125,7 +130,7 @@ export function importSong(data) {
   song.createdAt = Date.now();
   song.updatedAt = Date.now();
   song.sections = song.sections.filter((s) => s && typeof s.id === 'string').map((s) => ({ id: s.id, type: String(s.type || 'Verse'), members: Array.isArray(s.members) ? s.members : [], text: String(s.text || '') }));
-  normalizeMusic(song);
+  normalizeSong(song);
   state.songs.unshift(song);
   state.currentId = song.id;
   state.mode = 'song';
@@ -159,7 +164,7 @@ export function addInstVersion(albumId, songId) {
   else song = copySong(songId, { suffix: ' (Inst.)', inst: true });
   remember(album, 'all');
   const src = album.tracks[at];
-  album.tracks.splice(at + 1, 0, { ...src, songId: song.id, isTitle: false, isrc: '', lyricists: '', featuring: '', explicit: false, splits: { music: src.splits?.music, arrange: src.splits?.arrange } });
+  album.tracks.splice(at + 1, 0, { ...src, songId: song.id, isTitle: false, isrc: '', lyricists: '', koreanLyricists: '', featuring: '', explicit: false, splits: { music: src.splits?.music, arrange: src.splits?.arrange } });
   normalizeAlbum(album);
   album.updatedAt = Date.now();
   schedule(song.id);
@@ -196,6 +201,8 @@ function copySong(id, { suffix = ' (사본)', inst = false } = {}) {
   song.sections.forEach((sec) => { map[sec.id] = uid(); sec.id = map[sec.id]; });
   song.music.sections = Object.fromEntries(Object.entries(song.music.sections || {}).filter(([k]) => map[k]).map(([k, v]) => [map[k], v]));
   Object.values(song.translations || {}).forEach((t) => { t.sections = Object.fromEntries(Object.entries(t.sections || {}).filter(([k]) => map[k]).map(([k, v]) => [map[k], v])); });
+  const ol = song.remake?.originalLyrics;
+  if (ol) ol.sections = Object.fromEntries(Object.entries(ol.sections || {}).filter(([k]) => map[k]).map(([k, v]) => [map[k], v]));
   Object.assign(song, {
     id: uid(),
     title: `${String(src.title || '제목 없음').replace(/^예시:\s*/, '')}${suffix}`,
@@ -213,8 +220,9 @@ function copySong(id, { suffix = ' (사본)', inst = false } = {}) {
     song.sections.forEach((sec) => { sec.text = ''; });
     Object.values(song.music.sections).forEach((sm) => { sm.melody = []; });
     ['translations', 'similarity', 'spelling'].forEach((k) => { delete song[k]; });
+    if (ol) ol.sections = {}; // 가사가 없는 사본 (권리 기록은 원곡 곡을 따른다: remake/model.js remakeOf)
   }
-  normalizeMusic(song);
+  normalizeSong(song);
   state.songs.splice(state.songs.indexOf(src) + 1, 0, song);
   return song;
 }
@@ -232,7 +240,7 @@ export async function applyRestore(plan) {
       } catch { /* 저장 공간이 모자라면 그 버전은 건너뜀 */ }
     }
     song.versions = metas;
-    normalizeMusic(song);
+    normalizeSong(song);
   }
   // 기다리는 동안 상태가 바뀌었을 수 있으니 반영할 때 다시 본다: 이미 있는 id는 넣지 않고, 취향은 지금 기록에 합친다
   const songs = plan.songs.map((x) => x.song).filter((x) => !state.songs.some((s) => s.id === x.id && !s.example));
@@ -265,7 +273,7 @@ export function newAlbum({ fromSong } = {}) {
   const song = fromSong || current();
   if (fromSong) album.title = fromSong.title.replace(/^예시:\s*/, '');
   if (song && (fromSong || !song.example)) {
-    album.tracks.push({ songId: song.id, isTitle: true, isrc: '', lyricists: '', composers: '', arrangers: '', featuring: '', explicit: false });
+    album.tracks.push(prefillTrack({ songId: song.id, isTitle: true, isrc: '', lyricists: '', composers: '', arrangers: '', featuring: '', explicit: false }, song));
     keepSong(song.id);
   }
   state.albums.unshift(album);
@@ -407,7 +415,7 @@ function restoreSnapshot({ item, album }, snap) {
   if (!album) KEEP_DONE.forEach((k) => { if (item.progress?.[k]) data.progress = { ...(data.progress || {}), [k]: true }; });
   Object.keys(item).forEach((k) => { if (!['id', 'versions', 'createdAt'].includes(k)) delete item[k]; });
   Object.assign(item, data, { id: item.id }, album ? {} : { versions: item.versions });
-  if (album) normalizeAlbum(item); else normalizeMusic(item);
+  if (album) normalizeAlbum(item); else normalizeSong(item);
   item.updatedAt = Date.now();
   schedule(item.id);
 }
@@ -434,7 +442,7 @@ export function redo(id = activeId()) { return step(id, redoStacks, undoStacks);
 export function mutateSong(id, fn, scope = 'all') {
   const song = state.songs.find((s) => s.id === id);
   if (!song) return;
-  track(song, scope, (x) => { fn(x); normalizeMusic(x); });
+  track(song, scope, (x) => { fn(x); normalizeSong(x); });
   song.example = false;
   song.updatedAt = Date.now();
   schedule(song.id);

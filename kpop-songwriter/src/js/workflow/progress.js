@@ -3,6 +3,7 @@ import { scoreSong } from '../optimize/lyricscore.js';
 import { INSTRUMENTAL_TYPES } from '../constants.js';
 import { releaseChecklist } from '../album/model.js';
 import { mastersOf, coverOf, songMaster, sessionRev } from '../album/session.js';
+import { remakeOf, adaptSummary } from '../remake/model.js';
 
 export const STEPS = [
   { id: 'concept', name: '컨셉', tab: 'concept' },
@@ -23,11 +24,20 @@ export function songProgress(song, { albums = [], songs = [] } = {}) {
   const set = (id, done, hint) => { const s = steps.find((x) => x.id === id); s.done = done; s.hint = hint; };
 
   set('concept', !!(c.theme.trim() || c.story.trim() || c.keywords.trim()), '주제·스토리·키워드 중 하나를 적어 주세요.');
+  const remake = remakeOf(song, songs);
+  if (remake) set('concept', !!(remake.original.title.trim() && remake.original.artist.trim()), '컨셉 탭에 원곡 제목·아티스트를 적어 주세요.');
 
   const empty = song.sections.filter((s, i) => !INSTRUMENTAL_TYPES.includes(s.type) && !s.text.trim()
     && !song.sections.slice(0, i).some((x) => x.type === s.type && x.text.trim()));
   const score = scoreSong(song).score;
   set('lyrics', !empty.length && score >= 70, empty.length ? `${empty.length}개 섹션이 비어 있어요.` : `가사 점수 ${score}점 — 70점 이상이면 완료로 봐요.`);
+  // 리메이크·커버는 원곡 가사를 그대로 부르니 점수 대신 빈 섹션만, 번안은 줄마다 원곡 음 수와 맞는지로 본다 (D-026)
+  if (remake && !song.instOf && remake.kind !== 'adapt') set('lyrics', !empty.length, empty.length ? `${empty.length}개 섹션이 비어 있어요.` : '');
+  if (remake && !song.instOf && remake.kind === 'adapt') {
+    const a = adaptSummary(song);
+    set('lyrics', a.lines > 0 && !a.missing && !a.off && !a.extra, !a.lines ? '구조·가사 탭에 원곡 가사를 붙여넣어 섹션을 나눠 주세요.'
+      : a.missing ? `한국어 가사가 빈 줄이 ${a.missing}개예요.` : a.off ? `원곡 음 수와 크게 다른 줄이 ${a.off}개예요.` : `원곡보다 많은 줄이 ${a.extra}개예요.`);
+  }
   // 연주곡(Inst.) 버전은 가사·가이드 멜로디가 없는 게 맞다
   if (song.instOf) { set('lyrics', true, ''); set('melody', true, ''); }
 

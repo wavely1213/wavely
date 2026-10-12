@@ -9,6 +9,8 @@ import { titleIssues, placeholderTitle } from './titlecheck.js';
 import { lyricCheckStatus } from './lyriccheck.js';
 import { DEFAULT_TARGET } from '../music/dsp.js';
 import { ALBUM_GENRES, DEFAULT_ALBUM_GENRE, migrateAlbumGenre, platformText, subgenreCount } from './domestic.js';
+import { remakeIssues } from '../remake/checks.js';
+import { remakeOf, remakeCredits } from '../remake/model.js';
 
 export const ALBUM_TYPES = {
   single: { name: '싱글', min: 1, max: 3 },
@@ -81,7 +83,7 @@ export function inheritAlbumInfo(album, prev, year = new Date().getFullYear()) {
 }
 
 export function newTrack(songId) {
-  return { songId, isTitle: false, isrc: '', lyricists: '', composers: '', arrangers: '', featuring: '', explicit: false, splits: {} };
+  return { songId, isTitle: false, isrc: '', lyricists: '', koreanLyricists: '', composers: '', arrangers: '', featuring: '', explicit: false, splits: {} };
 }
 
 export function normalizeAlbum(a) {
@@ -175,6 +177,7 @@ export function releaseChecklist(album, songs, { masters = {}, coverInfo = null,
   else if (!ALBUM_GENRES.includes(album.genre)) add('info', `장르 "${album.genre}"는 국내 등록 분류(${ALBUM_GENRES.join('·')})에 없어요. 유통사 양식에서 고를 수 있는지 확인하세요.`, { tab: 'meta' });
   if (subgenreCount(album.subgenre) > 2) add('info', `세부 장르가 ${subgenreCount(album.subgenre)}개예요. 멜론 등록은 2개까지예요.`, { tab: 'meta' });
 
+  const once = new Set(); // 리메이크·번안 곡마다 같은 안내는 한 번만
   tracks.forEach((t, i) => {
     const song = songs.find((s) => s.id === t.songId);
     const n = `${i + 1}번 「${song.title.replace(/^예시:\s*/, '')}」`;
@@ -224,6 +227,11 @@ export function releaseChecklist(album, songs, { masters = {}, coverInfo = null,
       if (Number.isFinite(m.lufs) && (m.lufs < -18 || m.lufs > -6)) add('warn', `${n}: 음량 ${m.lufs.toFixed(1)} LUFS — 이 앱의 권장 범위(-18~-6)를 벗어났어요.`, { tab: 'tracks' });
       else if (Number.isFinite(m.lufs) && m.lufs < DEFAULT_TARGET - 4) add('info', `${n}: 음량 ${m.lufs.toFixed(1)} LUFS — 음량을 맞추지 않는 재생(벅스 기본 설정 등)에선 다른 곡보다 작게 들려요. 발라드라면 그대로 둬도 돼요.`, { tab: 'tracks' });
     }
+    // 리메이크·번안: 원곡 정보·이용 허락·크레딧 (D-026)
+    remakeIssues(song, t, album, { songs, today }).forEach((x) => {
+      if (!x.go) { if (!once.has(x.text)) { once.add(x.text); add(x.level, x.text); } return; }
+      add(x.level, `${n}: ${x.text}`, x.go);
+    });
   });
 
   // 앨범으로 이어 들을 때 곡마다 크기가 달라지지 않게 (스트리밍 앨범 재생은 곡 사이 음량 차이를 그대로 둔다)
@@ -248,9 +256,20 @@ export function releaseChecklist(album, songs, { masters = {}, coverInfo = null,
 }
 
 // 빈 크레딧을 이름 하나로 채운다 (혼자 만든 경우). 연주곡(Inst.)은 작사가 없으므로 작사는 비워 둔다.
+// 리메이크·번안 곡은 원곡 정보로 채운다 (작곡은 원곡 작곡가, 번안 작사·새 편곡은 이름)
 export function fillCredits(album, songs, name) {
   album.tracks.forEach((t) => {
-    const inst = songs.find((s) => s.id === t.songId)?.instOf;
+    const song = songs.find((s) => s.id === t.songId);
+    const inst = song?.instOf;
+    const remake = remakeOf(song, songs);
+    if (remake) {
+      const c = remakeCredits(remake, name);
+      if (!t.lyricists && !inst) t.lyricists = c.lyricists;
+      if (!t.koreanLyricists && !inst) t.koreanLyricists = c.koreanLyricists;
+      if (!t.composers) t.composers = c.composers;
+      if (!t.arrangers) t.arrangers = c.arrangers;
+      return;
+    }
     if (!t.lyricists && !inst) t.lyricists = name;
     if (!t.composers) t.composers = name;
     if (!t.arrangers) t.arrangers = name;

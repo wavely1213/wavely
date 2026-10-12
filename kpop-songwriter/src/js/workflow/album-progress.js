@@ -3,14 +3,17 @@ import { releaseChecklist, daysUntil } from '../album/model.js';
 import { plainLyrics } from '../album/lyrics.js';
 import { syncStatus } from '../album/lrc.js';
 import { migrateAlbumGenre } from '../album/domestic.js';
+import { remakeOf, remakeKey } from '../remake/model.js';
 
 const clean = (t) => String(t || '').replace(/^예시:\s*/, '');
 
-// 곡에서 패키지에 들어가는 것: 제목(파일 이름·메타데이터), 가사 .txt, 싱크 .lrc 시간 (맞출 때마다 바뀌는 at은 빼고)
-function songKey(s) {
+// 곡에서 패키지에 들어가는 것: 제목(파일 이름·메타데이터), 가사 .txt, 싱크 .lrc 시간 (맞출 때마다 바뀌는 at은 빼고),
+// 리메이크·번안 곡이면 원곡 정보·이용 허락(크레딧·rights.csv) — 없는 곡은 예전 지문 그대로
+function songKey(s, songs) {
   if (!s) return null;
   const sync = syncStatus(s) === 'ok' ? [s.sync.lines.map((l) => l.t), s.sync.duration ?? null] : null;
-  return [clean(s.title), plainLyrics(s), sync];
+  const remake = remakeOf(s, songs);
+  return [clean(s.title), plainLyrics(s), sync, ...(remake ? [remakeKey(remake)] : [])];
 }
 
 // 제출 패키지에 들어가는 것의 지문: 받은 뒤 이게 바뀌면 다시 받아야 한다 (v0.92부터 인디 표시 포함)
@@ -24,7 +27,7 @@ export function v91Key(album, songs = [], { masters = {}, coverInfo = null } = {
     album.title, album.artist, album.releaseDate, album.type, album.cLine, album.pLine, album.upc,
     album.genre, album.subgenre, ...extra, album.language, album.label, !!album.explicit, album.ai || null, album.description,
     album.tracks.map((t) => [t.songId, t.isTitle, t.isrc, t.lyricists, t.composers, t.arrangers, t.featuring, t.explicit, t.splits || {}, masters[t.songId] ? [masters[t.songId].name, Math.round(masters[t.songId].duration || 0)] : null,
-      songKey(songs.find((x) => x.id === t.songId))]),
+      songKey(songs.find((x) => x.id === t.songId), songs), ...(t.koreanLyricists ? [t.koreanLyricists] : [])]),
     coverInfo ? [coverInfo.width, coverInfo.height, coverInfo.name || '', coverInfo.drawnWith || null, coverInfo.blob?.size ?? null, coverInfo.blob?.type || ''] : null,
   ]);
 }

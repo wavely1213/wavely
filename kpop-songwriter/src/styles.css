@@ -397,6 +397,19 @@ input[type=radio] { accent-color: var(--accent); }
 .tr-src, .tr-dst { min-width: 0; overflow-wrap: anywhere; }
 .tr-kana { display: block; }
 @media (max-width: 640px) { .tr-row { grid-template-columns: 1fr; gap: 0; padding-bottom: 6px; } .tr-dst { padding-left: 10px; border-left: 2px solid var(--line); } }
+input.tr-kana { width: 100%; margin-top: 2px; }
+
+/* 리메이크·번안: 원곡·이용 허락 */
+.card h3 { margin: 6px 0 0; font-size: 0.95rem; font-weight: 700; }
+.consent-list { display: grid; gap: 6px; }
+.consent-row { display: grid; grid-template-columns: minmax(7em, 1.2fr) minmax(6em, 1fr) minmax(8em, 1fr) minmax(8em, 1fr) minmax(0, 2fr); gap: 8px; align-items: center; font-size: 14px; }
+.consent-row > * { min-width: 0; }
+@media (max-width: 640px) {
+  .consent-row { grid-template-columns: 1fr 1fr; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+  .consent-head { display: none; }
+  .consent-name { grid-column: 1 / -1; font-weight: 600; }
+  .consent-row input:last-child { grid-column: 1 / -1; }
+}
 
 /* 스타일 변형 */
 .variants { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }

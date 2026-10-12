@@ -1,6 +1,7 @@
 // 가사집(디지털 부클릿): 커버·트랙 목록·곡마다 가사·크레딧을 인쇄용 HTML 한 장으로. 브라우저에서 열어 PDF로 인쇄한다.
 import { ALBUM_TYPES } from './model.js';
 import { plainLyrics } from './lyrics.js';
+import { remakeOf } from '../remake/model.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const clean = (t) => String(t || '').replace(/^예시:\s*/, '');
@@ -8,8 +9,10 @@ const clean = (t) => String(t || '').replace(/^예시:\s*/, '');
 // coverDataUrl: 'data:image/jpeg;base64,...' 또는 '' (없으면 글자 표지)
 export function bookletHtml(album, songs, coverDataUrl = '') {
   const tracks = album.tracks.map((t) => ({ t, s: songs.find((x) => x.id === t.songId) })).filter((x) => x.s);
-  const credit = (t) => [
+  const credit = (t, s) => [
+    remakeOf(s, songs) && `원곡 「${esc(remakeOf(s, songs).original.title)}」 ${esc(remakeOf(s, songs).original.artist)}`,
     t.lyricists && `작사 ${esc(t.lyricists)}`,
+    !s.instOf && t.koreanLyricists && `한국어 가사 ${esc(t.koreanLyricists)}`,
     t.composers && `작곡 ${esc(t.composers)}`,
     t.arrangers && `편곡 ${esc(t.arrangers)}`,
     t.featuring && `Feat. ${esc(t.featuring)}`,
@@ -49,7 +52,7 @@ export function bookletHtml(album, songs, coverDataUrl = '') {
 </section>
 ${tracks.map(({ t, s }, i) => `<section class="page lyrics">
   <h2>${i + 1}. ${esc(clean(s.title))}</h2>
-  <div class="credit">${credit(t)}</div>
+  <div class="credit">${credit(t, s)}</div>
   ${lyricHtml(s) || '<p class="sub">(연주곡)</p>'}
 </section>`).join('\n')}
 <section class="page tail">

@@ -36,6 +36,13 @@ function guide(song) {
     '2. 원하는 가상 악기로 바꾸고, 가이드 멜로디 트랙을 보고 보컬을 녹음하거나 보컬 신스를 쓴다.',
     '3. Suno 결과물의 스템(보컬 분리 등)을 함께 쓰면 믹싱 자유도가 높아진다.',
     '',
+    ...(song.remake ? [
+      '[커버·번안 곡]',
+      '- Suno에 올리는 가사·오디오는 모든 권리를 가졌다고 보증해야 하고(모델 학습 포함), Cover 기능은 본인이 만든 곡에만 쓴다. 원곡 음원·원곡 가사는 올리지 않는다.',
+      '- 남의 곡으로 만든 Suno 결과는 수익화할 수 없다. 허락받은 곡이어도 Suno 음원으로 상업 발매하기 어려우니, demo.wav는 허락 신청용 데모로 쓰고 서면 허락 뒤 사람이 녹음한다.',
+      '- 원곡 가사는 이 패키지(project.json)에 넣지 않았다.',
+      '',
+    ] : []),
     '[발매 전 확인]',
     '- Suno로 만든 음원의 상업적 이용 조건은 생성 당시 요금제와 Suno 약관을 따른다. 발매 전에 최신 약관을 확인하세요.',
     '- 레퍼런스 곡의 멜로디·가사를 그대로 쓰지 않았는지 확인하세요.',
@@ -64,6 +71,8 @@ export async function buildPackage(song, { includeWav, lyricOpts, onStep }) {
     files.push({ name: `${name}/demo.wav`, data: encodeWav(buf) });
   }
   const { versions, memo, ...project } = song; // 작업 메모는 나만 보는 것이라 공유하는 패키지엔 넣지 않음
+  // 원곡 가사는 남에게 주는 zip에 넣지 않는다 (기기에만, D-026). 음 수 비교는 받은 쪽에서 다시 붙여넣는다
+  if (project.remake) project.remake = { ...project.remake, originalLyrics: { lang: project.remake.originalLyrics?.lang || 'ja', sections: {} } };
   files.push({ name: `${name}/project.json`, data: JSON.stringify(project, null, 1) });
   files.push({ name: `${name}/README.txt`, data: guide(song) });
   return { blob: zip(files), filename: `${name}.zip` };

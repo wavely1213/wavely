@@ -62,6 +62,11 @@ function fakeClaude() {
         return n ? { text: `テスト${'ラ'.repeat(n)}`.slice(0, n), kana: `てすと${'ら'.repeat(n)}`.slice(0, n) } : { text: '(オー)', kana: '(おー)' };
       }) })) };
     }
+    if (p.includes('K-pop 개사 작가')) {
+      // 원곡 줄마다 가짜 한국어 번안 + 원곡 읽기(kana)
+      const src = JSON.parse(p.split('\n\n원곡: ')[1].split('\n')[0]);
+      return { sections: src.map((s) => ({ id: s.id, lines: s.줄.map((l, i) => ({ ko: `가짜 번안 ${i + 1}`, kana: 'ゆきのはな' })) })) };
+    }
     if (p.includes('음악 저작권 검토')) {
       const first = (p.split('가사 (줄마다):\n')[1] || '').split('\n')[0].replace(/^- /, '');
       return { summary: '가짜 점검 요약', items: [{ line: first, like: '가짜 곡 - 가짜 가수', why: '훅 구절이 같음', level: 'high', fix: '가짜 새 줄 signal' }, { line: '가사에 없는 줄', like: 'x', why: 'x', level: 'check', fix: 'x' }] };
@@ -405,10 +410,30 @@ function fakeClaude() {
   await p.screenshot({ path: path.join(TMP, 'stats.png'), fullPage: true });
   results.saved = await p.evaluate(() => window.__saved);
 
+  // 번안 곡 (D-026): 리메이크·번안 곡 → 원곡 가사 붙여넣기 → AI 번안 초안(빈 섹션만, 똑같은 반복 후렴은 비워 둠) → AI 사용 기록
+  await p.click('#new-remake');
+  await p.waitForSelector('#remake-rights');
+  await p.fill('#orig-title', '雪の華');
+  await p.click('.tab:text-is("구조·가사")');
+  await p.fill('#remake-paste', '[Aメロ]\n君の手を\nにぎりしめて\n\n[サビ]\n雪の華\nふたりで\n\n[サビ]\n雪の華\nふたりで');
+  await p.click('#remake-split');
+  await p.waitForSelector('#adapt-table');
+  await p.click('#adapt-run');
+  await p.waitForFunction(() => [...document.querySelectorAll('textarea.lyrics')].some((t) => t.value.includes('가짜 번안')));
+  const adaptPrompt = (await prompts()).filter((x) => x.includes('K-pop 개사 작가')).pop();
+  results.adapt = {
+    filled: await p.$$eval('textarea.lyrics', (els) => els.map((e) => e.value)),
+    prompt: adaptPrompt.includes('"음수":2') && adaptPrompt.includes('(비어 있음)') && adaptPrompt.includes('±1') && !adaptPrompt.includes('번안 작사가'),
+    kana: await p.inputValue('input.tr-kana >> nth=0'),
+  };
+  await p.click('.tab:text-is("컨셉·멤버")');
+  results.adapt.aiChecked = await p.isChecked('#remake-ai');
+
   console.log(JSON.stringify(results, null, 1));
   const ok = results.trendRow && results.lineSwap && results.lyricsApplied && results.review && results.improve.length > 0 && results.improve.every((t) => t.includes('반영')) && results.arrangeKey.includes('A minor') && results.melodyNotes === 3 && results.styleBpm === '140' && results.styleKorean && Object.values(results.domesticPrompts).every(Boolean) && results.variantRules
     && results.editRecorded && results.tasteLog.some((x) => x.startsWith('lyrics:-1(유치해요)')) && results.tasteLog.includes('hook:1') && results.lineLiked === 1 && results.similarCount === 1 && results.similarFixed && results.trOff === 1 && results.trLyrics && results.trStyle && results.variantCount === 3 && results.variantChosen.join() === 'B' && results.variantStyle === 'bright synth-pop' && results.variantPair && results.orderTracks >= 2 && results.orderApplied && results.orderUndo && results.statLearn.startsWith('arrange') && results.ideasPromptHint && results.melodyEdit && results.melodyEditUndo && results.melodyEditRedo && results.melodyEditPrompt && results.pitch && results.spellCount === 2 && results.spellApplied && results.ideaTitle === '가짜 컨셉 둘' && results.ideaTheme === '둘 주제' && results.ideaKeywords === '밤, 거울, Mirror' && results.ideaMoods === '몽환,다크' && results.tasteLog.includes('arrange:1')
-    && results.tasteLog.includes('melody:1') && results.promptHasTaste && results.profileRevert && results.melodyLikedPitch && results.lyricEditRevert && results.lyricEditUndo && results.promo && results.draft.arranged && results.draft.bpm === 128 && results.draft.styleBpm === 128 && results.draft.styleKey === 'A minor' && results.draft.melodySections > 0 && results.draft.melodyCopied && results.draft.lyrics.split('/')[0] === results.draft.lyrics.split('/')[1] && results.keptBridge === '언젠가 너도 이 밤을 보면\n같은 불빛을 찾게 될 거야' && results.melodyPromptRange && results.raceA === 133 && results.raceB === 120 && results.saved.includes('taste-feedback.zip') && !errs.length;
+    && results.tasteLog.includes('melody:1') && results.promptHasTaste && results.profileRevert && results.melodyLikedPitch && results.lyricEditRevert && results.lyricEditUndo && results.promo && results.draft.arranged && results.draft.bpm === 128 && results.draft.styleBpm === 128 && results.draft.styleKey === 'A minor' && results.draft.melodySections > 0 && results.draft.melodyCopied && results.draft.lyrics.split('/')[0] === results.draft.lyrics.split('/')[1] && results.keptBridge === '언젠가 너도 이 밤을 보면\n같은 불빛을 찾게 될 거야' && results.melodyPromptRange && results.raceA === 133 && results.raceB === 120 && results.saved.includes('taste-feedback.zip')
+    && results.adapt.filled.length === 3 && results.adapt.filled[0] === '가짜 번안 1\n가짜 번안 2' && results.adapt.filled[2] === '' && results.adapt.prompt && results.adapt.kana === 'ゆきのはな' && results.adapt.aiChecked && !errs.length;
   if (errs.length) console.log('ERRORS', errs);
   console.log(ok ? 'ai OK' : 'ai FAILED');
   if (!ok) process.exitCode = 1;

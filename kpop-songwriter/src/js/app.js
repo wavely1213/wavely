@@ -94,6 +94,7 @@ function renderSidebar() {
           h('span', { class: 'song-meta mono' }, s.example ? '예시' : `${progressCount(s, st)}/${STEPS.length}단계 · ${formatTime(s.updatedAt)}`))));
     })),
     find.field ? find.none : null,
+    h('button', { type: 'button', class: 'btn small ghost', id: 'new-remake', title: '외국곡 번안·리메이크·커버: 원곡 정보와 이용 허락을 기록하며 만들어요', onclick: pick(() => newSong({ remake: 'adapt' })) }, '+ 리메이크·번안 곡'),
     h('div', { class: 'side-head' }, h('span', { class: 'field-label' }, '앨범·발매'),
       h('button', { type: 'button', class: 'btn small', onclick: pick(() => newAlbum()) }, '+ 새 앨범')),
     st.albums.length

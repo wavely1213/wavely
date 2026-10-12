@@ -64,6 +64,7 @@
 | 발매 준비 | album/release.js, album/session.js | 마스터 규격 점검, 가사지·크레딧, 제출 zip, AI 홍보 문구 |
 | 앨범 화면 | views/album/* | 수록곡·정보·커버·싱크 가사·일정·홍보·제출 탭 |
 | 번안 가사 | translate/mora.js, translate/translate.js, views/translate.js | 일본어·영어 버전: 줄 수·음 수(음절·모라)를 원문에 맞춘 AI 번안, 원문 비교, Suno용 가사·스타일 |
+| 리메이크·번안 곡 | remake/model.js, remake/checks.js, remake/adapt.js, views/remake.js | 원곡 정보·이용 허락 기록, 원곡 가사 나누기·음 수 비교, AI 번안 초안(외국어 → 한국어), 발매 점검 항목·원곡 크레딧·rights.csv (D-026) |
 | 맞춤법 점검 | optimize/spelling.js, views/spelling.js | AI가 확실히 틀린 맞춤법·띄어쓰기만(노래 말투 제외), 하나씩·모두 고치기, 가사 변경 감지 |
 | 줄 점검 공통 | optimize/linecheck.js | AI가 짚은 줄을 실제 가사 줄에 맞추기, 상태(none/stale/flagged/clear), 줄 바꾸기 |
 | 유사 표현 점검 | optimize/similarity.js, views/similarity.js | AI가 유명 곡과 비슷한 줄을 짚음(참고용), 제안으로 바꾸기·괜찮음 표시, 가사 변경 감지 |

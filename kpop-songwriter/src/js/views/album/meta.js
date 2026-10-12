@@ -5,6 +5,7 @@ import { help } from '../../help.js';
 import { splitsFor } from '../../album/splits.js';
 import { fillCredits } from '../../album/model.js';
 import { ALBUM_GENRES } from '../../album/domestic.js';
+import { remakeOf, REMAKE_KINDS } from '../../remake/model.js';
 
 const LANGUAGES = ['한국어', '영어', '한국어·영어', '일본어', '연주곡(가사 없음)'];
 
@@ -43,12 +44,15 @@ export function renderMeta(album) {
     if (!song) return null;
     const rerender = afterBlur(refresh); // 이름이 바뀌면 지분 칸이 생기거나 사라짐 (저장은 입력 때 이미 함, 빈 되돌리기 단계를 만들지 않게)
     const set = (k) => (e) => mutateAlbum((a) => { a.tracks[i][k] = e.target.type === 'checkbox' ? e.target.checked : e.target.value; }, e.target.type === 'checkbox' ? 'all' : 'quiet');
+    const remake = remakeOf(song, songs);
     return h('article', { class: 'section' },
       h('header', { class: 'section-head' }, h('span', { class: 'tag mono' }, String(i + 1).padStart(2, '0')), h('strong', null, song.title)),
+      remake ? h('p', { class: 'muted small' }, `${REMAKE_KINDS[remake.kind].name} · 원곡 「${remake.original.title || '-'}」 ${remake.original.artist || ''} — 원 작사 ${remake.original.lyricists || '-'}, 원 작곡 ${remake.original.composers || '-'}. 표기는 허락서에 적힌 대로 따라요.`) : null,
       h('div', { class: 'grid2' },
         field('작사', h('input', { id: `lyr-${t.songId}`, value: t.lyricists, placeholder: '실명 또는 활동명, 여러 명은 쉼표', oninput: set('lyricists'), onchange: rerender })),
         field('작곡', h('input', { id: `com-${t.songId}`, value: t.composers, placeholder: '쉼표로 구분', oninput: set('composers'), onchange: rerender })),
         field('편곡', h('input', { id: `arr-${t.songId}`, value: t.arrangers, placeholder: '쉼표로 구분', oninput: set('arrangers'), onchange: rerender })),
+        remake?.kind === 'adapt' && !song.instOf ? field('한국어 가사 (번안 작사)', h('input', { id: `kolyr-${t.songId}`, value: t.koreanLyricists, placeholder: '번안한 사람. 작사 칸에도 같이 적어요', oninput: set('koreanLyricists') })) : null,
         field('피처링 (선택)', h('input', { id: `feat-${t.songId}`, value: t.featuring, oninput: set('featuring') })),
         field(['ISRC (유통사 발급 후) ', help('isrc')], h('input', { id: `isrc-${t.songId}`, class: 'mono', value: t.isrc, placeholder: 'KRA0X2600001', oninput: set('isrc') }))),
       h('div', { class: 'row' }, h('label', { class: 'check' }, h('input', { type: 'checkbox', id: `exp-${t.songId}`, checked: t.explicit, onchange: set('explicit') }), '19금(Explicit) 가사'), help('explicit')),

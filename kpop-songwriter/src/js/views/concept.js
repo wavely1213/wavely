@@ -7,6 +7,8 @@ import { isBusy, runJob, stopJob, job } from '../aijob.js';
 import { GROUP_TYPES, MOODS, POSITIONS } from '../constants.js';
 import { VOICE_RANGES, defaultVoice, midiName } from '../music/range.js';
 import { memberSources, importMembers } from '../members.js';
+import { renderRemakeRights } from './remake.js';
+import { remakeOf } from '../remake/model.js';
 
 export function renderConcept(song) {
   const c = song.concept;
@@ -33,8 +35,11 @@ export function renderConcept(song) {
 
   const ready = !!(c.theme.trim() || c.story.trim() || c.keywords.trim());
   const busy = isBusy();
+  // 리메이크·번안 곡은 원곡이 있으므로 AI 초안·아이디어 대신 원곡·이용 허락 기록 (D-026)
+  const remake = remakeOf(song, getState().songs);
   return h('div', { class: 'stack' },
-    h('section', { class: 'card draft-card' },
+    remake ? renderRemakeRights(song) : null,
+    remake ? null : h('section', { class: 'card draft-card' },
       h('div', { class: 'card-head' },
         h('h2', null, 'AI로 곡 초안 한 번에'),
         h('div', { class: 'row' },
@@ -47,7 +52,7 @@ export function renderConcept(song) {
       h('p', { class: 'muted' }, ready
         ? '아래 컨셉으로 빈 섹션 가사 → 편곡 → 멜로디 → Suno 스타일을 차례로 채워요. 이미 쓴 가사는 그대로 둬요. 몇 분 걸리고, 중간에 멈춰도 거기까지는 남아요.'
         : '먼저 아래에 주제·스토리·키워드 중 하나를 적어 주세요. 그걸로 가사부터 멜로디까지 초안을 만들어요.')),
-    renderIdeas(song, busy),
+    remake ? null : renderIdeas(song, busy),
     h('section', { class: 'card' },
       h('h2', null, '곡 컨셉'),
       h('div', { class: 'grid2' },

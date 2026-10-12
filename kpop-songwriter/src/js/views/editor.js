@@ -15,6 +15,7 @@ import { applyTemplateDefaults } from '../music/arrangement.js';
 import { renderSimilarity } from './similarity.js';
 import { renderSpelling } from './spelling.js';
 import { lineSwapButton, lineSwapPanel } from './lineswap.js';
+import { renderOriginalLyrics } from './remake.js';
 
 // AI가 마지막으로 쓴 섹션 가사 (취향 학습용, 저장하지 않음): sectionId → { text, gen }
 const aiOrigin = {};
@@ -33,6 +34,7 @@ export function renderEditor(song) {
   const scores = scoreSong(song);
   const byId = Object.fromEntries(scores.sections.map((s) => [s.id, s.result]));
   return h('div', { class: 'stack' },
+    renderOriginalLyrics(song),
     renderToolbar(song, m),
     renderScore(song, m, scores),
     renderShare(song),

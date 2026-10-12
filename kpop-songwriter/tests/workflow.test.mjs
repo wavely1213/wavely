@@ -177,3 +177,30 @@ import { setMaster, setCover } from '../src/js/album/session.js';
   assert.equal(progressCount(a, ctx), truth());
   console.log('progress count cache OK');
 }
+
+// 리메이크·번안 곡의 진행 단계 (D-026): 컨셉은 원곡 정보, 가사는 리메이크·커버는 빈 섹션만, 번안은 원곡 음 수와 맞는지
+{
+  const { newRemake, applyOriginalLyrics, parseOriginalLyrics } = await import('../src/js/remake/model.js');
+  const r = normalizeMusic(exampleSong());
+  r.example = false;
+  r.remake = newRemake('adapt');
+  const step = (id) => songProgress(r, { albums: [], songs: [r] }).steps.find((s) => s.id === id);
+  assert.equal(step('concept').done, false, '원곡 정보가 없으면 컨셉 미완료 (주제가 있어도)');
+  assert.ok(step('concept').hint.includes('원곡 제목'));
+  Object.assign(r.remake.original, { title: '雪の華', artist: '中島美嘉' });
+  assert.equal(step('concept').done, true);
+  assert.equal(step('lyrics').done, false);
+  assert.ok(step('lyrics').hint.includes('원곡 가사를 붙여넣어'));
+  applyOriginalLyrics(r, parseOriginalLyrics('[Aメロ]\nゆきのはな\nふたりで'));
+  normalizeMusic(r);
+  assert.ok(step('lyrics').hint.includes('빈 줄이 2개'));
+  r.sections[0].text = '눈꽃 하나\n가'; // 5·4 모라에 4·1음절
+  assert.ok(step('lyrics').hint.includes('크게 다른 줄이 1개'));
+  r.sections[0].text = '눈꽃 하나\n둘이서';
+  assert.equal(step('lyrics').done, true);
+  r.sections[0].text = '눈꽃 하나\n둘이서\n한 줄 더';
+  assert.ok(step('lyrics').hint.includes('원곡보다 많은 줄이 1개'));
+  r.remake.kind = 'cover';
+  assert.equal(step('lyrics').done, true, '커버는 점수 대신 빈 섹션만 본다');
+  console.log('remake progress OK');
+}
