@@ -34,7 +34,7 @@ export const GENRE_PROFILES = {
       Intro: S(4, 1, ['piano'], 'none', 'long', 'ballad', 'dark'),
       Verse: S(8, 2, ['piano', 'bass'], 'none', 'long', 'ballad', 'dark'),
       'Pre-Chorus': S(4, 3, ['piano', 'bass', 'strings'], 'none', 'long', 'chain', 'rise_m'),
-      Chorus: S(8, 4, ['drums', 'bass', 'piano', 'strings', 'pad'], 'ballad', 'long', 'royal8', 'sad'),
+      Chorus: S(8, 4, ['drums', 'bass', 'piano', 'strings', 'pad'], 'ballad', 'long', 'ballad44m', 'circle_m'), // 4-4m-3-6 (B01), 단조는 V7로 마치는 순환 (P19)
       'Post-Chorus': S(4, 3, ['drums', 'bass', 'piano', 'strings'], 'ballad', 'long', 'royal', 'sad'),
       Rap: S(8, 2, ['drums', 'bass', 'piano'], 'ballad', 'long', 'ballad', 'dark'),
       Bridge: S(8, 3, ['piano', 'strings', 'pad', 'bass'], 'none', 'long', 'circle', 'bridge4236_m'),
@@ -64,7 +64,7 @@ export const GENRE_PROFILES = {
       Intro: S(4, 3, ['drums', 'bass', 'piano', 'pad'], 'funk', 'sync', 'lilac', 'view'),
       Verse: S(8, 2, ['drums', 'bass', 'piano'], 'funk', 'sync', 'lilac', 'view'),
       'Pre-Chorus': S(4, 3, ['drums', 'bass', 'pad', 'strings'], 'funk', 'sync', 'build', 'rise_m'),
-      Chorus: S(8, 4, ['drums', 'bass', 'piano', 'pad', 'strings', 'guitar'], 'funk', 'octave', 'citypop', 'view'),
+      Chorus: S(8, 4, ['drums', 'bass', 'piano', 'pad', 'strings', 'guitar'], 'funk', 'octave', 'marusa', 'view'), // 4-III7-6-1 (P14)
       'Post-Chorus': S(4, 4, ['drums', 'bass', 'piano', 'guitar'], 'funk', 'octave', 'citypop', 'view'),
       Rap: S(8, 3, ['drums', 'bass', 'piano'], 'funk', 'sync', 'lilac', 'view'),
       Bridge: S(4, 3, ['piano', 'pad', 'strings', 'bass'], 'none', 'long', 'dreamy', 'bridge4236_m'),

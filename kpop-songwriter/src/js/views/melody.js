@@ -3,7 +3,7 @@
 import { h } from '../dom.js';
 import { mutate, mutateSong, refresh } from '../state.js';
 import { sectionLabels, sungText } from '../structure.js';
-import { degreeToMidi, NOTE_NAMES } from '../music/theory.js';
+import { degreeToMidi, NOTE_NAMES, chordPitchClasses } from '../music/theory.js';
 import { countSyllables, syllableTokens } from '../lyrictools.js';
 import { writeMelody } from '../ai-music.js';
 import { isBusy, runJob, stopJob, job } from '../aijob.js';
@@ -168,11 +168,12 @@ function renderRoll(song, s, sm) {
   // 마디마다 코드톤 줄을 연하게 칠한다 ("이 줄 음은 잘 어울려요")
   const shades = [];
   for (let bar = 0; bar < sm.bars; bar++) {
-    const deg = sm.chords[bar % sm.chords.length] - 1;
+    // 코드 구성음과 같은 음이름인 줄 (음계 밖 화음이면 음계에 있는 구성음만 칠해진다)
+    const pcs = chordPitchClasses(mu.root, mu.mode, sm.chords[bar % sm.chords.length]);
     for (let d = BOTTOM; d <= TOP; d++) {
-      const rel = (((d - deg) % 7) + 7) % 7;
-      if (rel === 0 || rel === 2 || rel === 4) {
-        shades.push(h('span', { class: `shade${rel === 0 ? ' root' : ''}`, style: `left:${bar * 16 * CELL_W}px;top:${(TOP - d) * CELL_H}px;width:${16 * CELL_W}px;height:${CELL_H}px` }));
+      const pc = ((degreeToMidi(mu.root, mu.mode, d) % 12) + 12) % 12;
+      if (pcs.includes(pc)) {
+        shades.push(h('span', { class: `shade${pc === pcs[0] ? ' root' : ''}`, style: `left:${bar * 16 * CELL_W}px;top:${(TOP - d) * CELL_H}px;width:${16 * CELL_W}px;height:${CELL_H}px` }));
       }
     }
   }

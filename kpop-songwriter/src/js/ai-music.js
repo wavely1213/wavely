@@ -1,7 +1,7 @@
 // Claude에게 편곡·멜로디를 맡기는 호출. 결과는 앱이 쓰는 형식으로 검사해서만 반영한다.
 import { getSample } from './ai.js';
 import { sectionLabels, sungText } from './structure.js';
-import { chordName, keyName, NOTE_NAMES } from './music/theory.js';
+import { chordName, keyName, NOTE_NAMES, isChord, isDiatonic, parseChord, chordPitchClasses, degreeToMidi } from './music/theory.js';
 import { ARRANGE_INSTRUMENTS } from './music/instruments.js';
 import { DRUM_PATTERNS, BASS_PATTERNS } from './music/patterns.js';
 import { describeAnalysis } from './music/analyze.js';
@@ -63,7 +63,8 @@ export async function arrangeSong(song, { targetIds, request, signal }) {
     `악기 id: ${ARRANGE_INSTRUMENTS.map((i) => `${i.id}(${i.name})`).join(', ')}`,
     `드럼 id: none(드럼 없음), ${Object.entries(DRUM_PATTERNS).map(([k, v]) => `${k}(${v.name})`).join(', ')}`,
     `베이스 id: ${Object.entries(BASS_PATTERNS).map(([k, v]) => `${k}(${v.name})`).join(', ')}`,
-    'chords는 스케일 도수 1~7 배열(마디마다 하나, 마디 수보다 짧으면 반복). energy는 1(조용)~5(폭발). bars는 2~16, 4의 배수 권장.',
+    "chords는 마디마다 하나(마디 수보다 짧으면 반복). 음계 안 화음은 스케일 도수 숫자 1~7. 음계 밖 화음은 글자로: '4m'(그 도수의 단3화음, 장조의 iv), '5M'(그 도수의 장3화음, 단조의 V·IV·I), '3d7'(그 도수의 도미넌트7, III7·VI7·II7·단조의 V7), 'b7M'(반음 내린 도수의 장3화음, 장조의 ♭VII·♭VI, 단조의 ♭II). 음계 밖 화음은 아래 장르별 진행과 프리셋에 있는 것만 쓴다." +
+    ' energy는 1(조용)~5(폭발). bars는 2~16, 4의 배수 권장.',
     ARRANGE_RULES,
     GENRE_CHORDS,
     presetBrief(),
@@ -92,7 +93,8 @@ export async function arrangeSong(song, { targetIds, request, signal }) {
     .map((x) => ({
       id: String(x.id),
       bars: int(x.bars, 1, 16, 4),
-      chords: (Array.isArray(x.chords) ? x.chords : []).map((d) => int(d, 1, 7, 1)).slice(0, 16),
+      // 음계 안 화음은 숫자 1~7, 음계 밖 화음은 정해진 글자('4m'·'5M'·'3d7'·'b7M')만 받는다
+      chords: (Array.isArray(x.chords) ? x.chords : []).map((d) => (typeof d === 'string' && isChord(d.trim()) ? d.trim() : int(d, 1, 7, 1))).slice(0, 16),
       seventh: !!x.seventh,
       energy: int(x.energy, 1, 5, 3),
       instruments: (Array.isArray(x.instruments) ? x.instruments : []).map(String).filter((i) => instIds.includes(i)),
@@ -127,8 +129,15 @@ export async function writeMelody(song, { targetIds, request, signal }) {
       마디수: sm.bars,
       총칸수: sm.bars * 16,
       마디별코드: Array.from({ length: sm.bars }, (_, b) => {
-        const d = sm.chords[b % sm.chords.length];
-        return `${b + 1}마디 ${chordName(m.root, m.mode, d, sm.seventh)} (도수${d}, 코드톤 인덱스 ${[d - 1, d + 1, d + 3].join('/')})`;
+        const c = sm.chords[b % sm.chords.length];
+        if (isDiatonic(c)) {
+          const d = parseChord(c).d;
+          return `${b + 1}마디 ${chordName(m.root, m.mode, c, sm.seventh)} (도수${d}, 코드톤 인덱스 ${[d - 1, d + 1, d + 3].join('/')})`;
+        }
+        // 음계 밖 화음: 음계에 있는 구성음의 인덱스만 (멜로디는 음계 안 음만 쓴다)
+        const pcs = chordPitchClasses(m.root, m.mode, c);
+        const idx = [0, 1, 2, 3, 4, 5, 6].filter((i) => pcs.includes(((degreeToMidi(m.root, m.mode, i) % 12) + 12) % 12));
+        return `${b + 1}마디 ${chordName(m.root, m.mode, c, sm.seventh)} (음계 밖 화음, 어울리는 음 인덱스 ${idx.join('/') || '없음'}, 옥타브마다 ±7)`;
       }),
       // 비워 둔 반복 섹션은 앞 섹션 가사를 다시 부른다 (허밍이 아니라)
       가사줄: sungText(song.sections, i).split('\n').map((l) => l.trim()).filter(Boolean).map((l) => ({ 가사: l, 음절수: countSyllables(l) })),

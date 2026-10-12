@@ -7,7 +7,7 @@ const arranged = (fn) => (x) => { fn(x); x.progress = { ...(x.progress || {}), a
 const mutate = (fn, scope) => baseMutate(arranged(fn), scope);
 const mutateSong = (id, fn, scope) => baseMutateSong(id, arranged(fn), scope);
 import { sectionLabels } from '../structure.js';
-import { NOTE_NAMES, MODE_LABEL, PROGRESSIONS, DEGREE_FEEL, chordName, findProgression, tempoWord, keyName } from '../music/theory.js';
+import { NOTE_NAMES, MODE_LABEL, PROGRESSIONS, chordName, chordFeel, isDiatonic, findProgression, tempoWord, keyName } from '../music/theory.js';
 import { ARRANGE_INSTRUMENTS, INSTRUMENT_BY_ID } from '../music/instruments.js';
 import { DRUM_PATTERNS, BASS_PATTERNS, DRUM_ROWS, cloneGrid } from '../music/patterns.js';
 import { QUICK_TWEAKS, applyGenreDefaults } from '../music/arrangement.js';
@@ -127,11 +127,12 @@ function renderSectionRow(song, s, label, m) {
   const set = (fn) => mutate((x) => fn(x.music.sections[s.id]));
   const prog = findProgression(mu.mode, sm.chords);
 
+  // 칩은 음계 안 1~7을 고르고, 프리셋으로 들어온 음계 밖 화음(4m·III7 등)은 그 칩에만 같이 보여 준다 (D-025)
   const chordChips = sm.chords.map((d, ci) => h('select', {
     class: 'chord', id: `ch-${s.id}-${ci}`, 'aria-label': `${ci + 1}번째 코드`,
-    onchange: (e) => set((x) => { x.chords[ci] = Number(e.target.value); }),
-  }, [1, 2, 3, 4, 5, 6, 7].map((deg) => h('option', { value: String(deg), selected: deg === d },
-    `${chordName(mu.root, mu.mode, deg, sm.seventh)} · ${DEGREE_FEEL[mu.mode][deg - 1]}`))));
+    onchange: (e) => set((x) => { const v = e.target.value; x.chords[ci] = /^[1-7]$/.test(v) ? Number(v) : v; }),
+  }, [...(isDiatonic(d) ? [] : [d]), 1, 2, 3, 4, 5, 6, 7].map((c) => h('option', { value: String(c), selected: c === d },
+    `${chordName(mu.root, mu.mode, c, sm.seventh)} · ${chordFeel(mu.mode, c)}`))));
 
   const energy = h('div', { class: 'energy', role: 'group', 'aria-label': '에너지' },
     [1, 2, 3, 4, 5].map((n) => h('button', {

@@ -45,7 +45,7 @@
 | 앱 셸 | src/js/app.js | 탭, 곡 목록, 재생 위치 표시 |
 | 상태 | src/js/state.js | mutate/refresh, 자동 저장, 버전 저장·복원·이전 형식 이전 |
 | 저장소 | src/js/store.js | 곡 문서 + 버전 하위 컬렉션 |
-| 이론 | src/js/music/theory.js | 키·스케일·코드 이름·느낌별 코드 진행 |
+| 이론 | src/js/music/theory.js | 키·스케일·코드 이름·느낌별 코드 진행, 음계 밖 화음 토큰(4m·5M·3d7·b7M, D-025) |
 | 악기/패턴 | music/instruments.js, patterns.js | 악기 목록·음색 종류, 드럼·베이스 프리셋 |
 | 편곡 데이터 | music/arrangement.js | 섹션 기본값, 정규화, 빠른 바꾸기, 장르 기본 편곡·템플릿 기본값 적용 |
 | 국내 발매 목록 | album/domestic.js | 국내 음원 플랫폼 목록, 앨범 장르(멜론 등록 분류)·예전 값 옮기기 (D-024) |

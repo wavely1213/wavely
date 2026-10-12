@@ -67,7 +67,7 @@ console.log('unit OK');
 
 // 코드 진행 프리셋: 예전 id는 그대로 (저장된 곡·기본값), 국내 흔한 진행 추가, 같은 조에서 도수가 겹치지 않음
 {
-  const { findProgression, PROGRESSIONS } = await import('../src/js/music/theory.js');
+  const { findProgression, PROGRESSIONS, isChord } = await import('../src/js/music/theory.js');
   assert.equal(findProgression('major', [4, 3, 6, 1]).id, 'citypop');
   assert.equal(findProgression('major', [4, 3, 6, 1]).seventh, true);
   assert.equal(findProgression('minor', [1, 7, 6, 5]).id, 'descend');
@@ -80,7 +80,7 @@ console.log('unit OK');
     const list = PROGRESSIONS[mode];
     assert.equal(new Set(list.map((p) => p.degrees.join())).size, list.length, `${mode} 도수 중복 없음`);
     assert.equal(new Set(list.map((p) => p.id)).size, list.length, `${mode} id 중복 없음`);
-    assert.ok(list.every((p) => p.use && p.degrees.length >= 1 && p.degrees.length <= 8 && p.degrees.every((d) => d >= 1 && d <= 7)), `${mode} 칩·AI 범위 안`);
+    assert.ok(list.every((p) => p.use && p.degrees.length >= 1 && p.degrees.length <= 8 && p.degrees.every(isChord)), `${mode} 칩·AI 범위 안`);
   }
   ['hope', 'emotional', 'royal', 'dreamy', 'build', 'ballad', 'simple', 'citypop'].forEach((id) => assert.ok(PROGRESSIONS.major.some((p) => p.id === id), id));
   ['dark', 'sad', 'epic', 'build', 'trap', 'mystic', 'descend'].forEach((id) => assert.ok(PROGRESSIONS.minor.some((p) => p.id === id), id));
@@ -406,7 +406,9 @@ import { matchFirst, matchNote } from '../src/js/lyricmatch.js';
   const bv = defaultSectionMusic('Verse', 'major', bal);
   assert.ok(bv.drum === 'none' && bv.instruments.includes('piano') && !bv.instruments.includes('drums'));
   const bc = defaultSectionMusic('Chorus', 'major', bal);
-  assert.ok(findProgression('major', bc.chords).id === 'royal8' && bc.drum === 'ballad' && bc.bass === 'long');
+  assert.ok(findProgression('major', bc.chords).id === 'ballad44m' && bc.drum === 'ballad' && bc.bass === 'long', '발라드 후렴은 4-4m-3-6 (D-025)');
+  assert.equal(findProgression('minor', defaultSectionMusic('Chorus', 'minor', bal).chords).id, 'circle_m');
+  assert.equal(findProgression('major', defaultSectionMusic('Chorus', 'major', { id: 'rnb' }).chords).id, 'marusa');
   // 다크(단조): 포스트코러스·댄스 브레이크는 원코드, 랩은 i–iv 7th
   const dark = { id: 'dark' };
   assert.deepEqual(defaultSectionMusic('Post-Chorus', 'minor', dark).chords, [1]);
@@ -497,9 +499,9 @@ import { matchFirst, matchNote } from '../src/js/lyricmatch.js';
 {
   const { arrangeSong } = await import('../src/js/ai-music.js');
   const { normalizeMusic } = await import('../src/js/music/arrangement.js');
-  const fake = Object.assign(async () => ({ text: '' }), {
-    json: async () => ({ summary: 's', sections: [{ id: 'v', bars: 8, chords: [1, 2], energy: 2, instruments: ['drums'], drum: 'nope', bass: 'nope' }] }),
-  });
+  // ai.js가 처음 받은 sample을 계속 쓰므로, 답은 globalThis.__aiJson으로 바꿔 끼운다 (아래 블록도 같이 씀)
+  globalThis.__aiJson = async () => ({ summary: 's', sections: [{ id: 'v', bars: 8, chords: [1, 2], energy: 2, instruments: ['drums'], drum: 'nope', bass: 'nope' }] });
+  const fake = Object.assign(async () => ({ text: '' }), { json: (...a) => globalThis.__aiJson(...a) });
   globalThis.window = { claude: { use: async () => fake } };
   const song = normalizeMusic({ title: 't', sections: [{ id: 'v', type: 'Verse', members: [], text: '' }], members: [], references: [], style: { genre: 'K-pop R&B' }, concept: { moods: [], keywords: '', theme: '', story: '', group: 'girl' } });
   const res = await arrangeSong(song, { targetIds: ['v'] });
@@ -512,4 +514,52 @@ import { matchFirst, matchNote } from '../src/js/lyricmatch.js';
   assert.equal(res2.sections[0].bass, 'long');
   delete globalThis.window;
   console.log('ai fallback OK');
+}
+
+// 음계 밖 화음 (D-025): 글자 토큰 '4m'·'5M'·'3d7'·'b7M' — 소리·이름·칩·AI 검사·멜로디 칠하기
+{
+  const { chordNotes, chordName, isChord, parseChord, chordPitchClasses, chordFeel, isDiatonic, findProgression } = await import('../src/js/music/theory.js');
+  const C = 0;
+  const A = 9;
+  assert.deepEqual(chordNotes(C, 'major', '4m').map((n) => n % 12), [5, 8, 0], 'C장조 iv = Fm');
+  assert.equal(chordName(C, 'major', '4m'), 'Fm');
+  assert.equal(chordName(C, 'major', '4m', true), 'Fm7');
+  assert.equal(chordName(C, 'major', '3d7'), 'E7', 'III7');
+  assert.equal(chordName(C, 'major', '6d7', true), 'A7', '도미넌트7은 7th 켜도 그대로');
+  assert.equal(chordName(C, 'major', 'b7M'), 'B♭', '반음 내린 화음은 ♭ 이름');
+  assert.equal(chordName(A, 'minor', '5M'), 'E', 'A단조 V');
+  assert.equal(chordName(A, 'minor', '5d7'), 'E7');
+  assert.equal(chordName(A, 'minor', 5), 'Em', '숫자 5는 자연단음계 v 그대로');
+  assert.equal(chordName(A, 'minor', '4M'), 'D', '도리안 IV');
+  assert.equal(chordName(A, 'minor', 'b2M'), 'B♭', '프리지안 ♭II');
+  assert.deepEqual(chordNotes(C, 'major', 4), chordNotes(C, 'major', 4), '숫자는 예전과 같음');
+  assert.equal(chordName(C, 'major', 4, true), 'Fmaj7');
+  ['4m', '5M', '3d7', 'b7M', 1, 7].forEach((c) => assert.ok(isChord(c), String(c)));
+  ['8m', '4x', '', '4', 0, 8, 'IV', null].forEach((c) => assert.ok(!isChord(c), String(c)));
+  assert.deepEqual(parseChord('b6M'), { d: 6, flat: true, q: 'M' });
+  assert.ok(isDiatonic(3) && !isDiatonic('3d7'));
+  assert.deepEqual(chordPitchClasses(A, 'minor', '5M'), [4, 8, 11], '구성음 E G# B');
+  assert.match(chordFeel('major', '4m'), /빌려온/);
+  assert.match(chordFeel('minor', '5d7'), /화성단음계/);
+  assert.equal(findProgression('major', [4, '4m', 3, 6, 2, 5, 1, 1]).id, 'ballad44m');
+  assert.equal(findProgression('minor', [1, 7, 6, '5M']).id, 'andalusian');
+  // 재생: 토큰 코드도 타임라인에 소리가 남 (패드 음이 Fm 구성음)
+  const { buildTimeline } = await import('../src/js/music/timeline.js');
+  const song = { sections: [{ id: 'x', type: 'Chorus' }], music: { bpm: 120, root: 0, mode: 'major', sections: { x: { bars: 1, chords: ['4m'], seventh: false, energy: 3, instruments: ['pad'], drum: 'none', bass: 'long', melody: [] } }, sounds: {} } };
+  const pads = buildTimeline(song).events.filter((e) => e.inst === 'pad').map((e) => e.note % 12).sort((a, b) => a - b);
+  assert.deepEqual(pads, [0, 5, 8]);
+  console.log('borrowed chords OK');
+}
+
+// AI 편곡: 음계 밖 화음 글자는 받고, 모르는 글자는 예전처럼 1로
+{
+  const { arrangeSong } = await import('../src/js/ai-music.js');
+  const { normalizeMusic } = await import('../src/js/music/arrangement.js');
+  globalThis.__aiJson = async () => ({ summary: 's', sections: [{ id: 'v', bars: 8, chords: [4, '4m', ' 3d7 ', 'IV', 6, 'b7M'], energy: 2, instruments: ['drums'], drum: 'pop', bass: 'long' }] });
+  globalThis.window = { claude: { use: async () => ({ json: (...a) => globalThis.__aiJson(...a) }) } };
+  const song = normalizeMusic({ title: 't', sections: [{ id: 'v', type: 'Verse', members: [], text: '' }], members: [], references: [], style: { genre: 'K-pop ballad' }, concept: { moods: [], keywords: '', theme: '', story: '', group: 'girl' } });
+  const res = await arrangeSong(song, { targetIds: ['v'] });
+  assert.deepEqual(res.sections[0].chords, [4, '4m', '3d7', 1, 6, 'b7M']);
+  delete globalThis.window;
+  console.log('ai borrowed chords OK');
 }

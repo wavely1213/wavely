@@ -20,25 +20,77 @@ export function degreeToMidi(root, mode, idx, base = 60) {
   return base + root + sc[step] + 12 * oct;
 }
 
-// 도수(1~7) 코드의 구성음 MIDI (3옥타브 근처)
-export function chordNotes(root, mode, degree, seventh = false) {
-  const i = degree - 1;
-  const idxs = seventh ? [i, i + 2, i + 4, i + 6] : [i, i + 2, i + 4];
-  return idxs.map((x) => degreeToMidi(root, mode, x, 48));
+// 코드 한 칸: 도수 숫자(1~7, 음계 안 화음) 또는 음계 밖 화음 글자 (D-025, 프리셋으로만 넣는다)
+//   '4m'  = 그 도수의 단3화음 (장조의 iv, 빌려온 화음)
+//   '5M'  = 그 도수의 장3화음 (단조의 V·IV·I)
+//   '3d7' = 그 도수의 도미넌트 7 (III7·VI7·II7·I7 = 세컨더리 도미넌트, 단조의 V7)
+//   'b7M' = 반음 내린 도수의 장3화음 (장조의 ♭VII·♭VI, 단조의 ♭II)
+const CHORD_TOKEN = /^(b?)([1-7])(M|m|d7)$/;
+const QUALITY = { M: [0, 4, 7], m: [0, 3, 7], d7: [0, 4, 7, 10] };
+
+export function isChord(c) {
+  return (Number.isInteger(c) && c >= 1 && c <= 7) || (typeof c === 'string' && CHORD_TOKEN.test(c));
 }
 
-export function chordName(root, mode, degree, seventh = false) {
-  const n = chordNotes(root, mode, degree, seventh);
+// {d: 도수, flat: 반음 내림, q: M|m|d7|null(음계 안)}
+export function parseChord(c) {
+  if (typeof c === 'string') {
+    const mt = CHORD_TOKEN.exec(c);
+    if (mt) return { d: Number(mt[2]), flat: !!mt[1], q: mt[3] };
+  }
+  const d = Math.min(7, Math.max(1, Math.round(Number(c)) || 1));
+  return { d, flat: false, q: null };
+}
+
+export const isDiatonic = (c) => parseChord(c).q === null;
+
+// 코드의 구성음 MIDI (3옥타브 근처). 음계 안 화음은 스케일 3도 쌓기, 음계 밖 화음은 정해진 음정
+// seventh: 섹션의 7th 켜기 (장3화음 → maj7, 단3화음 → m7, 도미넌트 7은 그대로)
+export function chordNotes(root, mode, chord, seventh = false) {
+  const { d, flat, q } = parseChord(chord);
+  const i = d - 1;
+  if (!q) {
+    const idxs = seventh ? [i, i + 2, i + 4, i + 6] : [i, i + 2, i + 4];
+    return idxs.map((x) => degreeToMidi(root, mode, x, 48));
+  }
+  const base = degreeToMidi(root, mode, i, 48) - (flat ? 1 : 0);
+  const iv = [...QUALITY[q]];
+  if (seventh && q !== 'd7') iv.push(q === 'M' ? 11 : 10);
+  return iv.map((x) => base + x);
+}
+
+export function chordName(root, mode, chord, seventh = false) {
+  const n = chordNotes(root, mode, chord, seventh);
   const third = n[1] - n[0];
   const fifth = n[2] - n[0];
   let q = third === 3 ? (fifth === 6 ? 'dim' : 'm') : '';
-  if (seventh) {
+  if (n.length > 3) {
     const sev = n[3] - n[0];
     if (q === '') q = sev === 11 ? 'maj7' : '7';
     else if (q === 'm') q = 'm7';
     else q = 'm7b5';
   }
-  return NOTE_NAMES[n[0] % 12] + q;
+  // 반음 내린 화음은 ♭ 이름으로 (B♭, A♭)
+  return (parseChord(chord).flat ? FLAT_NAMES : NOTE_NAMES)[((n[0] % 12) + 12) % 12] + q;
+}
+const FLAT_NAMES = ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'G♭', 'G', 'A♭', 'A', 'B♭', 'B'];
+
+// 코드 구성음의 음이름 번호(0~11) — 멜로디 화면의 '어울리는 줄' 칠하기용 (3화음만)
+export function chordPitchClasses(root, mode, chord) {
+  return chordNotes(root, mode, chord, false).slice(0, 3).map((n) => ((n % 12) + 12) % 12);
+}
+
+// 음계 밖 화음의 쉬운 설명 (코드 칩)
+export function chordFeel(mode, chord) {
+  const { d, flat, q } = parseChord(chord);
+  if (!q) return DEGREE_FEEL[mode][d - 1];
+  if (q === 'd7') return mode === 'minor' && d === 5 ? '강하게 끌어당김 (화성단음계)' : '다음 화음으로 끌어당김 (세컨더리)';
+  if (flat) return mode === 'minor' && d === 2 ? '이국적인 긴장 (♭II)' : '탁 트이는 빌려온 화음';
+  if (q === 'm') return '아련하게 꺾임 (빌려온 화음)';
+  if (mode === 'minor' && d === 5) return '강하게 끌어당김 (화성단음계 V)';
+  if (mode === 'minor' && d === 4) return '밝게 비틀림 (도리안 IV)';
+  if (mode === 'minor' && d === 1) return '밝게 끝남 (장3화음 I)';
+  return '음계 밖 화음';
 }
 
 export function keyName(root, mode) {
@@ -47,6 +99,7 @@ export function keyName(root, mode) {
 
 // 느낌 이름으로 고르는 코드 진행 (마디당 코드 1개, 마디 수만큼 반복).
 // 국내 K-pop에서 흔한 진행을 둔다 (근거: docs/research/genre-chords-2026-10-12.md). 괄호는 국내 통칭, use는 쓰는 곳(편곡 AI에 보냄).
+// 음계 밖 화음은 프리셋으로만 넣는다 (코드 칩은 음계 안 1~7과 지금 고른 화음만 보여 줌, D-025).
 // 단조 trap·mystic은 근거가 약하지만 저장된 곡의 프리셋 이름을 지키려고 남겼다 (D-021). '머니코드'는 가리키는 진행이 출처마다 달라 이름에 쓰지 않는다.
 // id는 저장·기본값에서 쓰므로 바꾸지 않는다. 같은 조에서 도수가 겹치면 안 된다 (findProgression이 도수로 찾는다).
 export const PROGRESSIONS = {
@@ -63,6 +116,13 @@ export const PROGRESSIONS = {
     { id: 'dreamy', name: '그루비한 투파이브 (2516, R&B·디스코)', degrees: [2, 5, 1, 6], seventh: true, use: 'R&B·디스코 벌스와 후렴' },
     { id: 'citypop', name: '도시적이고 세련된 (4361, 7th)', degrees: [4, 3, 6, 1], seventh: true, use: 'R&B·댄스·클럽 후렴' },
     { id: 'build', name: '한 계단씩 오르는 (2345)', degrees: [2, 3, 4, 5], use: '프리코러스·브릿지' },
+    // 음계 밖 화음이 든 진행 (D-025): 빌려온 4m, 세컨더리 도미넌트, ♭VII
+    { id: 'ballad44m', name: '애틋하게 꺾이는 (4-4m-3-6, 발라드 후렴)', degrees: [4, '4m', 3, 6, 2, 5, 1, 1], seventh: true, use: '발라드·OST 후렴' },
+    { id: 'spring', name: '아련하게 맺는 (1-3-4-4m)', degrees: [1, 3, 4, '4m'], use: '발라드·밴드 후렴' },
+    { id: 'marusa', name: '세련되게 조이는 (4-III7-6-1, 마루사)', degrees: [4, '3d7', 6, 1], seventh: true, use: '청량·R&B 후렴' },
+    { id: 'secdom', name: '울컥하게 오르는 (1-III7-4-4m)', degrees: [1, '3d7', 4, '4m'], use: '발라드·R&B 후렴' },
+    { id: 'rain', name: '촉촉하게 이어지는 (1-4-3-VI7)', degrees: [1, 4, 3, '6d7'], seventh: true, use: '발라드 벌스' },
+    { id: 'mixture', name: '탁 트이는 (1-♭VII-4-5)', degrees: [1, 'b7M', 4, 5], use: '청량·밴드 후렴·인트로' },
     { id: 'chain', name: '이어 붙는 투파이브 (3625, 7th)', degrees: [3, 6, 2, 5], seventh: true, use: '발라드 프리코러스' },
     { id: 'circle', name: '한 바퀴 도는 (4736·2511 순환, 7th)', degrees: [4, 7, 3, 6, 2, 5, 1, 1], seventh: true, use: '발라드 브릿지' },
     { id: 'simple', name: '단순 반복 (1-4 두 코드)', degrees: [1, 4], use: '벌스' },
@@ -83,6 +143,12 @@ export const PROGRESSIONS = {
     { id: 'bridge4236_m', name: '꺾어 트는 (4236 단조형, 7th)', degrees: [6, 4, 5, 1], seventh: true, use: '다크·R&B 브릿지' },
     { id: 'mystic', name: '마이너 루프 (i–VII–VI–VII, 힙합)', degrees: [1, 7, 6, 7], seventh: true, use: '힙합 벌스 (근거 약함)' },
     { id: 'descend', name: '내려가는 긴장감 (i–VII–VI–v)', degrees: [1, 7, 6, 5], use: '다크·클럽 후렴' },
+    // 음계 밖 화음이 든 진행 (D-025): 화성단음계 V, 도리안 IV, 프리지안 ♭II
+    { id: 'andalusian', name: '정열적으로 내려가는 (안달루시안 i–VII–VI–V)', degrees: [1, 7, 6, '5M'], use: '다크·클럽 후렴' },
+    { id: 'harmonicV', name: '긴장 뒤에 풀리는 (i–iv–V7–i)', degrees: [1, 4, '5d7', 1], use: '다크·발라드 후렴 끝' },
+    { id: 'circle_m', name: '한 바퀴 도는 (단조 순환, V7로 마침)', degrees: [1, 4, 7, 3, 6, 2, '5d7', 1], seventh: true, use: '단조 발라드·청량 후렴' },
+    { id: 'dorian4', name: '밝게 비틀린 (i–VII–IV–VI, 도리안 IV)', degrees: [1, 7, '4M', 6], use: '다크·밴드 프리·후렴' },
+    { id: 'phrygian', name: '이국적으로 흔들리는 (i–♭II)', degrees: [1, 'b2M'], use: '다크 후렴·드롭' },
     { id: 'drop', name: '한 코드로 미는 (원코드)', degrees: [1], use: '드롭·댄스 브레이크' },
   ],
 };
