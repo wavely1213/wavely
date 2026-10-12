@@ -5,6 +5,7 @@ import { renderSong } from './music/player.js';
 import { encodeWav, zip } from './music/pack.js';
 import { keyName } from './music/theory.js';
 import { songSeconds } from './music/arrangement.js';
+import { DEFAULT_TARGET } from './music/dsp.js';
 
 function safeName(title) {
   return (title || 'song').replace(/^예시:\s*/, '').replace(/[\\/:*?"<>|]+/g, '').trim().slice(0, 60) || 'song';
@@ -39,7 +40,7 @@ function guide(song) {
     '- Suno로 만든 음원의 상업적 이용 조건은 생성 당시 요금제와 Suno 약관을 따른다. 발매 전에 최신 약관을 확인하세요.',
     '- 레퍼런스 곡의 멜로디·가사를 그대로 쓰지 않았는지 확인하세요.',
     '- 유통사(음원 유통 대행)마다 AI 생성 음원 정책이 다르니 미리 확인하세요.',
-    '- 완성곡은 앱의 마스터링 탭에서 음량(-14 LUFS 권장)·트루 피크(-1 dBTP)를 맞춰 WAV로 받으세요.',
+    `- 완성곡은 앱의 마스터링 탭에서 음량(기본 ${DEFAULT_TARGET} LUFS, 유통사 권장치가 있으면 그 값)·트루 피크(-1 dBTP)를 맞춰 WAV로 받으세요.`,
     '',
     '[사운드 출처 — demo.wav]',
     '- Salamander Grand Piano (Alexander Holm), FluidR3 GM (Frank Wen): CC BY 3.0 — 데모를 그대로 공개할 땐 출처를 적어 주세요.',

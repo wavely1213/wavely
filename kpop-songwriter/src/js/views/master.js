@@ -1,7 +1,7 @@
 // 마스터링 탭: Suno 완성곡(또는 앱 데모)을 발매 규격(음량·트루 피크·44.1kHz)으로 맞춰 WAV로 받는다.
 import { h, toast } from '../dom.js';
 import { mutate, mutateSong, markProgress, refresh } from '../state.js';
-import { decodeFile, master, masterWarnings, MASTER_PRESETS, LOUDNESS_TARGETS, OUTPUT_RATE, presetOf, measureAsync } from '../music/master.js';
+import { decodeFile, master, masterWarnings, MASTER_PRESETS, LOUDNESS_TARGETS, OUTPUT_RATE, DEFAULT_TARGET, presetOf, measureAsync } from '../music/master.js';
 import { referenceTone, matchEq } from '../music/tonematch.js';
 import { toneOf } from '../music/analyze.js';
 import { renderSong, stop as stopPlayer } from '../music/player.js';
@@ -41,7 +41,7 @@ let audioCtx = null;
 let playing = null;
 
 function settings(song) {
-  return { preset: 'kpop', target: -14, trim: true, fadeOut: 0, soften: false, ...(song.master || {}) };
+  return { preset: 'kpop', target: DEFAULT_TARGET, trim: true, fadeOut: 0, soften: false, ...(song.master || {}) };
 }
 
 function stopListen() {
@@ -272,7 +272,7 @@ async function playTake(t) {
   refresh();
   try {
     const buf = await audioCtx.decodeAudioData(await t.file.arrayBuffer());
-    // 처음 들을 때 음량을 재 두고, 같은 음량(-14 LUFS 기준)으로 줄여서 들려준다 (큰 테이크가 좋게 들리는 착각 방지)
+    // 처음 들을 때 음량을 재 두고, 같은 음량으로 줄여서 들려준다 (큰 테이크가 좋게 들리는 착각 방지)
     if (t.lufs === undefined) {
       const chs = Array.from({ length: buf.numberOfChannels }, (_, i) => buf.getChannelData(i));
       t.lufs = (await measureAsync(chs.length > 1 ? chs : [chs[0], chs[0]], buf.sampleRate).catch(() => ({ lufs: null }))).lufs;
@@ -283,9 +283,9 @@ async function playTake(t) {
     const src = audioCtx.createBufferSource();
     src.buffer = buf;
     const g = audioCtx.createGain();
-    // 기준: -14 LUFS와 지금까지 잰 테이크 중 가장 작은 것 중 더 작은 쪽 (크게 키우지 않고 줄여서 맞춤)
+    // 기준: 기본 목표 음량과 지금까지 잰 테이크 중 가장 작은 것 중 더 작은 쪽 (크게 키우지 않고 줄여서 맞춤)
     const measured = (Object.values(takesBy).find((l) => l.includes(t)) || []).map((x) => x.lufs).filter((v) => Number.isFinite(v));
-    const ref = Math.min(-14, ...measured);
+    const ref = Math.min(DEFAULT_TARGET, ...measured);
     g.gain.value = ui.matched && t.lufs != null ? Math.min(1, 10 ** ((ref - t.lufs) / 20)) : 1;
     src.connect(g).connect(audioCtx.destination);
     src.onended = () => { if (playing === src) { playing = null; ui.listen = null; refresh(); } };
@@ -467,10 +467,10 @@ function renderHighlight(song, r) {
   return h('div', { class: 'highlight' },
     h('div', { class: 'row' },
       h('strong', null, '숏폼 하이라이트'),
-      h('div', { class: 'chips' }, [15, 30].map((n) => h('button', {
+      h('div', { class: 'chips' }, [15, 30, 60].map((n) => h('button', {
         type: 'button', class: `chip${hl.len === n ? ' on' : ''}`, 'aria-pressed': hl.len === n ? 'true' : 'false',
         onclick: () => { if (ui.listen === 'hl') stopListen(); ui.hlLen = n; refresh(); },
-      }, `${n}초`))),
+      }, n === 60 ? '1분 (미리듣기)' : `${n}초`))),
       h('span', { class: 'mono muted small', id: 'hl-range' }, `${mmss(hl.start)} ~ ${mmss(hl.end)}`)),
     h('div', { class: 'row' },
       h('button', { type: 'button', class: `btn small${ui.listen === 'hl' ? ' primary' : ''}`, onclick: () => listen('hl') }, ui.listen === 'hl' ? '■ 정지' : '▶ 하이라이트 듣기'),
@@ -480,11 +480,14 @@ function renderHighlight(song, r) {
 
 function renderResult(song, r) {
   const warnings = masterWarnings(r, r.target);
-  const ok = r.reached && r.after.peak <= -0.9;
+  // 판정을 둘로 나눈다: 유통 파일 규격(형식·트루 피크)과 목표 음량 도달. 국내 유통 안내는 파일 형식만 적는다 (domestic-audit M2)
+  const fileOk = r.rate >= 44100 && r.channels.length === 2 && r.after.peak <= -0.9;
   return h('section', { class: 'card' },
     h('div', { class: 'card-head' },
       h('h2', null, '결과'),
-      h('span', { class: `pill ${ok ? 'good' : 'warn-pill'}` }, ok ? '발매 규격 충족' : '확인 필요')),
+      h('span', { class: `pill ${fileOk ? 'good' : 'warn-pill'}`, id: 'pill-file' }, fileOk ? '유통 파일 규격 충족' : '파일 규격 확인 필요'),
+      h('span', { class: `pill ${r.reached ? 'good' : 'warn-pill'}`, id: 'pill-loud' }, r.reached ? `목표 음량 도달 (${r.target} LUFS)` : '목표 음량 못 미침')),
+    h('p', { class: 'muted small' }, '유통 파일 규격: WAV 44.1kHz 스테레오, 트루 피크 -1 dBTP 이하. 음량은 국내 공개 규격이 없어요. 유통사가 권장 음량을 주면 그걸 따르세요.'),
     h('table', { class: 'compare' },
       h('thead', null, h('tr', null, h('th', null, ''), h('th', null, '원본'), h('th', null, '마스터'))),
       h('tbody', null,

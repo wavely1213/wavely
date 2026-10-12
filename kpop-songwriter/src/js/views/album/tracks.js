@@ -27,7 +27,7 @@ async function attach(album, songId, file) {
 function masterChip(m) {
   if (!m) return h('span', { class: 'pill warn-pill' }, '마스터 없음');
   const ok = /\.wav$/i.test(m.name) && (m.sampleRate || 0) >= 44100 && (!m.bits || m.bits >= 16) && m.format !== 3 && m.channels !== 1
-    && Number.isFinite(m.lufs) && m.peak <= -0.5;
+    && Number.isFinite(m.lufs) && !(m.peak > 0); // 트루 피크는 0 dBTP를 넘을 때만 (점검표와 같은 기준)
   const from = m.fromTab ? '마스터링 탭 결과 · ' : '';
   const fmt = `${m.sampleRate ? `${(m.sampleRate / 1000).toFixed(1)}kHz` : '?kHz'}${m.bits ? ` ${m.bits}bit${m.format === 3 ? ' float' : ''}` : ''} · ${Number.isFinite(m.lufs) ? m.lufs.toFixed(1) : '—'} LUFS · ${m.peak.toFixed(1)} dBTP`;
   return h('span', { class: `pill ${ok ? 'good' : 'warn-pill'}`, title: m.name }, `${ok ? '규격 OK' : '확인 필요'} · ${from}${fmt}`);

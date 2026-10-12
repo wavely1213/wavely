@@ -3,6 +3,9 @@
 import { integratedLoudness, truePeakEnvelope, maxOf, toDb, fromDb } from './loudness.js';
 
 export const OUTPUT_RATE = 44100;
+// 기본 목표 음량 (LUFS). 국내 플랫폼·유통사의 공개 규격은 없고, 상업 K-pop은 약 -9~-6 LUFS로 나온다(출처 약함).
+// 그중 가장 보수적인 -9를 기본으로 둔다 (D-023, 소유자 확인 필요). 앱 전체가 이 값 하나를 쓴다.
+export const DEFAULT_TARGET = -9;
 const CEILING_DB = -1; // 트루 피크 한도 (dBTP)
 const MAX_PASSES = 8;
 const MAX_REDUCTION_DB = 12; // 이보다 많이 누르면 목표 음량을 포기하고 알린다
@@ -109,7 +112,7 @@ export function measure(channels, rate) {
 }
 
 // src: 원본 채널(원래 샘플레이트), toned: EQ·컴프를 거친 44.1kHz 채널
-export function processMaster({ src, srcRate, toned, target = -14, trim = true, fadeOut = 0, cut = false }, onStep = () => {}) {
+export function processMaster({ src, srcRate, toned, target = DEFAULT_TARGET, trim = true, fadeOut = 0, cut = false }, onStep = () => {}) {
   onStep('원본 음량 재는 중');
   const before = measure(src, srcRate);
   onStep('피크 분석 중');

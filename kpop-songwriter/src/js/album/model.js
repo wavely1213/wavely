@@ -7,6 +7,7 @@ import { splitsFor, splitIssues } from './splits.js';
 import { explicitWords } from './explicit.js';
 import { titleIssues, placeholderTitle } from './titlecheck.js';
 import { lyricCheckStatus } from './lyriccheck.js';
+import { DEFAULT_TARGET } from '../music/dsp.js';
 
 export const ALBUM_TYPES = {
   single: { name: '싱글', min: 1, max: 3 },
@@ -114,7 +115,7 @@ export function daysUntil(s, today = new Date()) {
 // ---------- 발매 일정표 ----------
 // offset: 발매일 기준 날짜 차이(음수 = 발매 전)
 export const SCHEDULE = [
-  { id: 'final-songs', offset: -42, title: '수록곡·마스터 확정', detail: '마스터링 탭에서 곡마다 발매용 WAV(-14 LUFS, -1 dBTP)를 받아 둔다.' },
+  { id: 'final-songs', offset: -42, title: '수록곡·마스터 확정', detail: `마스터링 탭에서 곡마다 발매용 WAV(기본 ${DEFAULT_TARGET} LUFS, -1 dBTP)를 받아 둔다.` },
   { id: 'cover-meta', offset: -35, title: '커버·메타데이터·크레딧 확정', detail: '커버 3000×3000, 작사·작곡·편곡 크레딧, 장르, 언어.' },
   { id: 'distributor', offset: -28, title: '유통사에 제출', detail: '제출 패키지 zip으로 업로드. 국내 플랫폼 검수 기간은 유통사 안내를 확인.' },
   { id: 'copyright', offset: -21, title: '저작권 신고 준비', detail: '한국음악저작권협회(KOMCA) 등 작품 신고 대상인지 확인하고 작사·작곡 정보를 맞춘다.' },
@@ -207,8 +208,12 @@ export function releaseChecklist(album, songs, { masters = {}, coverInfo = null,
       if (/\.wav$/i.test(m.name) && m.format == null) add('warn', `${n}: WAV 형식 정보를 읽지 못했어요. 마스터링 탭에서 다시 받은 파일을 권해요.`, { tab: 'tracks' });
       if (m.channels === 1) add('warn', `${n}: 모노 파일이에요. 보통 스테레오로 제출해요.`, { tab: 'tracks' });
       if (!Number.isFinite(m.lufs)) add('error', `${n}: 소리가 거의 없는 파일이에요. 파일을 확인해 주세요.`, { tab: 'tracks' });
-      if (Number.isFinite(m.peak) && m.peak > -0.5) add('warn', `${n}: 트루 피크 ${m.peak.toFixed(1)} dBTP — 마스터링 탭에서 -1 dBTP로 맞추는 걸 권해요.`, { tab: 'tracks' });
-      if (Number.isFinite(m.lufs) && (m.lufs < -18 || m.lufs > -6)) add('warn', `${n}: 음량 ${m.lufs.toFixed(1)} LUFS — 일반적인 범위(-18~-6)를 벗어났어요.`, { tab: 'tracks' });
+      // 트루 피크: 국내 유통사 공식 규격은 없다. 0 dBTP를 넘으면 변환 때 찌그러질 수 있어 warn, -1~0은 info (domestic-audit M4)
+      if (Number.isFinite(m.peak) && m.peak > 0) add('warn', `${n}: 트루 피크 ${m.peak.toFixed(1)} dBTP — 0을 넘으면 플랫폼 변환(AAC·MP3) 때 찌그러질 수 있어요. 마스터링 탭에서 -1 dBTP로 맞추는 걸 권해요.`, { tab: 'tracks' });
+      else if (Number.isFinite(m.peak) && m.peak > -1) add('info', `${n}: 트루 피크 ${m.peak.toFixed(1)} dBTP — 상업 음원에도 흔한 값이에요. 여유를 두려면 마스터링 탭에서 -1 dBTP로 맞춰요.`, { tab: 'tracks' });
+      // 음량: 이 앱의 권장 범위. 기본값보다 4 LU 넘게 작으면 맞추지 않는 재생에서 작게 들린다고만 알린다 (domestic-audit M3)
+      if (Number.isFinite(m.lufs) && (m.lufs < -18 || m.lufs > -6)) add('warn', `${n}: 음량 ${m.lufs.toFixed(1)} LUFS — 이 앱의 권장 범위(-18~-6)를 벗어났어요.`, { tab: 'tracks' });
+      else if (Number.isFinite(m.lufs) && m.lufs < DEFAULT_TARGET - 4) add('info', `${n}: 음량 ${m.lufs.toFixed(1)} LUFS — 음량을 맞추지 않는 재생(벅스 기본 설정 등)에선 다른 곡보다 작게 들려요. 발라드라면 그대로 둬도 돼요.`, { tab: 'tracks' });
     }
   });
 

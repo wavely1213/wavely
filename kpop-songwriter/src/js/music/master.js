@@ -1,5 +1,5 @@
 // 마스터링: 톤 보정(EQ) → 글루 컴프레서 → 목표 음량(LUFS)으로 맞춤 → 트루 피크 리미터 → 44.1kHz.
-import { processMaster, measure, OUTPUT_RATE } from './dsp.js';
+import { processMaster, measure, OUTPUT_RATE, DEFAULT_TARGET } from './dsp.js';
 import { CLIP_WARN } from './qc.js';
 
 export const MASTER_PRESETS = {
@@ -12,13 +12,15 @@ export const MASTER_PRESETS = {
 // 거친 고음 부드럽게: Suno 결과에 흔한 쇳소리·치찰음 대역(6~7kHz)을 살짝 내린다
 export const SOFTEN = { freq: 6500, gain: -2.5, q: 1.4 };
 
+// 목표 음량 선택지. 국내 플랫폼·유통사의 공개 규격이 없어 '국내 기준'이라고 쓰지 않는다 (유통사가 권장치를 주면 그걸 따름)
 export const LOUDNESS_TARGETS = [
-  { value: -14, name: '-14 LUFS · 스트리밍 표준 (권장)', note: 'Spotify·YouTube 기준. 플랫폼이 소리를 줄이지 않아 다이내믹이 그대로 남아요.' },
-  { value: -11, name: '-11 LUFS · 조금 크게', note: '대부분의 팝 음원 정도. 스트리밍에선 조금 줄여서 재생돼요.' },
-  { value: -8, name: '-8 LUFS · 아주 크게', note: '최근 K-pop 음반처럼 큰 소리. 리미터가 많이 눌러 타격감이 줄 수 있어요.' },
+  { value: -9, name: '-9 LUFS · 상업 음원 크기 (기본)', note: '국내 차트 곡에 가까운 크기예요. 음량을 맞춰 트는 곳(유튜브 뮤직·스포티파이·멜론 음량최적화)에선 줄여서 재생돼요.' },
+  { value: -11, name: '-11 LUFS · 조금 작게', note: '다이내믹을 조금 더 남겨요. 발라드·어쿠스틱에 어울려요.' },
+  { value: -14, name: '-14 LUFS · 스트리밍 맞춤 기준', note: '음량을 맞춰 트는 곳에선 손해가 없지만, 맞추지 않는 재생(벅스 기본 설정 등)에선 다른 곡보다 작게 들려요.' },
+  { value: -8, name: '-8 LUFS · 아주 크게', note: '리미터가 많이 눌러 타격감이 줄 수 있어요.' },
 ];
 
-export { OUTPUT_RATE, finishEdges, measure } from './dsp.js';
+export { OUTPUT_RATE, DEFAULT_TARGET, finishEdges, measure } from './dsp.js';
 
 // 워커 소스: 웹·아티팩트 빌드에서 build.mjs가 넣는다. 없으면(테스트 번들 등) 화면 스레드에서 계산.
 const WORKER_SRC = typeof __DSP_WORKER__ !== 'undefined' ? __DSP_WORKER__ : null;
@@ -126,7 +128,7 @@ export function cutBuffer(buffer, endAt) {
 }
 
 // endAt: 곡 끝 시각(초, 0 = 끝까지). Suno가 끝을 늘이거나 이상하게 끝낼 때 잘라 낸다.
-export async function master(buffer, { preset = 'kpop', eq = null, target = -14, trim = true, fadeOut = 0, endAt = 0, soften = false } = {}, onStep = () => {}) {
+export async function master(buffer, { preset = 'kpop', eq = null, target = DEFAULT_TARGET, trim = true, fadeOut = 0, endAt = 0, soften = false } = {}, onStep = () => {}) {
   const p = presetOf({ preset, eq });
   const original = buffer; // '원본' 측정값은 자르기 전 전체 기준 (결과 표의 원본 길이·같은 음량 비교와 맞춤)
   const cut = cutBuffer(buffer, endAt);

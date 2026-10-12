@@ -65,6 +65,26 @@ assert.ok(errs(check).some((t) => t.includes('WAV')));
 assert.ok(errs(check).some((t) => t.includes('22050')));
 assert.ok(errs(check).some((t) => t.includes('정사각형')));
 assert.ok(check.some((i) => i.level === 'warn' && i.text.includes('트루 피크')));
+// 국내 기준 (D-023): 트루 피크는 0 dBTP 넘으면 warn, -1~0은 info. 음량은 앱 권장 범위 밖이면 warn, 기본(-9)보다 4 LU 넘게 작으면 info
+{
+  const { DEFAULT_TARGET } = await import('../src/js/music/dsp.js');
+  const { LOUDNESS_TARGETS } = await import('../src/js/music/master.js');
+  assert.equal(DEFAULT_TARGET, -9);
+  assert.ok(LOUDNESS_TARGETS[0].value === DEFAULT_TARGET && LOUDNESS_TARGETS.some((x) => x.value === -14), '기본이 맨 앞, -14도 고를 수 있음');
+  assert.ok(LOUDNESS_TARGETS.every((x) => !x.name.includes('국내 기준') && !x.note.includes('국내 기준')), '국내 공개 규격이 없어 국내 기준이라고 쓰지 않음');
+  const one = (m) => releaseChecklist(album, [song], { masters: { [song.id]: { name: 'a.wav', sampleRate: 44100, bits: 24, format: 1, channels: 2, duration: 200, ...m } }, coverInfo: { width: 3000, height: 3000 }, today });
+  const lv = (items, word) => items.filter((i) => i.text.includes(word)).map((i) => i.level).join();
+  assert.equal(lv(one({ lufs: -9, peak: -0.5 }), '트루 피크'), 'info');
+  assert.equal(lv(one({ lufs: -9, peak: 0.3 }), '트루 피크'), 'warn');
+  assert.equal(lv(one({ lufs: -9, peak: -1 }), '트루 피크'), '');
+  assert.equal(lv(one({ lufs: -9, peak: -1 }), '음량'), '', '기본 음량은 조용');
+  assert.equal(lv(one({ lufs: -14, peak: -1 }), '작게 들려요'), 'info', '-14 마스터는 맞추지 않는 재생에서 작게');
+  assert.equal(lv(one({ lufs: -5.5, peak: -1 }), '권장 범위'), 'warn');
+  assert.ok(!one({ lufs: -9, peak: -1 }).some((i) => i.text.includes('일반적인 범위')));
+  const { SCHEDULE } = await import('../src/js/album/model.js');
+  assert.ok(SCHEDULE.find((s) => s.id === 'final-songs').detail.includes('-9 LUFS'), '일정 안내도 같은 상수');
+  console.log('domestic loudness OK');
+}
 
 // CSV: BOM, 쉼표·따옴표 이스케이프, 트랙 행
 album.tracks[0].featuring = 'A, "B"';
