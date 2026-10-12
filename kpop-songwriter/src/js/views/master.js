@@ -1,4 +1,4 @@
-// 마스터링 탭: Suno 완성곡(또는 앱 데모)을 발매 규격(음량·트루 피크·44.1kHz)으로 맞춰 WAV로 받는다.
+// 마스터링 탭: Suno 완성곡(또는 앱 데모)을 목표 음량·트루 피크 한도·44.1kHz로 맞춰 WAV로 받는다.
 import { h, toast } from '../dom.js';
 import { mutate, mutateSong, markProgress, refresh } from '../state.js';
 import { decodeFile, master, masterWarnings, MASTER_PRESETS, LOUDNESS_TARGETS, OUTPUT_RATE, DEFAULT_TARGET, presetOf, measureAsync } from '../music/master.js';
@@ -39,6 +39,9 @@ export function stopMasterPreview() {
 }
 let audioCtx = null;
 let playing = null;
+
+// 테이크 비교 듣기 기준 음량 (마스터 목표와 다름). Suno 테이크는 대개 이보다 커서 처음 들을 때도 맞춰진다
+const TAKE_LISTEN_REF = -14;
 
 function settings(song) {
   return { preset: 'kpop', target: DEFAULT_TARGET, trim: true, fadeOut: 0, soften: false, ...(song.master || {}) };
@@ -283,9 +286,10 @@ async function playTake(t) {
     const src = audioCtx.createBufferSource();
     src.buffer = buf;
     const g = audioCtx.createGain();
-    // 기준: 기본 목표 음량과 지금까지 잰 테이크 중 가장 작은 것 중 더 작은 쪽 (크게 키우지 않고 줄여서 맞춤)
+    // 기준: 듣기 기준(-14 LUFS, 마스터 목표와 따로)과 지금까지 잰 테이크 중 가장 작은 것 중 더 작은 쪽 (크게 키우지 않고 줄여서 맞춤).
+    // 처음 듣는 테이크도 대부분 -14보다 커서 순서와 상관없이 같은 크기로 들린다
     const measured = (Object.values(takesBy).find((l) => l.includes(t)) || []).map((x) => x.lufs).filter((v) => Number.isFinite(v));
-    const ref = Math.min(DEFAULT_TARGET, ...measured);
+    const ref = Math.min(TAKE_LISTEN_REF, ...measured);
     g.gain.value = ui.matched && t.lufs != null ? Math.min(1, 10 ** ((ref - t.lufs) / 20)) : 1;
     src.connect(g).connect(audioCtx.destination);
     src.onended = () => { if (playing === src) { playing = null; ui.listen = null; refresh(); } };
@@ -347,7 +351,7 @@ export function renderMaster(song) {
   return h('div', { class: 'stack' },
     h('section', { class: 'card' },
       h('h2', null, '마스터링 (발매용 음원 만들기)'),
-      h('p', { class: 'muted' }, 'Suno에서 받은 완성곡을 넣으면 음색을 다듬고, 스트리밍 기준 음량과 피크 한도에 맞춘 44.1kHz WAV로 만들어요. 파일은 이 브라우저 안에서만 처리하고 어디에도 올리지 않아요. Suno에서는 가능하면 WAV로 받아 오세요.'),
+      h('p', { class: 'muted' }, `Suno에서 받은 완성곡을 넣으면 음색을 다듬고, 목표 음량(기본 ${DEFAULT_TARGET} LUFS)과 피크 한도(-1 dBTP)에 맞춘 44.1kHz WAV로 만들어요. 파일은 이 브라우저 안에서만 처리하고 어디에도 올리지 않아요. Suno에서는 가능하면 WAV로 받아 오세요.`),
       h('div', { class: 'row' },
         file,
         h('label', { for: 'master-file', class: `btn primary${busy ? ' disabled' : ''}` }, '완성곡 파일 넣기 (WAV·MP3)'),
@@ -481,13 +485,13 @@ function renderHighlight(song, r) {
 function renderResult(song, r) {
   const warnings = masterWarnings(r, r.target);
   // 판정을 둘로 나눈다: 유통 파일 규격(형식·트루 피크)과 목표 음량 도달. 국내 유통 안내는 파일 형식만 적는다 (domestic-audit M2)
-  const fileOk = r.rate >= 44100 && r.channels.length === 2 && r.after.peak <= -0.9;
+  const fileOk = r.rate >= 44100 && r.channels.length === 2 && Number.isFinite(r.after.lufs) && Math.round(r.after.peak * 10) / 10 <= 0;
   return h('section', { class: 'card' },
     h('div', { class: 'card-head' },
       h('h2', null, '결과'),
-      h('span', { class: `pill ${fileOk ? 'good' : 'warn-pill'}`, id: 'pill-file' }, fileOk ? '유통 파일 규격 충족' : '파일 규격 확인 필요'),
+      h('span', { class: `pill ${fileOk ? 'good' : 'warn-pill'}`, id: 'pill-file' }, fileOk ? '유통 파일 형식 충족' : '파일 확인 필요'),
       h('span', { class: `pill ${r.reached ? 'good' : 'warn-pill'}`, id: 'pill-loud' }, r.reached ? `목표 음량 도달 (${r.target} LUFS)` : '목표 음량 못 미침')),
-    h('p', { class: 'muted small' }, '유통 파일 규격: WAV 44.1kHz 스테레오, 트루 피크 -1 dBTP 이하. 음량은 국내 공개 규격이 없어요. 유통사가 권장 음량을 주면 그걸 따르세요.'),
+    h('p', { class: 'muted small' }, '유통 파일 형식: WAV 44.1kHz 스테레오(16·24비트). 음량과 트루 피크는 국내 공개 규격이 없어요. 앱은 변환 때 찌그러지지 않게 트루 피크를 -1 dBTP로 맞춰요. 유통사가 권장치를 주면 그걸 따르세요.'),
     h('table', { class: 'compare' },
       h('thead', null, h('tr', null, h('th', null, ''), h('th', null, '원본'), h('th', null, '마스터'))),
       h('tbody', null,

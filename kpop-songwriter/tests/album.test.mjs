@@ -77,10 +77,14 @@ assert.ok(check.some((i) => i.level === 'warn' && i.text.includes('트루 피크
   assert.equal(lv(one({ lufs: -9, peak: -0.5 }), '트루 피크'), 'info');
   assert.equal(lv(one({ lufs: -9, peak: 0.3 }), '트루 피크'), 'warn');
   assert.equal(lv(one({ lufs: -9, peak: -1 }), '트루 피크'), '');
+  assert.equal(lv(one({ lufs: -9, peak: -0.9999999999999997 }), '트루 피크'), '', '앱 마스터(-1 dBTP 한도)의 소수 오차는 조용');
+  assert.equal(lv(one({ lufs: -9, peak: 0.04 }), '트루 피크'), 'info', '0.0으로 반올림되면 경고 대신 정보');
   assert.equal(lv(one({ lufs: -9, peak: -1 }), '음량'), '', '기본 음량은 조용');
   assert.equal(lv(one({ lufs: -14, peak: -1 }), '작게 들려요'), 'info', '-14 마스터는 맞추지 않는 재생에서 작게');
   assert.equal(lv(one({ lufs: -5.5, peak: -1 }), '권장 범위'), 'warn');
-  assert.ok(!one({ lufs: -9, peak: -1 }).some((i) => i.text.includes('일반적인 범위')));
+  assert.ok(!one({ lufs: -5.5, peak: -1 }).some((i) => i.text.includes('일반적인 범위')), '예전 문구 없음');
+  assert.equal(lv(one({ lufs: -19, peak: -1 }), '권장 범위'), 'warn', '아래쪽 문턱');
+  assert.equal(lv(one({ lufs: -19, peak: -1 }), '작게 들려요'), '', '범위 밖이면 경고 하나만');
   const { SCHEDULE } = await import('../src/js/album/model.js');
   assert.ok(SCHEDULE.find((s) => s.id === 'final-songs').detail.includes('-9 LUFS'), '일정 안내도 같은 상수');
   console.log('domestic loudness OK');

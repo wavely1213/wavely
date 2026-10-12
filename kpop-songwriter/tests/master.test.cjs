@@ -88,7 +88,7 @@ server.listen(0, async () => {
 
     const toB64 = (bytes) => new Promise((res) => { const fr = new FileReader(); fr.onload = () => res(fr.result.split(',')[1]); fr.readAsDataURL(new Blob([bytes])); });
     const out = {};
-    for (const target of [-14, -8]) {
+    for (const target of [-14, -9, -8]) { // -9 = 기본(DEFAULT_TARGET), -14 = ui 테스트용 테이크 파일
       const t2 = performance.now();
       const m = await T.master(buf, { preset: 'kpop', target });
       out[target] = { ms: Math.round(performance.now() - t2), before: m.before, after: m.after, gr: m.maxReduction, reached: m.reached, via: m.via,
@@ -112,7 +112,7 @@ server.listen(0, async () => {
     const ff = ebur128(file);
     // 목표에 닿았다고 하면 ffmpeg로도 ±0.5 LU, 못 닿았다고 하면 리미터가 한계(12dB)까지 갔어야 한다. 피크는 항상 지킨다.
     const loud = m.reached ? Math.abs(ff.I - Number(target)) <= 0.5 : m.gr >= 11.5 && Math.abs(ff.I - m.after.lufs) <= 0.5;
-    const pass = loud && ff.TP <= -0.8 && (Number(target) !== -14 || m.reached) && m.via === 'worker';
+    const pass = loud && ff.TP <= -0.8 && (![-14, -9].includes(Number(target)) || m.reached) && m.via === 'worker'; // 기본값과 -14는 목표에 닿아야 함
     ok = ok && pass;
     console.log(`target ${target}: app ${m.after.lufs.toFixed(2)} LUFS ${m.after.peak.toFixed(2)} dBTP | ffmpeg ${ff.I} LUFS ${ff.TP} dBTP | GR ${m.gr.toFixed(1)}dB reached=${m.reached} via=${m.via} | ${m.ms}ms | ${pass ? 'OK' : 'FAIL'}`);
   }

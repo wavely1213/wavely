@@ -36,7 +36,7 @@ export function songProgress(song, { albums = [], songs = [] } = {}) {
   set('suno', !!p.suno, '내보내기 탭에서 가사·스타일을 복사하거나 제작 패키지를 받아 Suno로 노래를 만들어 주세요.');
 
   const mastered = !!songMaster(song.id) || !!(album && mastersOf(album.id)[song.id]) || !!p.mastered;
-  set('master', mastered, 'Suno 완성곡을 마스터링 탭에 넣어 발매 규격으로 맞춰 주세요.');
+  set('master', mastered, 'Suno 완성곡을 마스터링 탭에 넣어 발매용 WAV로 맞춰 주세요.');
 
   if (!album) set('release', false, '"싱글 발매 준비"를 눌러 앨범 정보·커버·제출 패키지를 준비해요.');
   else {

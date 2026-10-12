@@ -209,8 +209,9 @@ export function releaseChecklist(album, songs, { masters = {}, coverInfo = null,
       if (m.channels === 1) add('warn', `${n}: 모노 파일이에요. 보통 스테레오로 제출해요.`, { tab: 'tracks' });
       if (!Number.isFinite(m.lufs)) add('error', `${n}: 소리가 거의 없는 파일이에요. 파일을 확인해 주세요.`, { tab: 'tracks' });
       // 트루 피크: 국내 유통사 공식 규격은 없다. 0 dBTP를 넘으면 변환 때 찌그러질 수 있어 warn, -1~0은 info (domestic-audit M4)
-      if (Number.isFinite(m.peak) && m.peak > 0) add('warn', `${n}: 트루 피크 ${m.peak.toFixed(1)} dBTP — 0을 넘으면 플랫폼 변환(AAC·MP3) 때 찌그러질 수 있어요. 마스터링 탭에서 -1 dBTP로 맞추는 걸 권해요.`, { tab: 'tracks' });
-      else if (Number.isFinite(m.peak) && m.peak > -1) add('info', `${n}: 트루 피크 ${m.peak.toFixed(1)} dBTP — 상업 음원에도 흔한 값이에요. 여유를 두려면 마스터링 탭에서 -1 dBTP로 맞춰요.`, { tab: 'tracks' });
+      const pk = Number.isFinite(m.peak) ? Math.round(m.peak * 10) / 10 : NaN; // 앱 마스터는 -0.9999…로 나와서 소수 한 자리로 본다
+      if (pk > 0) add('warn', `${n}: 트루 피크 ${m.peak.toFixed(1)} dBTP — 0을 넘으면 플랫폼 변환(AAC·MP3) 때 찌그러질 수 있어요. 마스터링 탭에서 -1 dBTP로 맞추는 걸 권해요.`, { tab: 'tracks' });
+      else if (pk > -1) add('info', `${n}: 트루 피크 ${m.peak.toFixed(1)} dBTP — 상업 음원에도 흔한 값이에요. 여유를 두려면 마스터링 탭에서 -1 dBTP로 맞춰요.`, { tab: 'tracks' });
       // 음량: 이 앱의 권장 범위. 기본값보다 4 LU 넘게 작으면 맞추지 않는 재생에서 작게 들린다고만 알린다 (domestic-audit M3)
       if (Number.isFinite(m.lufs) && (m.lufs < -18 || m.lufs > -6)) add('warn', `${n}: 음량 ${m.lufs.toFixed(1)} LUFS — 이 앱의 권장 범위(-18~-6)를 벗어났어요.`, { tab: 'tracks' });
       else if (Number.isFinite(m.lufs) && m.lufs < DEFAULT_TARGET - 4) add('info', `${n}: 음량 ${m.lufs.toFixed(1)} LUFS — 음량을 맞추지 않는 재생(벅스 기본 설정 등)에선 다른 곡보다 작게 들려요. 발라드라면 그대로 둬도 돼요.`, { tab: 'tracks' });

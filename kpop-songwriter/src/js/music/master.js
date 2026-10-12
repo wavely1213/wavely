@@ -13,11 +13,15 @@ export const MASTER_PRESETS = {
 export const SOFTEN = { freq: 6500, gain: -2.5, q: 1.4 };
 
 // 목표 음량 선택지. 국내 플랫폼·유통사의 공개 규격이 없어 '국내 기준'이라고 쓰지 않는다 (유통사가 권장치를 주면 그걸 따름)
-export const LOUDNESS_TARGETS = [
-  { value: -9, name: '-9 LUFS · 상업 음원 크기 (기본)', note: '국내 차트 곡에 가까운 크기예요. 음량을 맞춰 트는 곳(유튜브 뮤직·스포티파이·멜론 음량최적화)에선 줄여서 재생돼요.' },
+// 기본값 칸은 DEFAULT_TARGET에서 만든다 (값을 바꾸면 칸·표시가 같이 바뀜)
+const OTHER_TARGETS = [
   { value: -11, name: '-11 LUFS · 조금 작게', note: '다이내믹을 조금 더 남겨요. 발라드·어쿠스틱에 어울려요.' },
   { value: -14, name: '-14 LUFS · 스트리밍 맞춤 기준', note: '음량을 맞춰 트는 곳에선 손해가 없지만, 맞추지 않는 재생(벅스 기본 설정 등)에선 다른 곡보다 작게 들려요.' },
   { value: -8, name: '-8 LUFS · 아주 크게', note: '리미터가 많이 눌러 타격감이 줄 수 있어요.' },
+];
+export const LOUDNESS_TARGETS = [
+  { value: DEFAULT_TARGET, name: `${DEFAULT_TARGET} LUFS · 크게 (기본)`, note: '큰 상업 음원에 가까운 크기예요. 음량을 맞춰 트는 곳(유튜브 뮤직·스포티파이·멜론 음량최적화)에선 줄여서 재생돼요.' },
+  ...OTHER_TARGETS.filter((t) => t.value !== DEFAULT_TARGET),
 ];
 
 export { OUTPUT_RATE, DEFAULT_TARGET, finishEdges, measure } from './dsp.js';
