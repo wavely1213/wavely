@@ -3,21 +3,26 @@
 // 밖에서 온 글자(파일 이름·제목·기록)는 늘 textContent 로만 넣는다 (innerHTML 에 넣지 않음).
 import * as P from "./proto.js";
 
-// 이 페이지가 놓인 곳 (futsal.mulgyeol.kr 은 "/") — 주소창 정리·서비스 워커 범위·알림 그림이 모두 여기서 나온다
-const BASE = new URL(".", import.meta.url).pathname;
+// 이 페이지가 놓인 곳 (futsal.mulgyeol.kr 은 "/") — 주소창 정리·서비스 워커 범위·알림 그림이 모두 여기서 나온다.
+// 다른 앞머리(예: /alt/fs)에 놓아도 같은 파일로 돈다 (PC 는 remote.SITE 한 줄 · D-233 · D-240).
+const BASE = new URL(".", import.meta.url).pathname;                     // 파일이 있는 곳 (끝에 /) — 그림·서비스 워커
+const HOME = location.pathname.replace(/\/(index(\.html)?)?$/, "") || "/";  // 이 페이지 주소 (끝 / 없이 · 뿌리면 "/")
+const ICON = BASE + "icon-192.png";
 
 const DEV = ["127.0.0.1", "localhost"].includes(location.hostname);
 const DEV_NTFY = DEV ? ((document.querySelector('meta[name="futsal-dev-ntfy"]') || {}).content || "") : "";
 const PAIR_NTFY = DEV && DEV_NTFY ? DEV_NTFY : P.NTFY;
 const $ = id => document.getElementById(id);
 const S = { cred: null, keys: null, tab: "progress", status: null, logs: [], logTotal: 0, lib: null, outs: null, choices: null,
-  online: false, timer: null, connecting: false, prevJob: null, logOpen: false, ntfyReached: true, alertTest: null, alertTips: false };
+  online: false, timer: null, connecting: false, prevJob: null, logOpen: false, ntfyReached: true, alertTest: null, alertTips: false,
+  resume: null, cookieHelp: false, opening: false };
 const KIND = { own: "풋살사관학교", footage: "내 촬영본", unknown: "출처 모름" };
 const STORE_IOS = "https://apps.apple.com/app/ntfy/id1625396347";
 const STORE_ANDROID = "https://play.google.com/store/apps/details?id=io.heckel.ntfy";
 const UA = navigator.userAgent;
 const IOS = /iPhone|iPad|iPod/.test(UA) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 const ANDROID = /Android/.test(UA);
+const DESKTOP = !IOS && !ANDROID && !/Mobile|Tablet/i.test(UA);  // 노트북·데스크톱 브라우저 (밖에서 작업 · PC 스튜디오 열기)
 const INAPP = P.inAppBrowser(UA);
 const OUT_JOBS = ["작은 미리보기 만들기", "영상 검수", "내보내기"];
 
@@ -230,6 +235,10 @@ function goOnline() {
   $("pcName").textContent = clean(S.cred.pcName || "내 PC") + " · 연결됨";
   $("tabs").hidden = false;
   render();
+  if (S.resume) {  // 스튜디오에서 연결이 끝나 돌아옴 → 저절로 다시 (1분에 2번까지 · 넘으면 쿠키가 막힌 것으로 보고 안내)
+    const to = S.resume; S.resume = null;
+    if (studioAllowed()) { if (handoffBudget()) openStudio(to); else { S.cookieHelp = true; render(); } }
+  }
 }
 function goOffline() {
   S.online = false;
@@ -258,7 +267,9 @@ window.addEventListener("offline", () => { if (S.cred && !S.online) offline(); }
 
 // ---------- 짝짓기 ----------
 function deviceName() {
-  const d = /iPhone/.test(UA) ? "iPhone" : /iPad/.test(UA) ? "iPad" : /Android/.test(UA) ? (/SM-|Samsung/i.test(UA) ? "Galaxy" : "Android") : /Mac/.test(UA) ? "Mac" : /Windows/.test(UA) ? "PC" : "휴대폰";
+  // 'PC' 라고 하면 PC 화면의 '밖에서 작업 중 · PC · Chrome'이 이 PC 처럼 읽힘 → 노트북은 'Windows 노트북'·'Mac'·'컴퓨터'
+  const d = /iPhone/.test(UA) ? "iPhone" : /iPad/.test(UA) ? "iPad" : /Android/.test(UA) ? (/SM-|Samsung/i.test(UA) ? "Galaxy" : "Android") : /Mac/.test(UA) ? "Mac"
+    : /Windows/.test(UA) ? "Windows 노트북" : /CrOS|Linux|X11/.test(UA) ? "컴퓨터" : "휴대폰";
   const b = INAPP || (/SamsungBrowser/.test(UA) ? "삼성 인터넷" : /Edg/.test(UA) ? "Edge" : /CriOS|Chrome/.test(UA) ? "Chrome" : /FxiOS|Firefox/.test(UA) ? "Firefox" : /Safari/.test(UA) ? "Safari" : "브라우저");
   const home = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone ? " · 홈 화면" : "";
   return `${d} · ${b}${home}`;
@@ -361,9 +372,9 @@ function unpaired(err) {
     INAPP ? inAppCard(false) : null,
     h("section", { class: "card" }, h("h2", { text: "PC와 연결해 주세요" }),
       h("p", { text: "PC에서 하는 작업을 여기서 보고, 영상 받기·편집점 찾기·내보내기를 시킬 수 있어요." }),
-      h("ol", { class: "steps" }, h("li", { text: "PC 스튜디오 왼쪽 아래 '휴대폰으로 보기'를 눌러요" }), h("li", { text: "[원격 접속 켜기] → [휴대폰 연결하기]를 눌러요" }),
-        h("li", { text: "나온 QR을 휴대폰 카메라로 찍거나 아래에 코드를 넣어요" }))),
-    h("section", { class: "card stack" }, h("h3", { text: "코드로 연결" }), h("p", { class: "muted", text: "QR을 찍기 어려우면 PC 화면의 코드를 넣어 주세요" }),
+      h("ol", { class: "steps" }, h("li", { text: "PC 스튜디오 왼쪽 아래 '휴대폰으로 보기'를 눌러요" }), h("li", { text: "[원격 접속 켜기] → [휴대폰 연결하기]를 눌러요 (노트북·태블릿도 같은 단추)" }),
+        h("li", { text: DESKTOP ? "나온 코드를 아래에 넣어요 (휴대폰이면 QR을 카메라로 찍어도 돼요)" : "나온 QR을 휴대폰 카메라로 찍거나 아래에 코드를 넣어요" }))),
+    h("section", { class: "card stack" }, h("h3", { text: "코드로 연결" }), h("p", { class: "muted", text: DESKTOP ? "노트북·태블릿은 PC 화면의 코드를 넣어 주세요" : "QR을 찍기 어려우면 PC 화면의 코드를 넣어 주세요" }),
       inp, h("p", { class: "muted hint", id: "codeHint", text: "영어·숫자 10글자 (예: 7K3Q-M9XD-2P) · 한글 자판이면 영문으로 바꿔 주세요" }),
       h("button", { class: "btn primary block", onclick: go }, "연결하기")),
     installCard());
@@ -371,6 +382,14 @@ function unpaired(err) {
 function installCard() {
   const standalone = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone;
   if (standalone) return null;
+  if (DESKTOP) {  // 노트북·데스크톱: 안드로이드 안내 대신 그 브라우저의 설치·바로 열기 방법
+    const how = /Edg\//.test(UA) ? "Edge: 주소창 오른쪽의 앱 설치 아이콘(⊕)을 누르면 따로 창으로 열 수 있어요."
+      : /Chrome\//.test(UA) ? "크롬: 주소창 오른쪽의 설치 아이콘(⊕ 또는 컴퓨터 모양)을 누르면 따로 창으로 열 수 있어요."
+        : /Safari\//.test(UA) && /Mac/.test(UA) ? "사파리: 메뉴 막대의 [파일] → [Dock에 추가]를 누르면 따로 창으로 열 수 있어요."
+          : "이 주소를 즐겨찾기(북마크)에 추가해 두면 다음에 바로 열 수 있어요.";
+    return h("section", { class: "card" }, h("h3", { text: "이 컴퓨터에서 바로 열 수 있게 두기" }), h("p", { text: how }),
+      h("p", { class: "muted", text: `원격 홈 주소 · ${location.host}` }));
+  }
   return h("section", { class: "card" }, h("h3", { text: "홈 화면에 두고 앱처럼 쓰기" }),
     IOS ? h("p", { text: "아이폰: 먼저 사파리 아래 공유 버튼 → '홈 화면에 추가' → 홈 화면의 '풋살 스튜디오'를 열고, 그 안에서 PC의 [휴대폰 연결하기] 코드를 넣어 주세요." })
       : h("p", { text: "안드로이드: 크롬 메뉴(⋮) → '앱 설치' 또는 '홈 화면에 추가'. 연결은 그대로 이어져요." }),
@@ -390,7 +409,7 @@ function inAppScreen(hp) {
   dot("", "연결 전");
   $("tabs").hidden = true;
   view(inAppCard(true), h("section", { class: "card" }, h("p", { class: "muted", text: "그래도 여기서 연결하려면 아래를 눌러 주세요 (이 화면을 닫으면 다시 연결해야 할 수 있어요)." }),
-    h("button", { class: "btn block", onclick: () => { history.replaceState(null, "", BASE); pair(hp.pair, hp.u); } }, "여기서 연결하기")));
+    h("button", { class: "btn block", onclick: () => { history.replaceState(null, "", HOME); pair(hp.pair, hp.u); } }, "여기서 연결하기")));
 }
 function offline() {
   const c = S.cred, b = c.lastBeacon, why = b && b.state === "off" ? b.reason : null;
@@ -480,7 +499,7 @@ function jobCard(j) {
   if (pct != null) bar.firstChild.style.width = Math.max(2, Math.min(100, +pct)) + "%";
   return h("section", { class: "card", id: "jobCard" },
     h("div", { class: "job-title" }, "지금 하는 일 · ", j.name, pct != null ? h("span", { class: "pct", text: ` ${pct}%` }) : null,
-      j.by ? h("span", { class: "by", text: "휴대폰에서" }) : null),
+      j.by ? h("span", { class: "by", text: String(j.by).startsWith("밖에서") ? "밖에서" : "휴대폰에서" }) : null),
     bar,
     pr.item ? h("p", { class: "muted", text: pr.item }) : null,
     pr.detail || pr.label ? h("p", { text: [pr.label, pr.detail].filter(Boolean).join(" · ") }) : null,
@@ -503,6 +522,44 @@ function lastCard(l) {
   return h("section", { class: "card" }, h("div", { class: "lbl", text: "마지막 작업" }), head,
     !l.ok && l.error ? h("details", {}, h("summary", { text: "자세히" }), h("p", { text: l.error })) : null);
 }
+// ---------- PC 스튜디오 열기 (밖에서 작업 · D-230) ----------
+// 서명한 /r/handoff → 한 번 쓰는 표(1분) → <PC 주소>/s/hello#t=<표> 로 넘어감 (표는 # 뒤라 서버·기록에 안 남음) → PC 화면 그대로
+const studioFeature = () => !!(S.status && Array.isArray(S.status.features) && S.status.features.includes("studio"));
+const studioAllowed = () => studioFeature() && !!(S.status.remote && S.status.remote.studio && S.status.remote.studio.allowed);
+function handoffBudget() {
+  let a = [];
+  try { a = JSON.parse(sessionStorage.getItem("fs-handoff") || "[]").filter(t => typeof t === "number" && Date.now() - t < 60000); } catch (e) { a = []; }
+  if (a.length >= 2) return false;
+  a.push(Date.now());
+  try { sessionStorage.setItem("fs-handoff", JSON.stringify(a)); } catch (e) { /* 이 화면을 연 동안만 */ }
+  return true;
+}
+async function openStudio(path) {
+  if (S.opening) return;
+  S.opening = true;
+  try {
+    const r = await api("POST", "/r/handoff", { path: P.nextOk(path) ? path : "/" }, 10000);
+    if (!r.ok) {
+      toast(r.j.code === "studio_off" ? "PC에서 '밖에서 작업 허용'이 꺼져 있어요 · PC의 '휴대폰으로 보기'에서 켜 주세요" : (r.j.error || "지금은 열 수 없어요 · 잠시 뒤 다시 눌러 주세요"));
+      return;
+    }
+    const base = P.hostOk(r.j.url, DEV);  // 받아도 되는 PC 주소만 (빠른 터널 · 개발 때만 루프백)
+    if (!base || !/^[A-Za-z0-9_-]{43}$/.test(r.j.token || "")) { toast("PC의 대답을 읽지 못했어요 · 다시 눌러 주세요"); return; }
+    location.assign(base + "/s/hello#t=" + r.j.token);
+  } catch (e) {
+    if (!(e instanceof Gone)) toast("PC와 연결이 끊겼어요");
+  } finally { setTimeout(() => { S.opening = false; }, 1500); }
+}
+function studioCard() {
+  if (!studioFeature()) return null;  // 예전 PC 스튜디오 → 보이지 않음
+  const ok = studioAllowed();
+  return h("section", { class: "card stack studio", id: "studioCard" },
+    h("h3", { text: "PC 스튜디오 열기" }),
+    h("p", { text: "PC 화면 그대로 밖에서 작업해요 (노트북·태블릿 추천) · 영상 처리는 PC가 해요" }),
+    S.cookieHelp ? h("p", { class: "warn", text: "브라우저 쿠키가 막혀 있어요 · 이 브라우저 설정에서 쿠키(사이트 데이터)를 허용한 뒤 다시 눌러 주세요 (시크릿·개인 정보 보호 모드라면 일반 창에서)" }) : null,
+    ok ? h("button", { class: "btn primary block", id: "studioGo", onclick: () => { S.cookieHelp = false; openStudio("/"); } }, "PC 스튜디오 열기")
+      : h("p", { class: "muted", id: "studioOff", text: "PC에서 '밖에서 작업 허용'이 꺼져 있어요 · PC의 '휴대폰으로 보기'에서 켜 주세요" }));
+}
 function renderProgress() {
   if (!S.status) return;
   const st = S.status, c = S.cred;
@@ -511,7 +568,8 @@ function renderProgress() {
   det.open = S.logOpen;
   det.addEventListener("toggle", () => { S.logOpen = det.open; if (det.open) pre.scrollTop = 1e9; });
   const off = c.alertSetup === "later" ? h("button", { class: "card hintbar", onclick: () => setAlert("todo") }, h("span", { text: "알림 꺼져 있음 · 작업이 끝나도 알려 드리지 못해요" }), h("b", { text: "알림 설정" })) : null;
-  view(c.notifyMoved ? movedCard() : null, c.alertSetup === "todo" ? alertCard() : off, jobCard(st.job), lastCard(st.last), det,
+  const wide = window.matchMedia && matchMedia("(min-width: 760px)").matches, sc = studioCard();  // 넓은 화면(노트북·태블릿)은 스튜디오 열기를 맨 위로
+  view(wide ? sc : null, c.notifyMoved ? movedCard() : null, c.alertSetup === "todo" ? alertCard() : off, jobCard(st.job), wide ? null : sc, lastCard(st.last), det,
     h("button", { class: "fab", "aria-label": "새 작업", onclick: newJobSheet }, "+"));
   if (det.open) pre.scrollTop = 1e9;
 }
@@ -560,8 +618,8 @@ function jobEnded(l) {
   if (!S.notifyOn) return;
   const text = l.ok ? `작업이 끝났어요 · ${l.name}` : l.warn ? `확인이 필요해요 · ${l.name}` : `작업이 멈췄어요 · ${l.name}`;
   try {
-    if (navigator.serviceWorker && navigator.serviceWorker.controller) navigator.serviceWorker.ready.then(reg => reg.showNotification("풋살 스튜디오", { body: text, icon: BASE + "icon-192.png", tag: "fs-job" }));
-    else new Notification("풋살 스튜디오", { body: text, icon: BASE + "icon-192.png" });
+    if (navigator.serviceWorker && navigator.serviceWorker.controller) navigator.serviceWorker.ready.then(reg => reg.showNotification("풋살 스튜디오", { body: text, icon: ICON, tag: "fs-job" }));
+    else new Notification("풋살 스튜디오", { body: text, icon: ICON });
   } catch (e) { /* 알림을 못 띄우는 브라우저 */ }
 }
 
@@ -719,14 +777,14 @@ function renderMore() {
       h("label", { class: "chk" }, tgl, "이 화면을 열어 둔 동안만 브라우저 알림도 보기 (화면을 닫으면 안 와요 · 아이폰 사파리는 안 돼요)")),
     h("section", { class: "card" }, h("h3", { text: "PC" }),
       h("p", { text: `${c.pcName || "내 PC"}${st.ver ? " · 스튜디오 v" + st.ver : ""}` }),
-      h("p", { class: "muted", text: `이 휴대폰 이름 · ${c.deviceName || ""}` }),
+      h("p", { class: "muted", text: `이 기기 이름 · ${c.deviceName || ""}` }),
       st.remote && st.remote.autoOffAt ? h("p", { class: "muted", text: `쓰지 않으면 ${clock(st.remote.autoOffAt)}에 원격 접속이 저절로 꺼져요` }) : null),
     h("section", { class: "card stack" },
       h("button", { class: "btn block danger", onclick: async () => {
-        if (!await ask("이 휴대폰의 연결을 끊을까요? 다시 쓰려면 PC 앞에서 새 코드로 다시 연결해야 해요.", "끊기", true)) return;
-        try { await api("POST", "/r/forget", {}); } catch (e) { /* 그래도 이 휴대폰 정보는 지움 */ }
-        forgetLocal("이 휴대폰 연결을 끊었어요");
-      } }, "이 휴대폰 연결 끊기"),
+        if (!await ask("이 기기의 연결을 끊을까요? 다시 쓰려면 PC 앞에서 새 코드로 다시 연결해야 해요.", "끊기", true)) return;
+        try { await api("POST", "/r/forget", {}); } catch (e) { /* 그래도 이 기기 정보는 지움 */ }
+        forgetLocal("이 기기 연결을 끊었어요");
+      } }, "이 기기 연결 끊기"),
       h("button", { class: "btn block", onclick: async () => {
         if (!await ask("PC의 원격 접속을 끌까요? 다시 켜려면 PC에서 직접 켜야 해요.", "끄기", true)) return;
         try { const r = await api("POST", "/r/remote-off", {}); if (!r.ok) return toast(r.j.error || "끄지 못했어요"); } catch (e) { return; }
@@ -740,9 +798,9 @@ function renderMore() {
 async function start() {
   S.notifyOn = notifyPref();
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register(BASE + "sw.js", { scope: BASE }).catch(() => { /* 없어도 그대로 씀 */ });
+    navigator.serviceWorker.register(BASE + "sw.js", { scope: HOME }).catch(() => { /* 없어도 그대로 씀 */ });
     // 예전 주소(mulgyeol.kr/futsal 시절 /futsal 범위)로 시험하며 남은 서비스 워커는 지움 — 이 출처에는 이 페이지 하나뿐
-    navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => { if (new URL(r.scope).pathname !== BASE) r.unregister(); })).catch(() => {});
+    navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => { if (new URL(r.scope).pathname !== HOME) r.unregister(); })).catch(() => {});
   }
   const hp = P.parseHash(location.hash);
   const saved = await load();
@@ -750,7 +808,8 @@ async function start() {
     S.cred = saved; S.keys = { auth: saved.auth, beacon: saved.beacon };
   } else if (saved) await wipe();
   if (hp.pair && INAPP) return inAppScreen(hp);  // 앱 안 브라우저: 코드를 쓰지 않고 남겨 둠 (다른 브라우저로 열면 그대로 연결)
-  if (location.hash) history.replaceState(null, "", BASE);  // 코드가 주소창·방문 기록에 남지 않게 바로 지움
+  if (location.hash) history.replaceState(null, "", HOME);  // 코드가 주소창·방문 기록에 남지 않게 바로 지움
+  S.resume = hp.resume;  // PC 스튜디오 화면에서 연결이 끝나 돌아옴 → 다시 연결되면 그 화면으로 (아래 goOnline)
   if (hp.pair) return pair(hp.pair, hp.u);
   if (!S.cred) return unpaired();
   finding();
@@ -761,6 +820,6 @@ window.addEventListener("hashchange", () => {
   const hp = P.parseHash(location.hash);
   if (!hp.pair) return;
   if (INAPP) return inAppScreen(hp);
-  history.replaceState(null, "", BASE); pair(hp.pair, hp.u);
+  history.replaceState(null, "", HOME); pair(hp.pair, hp.u);
 });
 start();
