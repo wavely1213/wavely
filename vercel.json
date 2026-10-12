@@ -4,6 +4,14 @@
   "outputDirectory": "dist",
   "cleanUrls": true,
   "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/:path((?!futsal(?:/|$)).*)",
+      "has": [{ "type": "host", "value": "futsal.mulgyeol.kr" }],
+      "destination": "/futsal",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     { "source": "/post/:id", "destination": "/post/[id]" },
     { "source": "/store/:id", "destination": "/store/[id]" },
