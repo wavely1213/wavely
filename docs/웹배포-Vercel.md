@@ -1,5 +1,10 @@
 # 🚀 웹 배포 (Vercel) — 무료
 
+> **⚠️ 2026-10 바뀜 — 이 저장소의 Vercel 프로젝트 `wavely` 는 이제 풋살사관학교 스튜디오 원격 페이지 전용이에요.**
+> - 주소: **https://futsal.mulgyeol.kr** (뿌리 `/` 가 그 페이지). 빌드는 `public/futsal/` 을 `dist/` 로 복사만 해요(npm 설치·`expo export` 없음 · `vercel.json`).
+> - 옛 주소 `/futsal`·`/futsal/…` → 같은 자리의 `/…` 로, `wavely-nine.vercel.app/…` → `https://futsal.mulgyeol.kr/…` 로 넘어가요(임시 이동 307). 그 밖의 모르는 주소는 `/` 로, 없는 파일(`.js`·`.png` 처럼 확장자가 있는 것)은 404 예요. 미리보기 주소(`wavely-*-wavely1213s-projects.vercel.app`)는 그 자리에서 바로 열려요.
+> - 와벨리 커뮤니티 웹은 별도 저장소 **wavely-web**(Vercel 프로젝트 `wavely-web`)가 **mulgyeol.kr**(www·m 포함)에서 맡아요. 아래 Expo 웹 배포 안내는 예전 기록이에요.
+
 준비 완료 상태예요. 빌드는 검증됐고(`expo export` → 35개 라우트 OK), `vercel.json`도 있어요.
 
 ## 1) GitHub에 코드 올리기 (무료)

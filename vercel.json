@@ -1,23 +1,21 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npx expo export --platform web",
+  "framework": null,
+  "installCommand": "",
+  "buildCommand": "rm -rf dist && cp -R public/futsal dist",
   "outputDirectory": "dist",
   "cleanUrls": true,
   "trailingSlash": false,
   "redirects": [
     {
-      "source": "/:path((?!futsal(?:/|$)).*)",
-      "has": [{ "type": "host", "value": "futsal.mulgyeol.kr" }],
-      "destination": "/futsal",
+      "source": "/:path(.*)",
+      "has": [{ "type": "host", "value": "wavely-nine\\.vercel\\.app" }],
+      "destination": "https://futsal.mulgyeol.kr/:path",
       "permanent": false
-    }
-  ],
-  "rewrites": [
-    { "source": "/post/:id", "destination": "/post/[id]" },
-    { "source": "/store/:id", "destination": "/store/[id]" },
-    { "source": "/place/:id", "destination": "/place/[id]" },
-    { "source": "/chat/:id", "destination": "/chat/[id]" },
-    { "source": "/futsal", "destination": "/futsal/index" }
+    },
+    { "source": "/futsal", "destination": "/", "permanent": false },
+    { "source": "/futsal/:path*", "destination": "/:path*", "permanent": false },
+    { "source": "/:path((?:[^/]+/)*[^/.]+)", "destination": "/", "permanent": false }
   ],
   "headers": [
     {
@@ -27,16 +25,13 @@
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "geolocation=(self), camera=(), microphone=(), payment=(self)" },
+        { "key": "Permissions-Policy", "value": "geolocation=(), camera=(), microphone=(), payment=()" },
         { "key": "Cross-Origin-Opener-Policy", "value": "same-origin-allow-popups" }
       ]
     },
     {
-      "source": "/futsal/sw.js",
-      "headers": [
-        { "key": "Service-Worker-Allowed", "value": "/futsal" },
-        { "key": "Cache-Control", "value": "no-cache" }
-      ]
+      "source": "/sw.js",
+      "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
     }
   ]
 }

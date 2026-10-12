@@ -1,7 +1,10 @@
-// 풋살 스튜디오 원격 — 휴대폰 화면 (mulgyeol.kr/futsal)
+// 풋살 스튜디오 원격 — 휴대폰 화면 (futsal.mulgyeol.kr)
 // PC 앱(remote.py)의 /r/* 와 ntfy 비콘만 쓴다. 와벨리 코드·데이터와는 아무 관계가 없다.
 // 밖에서 온 글자(파일 이름·제목·기록)는 늘 textContent 로만 넣는다 (innerHTML 에 넣지 않음).
-import * as P from "/futsal/proto.js";
+import * as P from "./proto.js";
+
+// 이 페이지가 놓인 곳 (futsal.mulgyeol.kr 은 "/") — 주소창 정리·서비스 워커 범위·알림 그림이 모두 여기서 나온다
+const BASE = new URL(".", import.meta.url).pathname;
 
 const DEV = ["127.0.0.1", "localhost"].includes(location.hostname);
 const DEV_NTFY = DEV ? ((document.querySelector('meta[name="futsal-dev-ntfy"]') || {}).content || "") : "";
@@ -387,7 +390,7 @@ function inAppScreen(hp) {
   dot("", "연결 전");
   $("tabs").hidden = true;
   view(inAppCard(true), h("section", { class: "card" }, h("p", { class: "muted", text: "그래도 여기서 연결하려면 아래를 눌러 주세요 (이 화면을 닫으면 다시 연결해야 할 수 있어요)." }),
-    h("button", { class: "btn block", onclick: () => { history.replaceState(null, "", "/futsal"); pair(hp.pair, hp.u); } }, "여기서 연결하기")));
+    h("button", { class: "btn block", onclick: () => { history.replaceState(null, "", BASE); pair(hp.pair, hp.u); } }, "여기서 연결하기")));
 }
 function offline() {
   const c = S.cred, b = c.lastBeacon, why = b && b.state === "off" ? b.reason : null;
@@ -557,8 +560,8 @@ function jobEnded(l) {
   if (!S.notifyOn) return;
   const text = l.ok ? `작업이 끝났어요 · ${l.name}` : l.warn ? `확인이 필요해요 · ${l.name}` : `작업이 멈췄어요 · ${l.name}`;
   try {
-    if (navigator.serviceWorker && navigator.serviceWorker.controller) navigator.serviceWorker.ready.then(reg => reg.showNotification("풋살 스튜디오", { body: text, icon: "/futsal/icon-192.png", tag: "fs-job" }));
-    else new Notification("풋살 스튜디오", { body: text, icon: "/futsal/icon-192.png" });
+    if (navigator.serviceWorker && navigator.serviceWorker.controller) navigator.serviceWorker.ready.then(reg => reg.showNotification("풋살 스튜디오", { body: text, icon: BASE + "icon-192.png", tag: "fs-job" }));
+    else new Notification("풋살 스튜디오", { body: text, icon: BASE + "icon-192.png" });
   } catch (e) { /* 알림을 못 띄우는 브라우저 */ }
 }
 
@@ -736,14 +739,18 @@ function renderMore() {
 // ---------- 시작 ----------
 async function start() {
   S.notifyOn = notifyPref();
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("/futsal/sw.js", { scope: "/futsal" }).catch(() => { /* 없어도 그대로 씀 */ });
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register(BASE + "sw.js", { scope: BASE }).catch(() => { /* 없어도 그대로 씀 */ });
+    // 예전 주소(mulgyeol.kr/futsal 시절 /futsal 범위)로 시험하며 남은 서비스 워커는 지움 — 이 출처에는 이 페이지 하나뿐
+    navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => { if (new URL(r.scope).pathname !== BASE) r.unregister(); })).catch(() => {});
+  }
   const hp = P.parseHash(location.hash);
   const saved = await load();
   if (saved && saved.v === 2 && saved.auth && saved.beacon && typeof saved.auth === "object") {
     S.cred = saved; S.keys = { auth: saved.auth, beacon: saved.beacon };
   } else if (saved) await wipe();
   if (hp.pair && INAPP) return inAppScreen(hp);  // 앱 안 브라우저: 코드를 쓰지 않고 남겨 둠 (다른 브라우저로 열면 그대로 연결)
-  if (location.hash) history.replaceState(null, "", "/futsal");  // 코드가 주소창·방문 기록에 남지 않게 바로 지움
+  if (location.hash) history.replaceState(null, "", BASE);  // 코드가 주소창·방문 기록에 남지 않게 바로 지움
   if (hp.pair) return pair(hp.pair, hp.u);
   if (!S.cred) return unpaired();
   finding();
@@ -754,6 +761,6 @@ window.addEventListener("hashchange", () => {
   const hp = P.parseHash(location.hash);
   if (!hp.pair) return;
   if (INAPP) return inAppScreen(hp);
-  history.replaceState(null, "", "/futsal"); pair(hp.pair, hp.u);
+  history.replaceState(null, "", BASE); pair(hp.pair, hp.u);
 });
 start();
