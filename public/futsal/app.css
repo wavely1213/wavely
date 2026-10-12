@@ -85,6 +85,9 @@ ol.steps li { margin: 4px 0; }
 .seg button.on { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
 .chk { display: flex; gap: 8px; align-items: center; min-height: 40px; }
 .chk input { width: 22px; height: 22px; accent-color: var(--brand); }
+/* 아이디·비밀번호로 연결 (D-250): 비밀번호 + [보기] 한 줄 · 찾는 중 표시 */
+.pwrow { display: flex; gap: 8px; align-items: center; } .pwrow .inp { flex: 1 1 auto; min-width: 0; } .pwrow > button { flex: none; white-space: nowrap; }
+#loginStatus .center { text-align: center; }
 
 /* 상태 */
 .spin { width: 22px; height: 22px; margin: 0 auto 10px; border-radius: 50%; border: 3px solid var(--line); border-top-color: var(--brand); animation: r .8s linear infinite; }

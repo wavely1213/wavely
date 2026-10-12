@@ -1,7 +1,7 @@
 // 풋살 스튜디오 원격 — 서비스 워커 (이 페이지 파일만 네트워크 먼저 · 캐시는 끊겼을 때만)
 // PC(터널 · 밖에서 작업 스튜디오 포함)·ntfy 요청은 손대지 않는다 (respondWith 없음 · 다른 출처는 아예 보지 않음).
 // 경로는 등록 범위(scope)에서 나온다 (futsal.mulgyeol.kr 은 "/") — 다른 앞머리(예: /alt/fs)에 놓아도 같은 파일 (D-233).
-const CACHE = "fs-remote-v3";
+const CACHE = "fs-remote-v4";
 const ROOT = new URL(self.registration.scope).pathname.replace(/\/$/, "");  // 앞머리 (뿌리면 "")
 const HOME = ROOT || "/";                                                    // 페이지 주소
 const SHELL = [HOME, ...["app.js", "proto.js", "app.css", "manifest.webmanifest", "icon-192.png"].map(f => ROOT + "/" + f)];
