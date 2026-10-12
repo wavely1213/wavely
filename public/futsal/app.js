@@ -310,22 +310,22 @@ async function pairAt(base, pk) {
   } catch (e) { return null; }
   let j = {};
   try { j = await r.json(); } catch (e) { /* 글이 아님 */ }
-  if (!r.ok) return { error: j.error || "연결하지 못했어요 · PC 화면의 새 코드로 다시 해 주세요", status: r.status };
+  if (!r.ok) return { error: j.error || "연결하지 못했어요 · PC 화면의 새 QR로 다시 해 주세요", status: r.status };
   if (j.api !== P.API) return { error: "PC 스튜디오를 업데이트해 주세요", status: 400 };
   const inner = await P.openPairResponse(j, pk.topic, pk.key);  // 코드로 만든 열쇠로 풀려야 진짜 PC
   return inner ? { inner, base, skew: typeof j.time === "number" ? j.time - now() : skew } : null;
 }
 async function pair(code, hint) {
-  if (S.cred && !await ask(`이 휴대폰은 이미 '${clean(S.cred.pcName || "내 PC")}'와 연결돼 있어요.\n새 코드로 다시 연결하면 지금 연결은 끊어져요. PC 화면의 QR이나 코드로 직접 연결하는 게 맞나요?`, "다시 연결하기")) {
+  if (S.cred && !await ask(`이 휴대폰은 이미 '${clean(S.cred.pcName || "내 PC")}'와 연결돼 있어요.\n새 QR로 다시 연결하면 지금 연결은 끊어져요. PC 화면의 QR을 직접 찍은 게 맞나요?`, "다시 연결하기")) {
     finding(); connect().then(schedule); return;
   }
   dot("wait", "PC를 찾고 있어요");
   $("tabs").hidden = true;
-  view(h("section", { class: "card center" }, h("div", { class: "spin" }), h("p", { text: "코드로 PC를 찾는 중이에요 (최대 10초)" }), h("p", { class: "muted", text: "PC 화면의 코드로 연결하는 중이에요" })));
+  view(h("section", { class: "card center" }, h("div", { class: "spin" }), h("p", { text: "QR로 PC를 찾는 중이에요 (최대 10초)" }), h("p", { class: "muted", text: "PC 화면의 QR로 연결하는 중이에요" })));
   const pk = await P.derivePair(code);
   const hb = hint ? P.hintUrl(hint, DEV) : null;
   let res = hb ? await pairAt(hb, pk) : null;  // QR 의 힌트 주소는 빨리 찾는 길일 뿐 — 진짜인지는 잠긴 대답으로 확인
-  if (!res || !res.inner) {  // 힌트가 없거나 닿지 않거나 가짜 → 코드로 만든 비밀 주제에서 PC 주소를 찾음 (아이폰 홈 화면 앱은 코드만 침)
+  if (!res || !res.inner) {  // 힌트가 없거나 닿지 않거나 가짜 → 코드(QR 의 #pair=)로 만든 비밀 주제에서 PC 주소를 찾음
     let base = null;
     for (let i = 0; i < 5 && !base; i++) {
       const m = await latestNtfy(PAIR_NTFY, pk.topic);
@@ -335,7 +335,7 @@ async function pair(code, hint) {
     }
     if (base && (base !== hb || !res)) res = await pairAt(base, pk);
   }
-  if (!res) return unpaired("PC를 찾지 못했어요 · PC에서 원격 접속이 켜져 있는지, 코드가 맞는지(10분 안) 확인해 주세요");
+  if (!res) return unpaired("PC를 찾지 못했어요 · PC에서 원격 접속이 켜져 있는지, QR이 10분 안에 만든 것인지 확인해 주세요");
   if (!res.inner) return unpaired(res.error);
   const inner = res.inner;
   const keys = await P.importKeys(inner.keys.auth, inner.keys.beacon);
@@ -377,40 +377,18 @@ function finding() {
   $("tabs").hidden = true;
   view(h("section", { class: "card center" }, h("div", { class: "spin" }), h("p", { text: "PC를 찾고 있어요…" })));
 }
-function codeFromInput(raw) {
-  let c = P.normCode(raw);
-  if (!c && P.hasHangul(raw)) {  // 한국 휴대폰 기본 자판(한글)으로 친 경우 → 누른 영문 글쇠로 바꿔 봄
-    c = P.normCode(P.fromHangul(raw));
-    if (c) toast("한글 자판으로 입력돼서 영문으로 바꿨어요");
-    else { toast("한글로 입력됐어요 · 키보드를 영문으로 바꿔 주세요"); return null; }
-  }
-  if (!c) toast("코드 10글자를 다시 확인해 주세요 (영어·숫자)");
-  return c;
-}
 function unpaired(err) {
   dot("", "연결 전");
   $("tabs").hidden = true;
   $("pcName").textContent = "휴대폰으로 보기";
-  const inp = h("input", { class: "inp code", id: "codeIn", placeholder: "XXXX-XXXX-XX", autocomplete: "off", autocapitalize: "characters", autocorrect: "off", spellcheck: "false", maxlength: "20", inputmode: "text", lang: "en", "aria-label": "연결 코드", "aria-describedby": "codeHint" });
-  const go = () => {
-    const c = codeFromInput(inp.value);
-    if (!c) { inp.focus(); return; }
-    inp.value = P.fmtCode(c);
-    pair(c, "");
-  };
-  inp.addEventListener("keydown", e => { if (e.key === "Enter") go(); });
+  // 코드 입력 칸은 없음 (소유자 결정 · 스튜디오 D-259): 손으로 치는 연결은 아이디·비밀번호 하나 · PC 앞에서는 QR(#pair=)만
   view(
     err && h("section", { class: "card alert" }, h("p", { text: err })),
     INAPP ? inAppCard(false) : null,
     loginCard({ resume: !!S.resume || S.guestEnded }),
     h("h3", { class: "lbl", text: "PC 앞에 있다면" }),
-    h("section", { class: "card" }, h("h2", { text: "PC와 연결해 주세요" }),
-      h("p", { text: "PC에서 하는 작업을 여기서 보고, 영상 받기·편집점 찾기·내보내기를 시킬 수 있어요." }),
-      h("ol", { class: "steps" }, h("li", { text: "PC 스튜디오 왼쪽 아래 '휴대폰으로 보기'를 눌러요" }), h("li", { text: "[원격 접속 켜기] → [휴대폰 연결하기]를 눌러요 (노트북·태블릿도 같은 단추)" }),
-        h("li", { text: DESKTOP ? "나온 코드를 아래에 넣어요 (휴대폰이면 QR을 카메라로 찍어도 돼요)" : "나온 QR을 휴대폰 카메라로 찍거나 아래에 코드를 넣어요" }))),
-    h("section", { class: "card stack" }, h("h3", { text: "코드로 연결" }), h("p", { class: "muted", text: DESKTOP ? "노트북·태블릿은 PC 화면의 코드를 넣어 주세요" : "QR을 찍기 어려우면 PC 화면의 코드를 넣어 주세요" }),
-      inp, h("p", { class: "muted hint", id: "codeHint", text: "영어·숫자 10글자 (예: 7K3Q-M9XD-2P) · 한글 자판이면 영문으로 바꿔 주세요" }),
-      h("button", { class: "btn primary block", onclick: go }, "연결하기")),
+    h("section", { class: "card stack", id: "qrCard" }, h("p", { text: "PC 화면의 QR을 휴대폰 카메라로 찍으면 바로 연결돼요" }),
+      h("p", { class: "muted", text: "QR은 PC 스튜디오 왼쪽 아래 '휴대폰으로 보기' → [원격 접속 켜기] → [휴대폰 연결하기]에 나와요" })),
     installCard());
 }
 function installCard() {
@@ -425,9 +403,9 @@ function installCard() {
       h("p", { class: "muted", text: `원격 홈 주소 · ${location.host}` }));
   }
   return h("section", { class: "card" }, h("h3", { text: "홈 화면에 두고 앱처럼 쓰기" }),
-    IOS ? h("p", { text: "아이폰: 먼저 사파리 아래 공유 버튼 → '홈 화면에 추가' → 홈 화면의 '풋살 스튜디오'를 열고, 그 안에서 PC의 [휴대폰 연결하기] 코드를 넣어 주세요." })
+    IOS ? h("p", { text: "아이폰: 먼저 사파리 아래 공유 버튼 → '홈 화면에 추가' → 홈 화면의 '풋살 스튜디오'를 열고, 그 안에서 '아이디·비밀번호로 연결'로 연결해 주세요 (아이디·비밀번호는 PC '휴대폰으로 보기'에서 정해요)." })
       : h("p", { text: "안드로이드: 크롬 메뉴(⋮) → '앱 설치' 또는 '홈 화면에 추가'. 연결은 그대로 이어져요." }),
-    IOS ? h("p", { class: "muted", text: "아이폰은 홈 화면 앱과 사파리가 따로 저장해요. 사파리에서 이미 연결했다면 홈 화면 앱에서 새 코드로 한 번 더 연결하고, PC 목록에서 사파리 쪽은 [끊기] 해 주세요." }) : null);
+    IOS ? h("p", { class: "muted", text: "아이폰은 홈 화면 앱과 사파리가 따로 저장해요. 사파리에서 이미 연결했다면 홈 화면 앱에서 아이디·비밀번호로 한 번 더 연결하고, PC 목록에서 사파리 쪽은 [끊기] 해 주세요." }) : null);
 }
 /** 카카오톡·네이버 같은 앱 안 브라우저: 저장소가 따로라 연결이 남지 않을 수 있음 → 진짜 브라우저로 열기 */
 function inAppCard(withPair) {
@@ -461,7 +439,7 @@ function offline() {
   const forget = h("details", { class: "card more" }, h("summary", { text: "연결이 계속 안 되나요?" }),
     h("p", { class: "muted", text: "새 PC로 바꿨거나 PC에서 이 휴대폰을 끊었을 때만 연결 정보를 지우고 다시 연결해 주세요. PC가 꺼져 있거나 잠든 거라면 지우지 마세요 — PC가 켜지면 저절로 다시 연결돼요." }),
     h("button", { class: "btn block", onclick: async () => {
-      if (!await ask("지우면 PC 앞에서 새 코드를 받아야 다시 연결돼요. PC가 꺼져 있거나 잠든 거라면 지우지 마세요. 그래도 지울까요?", "지우기", true)) return;
+      if (!await ask("지우면 PC 앞에서 QR을 다시 찍거나 아이디·비밀번호로 다시 연결해야 해요. PC가 꺼져 있거나 잠든 거라면 지우지 마세요. 그래도 지울까요?", "지우기", true)) return;
       try { if (S.cred.lastUrl) await Promise.race([api("POST", "/r/forget", {}, 3000), sleep(3500)]); } catch (e) { /* PC 가 안 닿으면 PC 쪽 항목은 90일 뒤 저절로 정리 */ }
       forgetLocal();
     } }, "연결 정보 지우고 다시 연결"));
@@ -816,7 +794,7 @@ function renderMore() {
       h("button", { class: "btn block", onclick: sendTest }, "알림 시험 보내기"),
       h("p", { class: "muted", text: "알림에는 파일 이름이 들어가지 않아요. 스튜디오 알림은 '작업이 끝났어요' 같은 짧은 문장뿐이에요 — 알림이 무엇을 설치하라고 하면 열지 말고 무시해 주세요." }),
       h("label", { class: "chk" }, tgl, "이 화면을 열어 둔 동안만 브라우저 알림도 보기 (화면을 닫으면 안 와요 · 아이폰 사파리는 안 돼요)"))
-      : h("section", { class: "card stack" }, h("h3", { text: "알림 받기" }), h("p", { text: "알림은 QR·코드로 연결한 휴대폰에서 받아요" }),
+      : h("section", { class: "card stack" }, h("h3", { text: "알림 받기" }), h("p", { text: "알림은 QR로 연결한 휴대폰에서 받아요" }),
         h("label", { class: "chk" }, tgl, "이 화면을 열어 둔 동안만 브라우저 알림도 보기 (화면을 닫으면 안 와요 · 아이폰 사파리는 안 돼요)")),
     loginMoreCard(),
     h("section", { class: "card" }, h("h3", { text: "PC" }),
@@ -825,7 +803,7 @@ function renderMore() {
       st.remote && st.remote.autoOffAt ? h("p", { class: "muted", text: `쓰지 않으면 ${clock(st.remote.autoOffAt)}에 원격 접속이 저절로 꺼져요` }) : null),
     h("section", { class: "card stack" },
       c.guest ? null : h("button", { class: "btn block danger", onclick: async () => {
-        if (!await ask("이 기기의 연결을 끊을까요? 다시 쓰려면 PC 앞에서 새 코드로 다시 연결해야 해요.", "끊기", true)) return;
+        if (!await ask("이 기기의 연결을 끊을까요? 다시 쓰려면 PC 앞에서 QR을 찍거나 아이디·비밀번호로 다시 연결해야 해요.", "끊기", true)) return;
         try { await api("POST", "/r/forget", {}); } catch (e) { /* 그래도 이 기기 정보는 지움 */ }
         forgetLocal("이 기기 연결을 끊었어요");
       } }, "이 기기 연결 끊기"),
@@ -1105,7 +1083,7 @@ async function loginDone(job, out) {
   schedule();
 }
 
-// 더보기: 이번만 기기 · 아이디로 연결한 기기 · QR·코드 기기(아이디 연결 보기·끊기·다시 켜기)
+// 더보기: 이번만 기기 · 아이디로 연결한 기기 · QR 기기(아이디 연결 보기·끊기·다시 켜기)
 function guestCard() {
   const c = S.cred;
   return h("section", { class: "card alert stack", id: "guestCard" },
@@ -1121,7 +1099,7 @@ function loginMoreCard() {
   if (c.guest) return null;
   if (c.via === "login") {
     return h("section", { class: "card stack", id: "loginMore" }, h("p", { text: `아이디·비밀번호로 연결한 기기예요 · 아이디 ${c.loginShow || ""}` }),
-      h("p", { class: "muted", text: "알림·아이디 연결 관리는 QR·코드로 연결한 휴대폰이나 PC에서 해요" }));
+      h("p", { class: "muted", text: "알림·아이디 연결 관리는 QR로 연결한 휴대폰이나 PC에서 해요" }));
   }
   const box = h("section", { class: "card stack", id: "loginMore" });
   if (!L || !L.set || !L.on) { box.append(h("p", { text: "꺼져 있어요 · PC에서 켤 수 있어요" })); return box; }
