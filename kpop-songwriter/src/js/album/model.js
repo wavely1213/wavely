@@ -3,7 +3,7 @@ import { uid } from '../dom.js';
 import { syncStatus } from './lrc.js';
 import { similarityStatus } from '../optimize/similarity.js';
 import { spellingStatus } from '../optimize/spelling.js';
-import { splitsFor, splitIssues } from './splits.js';
+import { splitsFor, splitIssues, names } from './splits.js';
 import { explicitWords } from './explicit.js';
 import { titleIssues, placeholderTitle } from './titlecheck.js';
 import { lyricCheckStatus } from './lyriccheck.js';
@@ -264,7 +264,8 @@ export function fillCredits(album, songs, name) {
     const remake = remakeOf(song, songs);
     if (remake) {
       const c = remakeCredits(remake, name);
-      if (!t.lyricists && !inst) t.lyricists = c.lyricists;
+      // 번안곡 작사 칸은 원 작사+번안 작사 (원곡 정보로 미리 채운 칸에도 번안 작사가를 더한다, D-026 ⑦)
+      if (!inst) t.lyricists = remake.kind === 'adapt' ? [...new Set([...names(t.lyricists), ...names(c.lyricists)])].join(', ') : t.lyricists || c.lyricists;
       if (!t.koreanLyricists && !inst) t.koreanLyricists = c.koreanLyricists;
       if (!t.composers) t.composers = c.composers;
       if (!t.arrangers) t.arrangers = c.arrangers;

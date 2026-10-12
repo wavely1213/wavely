@@ -24,12 +24,19 @@ function guide(song) {
     '- song.mid        : 악기별 트랙이 나뉜 MIDI. DAW(FL Studio, Logic, Ableton, GarageBand 등)로 가져가기',
     '- project.json    : 이 앱의 곡 데이터 백업 (앱 왼쪽 "가져오기"로 되살릴 수 있음)',
     '',
-    '[Suno로 완성하기]',
-    '1. Suno에서 Create → Upload Audio로 demo.wav를 올린다.',
-    '2. 올린 오디오에서 Cover(커버)를 고르고, Lyrics에 lyrics_suno.txt, Styles에 style_suno.txt를 넣는다.',
-    '   → 데모의 코드 진행·멜로디 흐름을 살린 채 Suno가 보컬과 사운드를 입힌다.',
-    '3. 여러 번 생성해 보고 좋은 결과는 앱의 버전 탭에 메모해 둔다.',
-    '   (Suno 메뉴 이름과 기능은 바뀔 수 있으니 현재 화면 기준으로 찾으세요.)',
+    ...(song.remake ? [
+      // 커버·번안 곡: Suno Cover는 본인 곡 전용이라 안내하지 않는다 (D-026, cover-remake 2장)
+      '[커버·번안 곡 녹음하기]',
+      '1. demo.wav는 이용 허락 신청용 데모로 쓴다. Suno의 Upload Audio → Cover는 본인이 만든 곡에만 쓸 수 있어 이 곡에는 쓰지 않는다.',
+      '2. 서면 허락을 받은 뒤 사람이 lyrics_suno.txt의 가사로 녹음하고, MR은 사람 편곡자나 DAW(song.mid)로 만든다.',
+    ] : [
+      '[Suno로 완성하기]',
+      '1. Suno에서 Create → Upload Audio로 demo.wav를 올린다.',
+      '2. 올린 오디오에서 Cover(커버)를 고르고, Lyrics에 lyrics_suno.txt, Styles에 style_suno.txt를 넣는다.',
+      '   → 데모의 코드 진행·멜로디 흐름을 살린 채 Suno가 보컬과 사운드를 입힌다.',
+      '3. 여러 번 생성해 보고 좋은 결과는 앱의 버전 탭에 메모해 둔다.',
+      '   (Suno 메뉴 이름과 기능은 바뀔 수 있으니 현재 화면 기준으로 찾으세요.)',
+    ]),
     '',
     '[DAW로 다듬기]',
     '1. song.mid를 DAW로 가져오면 드럼·베이스·코드·멜로디가 트랙별로 들어온다.',
@@ -40,7 +47,9 @@ function guide(song) {
       '[커버·번안 곡]',
       '- Suno에 올리는 가사·오디오는 모든 권리를 가졌다고 보증해야 하고(모델 학습 포함), Cover 기능은 본인이 만든 곡에만 쓴다. 원곡 음원·원곡 가사는 올리지 않는다.',
       '- 남의 곡으로 만든 Suno 결과는 수익화할 수 없다. 허락받은 곡이어도 Suno 음원으로 상업 발매하기 어려우니, demo.wav는 허락 신청용 데모로 쓰고 서면 허락 뒤 사람이 녹음한다.',
-      '- 원곡 가사는 이 패키지(project.json)에 넣지 않았다.',
+      song.remake.kind === 'adapt'
+        ? '- 원곡(외국어) 가사는 이 패키지(project.json)에 넣지 않았다.'
+        : '- lyrics_suno.txt·project.json·song.mid의 가사는 원곡 가사다. 허락 범위 밖(Suno 업로드 등)으로 내보내지 않는다.',
       '',
     ] : []),
     '[발매 전 확인]',

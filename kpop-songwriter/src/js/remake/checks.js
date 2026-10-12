@@ -46,7 +46,8 @@ export function remakeIssues(song, track, album, { songs = [], today = new Date(
   if (ai && r.consents.ai.status !== 'approved') add('warn', 'AI를 썼는데(앨범 AI 표기·AI 번안 초안) 허락서에 AI 사용이 승인으로 기록되지 않았어요. 요청서에 AI 사용을 밝히지 않으면 나중에 허락이 취소될 수 있어요.', here);
   if (album.ai.vocals || album.ai.composition) add('warn', 'Suno 약관은 남의 곡(커버·번안)으로 만든 결과의 수익화를 막아요. 허락받은 곡이어도 Suno 음원으로 상업 발매하기 어려워요 — 발매 전에 약관을 확인하고, 사람 녹음·편곡을 권해요.', { song: song.id, tab: 'export' });
 
-  if (o.artist.trim() && squash(album.artist).includes(squash(o.artist))) add('warn', `아티스트 칸에 원곡 아티스트(${o.artist})가 들어 있어요. 원곡 아티스트는 아티스트 칸에 넣지 않아요 (유통사 규칙).`, { tab: 'meta' });
+  // 아티스트 칸의 이름(쉼표·&로 나눈 것) 중 원곡 아티스트와 같은 이름이 있을 때만 (Ado ⊂ Shadow 같은 겹침은 아님)
+  if (o.artist.trim() && names(o.artist).some((x) => has(album.artist, x))) add('warn', `아티스트 칸에 원곡 아티스트(${o.artist})가 들어 있어요. 원곡 아티스트는 아티스트 칸에 넣지 않아요 (유통사 규칙).`, { tab: 'meta' });
   if (/\(\s*cover\s*\)|\bcover\s*ver/i.test(song.title)) add('warn', '제목에 "(cover)"를 붙이지 않아요 (유통사 규칙).', { song: song.id, tab: 'concept' });
 
   CONSENTS.forEach((c) => {

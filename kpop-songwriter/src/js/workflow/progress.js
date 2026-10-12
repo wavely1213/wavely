@@ -35,8 +35,9 @@ export function songProgress(song, { albums = [], songs = [] } = {}) {
   if (remake && !song.instOf && remake.kind !== 'adapt') set('lyrics', !empty.length, empty.length ? `${empty.length}개 섹션이 비어 있어요.` : '');
   if (remake && !song.instOf && remake.kind === 'adapt') {
     const a = adaptSummary(song);
-    set('lyrics', a.lines > 0 && !a.missing && !a.off && !a.extra, !a.lines ? '구조·가사 탭에 원곡 가사를 붙여넣어 섹션을 나눠 주세요.'
-      : a.missing ? `한국어 가사가 빈 줄이 ${a.missing}개예요.` : a.off ? `원곡 음 수와 크게 다른 줄이 ${a.off}개예요.` : `원곡보다 많은 줄이 ${a.extra}개예요.`);
+    set('lyrics', a.lines > 0 && !a.missing && !a.unread && !a.off && !a.extra, !a.lines ? '구조·가사 탭에 원곡 가사를 붙여넣어 주세요 (이미 쓴 가사는 그대로 두고 붙일 수 있어요).'
+      : a.missing ? `한국어 가사가 빈 줄이 ${a.missing}개예요.` : a.unread ? `읽기(かな)를 적지 않은 한자 줄이 ${a.unread}개예요 (음 수를 셀 수 없음).`
+        : a.off ? `원곡 음 수와 크게 다른 줄이 ${a.off}개예요.` : `원곡보다 많은 줄이 ${a.extra}개예요.`);
   }
   // 연주곡(Inst.) 버전은 가사·가이드 멜로디가 없는 게 맞다
   if (song.instOf) { set('lyrics', true, ''); set('melody', true, ''); }
@@ -63,7 +64,9 @@ export function progressCount(song, { albums = [], songs = [], taste = null } = 
   const album = albums.find((a) => a.tracks.some((t) => t.songId === song.id));
   const others = album ? album.tracks.map((t) => songs.find((x) => x.id === t.songId)?.updatedAt || 0).join(',') : '';
   const log = taste?.log || [];
-  const key = [song.updatedAt, album?.id, album?.updatedAt, others, sessionRev(), log.length, log[log.length - 1]?.id].join('|');
+  // Inst. 사본의 컨셉 단계는 원곡 곡의 리메이크 기록을 본다 (같은 앨범이 아니어도)
+  const src = song.instOf ? songs.find((x) => x.id === song.instOf)?.updatedAt || 0 : '';
+  const key = [song.updatedAt, album?.id, album?.updatedAt, others, src, sessionRev(), log.length, log[log.length - 1]?.id].join('|');
   const hit = countCache.get(song.id);
   if (hit?.key === key) return hit.done;
   const done = songProgress(song, { albums, songs }).steps.filter((s) => s.done).length;

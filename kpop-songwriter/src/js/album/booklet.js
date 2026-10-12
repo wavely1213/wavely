@@ -12,7 +12,7 @@ export function bookletHtml(album, songs, coverDataUrl = '') {
   const credit = (t, s) => [
     remakeOf(s, songs) && `원곡 「${esc(remakeOf(s, songs).original.title)}」 ${esc(remakeOf(s, songs).original.artist)}`,
     t.lyricists && `작사 ${esc(t.lyricists)}`,
-    !s.instOf && t.koreanLyricists && `한국어 가사 ${esc(t.koreanLyricists)}`,
+    !s.instOf && remakeOf(s, songs)?.kind === 'adapt' && t.koreanLyricists && `한국어 가사 ${esc(t.koreanLyricists)}`,
     t.composers && `작곡 ${esc(t.composers)}`,
     t.arrangers && `편곡 ${esc(t.arrangers)}`,
     t.featuring && `Feat. ${esc(t.featuring)}`,

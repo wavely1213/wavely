@@ -487,12 +487,20 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     await p4.fill('input.tr-kana >> nth=0', 'きみのてを');
     await p4.click('#adapt-summary');
     await p4.waitForFunction(() => document.querySelector('#adapt-table .tr-src .mono')?.textContent.trim() === '5');
+    // 이미 쓴 가사가 있으면 '그대로 두고 원곡 가사만 붙이기': 한국어 가사·읽기가 남고, 붙여넣은 글·확인 상자는 사라진다
+    await p4.fill('textarea.lyrics >> nth=0', '너의 손을\n꼭 잡아서');
+    await p4.click('#adapt-summary');
+    await p4.fill('#remake-paste', '[Aメロ]\n君の手を\nにぎりしめて\n\n[サビ]\n雪の華\nふたりで');
+    await p4.click('#remake-split');
+    await p4.click('#remake-attach');
+    const attachOk = (await p4.inputValue('textarea.lyrics >> nth=0')) === '너의 손을\n꼭 잡아서' && (await p4.inputValue('#remake-paste')) === ''
+      && (await p4.locator('#remake-lyrics .confirm').count()) === 0 && (await p4.inputValue('input.tr-kana >> nth=0')) === 'きみのてを';
     const lyricsOver = await over();
     await p4.screenshot({ path: path.join(TMP, `${tag}-remake-lyrics.png`), fullPage: true });
     await p4.click('.tab:text-is("내보내기")');
     const suno = await p4.locator('#remake-suno').count();
-    global.remake = { tag, noDraft, wait, rows, rightsOver, lyricsOver, suno };
-    global.remakeOk = (global.remakeOk ?? true) && noDraft && wait.includes('편곡(요청 전)') && wait.includes('제목 변경(요청 전)') && !wait.includes('개사·번역') && rows === 4 && !rightsOver && !lyricsOver && suno === 1;
+    global.remake = { tag, noDraft, wait, rows, rightsOver, lyricsOver, suno, attachOk };
+    global.remakeOk = (global.remakeOk ?? true) && noDraft && wait.includes('편곡(요청 전)') && wait.includes('제목 변경(요청 전)') && !wait.includes('개사·번역') && rows === 4 && attachOk && !rightsOver && !lyricsOver && suno === 1;
     if (!global.remakeOk) console.log('remake', global.remake);
     await c4.close();
   }

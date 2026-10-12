@@ -423,7 +423,8 @@ function fakeClaude() {
   const adaptPrompt = (await prompts()).filter((x) => x.includes('K-pop 개사 작가')).pop();
   results.adapt = {
     filled: await p.$$eval('textarea.lyrics', (els) => els.map((e) => e.value)),
-    prompt: adaptPrompt.includes('"음수":2') && adaptPrompt.includes('(비어 있음)') && adaptPrompt.includes('±1') && !adaptPrompt.includes('번안 작사가'),
+    // 읽기 없는 한자 줄(君の手を)은 음수 '?'로 보내 AI가 읽기부터 적게, 가나 줄(にぎりしめて)은 모라 수 그대로
+    prompt: adaptPrompt.includes('"원곡":"君の手を","kana":"(비어 있음)","음수":"?"') && adaptPrompt.includes('"음수":6') && adaptPrompt.includes('±1') && !adaptPrompt.includes('번안 작사가'),
     kana: await p.inputValue('input.tr-kana >> nth=0'),
   };
   await p.click('.tab:text-is("컨셉·멤버")');

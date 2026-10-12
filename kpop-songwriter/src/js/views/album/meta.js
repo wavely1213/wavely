@@ -52,7 +52,7 @@ export function renderMeta(album) {
         field('작사', h('input', { id: `lyr-${t.songId}`, value: t.lyricists, placeholder: '실명 또는 활동명, 여러 명은 쉼표', oninput: set('lyricists'), onchange: rerender })),
         field('작곡', h('input', { id: `com-${t.songId}`, value: t.composers, placeholder: '쉼표로 구분', oninput: set('composers'), onchange: rerender })),
         field('편곡', h('input', { id: `arr-${t.songId}`, value: t.arrangers, placeholder: '쉼표로 구분', oninput: set('arrangers'), onchange: rerender })),
-        remake?.kind === 'adapt' && !song.instOf ? field('한국어 가사 (번안 작사)', h('input', { id: `kolyr-${t.songId}`, value: t.koreanLyricists, placeholder: '번안한 사람. 작사 칸에도 같이 적어요', oninput: set('koreanLyricists') })) : null,
+        (remake?.kind === 'adapt' || t.koreanLyricists) && !song.instOf ? field('한국어 가사 (번안 작사)', h('input', { id: `kolyr-${t.songId}`, value: t.koreanLyricists, placeholder: '번안한 사람. 작사 칸에도 같이 적어요', oninput: set('koreanLyricists') })) : null,
         field('피처링 (선택)', h('input', { id: `feat-${t.songId}`, value: t.featuring, oninput: set('featuring') })),
         field(['ISRC (유통사 발급 후) ', help('isrc')], h('input', { id: `isrc-${t.songId}`, class: 'mono', value: t.isrc, placeholder: 'KRA0X2600001', oninput: set('isrc') }))),
       h('div', { class: 'row' }, h('label', { class: 'check' }, h('input', { type: 'checkbox', id: `exp-${t.songId}`, checked: t.explicit, onchange: set('explicit') }), '19금(Explicit) 가사'), help('explicit')),

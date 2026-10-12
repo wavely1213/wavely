@@ -22,6 +22,7 @@ const ERROR_COPY = {
   prompt_too_large: '가사가 너무 길어요. 섹션 단위로 요청해 주세요.',
   empty_completion: '빈 답이 왔어요. 요청을 조금 바꿔 보세요.',
   nothing_empty: '빈 섹션이 없어요. 섹션별 "AI로 다시 쓰기"를 쓰세요.',
+  nothing_to_adapt: '번안할 빈 섹션이 없어요. 다시 받으려면 그 섹션의 한국어 가사를 비워 주세요.',
 };
 export function errorCopy(e) {
   if (!e || e.code === 'cancelled') return '';

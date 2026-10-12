@@ -78,7 +78,9 @@ export function renderExport(song) {
         h('li', null, '원곡 결과에서 보컬을 뺀 연주(스템)를 받기 — 요금제에 따라 다를 수 있어요'))) : null,
     h('section', { class: 'card' },
       h('h2', null, '제작 패키지 받기'),
-      h('p', { class: 'muted' }, '가사·스타일 텍스트, 악기별 MIDI, 데모 WAV, 작업 안내서를 zip 하나로 받아요. 데모 WAV를 Suno의 Upload Audio → Cover에 넣으면 내 코드 진행과 멜로디를 살린 채 완성곡을 만들 수 있어요.'),
+      h('p', { class: 'muted' }, song.remake || song.instOf && getState().songs.find((x) => x.id === song.instOf)?.remake
+        ? '가사·스타일 텍스트, 악기별 MIDI, 데모 WAV, 작업 안내서를 zip 하나로 받아요. 커버·번안 곡의 데모 WAV는 이용 허락 신청용이에요 (Suno Cover에는 넣지 않아요).'
+        : '가사·스타일 텍스트, 악기별 MIDI, 데모 WAV, 작업 안내서를 zip 하나로 받아요. 데모 WAV를 Suno의 Upload Audio → Cover에 넣으면 내 코드 진행과 멜로디를 살린 채 완성곡을 만들 수 있어요.'),
       hasMelody ? null : h('p', { class: 'warn' }, '아직 멜로디가 없어요. 멜로디 탭에서 만들면 데모에 가이드 멜로디가 들어가요.'),
       h('div', { class: 'row' },
         h('label', { class: 'check' }, h('input', { type: 'checkbox', id: 'pkg-wav', checked: pkg.includeWav, onchange: (e) => { pkg.includeWav = e.target.checked; } }), '데모 WAV 포함 (용량 큼, 수십 초 걸림)'),

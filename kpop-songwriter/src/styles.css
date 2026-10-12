@@ -404,11 +404,15 @@ input.tr-kana { width: 100%; margin-top: 2px; }
 .consent-list { display: grid; gap: 6px; }
 .consent-row { display: grid; grid-template-columns: minmax(7em, 1.2fr) minmax(6em, 1fr) minmax(8em, 1fr) minmax(8em, 1fr) minmax(0, 2fr); gap: 8px; align-items: center; font-size: 14px; }
 .consent-row > * { min-width: 0; }
+.consent-date { display: grid; min-width: 0; }
+.consent-date input { min-width: 0; }
+.consent-cap { display: none; }
 @media (max-width: 640px) {
   .consent-row { grid-template-columns: 1fr 1fr; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
   .consent-head { display: none; }
+  .consent-cap { display: block; }
   .consent-name { grid-column: 1 / -1; font-weight: 600; }
-  .consent-row input:last-child { grid-column: 1 / -1; }
+  .consent-row > input:last-child { grid-column: 1 / -1; }
 }
 
 /* 스타일 변형 */
