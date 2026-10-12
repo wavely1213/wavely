@@ -26,7 +26,7 @@ function referenceBrief(song) {
 function conceptBrief(song) {
   const c = song.concept;
   return {
-    제목: song.title, 그룹: GROUP_TYPES[c.group] || c.group, 장르: [song.style?.genre, song.style?.subgenre].filter(Boolean).join(', '),
+    제목: song.title, 그룹: GROUP_TYPES[c.group] || c.group, 장르: song.style?.genre ? `${[song.style.genre, song.style.subgenre].filter(Boolean).join(', ')} (스타일 탭 값. 컨셉·분위기와 맞지 않으면 컨셉을 따른다)` : '',
     주제: c.theme, 스토리: c.story, 분위기: c.moods.join(', '), 키워드: c.keywords,
   };
 }

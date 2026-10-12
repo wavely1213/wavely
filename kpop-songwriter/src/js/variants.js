@@ -2,6 +2,7 @@
 // 곡에 저장: song.styleVariants = { at, items: [{ id: 'A', idea, style: { genre, subgenre, vocals, instruments, production, extra } }] }
 import { getSample } from './ai.js';
 import { tasteBlock } from './learn/context.js';
+import { STYLE_RULES } from './ai-rules.js';
 
 export const VARIANT_IDS = ['A', 'B', 'C'];
 const KEYS = ['genre', 'subgenre', 'vocals', 'instruments', 'production', 'extra'];
@@ -40,6 +41,7 @@ export async function suggestVariants(song, { signal }) {
     '너는 K-pop 프로듀서다. 같은 곡을 Suno로 세 방향으로 뽑아 비교하려 한다. Suno 스타일 재료를 세 벌 만든다 (영어, 짧은 구문).',
     'A: 지금 스타일에 충실하게 다듬은 것. B: 같은 장르 안에서 더 트렌디하거나 밝은 쪽. C: 결을 확 바꾼 대안(미니멀·어둡게·장르 혼합 등). 셋은 확실히 다르게 들려야 한다.',
     'BPM·키는 정해져 있으니 쓰지 않는다. 실존 아티스트·곡 이름은 쓰지 않는다 (Suno가 거부함).',
+    STYLE_RULES,
     tasteBlock('style'),
     `곡: ${song.title} / 주제: ${song.concept.theme} / 분위기: ${song.concept.moods.join(', ')}`,
     `지금 스타일: ${JSON.stringify({ genre: st.genre, subgenre: st.subgenre, vocals: st.vocals, instruments: st.instruments, production: st.production, extra: st.extra })}`,

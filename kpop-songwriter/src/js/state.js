@@ -7,6 +7,7 @@ import { normalizeMusic } from './music/arrangement.js';
 import { newAlbum as makeAlbum, normalizeAlbum, newTrack, inheritAlbumInfo } from './album/model.js';
 import { emptyTaste, normalizeTaste, mergeTaste } from './learn/taste.js';
 import { setTasteGetter } from './learn/context.js';
+import { setExplicitGetter } from './ai-rules.js';
 import { forgetSong } from './album/session.js';
 import { storageUsage, isQuotaError } from './storage-usage.js';
 
@@ -56,6 +57,7 @@ export async function init(store) {
     schedule(TASTE_ID); // 조금 뒤 다시 불러와 본다 (flush의 reloadTaste)
   }
   setTasteGetter(() => state.taste);
+  setExplicitGetter((songId) => state.albums.some((a) => a.tracks.some((t) => t.songId === songId && t.explicit)));
   state.albums.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
   measureStorage();
   emit('all');

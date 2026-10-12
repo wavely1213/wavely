@@ -75,7 +75,7 @@ console.log('unit OK');
   assert.equal(findProgression('major', [4, 2, 3, 6]).seventh, true, '4236은 7th');
   assert.equal(findProgression('minor', [6, 7, 1, 3]).id, 'rise_m');
   assert.equal(findProgression('minor', [1, 6]).id, 'trap', '도수를 바꾸지 않아 저장된 곡의 이름이 남음');
-  assert.match(findProgression('major', [1, 5, 6, 4]).name, /머니코드/);
+  assert.ok([...PROGRESSIONS.major, ...PROGRESSIONS.minor].every((p) => !p.name.includes('머니코드')), '머니코드는 출처마다 달라 이름에 안 씀');
   for (const mode of ['major', 'minor']) {
     const list = PROGRESSIONS[mode];
     assert.equal(new Set(list.map((p) => p.degrees.join())).size, list.length, `${mode} 도수 중복 없음`);
@@ -99,6 +99,12 @@ console.log('unit OK');
   assert.equal(buildStyle({ ...st, vocals: 'Korean female vocals' }, { koRatio: 100 }), 'K-pop dance pop, dreamy synth-pop, 120 BPM, Korean female vocals');
   assert.equal(buildStyle({ genre: '', bpm: '' }, { koRatio: 80 }), '');
   assert.match(buildStyle({ genre: 'Korean ballad' }, { koRatio: 95 }), /^Korean ballad, sung in Korean, Korean lyrics$/);
+  assert.match(buildStyle({ genre: 'Korean R&B with soulful vocals' }, { koRatio: 95 }), /sung in Korean/, '장르 이름은 언어 표시가 아님');
+  assert.match(buildStyle({ genre: 'Korean indie band', production: 'Korean indie band sound with gang vocals' }, { koRatio: 95 }), /sung in Korean/);
+  assert.doesNotMatch(buildStyle({ genre: 'K-pop', vocals: 'female vocals in Korean' }, { koRatio: 95 }), /sung in Korean/, '이미 밝혀 둠');
+  assert.doesNotMatch(buildStyle({ genre: 'K-pop', vocals: 'Korean female group vocals' }, { koRatio: 95 }), /sung in Korean/);
+  assert.doesNotMatch(buildStyle({ genre: 'K-pop', vocals: 'Korean rap' }, { koRatio: 95 }), /sung in Korean/);
+  assert.doesNotMatch(sunoStyle({ instOf: 'x', concept: { koRatio: 95 }, style: st }), /sung in Korean/, 'Inst. 버전은 안 부름');
   const song = { concept: { koRatio: 95 }, style: st };
   assert.equal(sunoStyle(song), buildStyle(st, { koRatio: 95 }));
   assert.equal(sunoStyle(song, { genre: 'K-pop R&B' }), 'K-pop R&B, sung in Korean, Korean lyrics', '변형 스타일에도 붙음');
@@ -107,11 +113,19 @@ console.log('unit OK');
 
 // 국내 기준 AI 규칙: 훅 언어 비율, 프리셋 목록
 {
-  const { hookRule, presetBrief, LYRIC_RULES } = await import('../src/js/ai-rules.js');
-  assert.match(hookRule(95), /한국어 훅 위주/);
+  const { hookRule, presetBrief, lyricRules, setExplicitGetter } = await import('../src/js/ai-rules.js');
+  assert.match(hookRule(95), /영어 훅은 많아야 1개/);
+  assert.doesNotMatch(hookRule(70), /많아야 1개/);
   assert.match(hookRule(70), /한국어 훅을 4개 안팎/);
   assert.match(hookRule(30), /한국어 훅을 2개 안팎/);
-  assert.ok(LYRIC_RULES.includes('{EN}'), '영어 비율 자리');
+  const r80 = lyricRules({ id: 'a', concept: { koRatio: 80 } });
+  assert.ok(r80.includes('영어는 전체의 약 20%') && r80.includes('벌스와 프리코러스는 한국어로') && r80.includes('KBS 기준'));
+  const r40 = lyricRules({ id: 'a', concept: { koRatio: 40 } });
+  assert.ok(r40.includes('영어는 전체의 약 60%') && !r40.includes('벌스와 프리코러스는 한국어로') && r40.includes('벌스·프리코러스에 짧은 구절로'), '낮은 비율은 벌스에도 영어');
+  setExplicitGetter((id) => id === 'x');
+  const rx = lyricRules({ id: 'x', concept: { koRatio: 70 } });
+  assert.ok(rx.includes('19금(Explicit)') && !rx.includes('KBS 기준'), '19금 트랙은 심의 제한 없음');
+  setExplicitGetter(() => false);
   assert.match(presetBrief(), /4536 왕도 \(4536\)|두근두근 고조 \(4536 왕도\) \[4,5,3,6\]/);
   assert.match(presetBrief(), /\[4,2,3,6\]\+7th/);
   console.log('ai rules OK');

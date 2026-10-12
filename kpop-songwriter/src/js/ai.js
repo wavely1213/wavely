@@ -2,7 +2,7 @@
 import { sectionLabels } from './structure.js';
 import { GROUP_TYPES } from './constants.js';
 import { tasteBlock } from './learn/context.js';
-import { LYRIC_RULES, STYLE_RULES, REVIEW_ITEMS, hookRule } from './ai-rules.js';
+import { lyricRules, STYLE_RULES, REVIEW_ITEMS, hookRule } from './ai-rules.js';
 
 let samplePromise;
 export function getSample() {
@@ -37,7 +37,7 @@ export function songBrief(song) {
   return {
     제목: song.title,
     그룹: GROUP_TYPES[c.group] || c.group,
-    장르: song.style?.genre || '',
+    장르: song.style?.genre ? `${song.style.genre} (스타일 탭 값. 컨셉·분위기와 맞지 않으면 컨셉을 따른다)` : '',
     주제: c.theme,
     스토리: c.story,
     분위기: c.moods.join(', '),
@@ -61,7 +61,7 @@ export async function writeLyrics(song, { targetIds, request, signal, onProgress
   const ids = targetIds?.length ? targetIds : song.sections.map((s) => s.id);
   const prompt = [
     '너는 K-pop 전문 작사가다. 아래 곡 정보를 보고 지정된 섹션의 가사를 쓴다.',
-    LYRIC_RULES.replace('{EN}', String(100 - song.concept.koRatio)),
+    lyricRules(song),
     tasteBlock('lyrics'),
     request ? `작곡가의 추가 요청: ${request}` : '',
     `곡 정보(JSON):\n${JSON.stringify(brief, null, 1)}`,

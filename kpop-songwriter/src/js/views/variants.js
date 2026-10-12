@@ -4,7 +4,7 @@ import { mutateSong, mutateTaste } from '../state.js';
 import { addEntry, makeEntry } from '../learn/taste.js';
 import { isBusy, runJob } from '../aijob.js';
 import { suggestVariants, variantStyle } from '../variants.js';
-import { sunoStyle } from '../suno.js';
+import { buildStyle, sunoStyle } from '../suno.js';
 import { SUNO_LIMITS } from '../constants.js';
 
 export function renderVariants(song) {
@@ -32,10 +32,11 @@ export function renderVariants(song) {
           h('button', { type: 'button', class: 'btn small primary', onclick: () => copyText(ta.value, ta) }, '복사'),
           chosen ? h('span', { class: 'pill good' }, '지금 스타일')
             : h('button', { type: 'button', class: 'btn small', onclick: () => {
-              // 고른 변형 vs 나머지를 선호 쌍으로 기록 (취향 학습). 스타일을 바꾸기 전에 계산해야 나머지에 고른 값이 섞이지 않음
-              const others = sv.items.filter((o) => o.id !== v.id).map((o) => sunoStyle(song, variantStyle(song, o)).slice(0, 400)); // 취향 문서 크기 한도 때문에 자름
+              // 고른 변형 vs 나머지를 선호 쌍으로 기록 (취향 학습). 스타일을 바꾸기 전에 계산해야 나머지에 고른 값이 섞이지 않음.
+              // 기록은 앱이 붙이는 '한국어로 부름' 표시 없이 (buildStyle)
+              const others = sv.items.filter((o) => o.id !== v.id).map((o) => buildStyle(variantStyle(song, o)).slice(0, 400)); // 취향 문서 크기 한도 때문에 자름
               mutateSong(song.id, (x) => { Object.assign(x.style, v.style); });
-              mutateTaste((t) => addEntry(t, makeEntry({ kind: 'style', rating: 1, text, context: { ref: `variant:${song.id}:${sv.at}`, song: song.title, variant: v.id, rejected: others } })));
+              mutateTaste((t) => addEntry(t, makeEntry({ kind: 'style', rating: 1, text: buildStyle(variantStyle(song, v)), context: { ref: `variant:${song.id}:${sv.at}`, song: song.title, variant: v.id, rejected: others } })));
             } }, '이걸로 정하기')),
         ta);
     })) : null,

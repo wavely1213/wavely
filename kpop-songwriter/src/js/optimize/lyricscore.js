@@ -45,7 +45,7 @@ export function scoreSection(section, ranges) {
   const rhymed = rows.filter((r) => r.group >= 0).length / rows.length;
   const rhymeGoal = isRap ? 0.75 : 0.5;
   const rhyme = Math.min(1, rhymed / rhymeGoal);
-  if (rhyme < 0.8) tips.push(`라임이 약해요: 줄 끝 모음이 맞는 줄이 ${rows.filter((r) => r.group >= 0).length}/${rows.length}줄이에요. 줄 끝 모음을 맞춰 보세요.`);
+  if (rhyme < 0.8) tips.push(`라임이 약해요: 줄 끝 모음이 맞는 줄이 ${rows.filter((r) => r.group >= 0).length}/${rows.length}줄이에요. 줄 끝 단어의 모음을 맞춰 보세요 (같은 어미 되풀이 말고).`);
 
   // 2) 음절: 권장 범위 + 줄 사이 균형
   const { range: [lo, hi], personal } = rangeFor(section.type, ranges);

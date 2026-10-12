@@ -207,7 +207,7 @@ function fakeClaude() {
   const ps = await prompts();
   results.domesticPrompts = {
     arrange: ps.some((x) => x.includes('편곡할 섹션 id') && x.includes('국내 K-pop 편곡 원칙') && x.includes('4536 왕도') && x.includes('장르별 코드 진행')),
-    melody: ps.some((x) => x.includes('탑라이너(멜로디 작곡가)') && x.includes('국내 K-pop 멜로디 원칙') && x.includes('부르는멤버')),
+    melody: ps.some((x) => x.includes('탑라이너(멜로디 작곡가)') && x.includes('국내 K-pop 멜로디 원칙') && x.includes('하린(메인보컬)')),
     hook: ps.some((x) => x.includes('훅 후보 6개') && x.includes('훅 언어')),
     lyrics: ps.some((x) => x.includes('가사를 쓸 섹션 id') && x.includes('번역투') && x.includes('방송 심의')),
     style: ps.some((x) => x.includes('Suno 스타일 프롬프트 재료') && x.includes('한국 장르로 시작')),
@@ -295,9 +295,11 @@ function fakeClaude() {
   await p.locator('.variant >> nth=1 >> text=이걸로 정하기').click();
   results.variantChosen = await p.locator('.variant.chosen .tag').allTextContents();
   results.variantStyle = await p.inputValue('#style-subgenre');
+  results.variantRules = (await prompts()).some((x) => x.includes('세 방향으로 뽑아') && x.includes('어느 칸에도 부르는 언어'));
   // 취향 저장(1.2초 뒤, 다른 저장이 이어지면 더 늦어짐)을 기다림
   results.variantPair = await p.waitForFunction(() => (JSON.parse(localStorage.getItem('kpop-writer-taste') || '{"log":[]}').log || [])
-    .some((e) => e.kind === 'style' && e.context?.variant === 'B' && e.context?.rejected?.length === 2), null, { timeout: 8000 }).then(() => true).catch(() => false);
+    .some((e) => e.kind === 'style' && e.context?.variant === 'B' && e.context?.rejected?.length === 2
+      && ![e.text, ...e.context.rejected].some((x) => x.includes('sung in Korean'))), null, { timeout: 8000 }).then(() => true).catch(() => false);
   // 맞춤법: 점검 → 고칠 곳 2개(같은 줄은 버림) → 모두 고치기 → 가사에 반영
   await p.click('.tab:text-is("구조·가사")');
   await p.click('#spell-run');
@@ -312,7 +314,7 @@ function fakeClaude() {
   await p.waitForSelector('.tr-row');
   results.trOff = await p.locator('.tr-dst .over').count();
   results.trLyrics = (await p.inputValue('#out-lyrics-tr')).includes('テス');
-  results.trStyle = (await p.inputValue('#out-style-tr')).endsWith('Japanese lyrics');
+  results.trStyle = await p.inputValue('#out-style-tr').then((v) => v.endsWith('Japanese lyrics') && !v.includes('sung in Korean')); // 번안판에는 한국어 표시 없음
   await p.locator('#translate-run').evaluate((el) => el.closest('.card').scrollIntoView());
   await p.screenshot({ path: path.join(TMP, 'translate.png') });
 
@@ -404,7 +406,7 @@ function fakeClaude() {
   results.saved = await p.evaluate(() => window.__saved);
 
   console.log(JSON.stringify(results, null, 1));
-  const ok = results.trendRow && results.lineSwap && results.lyricsApplied && results.review && results.improve.length > 0 && results.improve.every((t) => t.includes('반영')) && results.arrangeKey.includes('A minor') && results.melodyNotes === 3 && results.styleBpm === '140' && results.styleKorean && Object.values(results.domesticPrompts).every(Boolean)
+  const ok = results.trendRow && results.lineSwap && results.lyricsApplied && results.review && results.improve.length > 0 && results.improve.every((t) => t.includes('반영')) && results.arrangeKey.includes('A minor') && results.melodyNotes === 3 && results.styleBpm === '140' && results.styleKorean && Object.values(results.domesticPrompts).every(Boolean) && results.variantRules
     && results.editRecorded && results.tasteLog.some((x) => x.startsWith('lyrics:-1(유치해요)')) && results.tasteLog.includes('hook:1') && results.lineLiked === 1 && results.similarCount === 1 && results.similarFixed && results.trOff === 1 && results.trLyrics && results.trStyle && results.variantCount === 3 && results.variantChosen.join() === 'B' && results.variantStyle === 'bright synth-pop' && results.variantPair && results.orderTracks >= 2 && results.orderApplied && results.orderUndo && results.statLearn.startsWith('arrange') && results.ideasPromptHint && results.melodyEdit && results.melodyEditUndo && results.melodyEditRedo && results.melodyEditPrompt && results.pitch && results.spellCount === 2 && results.spellApplied && results.ideaTitle === '가짜 컨셉 둘' && results.ideaTheme === '둘 주제' && results.ideaKeywords === '밤, 거울, Mirror' && results.ideaMoods === '몽환,다크' && results.tasteLog.includes('arrange:1')
     && results.tasteLog.includes('melody:1') && results.promptHasTaste && results.profileRevert && results.melodyLikedPitch && results.lyricEditRevert && results.lyricEditUndo && results.promo && results.draft.arranged && results.draft.bpm === 128 && results.draft.styleBpm === 128 && results.draft.styleKey === 'A minor' && results.draft.melodySections > 0 && results.draft.melodyCopied && results.draft.lyrics.split('/')[0] === results.draft.lyrics.split('/')[1] && results.keptBridge === '언젠가 너도 이 밤을 보면\n같은 불빛을 찾게 될 거야' && results.melodyPromptRange && results.raceA === 133 && results.raceB === 120 && results.saved.includes('taste-feedback.zip') && !errs.length;
   if (errs.length) console.log('ERRORS', errs);

@@ -39,7 +39,8 @@ export function buildLyrics(song, opts = {}) {
 
 // 한국어로 부른다는 표시 (국내판). 한국어 비율이 50% 이상이면 장르 바로 뒤에 붙인다.
 // 효과는 아직 검증 전이라 국내판 테스트에서 같은 가사로 테이크를 비교한다 (docs/research/sounds-korean-2026-10-12.md).
-const SUNG_KOREAN = /(sung|singing)\s+in\s+korean|\bkorean\b[^,]*\b(lyrics|vocals?|singing|singers?)\b/i;
+// 부르는 언어를 직접 밝힌 말만 본다 ('Korean ballad'·'Korean R&B with soulful vocals' 같은 장르 이름은 아님)
+const SUNG_KOREAN = /\b(sung|singing|sings|vocals?|lyrics|rap(ping)?)\s+in\s+korean\b|\bkorean(-language)?\s+(?:[a-z-]+\s+){0,2}(lyrics|vocals?|vocalist|singing|singers?|rap)\b/i;
 
 export function koreanTag(koRatio) {
   const ko = Number(koRatio);
@@ -66,7 +67,8 @@ export function buildStyle(style, opts = {}) {
   return parts.filter(Boolean).join(', ');
 }
 
-// 곡의 Suno 스타일 글 (국내판: 한국어 비율에 따라 '한국어로 부름' 표시를 붙임). style을 주면 그 스타일로 (변형 A/B/C)
+// 곡의 Suno 스타일 글 (국내판: 한국어 비율에 따라 '한국어로 부름' 표시를 붙임). style을 주면 그 스타일로 (변형 A/B/C).
+// Inst. 버전은 부르지 않으므로 붙이지 않는다. 취향 기록에는 이 글 대신 buildStyle(style)을 남긴다 (앱이 붙인 말을 취향으로 배우지 않게).
 export function sunoStyle(song, style = song.style) {
-  return buildStyle(style, { koRatio: song.concept?.koRatio });
+  return buildStyle(style, { koRatio: song.instOf ? null : song.concept?.koRatio });
 }

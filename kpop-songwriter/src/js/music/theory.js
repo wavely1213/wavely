@@ -46,11 +46,12 @@ export function keyName(root, mode) {
 }
 
 // 느낌 이름으로 고르는 코드 진행 (마디당 코드 1개, 마디 수만큼 반복).
-// 국내 K-pop에서 흔한 진행만 둔다 (근거: docs/research/genre-chords-2026-10-12.md). 괄호는 국내 통칭과 쓰는 곳.
+// 국내 K-pop에서 흔한 진행을 둔다 (근거: docs/research/genre-chords-2026-10-12.md). 괄호는 국내 통칭, use는 쓰는 곳(편곡 AI에 보냄).
+// 단조 trap·mystic은 근거가 약하지만 저장된 곡의 프리셋 이름을 지키려고 남겼다 (D-021). '머니코드'는 가리키는 진행이 출처마다 달라 이름에 쓰지 않는다.
 // id는 저장·기본값에서 쓰므로 바꾸지 않는다. 같은 조에서 도수가 겹치면 안 된다 (findProgression이 도수로 찾는다).
 export const PROGRESSIONS = {
   major: [
-    { id: 'hope', name: '희망차고 밝은 (1564 머니코드)', degrees: [1, 5, 6, 4], use: '발라드·청량·밴드 벌스와 후렴' },
+    { id: 'hope', name: '희망차고 밝은 (1564)', degrees: [1, 5, 6, 4], use: '발라드·청량·밴드 벌스와 후렴' },
     { id: 'emotional', name: '애절하고 감성적인 (6415)', degrees: [6, 4, 1, 5], use: '발라드·청량·밴드 벌스와 후렴' },
     { id: 'royal', name: '두근두근 고조 (4536 왕도)', degrees: [4, 5, 3, 6], use: '발라드·청량·밴드 후렴 첫머리, 프리코러스' },
     { id: 'royal8', name: '벅차게 고조 (4536 왕도 확장)', degrees: [4, 5, 3, 6, 2, 5, 1, 1], use: '발라드·청량 후렴' },
@@ -62,7 +63,7 @@ export const PROGRESSIONS = {
     { id: 'dreamy', name: '그루비한 투파이브 (2516, R&B·디스코)', degrees: [2, 5, 1, 6], seventh: true, use: 'R&B·디스코 벌스와 후렴' },
     { id: 'citypop', name: '도시적이고 세련된 (4361, 7th)', degrees: [4, 3, 6, 1], seventh: true, use: 'R&B·댄스·클럽 후렴' },
     { id: 'build', name: '한 계단씩 오르는 (2345)', degrees: [2, 3, 4, 5], use: '프리코러스·브릿지' },
-    { id: 'simple', name: '단순 반복 (1-4 두 코드)', degrees: [1, 4], use: '벌스·랩' },
+    { id: 'simple', name: '단순 반복 (1-4 두 코드)', degrees: [1, 4], use: '벌스' },
     { id: 'drop', name: '한 코드로 미는 (원코드)', degrees: [1], use: '드롭·댄스 브레이크' },
   ],
   minor: [
@@ -73,9 +74,9 @@ export const PROGRESSIONS = {
     { id: 'loop6514_m', name: '강렬한 반복 (6514)', degrees: [1, 7, 3, 6], use: '다크·밴드 후렴과 프리' },
     { id: 'chorus4156_m', name: '나란한 장조로 트이는 (4156)', degrees: [6, 3, 7, 1], use: '다크 곡의 후렴' },
     { id: 'build', name: '한 계단씩 오르는 (iv–v–VI–VII)', degrees: [4, 5, 6, 7], use: '프리코러스' },
-    { id: 'trap', name: '두 코드 반복 (i–VI)', degrees: [1, 6], use: '벌스·랩' },
+    { id: 'trap', name: '두 코드 반복 (i–VI)', degrees: [1, 6], use: '벌스 (근거 약함)' },
     { id: 'vamp_iv', name: '그루브 두 코드 (i–iv, 7th)', degrees: [1, 4], seventh: true, use: '다크 벌스·랩' },
-    { id: 'mystic', name: '마이너 루프 (i–VII–VI–VII, 힙합)', degrees: [1, 7, 6, 7], seventh: true, use: '힙합 벌스' },
+    { id: 'mystic', name: '마이너 루프 (i–VII–VI–VII, 힙합)', degrees: [1, 7, 6, 7], seventh: true, use: '힙합 벌스 (근거 약함)' },
     { id: 'descend', name: '내려가는 긴장감 (i–VII–VI–v)', degrees: [1, 7, 6, 5], use: '다크·클럽 후렴' },
     { id: 'drop', name: '한 코드로 미는 (원코드)', degrees: [1], use: '드롭·댄스 브레이크' },
   ],
