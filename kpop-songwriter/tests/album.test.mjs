@@ -90,6 +90,37 @@ assert.ok(check.some((i) => i.level === 'warn' && i.text.includes('트루 피크
   console.log('domestic loudness OK');
 }
 
+// 국내판 4단계 (D-024): 국내 플랫폼 목록, 멜론 등록 장르, 예전 장르 옮기기, 일정 문구
+{
+  const { DOMESTIC_PLATFORMS, ALBUM_GENRES, migrateAlbumGenre, subgenreCount } = await import('../src/js/album/domestic.js');
+  const { newAlbum: na, normalizeAlbum: norm, SCHEDULE, releaseChecklist: rc, albumRows } = await import('../src/js/album/model.js');
+  assert.deepEqual(DOMESTIC_PLATFORMS, ['멜론', '지니', '벅스', 'FLO', '유튜브 뮤직', '스포티파이'], 'VIBE는 서비스 종료로 뺌');
+  assert.ok(!ALBUM_GENRES.includes('Pop') && !ALBUM_GENRES.includes('K-Pop') && ALBUM_GENRES.includes('댄스'));
+  const fresh = na();
+  assert.ok(fresh.genre === '댄스' && fresh.subgenre === '' && fresh.indie === false);
+  const old = norm({ ...na(), genre: 'K-Pop', subgenre: 'Dance' });
+  assert.ok(old.genre === '댄스' && old.subgenre === '', '예전 새 앨범 기본값은 댄스·빈 세부 장르');
+  const kept = norm({ ...na(), genre: 'Ballad', subgenre: 'Piano' });
+  assert.ok(kept.genre === '발라드' && kept.subgenre === 'Piano', '직접 쓴 세부 장르는 그대로');
+  assert.ok(migrateAlbumGenre({ genre: 'Indie', subgenre: '' }).indie === true);
+  assert.equal(norm({ ...na(), genre: '시티팝' }).genre, '시티팝', '직접 쓴 장르는 그대로');
+  assert.equal(subgenreCount('일렉트로닉 팝, 신스팝'), 2);
+  assert.equal(subgenreCount('R&B/Soul'), 1);
+  // 점검표: 국내 분류에 없는 장르·세부 장르 3개는 정보
+  const al = { ...na(), title: '앨범', artist: 'A', tracks: [] };
+  const msgs = (a) => rc(a, [], { today }).filter((i) => i.go?.tab === 'meta' && i.level === 'info').map((i) => i.text).join('\n');
+  assert.ok(!msgs(al).includes('국내 등록 분류'));
+  assert.ok(msgs({ ...al, genre: '시티팝' }).includes('국내 등록 분류'));
+  assert.ok(msgs({ ...al, subgenre: 'a, b, c' }).includes('2개까지'));
+  assert.ok(albumRows({ ...al, indie: true }).some((r) => r[0] === 'Style' && r[1] === '인디'));
+  // 일정: 국내 신보 소개는 유통사로(D-28), 스포티파이 피칭은 선택, 반영 확인은 발매 당일
+  const st = Object.fromEntries(SCHEDULE.map((s) => [s.id, s]));
+  assert.ok(st.distributor.detail.includes('신보 소개') && st.pitch.title.includes('선택') && st.verify.offset === 0);
+  assert.ok(DOMESTIC_PLATFORMS.every((p) => st.verify.detail.includes(p)));
+  assert.equal(SCHEDULE.length, 12, '단계 수는 그대로 (.ics 개수)');
+  console.log('domestic release lists OK');
+}
+
 // CSV: BOM, 쉼표·따옴표 이스케이프, 트랙 행
 album.tracks[0].featuring = 'A, "B"';
 const csv = toCsv(metadataRows(album, [song], masters));

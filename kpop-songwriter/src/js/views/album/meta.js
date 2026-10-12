@@ -4,9 +4,9 @@ import { mutateAlbum, getState, refresh } from '../../state.js';
 import { help } from '../../help.js';
 import { splitsFor } from '../../album/splits.js';
 import { fillCredits } from '../../album/model.js';
+import { ALBUM_GENRES } from '../../album/domestic.js';
 
 const LANGUAGES = ['한국어', '영어', '한국어·영어', '일본어', '연주곡(가사 없음)'];
-const GENRES = ['K-Pop', 'Pop', 'Dance', 'R&B/Soul', 'Hip-Hop/Rap', 'Ballad', 'Electronic', 'Rock', 'Indie'];
 
 // 여러 명이 한 역할(작사·작곡·편곡)은 지분 %를 적는다. 안 적으면 똑같이 나눈 것으로 본다.
 function renderSplits(t, i) {
@@ -62,9 +62,10 @@ export function renderMeta(album) {
         field('앨범 제목', h('input', { id: 'album-title', value: album.title, oninput: quiet((a, v) => { a.title = v; }), onchange: afterBlur(() => mutateAlbum(() => {})) })),
         input('album-artist', '아티스트명', 'artist', '플랫폼에 표시될 이름'),
         field('발매 예정일', h('input', { id: 'album-date', type: 'date', value: album.releaseDate, onchange: (e) => mutateAlbum((a) => { a.releaseDate = e.target.value; }) })),
-        field('장르', h('select', { id: 'album-genre', onchange: (e) => mutateAlbum((a) => { a.genre = e.target.value; }) },
-          GENRES.map((g) => h('option', { value: g, selected: album.genre === g }, g)))),
-        input('album-subgenre', '세부 장르', 'subgenre', 'Dance, Synth-pop'),
+        field(['장르 (멜론 등록 분류) ', help('albumGenre')], h('select', { id: 'album-genre', onchange: (e) => mutateAlbum((a) => { a.genre = e.target.value; }) },
+          (ALBUM_GENRES.includes(album.genre) ? ALBUM_GENRES : [...ALBUM_GENRES, album.genre]).map((g) => h('option', { value: g, selected: album.genre === g }, g)))),
+        input('album-subgenre', '세부 장르 (2개까지)', 'subgenre', '예: 일렉트로닉 팝, 신스팝'),
+        h('label', { class: 'check' }, h('input', { type: 'checkbox', id: 'album-indie', checked: !!album.indie, onchange: (e) => mutateAlbum((a) => { a.indie = e.target.checked; }) }), '인디 (스타일 표시)'),
         field('언어', h('select', { id: 'album-lang', onchange: (e) => mutateAlbum((a) => { a.language = e.target.value; }) },
           LANGUAGES.map((l) => h('option', { value: l, selected: album.language === l }, l)))),
         input('album-label', '레이블 (선택)', 'label', '없으면 비워 두기'),

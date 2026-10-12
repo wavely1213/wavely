@@ -154,7 +154,7 @@ export function renderSync(album) {
   return h('div', { class: 'stack' },
     h('section', { class: 'card' },
       h('h2', null, '싱크 가사 (LRC) ', help('lrc')),
-      h('p', { class: 'muted' }, '멜론·스포티파이·애플뮤직의 "가사 따라가기"용 파일이에요. 마스터를 틀고, 각 줄을 부르기 시작할 때 버튼(또는 스페이스)을 누르면 돼요. 만든 파일은 제출 패키지에도 들어가요. 이 탭에서 ↶는 고른 곡의 싱크를 되돌려요.'),
+      h('p', { class: 'muted' }, '국내(멜론)는 유통사에 낸 일반 가사로 플랫폼이 실시간 가사를 직접 맞춰요. 가사를 음원과 똑같이, 줄 끝에 마침표·쉼표 없이 써 주세요. 이 LRC 파일은 LRC를 받는 유통사나 해외 서비스용이에요. 마스터를 틀고, 각 줄을 부르기 시작할 때 버튼(또는 스페이스)을 누르면 돼요. 만든 파일은 제출 패키지에도 들어가요. 이 탭에서 ↶는 고른 곡의 싱크를 되돌려요.'),
       h('div', { class: 'chips' }, tracks.map((x) => h('button', {
         type: 'button', class: `chip${x.s.id === s.id ? ' on' : ''}`, 'aria-pressed': x.s.id === s.id ? 'true' : 'false',
         onclick: () => { if (x.s.id !== s.id) { stopSyncAudio(); ui.songId = x.s.id; refresh(); } },

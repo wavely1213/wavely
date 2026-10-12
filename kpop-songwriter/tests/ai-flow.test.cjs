@@ -377,7 +377,7 @@ function fakeClaude() {
   results.promo = true;
   results.pitch = (await p.inputValue('#promo-pitch')) === 'Fake pitch'
     && (await p.textContent('#promo-pitch-count')) === '10 / 500자'
-    && (await p.getAttribute('#promo-pitch-ko-count', 'class')).includes('over');
+    && (await p.textContent('#promo-pitch-ko-count')) === '520자' && !(await p.getAttribute('#promo-pitch-ko-count', 'class')).includes('over'); // 국내 신보 소개는 한도 없이 글자 수만
   // 트랙 순서 추천: 곡을 더 넣고 → 제안이 있으면 바꾸기 → 자연스럽다고 바뀜 → ↶로 되돌림
   await p.click('.tab:text-is("수록곡")');
   for (let k = 0; k < 2; k++) {

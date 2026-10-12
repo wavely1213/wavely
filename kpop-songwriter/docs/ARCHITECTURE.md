@@ -48,6 +48,7 @@
 | 이론 | src/js/music/theory.js | 키·스케일·코드 이름·느낌별 코드 진행 |
 | 악기/패턴 | music/instruments.js, patterns.js | 악기 목록·음색 종류, 드럼·베이스 프리셋 |
 | 편곡 데이터 | music/arrangement.js | 섹션 기본값, 정규화, 빠른 바꾸기, 장르 기본 편곡·템플릿 기본값 적용 |
+| 국내 발매 목록 | album/domestic.js | 국내 음원 플랫폼 목록, 앨범 장르(멜론 등록 분류)·예전 값 옮기기 (D-024) |
 | 장르 묶음 | music/genres.js | 장르 칸·분위기 → 장르 묶음 6개, 묶음별 섹션 기본값 표·권장 빠르기 (D-022) |
 | 타임라인 | music/timeline.js | 곡 → 음표 이벤트 (재생·WAV·MIDI 공통) |
 | 신스 | music/synth.js | Web Audio 악기 음색, 악기별 공유 필터 |

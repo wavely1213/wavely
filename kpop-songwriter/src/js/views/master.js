@@ -1,6 +1,7 @@
 // 마스터링 탭: Suno 완성곡(또는 앱 데모)을 목표 음량·트루 피크 한도·44.1kHz로 맞춰 WAV로 받는다.
 import { h, toast } from '../dom.js';
 import { mutate, mutateSong, markProgress, refresh } from '../state.js';
+import { platformText } from '../album/domestic.js';
 import { decodeFile, master, masterWarnings, MASTER_PRESETS, LOUDNESS_TARGETS, OUTPUT_RATE, DEFAULT_TARGET, presetOf, measureAsync } from '../music/master.js';
 import { referenceTone, matchEq } from '../music/tonematch.js';
 import { toneOf } from '../music/analyze.js';
@@ -351,7 +352,7 @@ export function renderMaster(song) {
   return h('div', { class: 'stack' },
     h('section', { class: 'card' },
       h('h2', null, '마스터링 (발매용 음원 만들기)'),
-      h('p', { class: 'muted' }, `Suno에서 받은 완성곡을 넣으면 음색을 다듬고, 목표 음량(기본 ${DEFAULT_TARGET} LUFS)과 피크 한도(-1 dBTP)에 맞춘 44.1kHz WAV로 만들어요. 파일은 이 브라우저 안에서만 처리하고 어디에도 올리지 않아요. Suno에서는 가능하면 WAV로 받아 오세요.`),
+      h('p', { class: 'muted' }, `Suno에서 받은 완성곡을 넣으면 음색을 다듬고, 목표 음량(기본 ${DEFAULT_TARGET} LUFS)과 피크 한도(-1 dBTP)에 맞춘 44.1kHz WAV로 만들어요. 국내 음원 플랫폼(${platformText()})에 낼 파일이에요. 파일은 이 브라우저 안에서만 처리하고 어디에도 올리지 않아요. Suno에서는 가능하면 WAV로 받아 오세요.`),
       h('div', { class: 'row' },
         file,
         h('label', { for: 'master-file', class: `btn primary${busy ? ' disabled' : ''}` }, '완성곡 파일 넣기 (WAV·MP3)'),

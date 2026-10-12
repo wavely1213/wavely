@@ -51,8 +51,9 @@ export function renderPromo(album) {
   const p = album.promo;
   // limit이 있으면 글자 수를 보여 주고 넘으면 빨갛게 (입력할 때마다 숫자만 바꿈)
   const copyable = (id, label, value, rows, onInput, limit = 0) => {
+    // limit: 글자 수 한도 (Infinity면 한도 없이 글자 수만 보여 줌)
     const count = limit ? h('span', { class: 'mono muted small', id: `${id}-count` }) : null;
-    const show = (v) => { if (count) { count.textContent = `${v.length} / ${limit}자`; count.classList.toggle('over', v.length > limit); } };
+    const show = (v) => { if (count) { count.textContent = limit === Infinity ? `${v.length}자` : `${v.length} / ${limit}자`; count.classList.toggle('over', v.length > limit); } };
     const ta = h('textarea', { id, 'aria-label': Array.isArray(label) ? label.join('') : label, rows: String(rows), value, oninput: (e) => { onInput(e.target.value); show(e.target.value); } });
     show(value || '');
     return h('div', { class: 'field' },
@@ -83,10 +84,11 @@ export function renderPromo(album) {
         (v) => mutateAlbum((a) => { const sns = [...a.promo.sns]; sns[k] = v; a.promo.sns = sns; }, 'quiet'))),
       copyable('promo-tags', '해시태그', p.hashtags, 2, (v) => mutateAlbum((a) => { a.promo.hashtags = v; }, 'quiet'))),
     h('section', { class: 'card' },
-      h('h2', null, '플레이리스트 피칭 (Spotify for Artists) ', help('pitch')),
-      h('p', { class: 'muted small' }, `발매 최소 7일 전(일정의 D-14 단계 권장)에 미발매 타이틀곡 한 곡을 에디터에게 소개하는 글이에요. ${PITCH_LIMIT}자까지 들어가요.`),
-      copyable('promo-pitch', '영어', p.pitch || '', 5, (v) => mutateAlbum((a) => { a.promo.pitch = v; }, 'quiet'), PITCH_LIMIT),
-      copyable('promo-pitch-ko', '한국어', p.pitchKo || '', 5, (v) => mutateAlbum((a) => { a.promo.pitchKo = v; }, 'quiet'), PITCH_LIMIT)),
+      h('h2', null, '신보 소개·피칭 ', help('pitch')),
+      h('p', { class: 'muted small' }, '국내 플랫폼(멜론·지니·벅스·FLO)은 유통사가 플랫폼 MD에게 신보를 소개해요. 한국어 소개글을 유통사에 낼 때(일정의 D-28) 같이 보내요. 분량은 유통사마다 달라요.'),
+      copyable('promo-pitch-ko', '한국어 · 국내 플랫폼 신보 소개 (유통사 제출용)', p.pitchKo || '', 5, (v) => mutateAlbum((a) => { a.promo.pitchKo = v; }, 'quiet'), Infinity),
+      h('p', { class: 'muted small' }, `스포티파이는 Spotify for Artists에서 발매 최소 7일 전까지 미발매 타이틀곡 한 곡을 에디터에게 직접 피칭할 수 있어요(선택, 일정의 D-14). ${PITCH_LIMIT}자까지 들어가요.`),
+      copyable('promo-pitch', '영어 · 스포티파이 피칭 (선택)', p.pitch || '', 5, (v) => mutateAlbum((a) => { a.promo.pitch = v; }, 'quiet'), PITCH_LIMIT)),
     renderLyricCard(album, songs),
     renderTracklistCard(album, songs),
   );

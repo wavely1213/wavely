@@ -7,6 +7,7 @@ import { plainLyrics } from './lyrics.js';
 import { syncStatus, toLrc } from './lrc.js';
 import { bookletHtml, blobToDataUrl } from './booklet.js';
 import { splitRows } from './splits.js';
+import { platformText } from './domestic.js';
 
 export { plainLyrics };
 
@@ -101,7 +102,8 @@ export async function buildReleasePackage(album, songs, masters, cover, onStep =
       '[트랙 소개]', ...tracks.map((t, i) => `${i + 1}. ${songs.find((s) => s.id === t.songId)?.title.replace(/^예시:\s*/, '')}: ${album.promo.tracks[t.songId] || ''}`), '',
       '[SNS]', ...album.promo.sns.map((p, i) => `${i + 1}) ${p}`), '',
       album.promo.hashtags,
-      ...(album.promo.pitch || album.promo.pitchKo ? ['', '[플레이리스트 피칭 · Spotify for Artists]', album.promo.pitch || '', '', album.promo.pitchKo || ''] : []),
+      ...(album.promo.pitchKo ? ['', '[국내 플랫폼 신보 소개 · 유통사 제출용]', album.promo.pitchKo] : []),
+      ...(album.promo.pitch ? ['', '[스포티파이 피칭 · Spotify for Artists (선택)]', album.promo.pitch] : []),
     ].join('\n');
     files.push({ name: `${root}/promo.txt`, data: promo });
   }
@@ -140,8 +142,10 @@ export async function writePromo(album, songs, { signal }) {
     '과장된 수식어 남발 금지, 구체적인 이미지와 감정으로. 실존 아티스트와 비교하지 않는다.',
     `앨범: ${JSON.stringify({ 제목: album.title, 아티스트: album.artist, 종류: ALBUM_TYPES[album.type].name, 발매일: album.releaseDate, 소개메모: album.description })}`,
     `트랙: ${JSON.stringify(tracks)}`,
-    `플레이리스트 피칭(Spotify for Artists 에디터에게, 타이틀곡 하나): 각 ${PITCH_LIMIT}자 이내, 장르·분위기·눈에 띄는 악기나 사운드·곡의 이야기·어울리는 플레이리스트를 담백하게. 영어(pitch)와 한국어(pitchKo) 둘 다.`,
-    '출력은 JSON 하나만: {"intro":"앨범 소개 3~5문장","tracks":[{"id":"","blurb":"트랙 소개 1~2문장"}],"sns":["발매 공지 글","티저 글","하이라이트 글"],"hashtags":"#해시태그 5~8개 공백 구분","pitch":"English pitch","pitchKo":"한국어 피칭"}',
+    `국내 플랫폼 신보 소개(pitchKo, 한국어): 유통사를 통해 ${platformText(['멜론', '지니', '벅스', 'FLO'])} MD에게 전할 글. 장르·분위기·킬링파트, 곡 이야기, 활동 계획을 담백하게.`,
+    `스포티파이 피칭(pitch, 영어, 선택): Spotify for Artists 에디터에게 타이틀곡 하나를 ${PITCH_LIMIT}자 이내로. 장르·분위기·눈에 띄는 악기나 사운드·어울리는 플레이리스트.`,
+    `앨범 소개(intro)는 국내 음원 사이트(${platformText()})의 앨범 소개란에 그대로 실린다.`,
+    '출력은 JSON 하나만: {"intro":"앨범 소개 3~5문장","tracks":[{"id":"","blurb":"트랙 소개 1~2문장"}],"sns":["발매 공지 글","티저 글","하이라이트 글"],"hashtags":"#해시태그 5~8개 공백 구분","pitchKo":"국내 신보 소개","pitch":"English pitch"}',
   ].join('\n\n');
   const res = await sample.json(prompt, { signal, cache: false });
   const ids = new Set(tracks.map((t) => t.id));
