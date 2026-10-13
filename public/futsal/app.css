@@ -57,8 +57,6 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .card p:last-child { margin-bottom: 0; }
 .muted { color: var(--ink-3); font-size: 13.5px; }
 .lbl { font-size: 13px; font-weight: 700; color: var(--ink-3); letter-spacing: .2px; margin: 4px 2px -4px; }
-ol.steps { margin: 6px 0 0; padding-left: 20px; color: var(--ink-2); }
-ol.steps li { margin: 4px 0; }
 
 /* 버튼·입력 */
 .btn {
@@ -79,12 +77,14 @@ ol.steps li { margin: 4px 0; }
   width: 100%; min-height: 48px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-2);
   font-size: 17px; /* 16px 넘게 → iOS 확대 안 됨 */
 }
-.inp.code { font: 700 20px/1.2 ui-monospace, Menlo, Consolas, monospace; letter-spacing: 2px; text-transform: uppercase; text-align: center; }
 .seg { display: flex; background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 3px; gap: 3px; }
 .seg button { flex: 1; min-height: 40px; border: 0; background: none; border-radius: 9px; font-weight: 700; color: var(--ink-2); cursor: pointer; }
 .seg button.on { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
 .chk { display: flex; gap: 8px; align-items: center; min-height: 40px; }
 .chk input { width: 22px; height: 22px; accent-color: var(--brand); }
+/* 아이디·비밀번호로 연결 (D-250): 비밀번호 + [보기] 한 줄 · 찾는 중 표시 */
+.pwrow { display: flex; gap: 8px; align-items: center; } .pwrow .inp { flex: 1 1 auto; min-width: 0; } .pwrow > button { flex: none; white-space: nowrap; }
+#loginStatus .center { text-align: center; }
 
 /* 상태 */
 .spin { width: 22px; height: 22px; margin: 0 auto 10px; border-radius: 50%; border: 3px solid var(--line); border-top-color: var(--brand); animation: r .8s linear infinite; }
