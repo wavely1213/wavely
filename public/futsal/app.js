@@ -868,16 +868,14 @@ function loginCard(o = {}) {
   const idIn = h("input", { class: "inp", name: "username", id: "loginId", autocomplete: "username", autocapitalize: "none", autocorrect: "off",
     spellcheck: "false", maxlength: "40", "aria-label": "아이디" });
   if (o.id) idIn.value = clean(o.id).slice(0, 40);  // 이번만 기기가 끝나 다시 연결: 아이디는 채워 둠 (아이디는 비밀이 아님 · D-252)
-  idIn.addEventListener("input", () => {  // 아이디를 고치면 비밀번호 칸은 다시 숨김 (다른 PC 의 칸이 남아 아이디만 연결을 막지 않게)
-    const r = $("loginPwRow"), p = $("loginPw");
-    if (r && !r.hidden) { r.hidden = true; if (p) p.value = ""; }
-  });
   const pwIn = h("input", { class: "inp", type: "password", name: "password", id: "loginPw", autocomplete: "current-password", maxlength: "128", "aria-label": "비밀번호" });
   const show = h("button", { type: "button", class: "btn sm", id: "loginShow", onclick: () => {
     const t = pwIn.type === "password"; pwIn.type = t ? "text" : "password"; show.textContent = t ? "숨기기" : "보기";
   } }, "보기");
-  // 비밀번호 칸은 숨겨 둠: 찾은 PC 가 비밀번호를 쓰면 그때 보여 줌 (아이디만 PC 는 아이디 하나로 끝 · D-290)
-  const pwRow = h("div", { class: "stack", id: "loginPwRow", hidden: true }, h("div", { class: "lbl", text: "비밀번호" }), h("div", { class: "pwrow" }, pwIn, show));
+  // 비밀번호 칸은 처음부터 보임 (D-294 · 검토): 친 비밀번호가 늘 먼저라, 남이 올린 '아이디만' 가짜 기록이 비밀번호 PC 를 건너뛰게 못 함 ·
+  // 비밀번호 없이 쓰는 PC(아이디만 · 소유자 아이디)면 비워 두면 됨
+  const pwRow = h("div", { class: "stack", id: "loginPwRow" }, h("div", { class: "lbl", text: "비밀번호" }), h("div", { class: "pwrow" }, pwIn, show),
+    h("p", { class: "muted", text: "비밀번호 없이 쓰기로 한 PC면 비워 두세요" }));
   const rem = h("input", { type: "checkbox", id: "loginRemember", checked: !!standalone });  // 홈 화면 앱이면 기억 · 브라우저 탭이면 이번만
   const form = h("form", { id: "loginForm", method: "post", autocomplete: "on", class: "stack", onsubmit: e => { e.preventDefault(); loginSubmit(form); } },
     h("div", { class: "lbl", text: "아이디" }), idIn, pwRow,
@@ -886,8 +884,8 @@ function loginCard(o = {}) {
     h("button", { class: "btn primary block", type: "submit", id: "loginGo" }, "연결하기"),
     h("div", { id: "loginStatus", class: "stack", "aria-live": "polite" }));
   return h("section", { class: "card stack", id: "loginCard" },
-    h("h2", { text: "아이디로 연결" }),
-    h("p", { text: "PC 화면을 볼 수 없는 곳에서는 PC 스튜디오에서 정한 아이디로 연결해요 · 비밀번호를 쓰는 PC면 아이디 다음에 물어봐요" }),
+    h("h2", { text: "아이디·비밀번호로 연결" }),
+    h("p", { text: "PC 화면을 볼 수 없는 곳에서는 PC 스튜디오에서 정한 아이디·비밀번호로 연결해요" }),
     o.resume ? h("p", { class: "warn", id: "loginAgainNote", text: "다시 연결해 주세요 (이번만 연결한 기기예요)" }) : null,
     form,
     h("p", { class: "muted", text: "한글·영문 자판, 대문자·소문자는 가리지 않아요 · 한글 자판이 안 나오면 [보기]를 누르고 쳐 주세요" }),
@@ -920,7 +918,7 @@ function askPw() {  // 찾은 PC 가 비밀번호를 씀 → 비밀번호 칸을
 }
 async function loginSubmit(form) {
   if (LG.busy) return;
-  const id = $("loginId").value, remember = $("loginRemember").checked, pw = (pwAsked() && $("loginPw").value) || null;  // 빈 칸 = 비밀번호 없음
+  const id = $("loginId").value, remember = $("loginRemember").checked, pw = $("loginPw").value || null;  // 빈 칸 = 비밀번호 없음
   if (P.idProblem(id)) return loginStatus({ title: "아이디를 다시 확인해 주세요" });
   if (pw != null && P.pwProblem(pw)) return loginStatus({ title: "비밀번호를 다시 확인해 주세요" });
   wipeLoginSecret();
@@ -989,7 +987,7 @@ function loginTexts(out) {
     case "login_off": return { title: LOGIN_OFF };
     case "busy": return { title: "지금 연결하려는 기기가 많아요 · 잠시 뒤 다시 해 주세요" };
     case "m2_fail": return { title: "PC의 대답이 맞지 않아요 · 가짜 주소가 섞여 있을 수 있어요 · 잠시 뒤 다시 해 주세요" };
-    case "need_pw": return { title: "이 PC는 비밀번호도 필요해요 · 비밀번호를 넣고 [연결하기]를 눌러 주세요", cls: "muted" };
+    case "need_pw": return { title: "이 PC는 비밀번호가 필요해요 · 비밀번호를 넣고 [연결하기]를 눌러 주세요" };
     default: return { title: "다시 해 주세요", again: true };
   }
 }
@@ -1115,11 +1113,11 @@ async function loginFlow(job, auto) {
   let said = null;
   const heard = o => { if (!said || (said.kind === "busy" && o.kind !== "busy")) said = o; };
   for (const rec of cands) {
+    if (!secretFor(rec, job)) { heard({ kind: "need_pw" }); continue; }  // 비밀번호를 쓰는 PC 인데 비밀번호를 안 침 → PC 에 아무 요청도 보내지 않고 물어봄
     const pc = await pingLogin(rec.url);
     if (pc === 429) { heard({ kind: "busy" }); continue; }  // 그 PC 가 잠시 막음 (잠든 게 아님)
     if (!pc) { keep({ kind: "asleep", ts: rec.ts }); continue; }
     if (pc.pc.id !== rec.pc || !Array.isArray(pc.features) || !pc.features.includes("login")) { keep({ kind: "old_pc" }); continue; }
-    if (!secretFor(rec, job)) { heard({ kind: "need_pw" }); continue; }  // 비밀번호를 쓰는 PC → 칸을 보여 주고 물어봄 (요청은 보내지 않음)
     if (!auto) loginStatus({ spin: "연결하는 중이에요… (몇 초 걸려요)" });
     const r = await loginAt(rec, d, job);
     if (r.kind === "ok") return r;
