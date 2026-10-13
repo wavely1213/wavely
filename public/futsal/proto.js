@@ -220,6 +220,10 @@ export function keysOf(s) {
 }
 export const canonPw = s => keysOf(s).replace(/^[ \t\n\r]+|[ \t\n\r]+$/g, "");
 export const canonId = s => keysOf(s).replace(/[\t\n\r .\-_]/g, "");
+// 아이디만 (스튜디오 D-290 · 소유자 결정): 소유자 아이디에서만 · 비밀 = 맞춘 아이디 (rlogin.PRESET_ID · id_secret 과 같음)
+export const OWNER_ID = "wavely1213";
+export const idOnlyOk = s => canonId(s) === OWNER_ID;
+export const idSecret = s => canonId(s);
 /** 아이디 모양만 (흔한 아이디 목록은 PC 에서) → 'chars'·'short'·'long'·'digits' · 괜찮으면 null */
 export function idProblem(s) {
   const c = canonId(s);

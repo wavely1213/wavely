@@ -850,13 +850,15 @@ function renderMore() {
     installCard());
 }
 
-// ---------- 아이디·비밀번호로 연결 (D-250~D-256) ----------
+// ---------- 아이디로 연결 (D-250~D-256 · 아이디만 D-290) ----------
 // 아이디 → ntfy 의 잠긴 'PC 찾기' 기록 → 후보 PC(3곳까지) → SRP-6a (비밀번호도 비밀번호에서 나온 값도 보내지 않음) → M2 확인 → 잠긴 기기 열쇠.
+// 칸은 아이디 하나: 소유자 아이디(P.OWNER_ID)이고 PC 기록에 '아이디만' 표시가 있으면 비밀 = 맞춘 아이디 (비밀번호 없음 · 소유자 결정) ·
+// 그 밖에는 PC 를 찾은 뒤 비밀번호 칸을 보여 줌 (다른 아이디는 '아이디만' 표시를 믿지 않음 — 남이 올린 가짜 기록으로 비밀번호를 건너뛰게 못 함).
 // 비밀번호는 저장하지 않는다: 시도하는 동안과 PC 가 꺼져 있을 때 저절로 다시 해 보는 10분 동안만 메모리에 · 그 뒤 지움.
 const LOGIN_RETRY_MS = 30000, LOGIN_RETRY_FOR = 600000;
 const LG = { job: null, retryT: null, busy: false, badSeen: new Set() };
 const RANK = { m2_fail: 4, old_pc: 3, asleep: 2, off: 1, not_found: 0 };
-const VERDICT = ["bad", "locked", "suspended", "login_off", "busy"];
+const VERDICT = ["bad", "locked", "suspended", "login_off", "busy", "need_pw"];
 function wipeLoginSecret() {
   clearTimeout(LG.retryT); LG.retryT = null;
   if (LG.job) { LG.job.pw = null; LG.job = null; }
@@ -870,18 +872,19 @@ function loginCard(o = {}) {
   const show = h("button", { type: "button", class: "btn sm", id: "loginShow", onclick: () => {
     const t = pwIn.type === "password"; pwIn.type = t ? "text" : "password"; show.textContent = t ? "숨기기" : "보기";
   } }, "보기");
+  // 비밀번호 칸은 숨겨 둠: 찾은 PC 가 비밀번호를 쓰면 그때 보여 줌 (아이디만 PC 는 아이디 하나로 끝 · D-290)
+  const pwRow = h("div", { class: "stack", id: "loginPwRow", hidden: true }, h("div", { class: "lbl", text: "비밀번호" }), h("div", { class: "pwrow" }, pwIn, show));
   const rem = h("input", { type: "checkbox", id: "loginRemember", checked: !!standalone });  // 홈 화면 앱이면 기억 · 브라우저 탭이면 이번만
   const form = h("form", { id: "loginForm", method: "post", autocomplete: "on", class: "stack", onsubmit: e => { e.preventDefault(); loginSubmit(form); } },
-    h("div", { class: "lbl", text: "아이디" }), idIn,
-    h("div", { class: "lbl", text: "비밀번호" }), h("div", { class: "pwrow" }, pwIn, show),
+    h("div", { class: "lbl", text: "아이디" }), idIn, pwRow,
     h("label", { class: "chk" }, rem, "이 기기 기억하기"),
-    h("p", { class: "muted", text: "내 휴대폰·내 노트북일 때만 · 다음부터 비밀번호 없이 바로 열려요 · 남의 기기·공용 PC면 끄고, 브라우저의 '비밀번호 저장'도 누르지 마세요" }),
+    h("p", { class: "muted", text: "내 휴대폰·내 노트북일 때만 · 다음부터 바로 열려요 · 남의 기기·공용 PC면 끄고, 브라우저의 '비밀번호 저장'도 누르지 마세요" }),
     h("button", { class: "btn primary block", type: "submit", id: "loginGo" }, "연결하기"),
     h("div", { id: "loginStatus", class: "stack", "aria-live": "polite" }));
   return h("section", { class: "card stack", id: "loginCard" },
-    h("h2", { text: "아이디·비밀번호로 연결" }),
-    h("p", { text: "PC 화면을 볼 수 없는 곳에서는 PC 스튜디오에서 정한 아이디·비밀번호로 연결해요" }),
-    o.resume ? h("p", { class: "warn", id: "loginAgainNote", text: "다시 연결해 주세요 (이번만 연결한 기기라 비밀번호가 필요해요)" }) : null,
+    h("h2", { text: "아이디로 연결" }),
+    h("p", { text: "PC 화면을 볼 수 없는 곳에서는 PC 스튜디오에서 정한 아이디로 연결해요 · 비밀번호를 쓰는 PC면 아이디 다음에 물어봐요" }),
+    o.resume ? h("p", { class: "warn", id: "loginAgainNote", text: "다시 연결해 주세요 (이번만 연결한 기기예요)" }) : null,
     form,
     h("p", { class: "muted", text: "한글·영문 자판, 대문자·소문자는 가리지 않아요 · 한글 자판이 안 나오면 [보기]를 누르고 쳐 주세요" }),
     h("p", { class: "muted", text: "주소창이 futsal.mulgyeol.kr 인지 확인해 주세요 · 스튜디오는 알림이나 다른 화면에서 비밀번호를 묻지 않아요" }),
@@ -905,17 +908,23 @@ function loginStatus(o) {
   box.replaceChildren(...kids);
 }
 function setGo(on) { const b = $("loginGo"); if (b) b.disabled = !on; }
+function pwAsked() { const r = $("loginPwRow"); return !!r && !r.hidden; }
+function askPw() {  // 찾은 PC 가 비밀번호를 씀 → 비밀번호 칸을 보여 주고 거기로
+  const r = $("loginPwRow"), p = $("loginPw");
+  if (r) r.hidden = false;
+  if (p) p.focus();
+}
 async function loginSubmit(form) {
   if (LG.busy) return;
-  const id = $("loginId").value, pw = $("loginPw").value, remember = $("loginRemember").checked;
+  const id = $("loginId").value, remember = $("loginRemember").checked, pw = pwAsked() ? $("loginPw").value : null;
   if (P.idProblem(id)) return loginStatus({ title: "아이디를 다시 확인해 주세요" });
-  if (P.pwProblem(pw)) return loginStatus({ title: "비밀번호를 다시 확인해 주세요" });
+  if (pw != null && P.pwProblem(pw)) return loginStatus({ title: pw ? "비밀번호를 다시 확인해 주세요" : "비밀번호를 넣어 주세요" });
   wipeLoginSecret();
   LG.job = { id, pw, remember, started: Date.now(), form, retried: false };
   await loginAttempt(false);
 }
 function loginAgain() {
-  if (LG.job && LG.job.pw) { clearTimeout(LG.retryT); return loginAttempt(false); }
+  if (LG.job) { clearTimeout(LG.retryT); return loginAttempt(false); }
   const f = $("loginForm"); if (f) loginSubmit(f);
 }
 function loginStop() {
@@ -927,7 +936,7 @@ function loginStop() {
 }
 async function loginAttempt(auto) {
   const job = LG.job;
-  if (!job || !job.pw) return;
+  if (!job) return;
   LG.busy = true; setGo(false);
   if (!auto) loginStatus({ spin: "PC를 찾는 중이에요…" });
   let out;
@@ -975,6 +984,7 @@ function loginTexts(out) {
     case "login_off": return { title: LOGIN_OFF };
     case "busy": return { title: "지금 연결하려는 기기가 많아요 · 잠시 뒤 다시 해 주세요" };
     case "m2_fail": return { title: "PC의 대답이 맞지 않아요 · 가짜 주소가 섞여 있을 수 있어요 · 잠시 뒤 다시 해 주세요" };
+    case "need_pw": return { title: "이 PC는 비밀번호도 필요해요 · 비밀번호를 넣고 [연결하기]를 눌러 주세요", cls: "muted" };
     default: return { title: "다시 해 주세요", again: true };
   }
 }
@@ -987,7 +997,8 @@ function loginShow(job, out) {
     wipeLoginSecret();
     if (t.auto) { const p = $("loginPw"); if (p) p.value = ""; }  // 10분이 지남 → 비밀번호도 지움
   }
-  if (out.kind === "bad" || out.kind === "locked") { const p = $("loginPw"); if (p) { p.value = ""; p.focus(); } }
+  if (out.kind === "need_pw") askPw();
+  if (out.kind === "bad" || out.kind === "locked") { const p = $("loginPw"); if (p) p.value = ""; askPw(); }
   loginStatus(Object.assign(t, { auto }));
 }
 /** 아이디 연결용 ping: 대답 · 429(요청 수 제한) · null(닿지 않음) */
@@ -1057,6 +1068,11 @@ function verdict(j, status) {
     default: return { kind: "net" };
   }
 }
+/** 이 후보에 쓸 비밀: 소유자 아이디 + '아이디만' 표시 → 맞춘 아이디 · 아니면 친 비밀번호 · 없으면 null (비밀번호를 물어야 함) */
+function secretFor(rec, job) {
+  if (rec.idOnly === true && P.idOnlyOk(job.id)) return P.idSecret(job.id);
+  return job.pw || null;
+}
 async function loginAt(rec, d, job) {
   const base = rec.url;
   const s = P.srpStart();
@@ -1066,7 +1082,7 @@ async function loginAt(rec, d, job) {
   const remember = job.remember, name = deviceName().slice(0, 60), install = remember ? await installId() : "";
   let pr;
   try {
-    pr = await P.srpProof(s, r1.j, { canonPw: P.canonPw(job.pw), host: P.hostOf(base), pcId: rec.pc, idc: d.idc, remember, name, install });
+    pr = await P.srpProof(s, r1.j, { canonPw: P.canonPw(secretFor(rec, job)), host: P.hostOf(base), pcId: rec.pc, idc: d.idc, remember, name, install });
   } catch (e) { return { kind: "m2_fail" }; }  // 묶음·횟수·B·확인 번호가 이상한 대답
   const r2 = await postJson(base + "/r/login/finish", { v: 1, login: r1.j.login, M1: P.b64u(pr.M1), remember, name, install }, 15000);
   if (!r2) return { kind: "net" };
@@ -1097,7 +1113,8 @@ async function loginFlow(job, auto) {
     if (pc === 429) { heard({ kind: "busy" }); continue; }  // 그 PC 가 잠시 막음 (잠든 게 아님)
     if (!pc) { keep({ kind: "asleep", ts: rec.ts }); continue; }
     if (pc.pc.id !== rec.pc || !Array.isArray(pc.features) || !pc.features.includes("login")) { keep({ kind: "old_pc" }); continue; }
-    if (!auto) loginStatus({ spin: "비밀번호를 확인하는 중이에요… (몇 초 걸려요)" });
+    if (!secretFor(rec, job)) { heard({ kind: "need_pw" }); continue; }  // 비밀번호를 쓰는 PC → 칸을 보여 주고 물어봄 (요청은 보내지 않음)
+    if (!auto) loginStatus({ spin: "연결하는 중이에요… (몇 초 걸려요)" });
     const r = await loginAt(rec, d, job);
     if (r.kind === "ok") return r;
     if (r.kind === "again" || r.kind === "net") return Object.assign(r, { collision });  // 다시 한 번 처음부터 (loginAttempt)
@@ -1107,7 +1124,7 @@ async function loginFlow(job, auto) {
   return Object.assign(said || best || { kind: "not_found" }, { collision });
 }
 async function loginDone(job, out) {
-  if (job.remember && out.remembered && window.PasswordCredential && job.form) {  // 크롬: 기억하기일 때만 비밀번호 관리자에 (futsal.mulgyeol.kr 에 묶임)
+  if (job.remember && out.remembered && job.pw && window.PasswordCredential && job.form) {  // 크롬: 기억하기일 때만 비밀번호 관리자에 (futsal.mulgyeol.kr 에 묶임)
     try { await navigator.credentials.store(new PasswordCredential(job.form)); } catch (e) { /* 선택 */ }
   }
   wipeLoginSecret();
