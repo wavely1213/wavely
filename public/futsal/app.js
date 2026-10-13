@@ -868,6 +868,10 @@ function loginCard(o = {}) {
   const idIn = h("input", { class: "inp", name: "username", id: "loginId", autocomplete: "username", autocapitalize: "none", autocorrect: "off",
     spellcheck: "false", maxlength: "40", "aria-label": "아이디" });
   if (o.id) idIn.value = clean(o.id).slice(0, 40);  // 이번만 기기가 끝나 다시 연결: 아이디는 채워 둠 (아이디는 비밀이 아님 · D-252)
+  idIn.addEventListener("input", () => {  // 아이디를 고치면 비밀번호 칸은 다시 숨김 (다른 PC 의 칸이 남아 아이디만 연결을 막지 않게)
+    const r = $("loginPwRow"), p = $("loginPw");
+    if (r && !r.hidden) { r.hidden = true; if (p) p.value = ""; }
+  });
   const pwIn = h("input", { class: "inp", type: "password", name: "password", id: "loginPw", autocomplete: "current-password", maxlength: "128", "aria-label": "비밀번호" });
   const show = h("button", { type: "button", class: "btn sm", id: "loginShow", onclick: () => {
     const t = pwIn.type === "password"; pwIn.type = t ? "text" : "password"; show.textContent = t ? "숨기기" : "보기";
@@ -916,9 +920,9 @@ function askPw() {  // 찾은 PC 가 비밀번호를 씀 → 비밀번호 칸을
 }
 async function loginSubmit(form) {
   if (LG.busy) return;
-  const id = $("loginId").value, remember = $("loginRemember").checked, pw = pwAsked() ? $("loginPw").value : null;
+  const id = $("loginId").value, remember = $("loginRemember").checked, pw = (pwAsked() && $("loginPw").value) || null;  // 빈 칸 = 비밀번호 없음
   if (P.idProblem(id)) return loginStatus({ title: "아이디를 다시 확인해 주세요" });
-  if (pw != null && P.pwProblem(pw)) return loginStatus({ title: pw ? "비밀번호를 다시 확인해 주세요" : "비밀번호를 넣어 주세요" });
+  if (pw != null && P.pwProblem(pw)) return loginStatus({ title: "비밀번호를 다시 확인해 주세요" });
   wipeLoginSecret();
   LG.job = { id, pw, remember, started: Date.now(), form, retried: false };
   await loginAttempt(false);
@@ -1069,10 +1073,11 @@ function verdict(j, status) {
     default: return { kind: "net" };
   }
 }
-/** 이 후보에 쓸 비밀: 소유자 아이디 + '아이디만' 표시 → 맞춘 아이디 · 아니면 친 비밀번호 · 없으면 null (비밀번호를 물어야 함) */
+/** 이 후보에 쓸 비밀: 친 비밀번호 → 그것 · 아니면 소유자 아이디 + '아이디만' 표시 → 맞춘 아이디 · 없으면 null (비밀번호를 물어야 함) */
 function secretFor(rec, job) {
+  if (job.pw) return job.pw;  // 친 비밀번호가 먼저 (PC 에 비밀번호를 정했다면 '아이디만' 기록보다 그것을 씀)
   if (rec.idOnly === true && P.idOnlyOk(job.id)) return P.idSecret(job.id);
-  return job.pw || null;
+  return null;
 }
 async function loginAt(rec, d, job) {
   const base = rec.url;
