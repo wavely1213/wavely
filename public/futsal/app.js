@@ -937,6 +937,7 @@ function loginStop() {
 async function loginAttempt(auto) {
   const job = LG.job;
   if (!job) return;
+  if (!job.pw && pwAsked()) { const v = $("loginPw").value; if (v && !P.pwProblem(v)) job.pw = v; }  // 기다리는 동안 친 비밀번호도 저절로 이어서 씀
   LG.busy = true; setGo(false);
   if (!auto) loginStatus({ spin: "PC를 찾는 중이에요…" });
   let out;
@@ -997,7 +998,7 @@ function loginShow(job, out) {
     wipeLoginSecret();
     if (t.auto) { const p = $("loginPw"); if (p) p.value = ""; }  // 10분이 지남 → 비밀번호도 지움
   }
-  if (out.kind === "need_pw") askPw();
+  if (out.kind === "need_pw" || (out.needPw && (out.kind === "off" || out.kind === "asleep"))) askPw();
   if (out.kind === "bad" || out.kind === "locked") { const p = $("loginPw"); if (p) p.value = ""; askPw(); }
   loginStatus(Object.assign(t, { auto }));
 }
@@ -1121,7 +1122,10 @@ async function loginFlow(job, auto) {
     if (VERDICT.includes(r.kind)) { heard(r); continue; }
     keep(r);
   }
-  return Object.assign(said || best || { kind: "not_found" }, { collision });
+  // 비밀번호를 쓰는 PC 라는 걸 기록으로 이미 앎(아이디만 표시를 믿을 수 없음) + 비밀번호를 아직 안 침 → 꺼짐·잠듦을 기다리는 동안에도
+  // 비밀번호 칸을 보여 줌 (쳐 두면 PC 가 켜질 때 저절로 이어서 연결 · 아이디만 PC 는 아이디로 이어짐)
+  const trusted = P.idOnlyOk(job.id) && recs.some(r => r.idOnly === true);
+  return Object.assign(said || best || { kind: "not_found" }, { collision, needPw: !trusted && !job.pw });
 }
 async function loginDone(job, out) {
   if (job.remember && out.remembered && job.pw && window.PasswordCredential && job.form) {  // 크롬: 기억하기일 때만 비밀번호 관리자에 (futsal.mulgyeol.kr 에 묶임)
