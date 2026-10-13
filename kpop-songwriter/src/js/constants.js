@@ -44,7 +44,7 @@ export const MOODS = [
 ];
 
 export const GENRES = [
-  'K-pop dance pop', 'K-pop EDM', 'K-pop hip hop', 'K-pop R&B', 'K-pop ballad',
+  'K-pop dance pop', 'K-pop EDM', 'K-pop hip hop', 'K-pop R&B', 'K-pop ballad', 'Korean ballad',
   'synth-pop', 'UK garage', 'Jersey club', 'Afrobeats', 'house', 'pop rock', 'moombahton',
 ];
 

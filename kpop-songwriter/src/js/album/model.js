@@ -11,6 +11,7 @@ import { DEFAULT_TARGET } from '../music/dsp.js';
 import { ALBUM_GENRES, DEFAULT_ALBUM_GENRE, migrateAlbumGenre, platformText, subgenreCount } from './domestic.js';
 import { remakeIssues } from '../remake/checks.js';
 import { remakeOf, remakeCredits } from '../remake/model.js';
+import { recordingOf } from '../recording/model.js';
 
 export const ALBUM_TYPES = {
   single: { name: '싱글', min: 1, max: 3 },
@@ -226,6 +227,11 @@ export function releaseChecklist(album, songs, { masters = {}, coverInfo = null,
       // 음량: 이 앱의 권장 범위. 기본값보다 4 LU 넘게 작으면 맞추지 않는 재생에서 작게 들린다고만 알린다 (domestic-audit M3)
       if (Number.isFinite(m.lufs) && (m.lufs < -18 || m.lufs > -6)) add('warn', `${n}: 음량 ${m.lufs.toFixed(1)} LUFS — 이 앱의 권장 범위(-18~-6)를 벗어났어요.`, { tab: 'tracks' });
       else if (Number.isFinite(m.lufs) && m.lufs < DEFAULT_TARGET - 4) add('info', `${n}: 음량 ${m.lufs.toFixed(1)} LUFS — 음량을 맞추지 않는 재생(벅스 기본 설정 등)에선 다른 곡보다 작게 들려요. 발라드라면 그대로 둬도 돼요.`, { tab: 'tracks' });
+    }
+    // 직접 녹음해서 발매 (D-027): 보컬은 사람이 불렀으니 AI 표기의 보컬을 끄고, Suno MR이면 작곡·편곡은 켜 둔다
+    if (recordingOf(song) && !song.instOf) {
+      if (album.ai.vocals) add('warn', `${n}: 직접 녹음해서 발매하는 곡인데 AI 사용 표기에 "보컬(Suno 등)"이 켜져 있어요. 내 목소리로 녹음했으면 꺼 주세요 (가이드 보컬만 Suno).`, { tab: 'meta' });
+      if (!album.ai.composition) add('info', `${n}: MR을 Suno로 만들었다면 AI 사용 표기의 "작곡·편곡"을 켜 두세요 (직접 만든 MR이면 그대로).`, { tab: 'meta' });
     }
     // 리메이크·번안: 원곡 정보·이용 허락·크레딧 (D-026)
     remakeIssues(song, t, album, { songs, today }).forEach((x) => {

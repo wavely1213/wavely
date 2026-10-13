@@ -23,8 +23,9 @@ export function degreeToMidi(root, mode, idx, base = 60) {
 // 코드 한 칸: 도수 숫자(1~7, 음계 안 화음) 또는 음계 밖 화음 글자 (D-025, 프리셋으로만 넣는다)
 //   '4m'  = 그 도수의 단3화음 (장조의 iv, 빌려온 화음)
 //   '5M'  = 그 도수의 장3화음 (단조의 V·IV·I)
-//   '3d7' = 그 도수의 도미넌트 7 (III7·VI7 = 세컨더리 도미넌트, 단조의 V7)
-//   'b7M' = 장음계 도수를 반음 내린 장3화음 (♭VII, 단조의 ♭II). ♭는 조와 상관없이 장음계 기준이라 장·단조를 바꿔도 같은 음이다
+//   '3d7' = 그 도수의 도미넌트 7 (III7·VI7 = 세컨더리 도미넌트, 단조의 V7, 장조의 I7 '1d7')
+//   'b7M' = 장음계 도수를 반음 내린 장3화음 (♭VII·♭VI·♭III, 단조의 ♭II). ♭는 조와 상관없이 장음계 기준이라 장·단조를 바꿔도 같은 음이다
+//   장조의 '7m'(VIIm, 6으로 가는 ii)·'5m'(v, 4로 가는 ii)도 같은 문법이다
 const CHORD_TOKEN = /^(b?)([1-7])(M|m|d7)$/;
 const QUALITY = { M: [0, 4, 7], m: [0, 3, 7], d7: [0, 4, 7, 10] };
 
@@ -97,7 +98,7 @@ export function chordFeel(mode, chord) {
   if (!q) return DEGREE_FEEL[mode][d - 1];
   if (q === 'd7') return mode === 'minor' && d === 5 ? '강하게 끌어당김 (화성단음계)' : '다음 화음으로 끌어당김 (세컨더리)';
   if (flat) return mode === 'minor' && d === 2 ? '이국적인 긴장 (♭II)' : '탁 트이는 빌려온 화음';
-  if (q === 'm') return '아련하게 꺾임 (빌려온 화음)';
+  if (q === 'm') return mode === 'major' && d === 7 ? '6으로 이어 주는 (VIIm)' : mode === 'major' && d === 5 ? '4로 이어 주는 (v)' : '아련하게 꺾임 (빌려온 화음)';
   if (mode === 'minor' && d === 5) return '강하게 끌어당김 (화성단음계 V)';
   if (mode === 'minor' && d === 4) return '밝게 비틀림 (도리안 IV)';
   if (mode === 'minor' && d === 1) return '밝게 끝남 (장3화음 I)';
@@ -135,6 +136,13 @@ export const PROGRESSIONS = {
     { id: 'rain', name: '촉촉하게 이어지는 (1-4-3-VI7)', degrees: [1, 4, 3, '6d7'], seventh: true, use: '발라드 벌스' },
     { id: 'mixture', name: '탁 트이는 (1-♭VII-4-5)', degrees: [1, 'b7M', 4, 5], use: '청량·밴드 후렴·인트로' },
     { id: 'chain', name: '이어 붙는 투파이브 (3625, 7th)', degrees: [3, 6, 2, 5], seventh: true, use: '발라드 프리코러스' },
+    // 감미로운 정통 발라드 (D-027, docs/research/ballad-classic-2026-10-12.md 2-2·6-2): 4→4m 종지, 부속 7화음 사슬, 계단 상행, 빌린 화음 브릿지
+    { id: 'plagal4m', name: '포근하게 내려앉는 (4-4m-1, 발라드 끝맺음)', degrees: [4, '4m', 1, 6, 2, 5, 1, 1], seventh: true, use: '정통 발라드 후렴 끝·벌스 끝' },
+    { id: 'ripple', name: '꼬리 물며 번지는 (1-VIIm7-III7-6-v-I7-4)', degrees: [1, '7m', '3d7', 6, '5m', '1d7', 4, 5], seventh: true, use: '정통 발라드 후렴' },
+    { id: 'relminor', name: '목이 메는 (1-4-VIIm-III7-6)', degrees: [1, 4, '7m', '3d7', 6, 1, 4, 5], use: '정통 발라드 후렴' },
+    { id: 'stairs44m', name: '차곡차곡 오르다 꺾이는 (1-2-3-4-4m)', degrees: [1, 2, 3, 4, '4m', 3, 6, 5], seventh: true, use: '정통 발라드 벌스' },
+    { id: 'chain67', name: '살며시 당겨 잇는 (3-VI7-2-5, 7th)', degrees: [3, '6d7', 2, 5], seventh: true, use: '정통 발라드 프리코러스·벌스' },
+    { id: 'mixbridge', name: '그늘이 드리우는 (♭VI-♭VII-iv-♭III, 브릿지)', degrees: ['b6M', 'b7M', '4m', 'b7M', 'b3M', 'b6M', 2, 5], use: '정통 발라드 브릿지' },
     { id: 'circle', name: '한 바퀴 도는 (4736·2511 순환, 7th)', degrees: [4, 7, 3, 6, 2, 5, 1, 1], seventh: true, use: '발라드 브릿지' },
     { id: 'simple', name: '단순 반복 (1-4 두 코드)', degrees: [1, 4], use: '벌스' },
     { id: 'drop', name: '한 코드로 미는 (원코드)', degrees: [1], use: '드롭·댄스 브레이크' },

@@ -1,12 +1,13 @@
 // 모듈 소스(src/js, src/styles.css)를 한 페이지로 묶는다.
 //   node build.mjs        → dist/index.html (claude.ai 아티팩트용, 문서 뼈대는 발행 시 붙음)
-//   node build.mjs web    → dist-web/music/index.html (mulgyeol.kr/music 웹사이트용, 완성된 HTML 문서)
+//   node build.mjs web    → dist-web/index.html (music.mulgyeol.kr 웹사이트용, 완성된 HTML 문서. 하위 도메인 루트에 둔다, D-028)
 // 둘 다 악기 샘플을 samples/ 아래에 함께 둔다 (fetch('samples/…')로 불러옴).
 import { build } from 'esbuild';
 import { readFileSync, writeFileSync, mkdirSync, cpSync, rmSync } from 'node:fs';
 
 const target = process.argv[2] === 'web' ? 'web' : 'artifact';
-const BASE = '/music/';
+const BASE = '/'; // 하위 도메인(music.mulgyeol.kr)의 루트. 예전 mulgyeol.kr/music은 '/music/' (D-012 → D-028)
+const SITE = 'https://music.mulgyeol.kr';
 
 // 마스터링 계산 워커를 먼저 묶어 문자열로 만든다 (blob URL로 띄움)
 const workerBuild = await build({
@@ -42,7 +43,7 @@ let html;
 if (target === 'web') {
   outDir = `dist-web${BASE}`;
   rmSync('dist-web', { recursive: true, force: true });
-  const head = readFileSync('src/web-head.html', 'utf8').replace(/__BASE__/g, BASE);
+  const head = readFileSync('src/web-head.html', 'utf8').replace(/__SITE__/g, SITE).replace(/__BASE__/g, BASE);
   // 아티팩트 발행 때 붙던 문서 뼈대·기본 리셋을 웹에서는 직접 넣는다. <title>은 head로.
   const webBody = body.replace(/<title>[^<]*<\/title>\n?/, '');
   html = `<!doctype html><html lang="ko"><head><title>물결 뮤직 — K-pop 작곡 노트</title>${head}</head><body>${webBody}</body></html>`;

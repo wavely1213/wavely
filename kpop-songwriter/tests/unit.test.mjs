@@ -338,7 +338,7 @@ import { matchFirst, matchNote } from '../src/js/lyricmatch.js';
   const { SECTION_TYPES, GENRES } = await import('../src/js/constants.js');
   const g = (genre, moods = [], subgenre = '') => songGenre({ style: { genre, subgenre }, concept: { moods } });
   // 앱 장르 목록 매핑 (genre-chords 3-2)
-  const want = { 'K-pop dance pop': 'bright', 'K-pop EDM': 'dark', 'K-pop hip hop': 'dark', 'K-pop R&B': 'rnb', 'K-pop ballad': 'ballad', 'synth-pop': 'bright',
+  const want = { 'K-pop dance pop': 'bright', 'K-pop EDM': 'dark', 'K-pop hip hop': 'dark', 'K-pop R&B': 'rnb', 'K-pop ballad': 'ballad', 'Korean ballad': 'ballad', 'synth-pop': 'bright',
     'UK garage': 'club', 'Jersey club': 'club', Afrobeats: 'club', house: 'club', 'pop rock': 'band', moombahton: 'club' };
   GENRES.forEach((x) => assert.equal(g(x).id, want[x], x));
   assert.equal(g('K-pop dance pop', ['걸크러시']).id, 'dark', '분위기 걸크러시·다크 → 다크');

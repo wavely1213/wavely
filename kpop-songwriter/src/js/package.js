@@ -6,6 +6,7 @@ import { encodeWav, zip } from './music/pack.js';
 import { keyName } from './music/theory.js';
 import { songSeconds } from './music/arrangement.js';
 import { DEFAULT_TARGET } from './music/dsp.js';
+import { recordingOf, recordingSheet } from './recording/model.js';
 
 function safeName(title) {
   return (title || 'song').replace(/^예시:\s*/, '').replace(/[\\/:*?"<>|]+/g, '').trim().slice(0, 60) || 'song';
@@ -23,6 +24,7 @@ function guide(song) {
     '- demo.wav        : 앱에서 만든 코드·리듬·가이드 멜로디 데모',
     '- song.mid        : 악기별 트랙이 나뉜 MIDI. DAW(FL Studio, Logic, Ableton, GarageBand 등)로 가져가기',
     '- project.json    : 이 앱의 곡 데이터 백업 (앱 왼쪽 "가져오기"로 되살릴 수 있음)',
+    ...(recordingOf(song) ? ['- recording_sheet.txt : 직접 녹음할 때 보는 가사·마디표 (키·빠르기·부를 사람 음역)'] : []),
     '',
     ...(song.remake ? [
       // 커버·번안 곡: Suno Cover는 본인 곡 전용이라 안내하지 않는다 (D-026, cover-remake 2장)
@@ -43,6 +45,13 @@ function guide(song) {
     '2. 원하는 가상 악기로 바꾸고, 가이드 멜로디 트랙을 보고 보컬을 녹음하거나 보컬 신스를 쓴다.',
     '3. Suno 결과물의 스템(보컬 분리 등)을 함께 쓰면 믹싱 자유도가 높아진다.',
     '',
+    ...(recordingOf(song) ? [
+      '[직접 녹음해서 발매하기]',
+      '1. Suno로 가이드 보컬이 든 곡을 만들고, 스템(보컬·반주)이나 Instrumental 버전으로 MR을 받는다. 상업 발매용 MR은 유료 요금제로 만든 것만 쓴다.',
+      '2. DAW에 MR과 가이드 보컬을 올리고 recording_sheet.txt를 보며 내 목소리로 녹음한다. 가이드 보컬은 빼고 내 보컬과 MR만 믹스한다.',
+      '3. 믹스한 WAV(24비트, 44.1kHz 이상)를 앱의 마스터링 탭에 넣고, 앨범 AI 표기에서 보컬은 끄고 Suno MR이면 작곡·편곡은 켜 둔다.',
+      '',
+    ] : []),
     ...(song.remake ? [
       '[커버·번안 곡]',
       '- Suno에 올리는 가사·오디오는 모든 권리를 가졌다고 보증해야 하고(모델 학습 포함), Cover 기능은 본인이 만든 곡에만 쓴다. 원곡 음원·원곡 가사는 올리지 않는다.',
@@ -83,6 +92,7 @@ export async function buildPackage(song, { includeWav, lyricOpts, onStep }) {
   // 원곡 가사는 남에게 주는 zip에 넣지 않는다 (기기에만, D-026). 음 수 비교는 받은 쪽에서 다시 붙여넣는다
   if (project.remake) project.remake = { ...project.remake, originalLyrics: { lang: project.remake.originalLyrics?.lang || 'ja', sections: {} } };
   files.push({ name: `${name}/project.json`, data: JSON.stringify(project, null, 1) });
+  if (recordingOf(song)) files.push({ name: `${name}/recording_sheet.txt`, data: recordingSheet(song) });
   files.push({ name: `${name}/README.txt`, data: guide(song) });
   return { blob: zip(files), filename: `${name}.zip` };
 }

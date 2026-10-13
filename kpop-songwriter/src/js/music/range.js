@@ -8,6 +8,8 @@ export const VOICE_RANGES = {
   'f-low': { name: '여성 저음', low: 53, high: 72 },
   'm-high': { name: '남성 고음', low: 50, high: 71 },
   'm-mid': { name: '남성 중음', low: 45, high: 67 },
+  // 뮤지컬·발라드 바리톤: 중저음이 두껍고 마지막 후렴에 A4까지 (소유자 목소리 기본값, 음역을 알면 바꾼다. D-027)
+  'm-baritone': { name: '남성 바리톤 (뮤지컬·발라드)', low: 45, high: 69 },
   'm-low': { name: '남성 저음', low: 40, high: 62 },
   rap: { name: '랩 (음역 무관)', low: null, high: null },
 };

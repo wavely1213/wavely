@@ -10,7 +10,7 @@ import { tasteBlock } from './learn/context.js';
 import { sectionRange, degreeRange, foldIntoRange, midiName } from './music/range.js';
 import { MELODY_TEXT_NOTE } from './music/melodytext.js';
 import { GROUP_TYPES } from './constants.js';
-import { ARRANGE_RULES, GENRE_CHORDS, MELODY_RULES, presetBrief } from './ai-rules.js';
+import { ARRANGE_RULES, GENRE_CHORDS, melodyRules, presetBrief } from './ai-rules.js';
 import { defaultSectionMusic } from './music/arrangement.js';
 import { songGenre } from './music/genres.js';
 
@@ -63,7 +63,7 @@ export async function arrangeSong(song, { targetIds, request, signal }) {
     `악기 id: ${ARRANGE_INSTRUMENTS.map((i) => `${i.id}(${i.name})`).join(', ')}`,
     `드럼 id: none(드럼 없음), ${Object.entries(DRUM_PATTERNS).map(([k, v]) => `${k}(${v.name})`).join(', ')}`,
     `베이스 id: ${Object.entries(BASS_PATTERNS).map(([k, v]) => `${k}(${v.name})`).join(', ')}`,
-    "chords는 마디마다 하나(마디 수보다 짧으면 반복). 음계 안 화음은 스케일 도수 숫자 1~7. 음계 밖 화음은 글자로: '4m'(장조의 iv), '5M'·'4M'(단조의 V·도리안 IV), '3d7'·'6d7'(장조의 III7·VI7), '5d7'(단조의 V7), 'b7M'(장조의 ♭VII), 'b2M'(단조의 ♭II). 음계 밖 화음은 아래 장르별 진행과 프리셋에 있는 것만 쓴다." +
+    "chords는 마디마다 하나(마디 수보다 짧으면 반복). 음계 안 화음은 스케일 도수 숫자 1~7. 음계 밖 화음은 글자로: '4m'(장조의 iv), '7m'·'5m'(장조의 VIIm·v, 6·4로 가는 ii), '5M'·'4M'(단조의 V·도리안 IV), '3d7'·'6d7'·'1d7'(장조의 III7·VI7·I7), '5d7'(단조의 V7), 'b7M'·'b6M'·'b3M'(장조의 ♭VII·♭VI·♭III), 'b2M'(단조의 ♭II). 음계 밖 화음은 아래 장르별 진행과 프리셋에 있는 것만 쓴다." +
     ' energy는 1(조용)~5(폭발). bars는 2~16, 4의 배수 권장.',
     ARRANGE_RULES,
     GENRE_CHORDS,
@@ -155,7 +155,7 @@ export async function writeMelody(song, { targetIds, request, signal }) {
     '각 섹션의 "음역" 범위를 벗어나는 d를 쓰지 않는다 (부를 멤버의 음역).',
     '규칙: 가사 한 음절당 음표 하나(영어는 음절 단위), 음표에 그 음절을 syl로 붙인다. (괄호) 애드립도 음절로 처리. 음표끼리 겹치지 않는다. s+l은 총칸수를 넘지 않는다.',
     '강박(마디의 0, 4, 8, 12칸)에는 코드톤을 우선 쓴다. 줄 끝 음은 길게(4칸 이상) 끌어 숨 쉴 자리를 둔다. 줄은 대략 1~2마디씩 차지한다.',
-    MELODY_RULES,
+    melodyRules(song),
     '가사가 없는 섹션이면 "우-", "오-" 같은 허밍 멜로디를 짧게 만든다. 실존 곡 멜로디를 베끼지 않는다.',
     tasteBlock('melody') ? `${MELODY_TEXT_NOTE}\n${tasteBlock('melody')}` : '',
     request ? `작곡가 요청: ${request}` : '',

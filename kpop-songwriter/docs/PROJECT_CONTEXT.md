@@ -47,8 +47,8 @@
 /src/index.template.html  페이지 뼈대 (<title>, 폰트, STYLES/SCRIPT 자리)
 /src/styles.css           전체 스타일 (토큰 → 컴포넌트)
 /src/js                   앱 코드 (ARCHITECTURE.md 참고)
-/build.mjs                src → dist/(아티팩트) 또는 dist-web/music/(웹, `web` 인자)
-/src/web-head.html        웹 빌드 전용 <head> (base /music/, 설명, 아이콘)
+/build.mjs                src → dist/(아티팩트) 또는 dist-web/(웹 music.mulgyeol.kr, `web` 인자)
+/src/web-head.html        웹 빌드 전용 <head> (base /, 설명, 아이콘, og:url music.mulgyeol.kr)
 /vercel.json              웹사이트 단독 배포 설정
 /assets/samples           악기 샘플 묶음(JSON, base64 MP3)과 출처
 /tools/fetch-samples.mjs  샘플 다시 받기 (ffmpeg 필요)
@@ -65,13 +65,13 @@
 - **실행 명령어**: `AGENTS.md` 5번 항목과 동일하게 유지
 - **배포 방법 (두 갈래)**:
   1. claude.ai 아티팩트: `npm run build` → `dist/index.html` + `dist/samples/*`를 Artifact 도구로 같은 URL에 재발행
-  2. 웹사이트 mulgyeol.kr/music: `npm run build:web` → `dist-web/music/`. 소유자 작업:
+  2. 웹사이트 music.mulgyeol.kr (하위 도메인, D-028): `npm run build:web` → `dist-web/` (사이트 루트에 바로 둔다). 소유자 작업:
      - Vercel에서 새 프로젝트를 만들고 Root Directory를 `kpop-songwriter`로 지정 (설정은 이 폴더의 `vercel.json`이 사용됨)
-     - mulgyeol.kr을 서비스하는 `wavely-web` 저장소의 vercel.json `rewrites`에 추가:
-       `{ "source": "/music/:path*", "destination": "https://<새 프로젝트>.vercel.app/music/:path*" }`
-       그리고 `redirects`에 `{ "source": "/music", "destination": "/music/", "permanent": true }` — 끝 슬래시 없는 주소도 서비스 워커 범위(/music/) 안으로 보내야 오프라인에서 열린다
+     - 그 프로젝트의 Settings → Domains에 `music.mulgyeol.kr`을 더하고, mulgyeol.kr DNS에 Vercel이 알려 주는 레코드(보통 `music` CNAME → `cname.vercel-dns.com`)를 추가
+     - `wavely-web`(mulgyeol.kr) 쪽 리라이트는 필요 없다. 예전 주소를 살리려면 wavely-web에 `{ "source": "/music/:path*", "destination": "https://music.mulgyeol.kr/:path*", "permanent": true }` 리다이렉트를 둘 수 있다(선택)
      - 웹에서는 AI 기능이 꺼져 있다 (서버 키 결정 전, ROADMAP 4번)
-     - 설치형(PWA): `dist-web/music/`의 `manifest.webmanifest`·`sw.js`·아이콘이 같이 배포돼야 한다. 리라이트 뒤에서도 `/music/sw.js`가 mulgyeol.kr 같은 출처로 보이므로 동작한다. 배포 뒤 폰 브라우저에서 "홈 화면에 추가"로 확인 (D-016)
+     - 설치형(PWA): `dist-web/`의 `manifest.webmanifest`·`sw.js`·아이콘이 루트에 같이 배포된다. 배포 뒤 폰 브라우저에서 "홈 화면에 추가"로 확인 (D-016)
+     - 브라우저 저장은 주소(출처)마다 따로라, mulgyeol.kr/music에서 쓰던 곡은 새 주소로 저절로 옮겨지지 않는다 (전체 백업 → 새 주소에서 가져오기)
 
 ## 6. 외부 서비스·연동
 

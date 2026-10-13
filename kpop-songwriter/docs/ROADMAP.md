@@ -1,4 +1,4 @@
-# ROADMAP.md — 물결 뮤직 (mulgyeol.kr/music) 기획
+# ROADMAP.md — 물결 뮤직 (music.mulgyeol.kr) 기획
 
 > **목적**: 이 프로그램이 어디로 가는지, 무엇을 어떤 순서로 만드는지. 작업 단위 목록은 `BACKLOG.md`.
 > **갱신 시점**: 방향·우선순위가 바뀔 때. 큰 방향 변경은 `DECISION_LOG.md`에도 기록.
@@ -8,16 +8,16 @@
 ## 1. 목표
 
 작곡 프로그램을 모르는 사람도 **컨셉 → 가사 → 작곡·편곡 → 음원(Suno) → 마스터링 → 앨범 발매**까지
-한 곳에서, 최소 반자동으로 끝낸다. 웹사이트 `mulgyeol.kr/music`으로 제공한다.
+한 곳에서, 최소 반자동으로 끝낸다. 웹사이트 `music.mulgyeol.kr`로 제공한다 (D-028, 예전 계획은 mulgyeol.kr/music).
 
 ## 2. 기둥 4개
 
-### A. 웹사이트화 — mulgyeol.kr/music
+### A. 웹사이트화 — music.mulgyeol.kr
 - 같은 코드로 두 가지 실행 환경: **claude.ai 아티팩트**(지금) / **웹사이트**(정적 사이트).
 - `platform` 계층이 차이를 흡수한다: AI 호출, 저장, 파일 내려받기, 사용자.
   - 아티팩트: `sample`·`db`·`downloads`·`user` capability
-  - 웹: AI는 서버 경로(`/music/api/ai`, Vercel 함수 + 서버 키) — **설정 전까지는 AI 기능에 "claude.ai 버전에서 사용" 안내**. 저장은 브라우저(localStorage/IndexedDB) → 이후 Supabase(wavely와 같은 프로젝트, `music_` 테이블, 본인만 읽기·쓰기). 다운로드는 일반 파일(.wav·.mid 그대로).
-- 배포: 이 폴더를 별도 Vercel 프로젝트로 배포하고, mulgyeol.kr을 서비스하는 `wavely-web`의 vercel.json에 `/music/:path*` 리라이트 한 줄 추가. (wavely-web은 이 세션에서 접근 불가 → 소유자 작업)
+  - 웹: AI는 서버 경로(`/api/ai`, Vercel 함수 + 서버 키) — **설정 전까지는 AI 기능에 "claude.ai 버전에서 사용" 안내**. 저장은 브라우저(localStorage/IndexedDB) → 이후 Supabase(wavely와 같은 프로젝트, `music_` 테이블, 본인만 읽기·쓰기). 다운로드는 일반 파일(.wav·.mid 그대로).
+- 배포: 이 폴더를 별도 Vercel 프로젝트로 배포하고 `music.mulgyeol.kr` 도메인을 붙인다 (DNS `music` CNAME, 소유자 작업). wavely-web 리라이트는 필요 없다 (D-028).
 
 ### B. AI "학습" — 내 취향을 배우는 작사·작곡
 - 모델 자체 학습(파인튜닝)은 이 환경에서 불가. 대신 **취향 학습**:
@@ -67,7 +67,7 @@
 ## 4. 소유자 결정이 필요한 것
 
 - 웹사이트에서 AI를 쓰려면 서버 쪽 Claude API 키(사용량 과금)가 필요하다. 아티팩트처럼 "내 Claude 사용량"으로 쓰는 방식은 claude.ai 안에서만 가능. → 웹 AI 활성화 여부
-- `wavely-web` vercel.json 리라이트 추가 (mulgyeol.kr이 그 저장소에서 배포됨) + 새 Vercel 프로젝트 배포
+- 새 Vercel 프로젝트 배포 + `music.mulgyeol.kr` 도메인 연결(DNS CNAME) — 예전 `wavely-web` 리라이트 계획은 D-028로 필요 없어짐
 - Supabase에 `music_` 테이블 추가 (운영 DB 마이그레이션 — 승인 필요)
 - GitHub 앱 권한 (현재 wavely 저장소에 푸시 불가 — 커밋은 로컬 브랜치에 쌓여 있음)
 - 가사 채점 기본값을 보정할 가사 데이터셋 이용 여부 (I-008)

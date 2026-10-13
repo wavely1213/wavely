@@ -505,6 +505,39 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     await c4.close();
   }
   if (!global.remakeOk) errs.push('리메이크·번안 곡 흐름 이상');
+  // 정통 발라드·직접 녹음 (D-027): 스타일 탭 '장르 스타일로 채우기' → 편곡 탭이 정통 발라드로 봄 → 장르 기본 편곡 → 내보내기 탭 직접 녹음 켜기·나를 멤버로
+  for (const [w, hgt, tag] of [[1280, 900, 'desk'], [390, 844, 'phone']]) {
+    const c5 = await b.newContext({ viewport: { width: w, height: hgt } });
+    const p5 = await c5.newPage();
+    p5.on('pageerror', (e) => errs.push(`ballad ${tag} ${e.message}`));
+    await p5.goto('file://' + path.join(__dirname, '..', 'dist', 'index.html'));
+    await p5.waitForSelector('.tab');
+    if (tag === 'phone') await p5.click('.nav-toggle');
+    await p5.click('text=+ 새 곡');
+    await p5.click('.tab:text-is("Suno 스타일")');
+    await p5.click('#style-seed-run');
+    const seeded = (await p5.inputValue('#style-genre')) === 'Korean ballad' && (await p5.inputValue('#style-bpm')) === '68';
+    await p5.click('.tab:text-is("편곡")');
+    const genreNow = await p5.textContent('#genre-now');
+    await p5.click('#genre-defaults');
+    const bpm = await p5.textContent('#song-length');
+    await p5.click('.tab:text-is("내보내기")');
+    await p5.click('#self-record');
+    await p5.waitForSelector('#self-record-card #keyfit');
+    const noMelody = (await p5.textContent('#keyfit')).includes('멜로디 탭에서');
+    const voice = await p5.inputValue('#self-voice');
+    await p5.click('#self-add-member');
+    await p5.waitForSelector('#self-singer');
+    const over = await p5.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
+    await p5.screenshot({ path: path.join(TMP, `${tag}-self-record.png`), fullPage: true });
+    await p5.click('.tab:text-is("컨셉·멤버")');
+    const member = await p5.inputValue('.member-row select[id^="m-voice-"]');
+    global.ballad = { tag, seeded, genreNow, bpm, noMelody, voice, member, over };
+    global.balladOk = (global.balladOk ?? true) && seeded && genreNow.includes('감미로운 정통 발라드') && noMelody && voice === 'm-baritone' && member === 'm-baritone' && !over;
+    if (!global.balladOk) console.log('ballad', global.ballad);
+    await c5.close();
+  }
+  if (!global.balladOk) errs.push('정통 발라드·직접 녹음 흐름 이상');
   if (!global.autoOk) errs.push('마스터 자동 연결 안 됨');
   if (!global.undoOk) errs.push('되돌리기·다시 하기 안 됨');
   if (!global.genreOk) errs.push('장르 기본 편곡 버튼 이상');

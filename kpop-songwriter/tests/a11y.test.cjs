@@ -32,6 +32,13 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
   (await audit()).forEach((x) => all.add(`[리메이크 가사] ${x}`));
   await p.click('.tab:text-is("내보내기")');
   (await audit()).forEach((x) => all.add(`[리메이크 내보내기] ${x}`));
+  // 직접 녹음 카드 (멤버 없음 → 음역 고르기, 멤버 추가 뒤 → 부를 멤버 고르기)
+  await p.click('text=+ 새 곡');
+  await p.click('.tab:text-is("내보내기")');
+  await p.click('#self-record');
+  (await audit()).forEach((x) => all.add(`[직접 녹음] ${x}`));
+  await p.click('#self-add-member');
+  (await audit()).forEach((x) => all.add(`[직접 녹음 멤버] ${x}`));
   if (all.size) { console.log([...all].join('\n')); console.log('a11y FAILED'); process.exitCode = 1; } else console.log('a11y OK');
   await b.close();
 })();

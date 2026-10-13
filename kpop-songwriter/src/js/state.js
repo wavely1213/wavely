@@ -221,6 +221,7 @@ function copySong(id, { suffix = ' (사본)', inst = false } = {}) {
     Object.values(song.music.sections).forEach((sm) => { sm.melody = []; });
     ['translations', 'similarity', 'spelling'].forEach((k) => { delete song[k]; });
     if (ol) ol.sections = {}; // 가사가 없는 사본 (권리 기록은 원곡 곡을 따른다: remake/model.js remakeOf)
+    delete song.recording; // 연주곡은 부를 사람이 없다 (직접 녹음 표시를 물려받지 않음)
   }
   normalizeSong(song);
   state.songs.splice(state.songs.indexOf(src) + 1, 0, song);

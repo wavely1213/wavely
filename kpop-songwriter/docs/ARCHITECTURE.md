@@ -49,7 +49,7 @@
 | 악기/패턴 | music/instruments.js, patterns.js | 악기 목록·음색 종류, 드럼·베이스 프리셋 |
 | 편곡 데이터 | music/arrangement.js | 섹션 기본값, 정규화, 빠른 바꾸기, 장르 기본 편곡·템플릿 기본값 적용 |
 | 국내 발매 목록 | album/domestic.js | 국내 음원 플랫폼 목록, 앨범 장르(멜론 등록 분류)·예전 값 옮기기 (D-024) |
-| 장르 묶음 | music/genres.js | 장르 칸·분위기 → 장르 묶음 6개, 묶음별 섹션 기본값 표·권장 빠르기 (D-022) |
+| 장르 묶음 | music/genres.js | 장르 칸·분위기 → 장르 묶음 7개(정통 발라드 포함), 묶음별 섹션 기본값 표·권장 빠르기·Suno 스타일 시드 (D-022·D-027) |
 | 타임라인 | music/timeline.js | 곡 → 음표 이벤트 (재생·WAV·MIDI 공통) |
 | 신스 | music/synth.js | Web Audio 악기 음색, 악기별 공유 필터 |
 | 재생/렌더 | music/player.js | 룩어헤드 실시간 재생, 2초 단위 오프라인 렌더 |
@@ -64,6 +64,7 @@
 | 발매 준비 | album/release.js, album/session.js | 마스터 규격 점검, 가사지·크레딧, 제출 zip, AI 홍보 문구 |
 | 앨범 화면 | views/album/* | 수록곡·정보·커버·싱크 가사·일정·홍보·제출 탭 |
 | 번안 가사 | translate/mora.js, translate/translate.js, views/translate.js | 일본어·영어 버전: 줄 수·음 수(음절·모라)를 원문에 맞춘 AI 번안, 원문 비교, Suno용 가사·스타일 |
+| 직접 녹음 | recording/model.js, views/recording.js | 직접 불러서 발매: 부를 사람 음역에 맞는 키 찾기·옮기기, 녹음 순서 안내, 녹음용 가사·마디표 (D-027) |
 | 리메이크·번안 곡 | remake/model.js, remake/checks.js, remake/adapt.js, views/remake.js | 원곡 정보·이용 허락 기록, 원곡 가사 나누기·음 수 비교, AI 번안 초안(외국어 → 한국어), 발매 점검 항목·원곡 크레딧·rights.csv (D-026) |
 | 맞춤법 점검 | optimize/spelling.js, views/spelling.js | AI가 확실히 틀린 맞춤법·띄어쓰기만(노래 말투 제외), 하나씩·모두 고치기, 가사 변경 감지 |
 | 줄 점검 공통 | optimize/linecheck.js | AI가 짚은 줄을 실제 가사 줄에 맞추기, 상태(none/stale/flagged/clear), 줄 바꾸기 |

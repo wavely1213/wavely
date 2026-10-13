@@ -4,6 +4,7 @@ import { INSTRUMENTAL_TYPES } from '../constants.js';
 import { releaseChecklist } from '../album/model.js';
 import { mastersOf, coverOf, songMaster, sessionRev } from '../album/session.js';
 import { remakeOf, adaptSummary } from '../remake/model.js';
+import { recordingOf } from '../recording/model.js';
 
 export const STEPS = [
   { id: 'concept', name: '컨셉', tab: 'concept' },
@@ -44,10 +45,12 @@ export function songProgress(song, { albums = [], songs = [] } = {}) {
 
   set('arrange', !!p.arranged, '편곡 탭에서 코드·악기를 고르거나 AI 편곡을 해 보세요.');
   if (!song.instOf) set('melody', Object.values(song.music.sections).some((sm) => sm.melody.length), '멜로디 탭에서 가이드 멜로디를 만들어 주세요.');
-  set('suno', !!p.suno, '내보내기 탭에서 가사·스타일을 복사하거나 제작 패키지를 받아 Suno로 노래를 만들어 주세요.');
+  const self = !!recordingOf(song); // 직접 녹음해서 발매 (D-027): Suno는 MR·가이드까지
+  set('suno', !!p.suno, self ? '내보내기 탭에서 가사·스타일을 복사해 Suno로 가이드 보컬이 든 곡을 만들고, MR(스템)을 받아 주세요.'
+    : '내보내기 탭에서 가사·스타일을 복사하거나 제작 패키지를 받아 Suno로 노래를 만들어 주세요.');
 
   const mastered = !!songMaster(song.id) || !!(album && mastersOf(album.id)[song.id]) || !!p.mastered;
-  set('master', mastered, 'Suno 완성곡을 마스터링 탭에 넣어 발매용 WAV로 맞춰 주세요.');
+  set('master', mastered, self ? 'MR에 직접 녹음해 믹스한 WAV를 마스터링 탭에 넣어 발매용으로 맞춰 주세요.' : 'Suno 완성곡을 마스터링 탭에 넣어 발매용 WAV로 맞춰 주세요.');
 
   if (!album) set('release', false, '"싱글 발매 준비"를 눌러 앨범 정보·커버·제출 패키지를 준비해요.');
   else {

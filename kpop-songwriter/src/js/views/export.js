@@ -11,6 +11,7 @@ import { placeholderTitle } from '../album/titlecheck.js';
 import { saveFile } from '../platform/download.js';
 import { renderTranslate } from './translate.js';
 import { renderRemakeSuno } from './remake.js';
+import { renderRecording } from './recording.js';
 
 // 가사·스타일을 복사하거나 패키지를 받으면 진행 상황의 'Suno 생성' 단계 완료로 친다
 const markSuno = (songId) => markProgress(songId, 'suno');
@@ -70,6 +71,7 @@ export function renderExport(song) {
   const instOf = song.instOf ? getState().songs.find((x) => x.id === song.instOf) : null;
   return h('div', { class: 'stack' },
     renderRemakeSuno(song),
+    song.instOf ? null : renderRecording(song),
     song.instOf ? h('section', { class: 'card note', id: 'inst-guide' },
       h('h2', null, '연주곡(Inst.) 버전 만들기'),
       h('p', null, `이 곡은 「${(instOf?.title || '원곡').replace(/^예시:\s*/, '')}」의 Inst. 버전이에요. Suno에서 둘 중 하나로 만들어 마스터링 탭에 넣으세요.`),

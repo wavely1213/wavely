@@ -1,5 +1,5 @@
 // 스타일 탭: Suno 스타일 프롬프트 재료 입력 + AI 제안 + 변형 A/B/C.
-import { h, field } from '../dom.js';
+import { h, field, toast } from '../dom.js';
 import { mutate, mutateSong } from '../state.js';
 import { GENRES, SUNO_LIMITS } from '../constants.js';
 import { buildStyle, sunoStyle } from '../suno.js';
@@ -7,8 +7,26 @@ import { suggestStyle } from '../ai.js';
 import { isBusy, runJob, stopJob, job } from '../aijob.js';
 import { feedbackBar } from '../learn/feedback.js';
 import { renderVariants } from './variants.js';
+import { STYLE_SEEDS, seedStyle } from '../music/genres.js';
 
 const why = {};
+
+// 장르 스타일로 채우기: 장르 묶음의 Suno 스타일 시드로 칸을 채운다 (되돌리기 가능). 편곡은 편곡 탭의 '장르 기본 편곡' 버튼으로
+function renderSeedRow(song) {
+  if (!STYLE_SEEDS.length) return null;
+  const sel = h('select', { id: 'style-seed', 'aria-label': '채울 장르 스타일' }, STYLE_SEEDS.map((x) => h('option', { value: x.id }, x.name)));
+  const desc = h('span', { class: 'muted small', id: 'style-seed-desc' }, STYLE_SEEDS[0].desc);
+  sel.onchange = () => { desc.textContent = STYLE_SEEDS.find((x) => x.id === sel.value)?.desc || ''; };
+  return h('div', { class: 'row' },
+    sel,
+    h('button', { type: 'button', class: 'btn', id: 'style-seed-run', onclick: () => {
+      const st = seedStyle(sel.value, song);
+      if (!st) return;
+      mutate((s) => { Object.assign(s.style, st); });
+      toast('스타일 칸을 채웠어요. 편곡 탭의 "장르 기본 편곡으로 바꾸기"로 섹션 편곡도 맞출 수 있어요');
+    } }, '장르 스타일로 채우기'),
+    desc);
+}
 
 export function renderStyle(song) {
   const st = song.style;
@@ -53,6 +71,7 @@ export function renderStyle(song) {
       why[song.id] ? h('p', { class: 'note' }, why[song.id]) : null,
       why[song.id] ? feedbackBar({ kind: 'style', ref: `style:${song.id}:${why[song.id].slice(0, 20)}`, text: buildStyle(st), label: 'AI 스타일 제안이 마음에 드나요?' }) : null,
       h('p', { class: 'muted' }, '영어로 적어요. 실존 가수·곡 이름은 Suno가 막기 때문에 넣지 마세요.'),
+      renderSeedRow(song),
       genreList,
       h('div', { class: 'grid2' },
         input('genre', '장르', 'K-pop dance pop', { list: 'genre-list' }),

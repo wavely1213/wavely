@@ -43,6 +43,36 @@ export const GENRE_PROFILES = {
       Outro: S(4, 1, ['piano'], 'none', 'long', [4, 5, 1, 1], 'epic'),
     },
   },
+  // 감미로운 정통 발라드 (중저음 남성 보컬, 피아노·스트링, 4→4m·부속 7화음). seventh는 프리셋에 붙은 대로 (희재형·브릿지는 3화음).
+  // 근거: docs/research/ballad-classic-2026-10-12.md 6-1 (18곡 장조, 신스 패드 크레딧 1곡뿐이라 패드를 뺌). 결정: D-027
+  ballad_classic: {
+    name: '감미로운 정통 발라드', mode: 'major', seventh: null,
+    desc: '중저음 남성 보컬 · 피아노와 스트링 · 담담하게 시작해 마지막 후렴에서 열려요',
+    sections: {
+      Intro: S(4, 1, ['piano', 'strings'], 'none', 'long', 'ballad', 'dark'),
+      Verse: S(8, 2, ['piano', 'bass'], 'none', 'long', 'stairs44m', 'dark'),
+      'Pre-Chorus': S(4, 3, ['piano', 'bass', 'strings'], 'none', 'long', 'chain67', 'rise_m'),
+      Chorus: S(8, 4, ['drums', 'bass', 'piano', 'strings'], 'ballad', 'long', 'ballad44m', 'circle_m'),
+      'Post-Chorus': S(4, 3, ['drums', 'bass', 'piano', 'strings'], 'ballad', 'long', 'ballad44m', 'sad'),
+      Rap: S(8, 2, ['drums', 'bass', 'piano'], 'ballad', 'long', 'ballad', 'dark'),
+      Bridge: S(8, 3, ['piano', 'strings', 'bass'], 'none', 'long', 'mixbridge', 'bridge4236_m'),
+      'Dance Break': S(8, 4, ['drums', 'bass', 'piano', 'strings'], 'ballad', 'long', 'ballad44m', 'sad'),
+      Hook: S(4, 4, ['drums', 'bass', 'piano', 'strings'], 'ballad', 'long', 'ballad44m', 'sad'),
+      Outro: S(4, 1, ['piano'], 'none', 'long', [4, 5, 1, 1], 'epic'),
+    },
+    // Suno 스타일 시드 (실존 가수·곡 이름 없이, 6-5). 부를 사람이 바리톤이면 vocalsBaritone (D-027)
+    seed: {
+      genre: 'Korean ballad',
+      subgenre: 'mellow piano pop ballad',
+      bpm: 68,
+      vocals: 'warm soft male vocal, low-mid register, restrained delivery',
+      vocalsBaritone: 'warm rich baritone male vocal, low-mid register, restrained delivery',
+      instruments: 'piano, string section, soft bass, light drums',
+      production: 'piano-led, gentle build to a fuller final chorus',
+      extra: 'bittersweet longing',
+      exclude: 'EDM, trap beat, synth pads',
+    },
+  },
   dark: {
     name: '다크·걸크러시·힙합', mode: 'minor', seventh: null,
     sections: {
@@ -107,8 +137,24 @@ export const GENRE_PROFILES = {
 
 export const DEFAULT_GENRE = 'bright';
 
+// 스타일 탭 '장르 스타일로 채우기'에 보일 묶음 (시드가 있는 것)
+export const STYLE_SEEDS = Object.entries(GENRE_PROFILES).filter(([, p]) => p.seed).map(([id, p]) => ({ id, name: p.name, desc: p.desc || '' }));
+
+// 시드로 채울 스타일 칸. 멤버 중 바리톤(m-baritone)이 있으면 바리톤 보컬 묘사 (직접 부를 사람의 목소리에 맞춘 가이드)
+export function seedStyle(id, song) {
+  const s = GENRE_PROFILES[id]?.seed;
+  if (!s) return null;
+  const baritone = (song?.members || []).some((m) => m.voice === 'm-baritone');
+  return {
+    genre: s.genre, subgenre: s.subgenre, bpm: s.bpm, vocals: baritone && s.vocalsBaritone ? s.vocalsBaritone : s.vocals,
+    instruments: s.instruments, production: s.production, extra: s.extra, exclude: s.exclude,
+  };
+}
+
 // 장르 칸(자유 입력)·세부 장르에서 묶음 찾기. 위에서부터 먼저 맞는 것 (예: 'K-pop R&B ballad'는 발라드)
+// 정통 발라드는 '발라드'와 부드러움 표지(mellow·croon·soft ballad·감미·담백)가 둘 다 있어야 한다 (실존 이름은 Suno로 새므로 넣지 않음, D-027)
 const RULES = [
+  ['ballad_classic', /^(?=[\s\S]*(?:ballad|발라드))(?=[\s\S]*(?:mellow|croon|soft\s+(?:pop\s+|piano\s+)?ballad|2000s\s+(?:k-?|korean\s+)ballad|감미|담백))/i],
   ['ballad', /ballad|발라드|\bost\b|드라마(?!틱)/i],
   ['club', /brazilian|baile|phonk|브라질리언/i], // 브라질리언 펑크는 R&B의 funk가 아님
   ['rnb', /r&b|r'n'b|\brnb\b|알앤비|알엔비|city\s?pop|시티\s?팝|disco|디스코|\bfunk\b|neo[- ]?soul|new\s?jack|뉴\s?잭/i],
@@ -131,6 +177,7 @@ function grooveOf(text) {
 // 청량·다크·밴드는 조사 수치가 없어 발라드 빠르기에서 돌아오기 위한 넓은 범위만 둔다 (권장값은 앱 기본 120).
 const TEMPO = {
   ballad: [60, 80, 72],
+  ballad_classic: [60, 72, 68], // 18곡 60~72, 가운데값 67~68 (ballad-classic 1장·6-3)
   rnb: [80, 100, 96],
   bright: [95, 160, 120],
   dark: [85, 180, 120],
@@ -160,7 +207,7 @@ export const BALLAD_GENRE = 'K-pop ballad';
 export function templateStyleGenre(key, song) {
   if (key !== 'ballad') return null;
   const id = songGenre(song).id;
-  return id === 'ballad' || id === 'rnb' ? null : BALLAD_GENRE;
+  return id === 'ballad' || id === 'ballad_classic' || id === 'rnb' ? null : BALLAD_GENRE;
 }
 
 // 섹션 기본값 재료 (진행 id는 조에 맞춰 고른 것)
