@@ -1,5 +1,5 @@
 // 마스터링: 톤 보정(EQ) → 글루 컴프레서 → 목표 음량(LUFS)으로 맞춤 → 트루 피크 리미터 → 44.1kHz.
-import { processMaster, measure, OUTPUT_RATE, DEFAULT_TARGET } from './dsp.js';
+import { processMaster, measure, OUTPUT_RATE, DEFAULT_TARGET, LIMITER_WARN_DB } from './dsp.js';
 import { CLIP_WARN } from './qc.js';
 
 export const MASTER_PRESETS = {
@@ -150,10 +150,27 @@ export async function master(buffer, { preset = 'kpop', eq = null, target = DEFA
   return { ...processMaster(payload, onStep), via: 'main', cutAt };
 }
 
+// 리미터 경고: 화면에 보이는 0.1dB 값이 문턱(LIMITER_WARN_DB)을 넘을 때. 처방은 지금보다 한 칸 작은 목표를 숫자로 짚는다
+// (칸 순서가 -9·-11·-14·-8이라 '한 단계'는 헷갈림. 값으로 고른다). 가장 작은 목표면 음색·테이크를 권한다 (D-029)
+function limiterWarning(res, target) {
+  const shown = Math.round(res.maxReduction * 10) / 10;
+  if (res.reached === false || !(shown > LIMITER_WARN_DB)) return null;
+  const head = `리미터가 소리를 많이 눌렀어요(최대 ${shown.toFixed(1)}dB). 드럼 타격감이 줄고 답답하게 들릴 수 있어요.`;
+  const lower = LOUDNESS_TARGETS.map((t) => t.value).filter((v) => v < target).sort((a, b) => b - a)[0];
+  if (lower !== undefined) {
+    const label = lower === DEFAULT_TARGET ? `기본값인 ${lower} LUFS` : `${lower} LUFS`;
+    return `${head} 목표 음량을 ${label}로 낮춰 다시 마스터링해 보세요. 음량을 맞춰 트는 곳(유튜브 뮤직·스포티파이·멜론 음량최적화)에선 낮춰도 같은 크기로 들려요.`;
+  }
+  return res.settings?.preset === 'natural'
+    ? `${head} 목표 음량은 더 낮출 수 없으니 다른 테이크를 써 보세요.`
+    : `${head} 목표 음량은 더 낮출 수 없으니 음색을 '${MASTER_PRESETS.natural.name}'로 바꾸거나 다른 테이크를 써 보세요.`;
+}
+
 export function masterWarnings(res, target) {
   const w = [];
   if (res.reached === false) w.push(`목표 ${target} LUFS까지 올리려면 소리가 뭉개져서 ${res.after.lufs.toFixed(1)} LUFS에서 멈췄어요. 원곡이 이미 압축된 Suno 결과물은 대부분 목표까지 올라가요.`);
-  if (res.reached !== false && res.maxReduction > 6) w.push(`리미터가 최대 ${res.maxReduction.toFixed(1)}dB까지 눌렀어요. 소리가 답답하면 목표 음량을 낮춰 보세요.`);
+  const lim = limiterWarning(res, target);
+  if (lim) w.push(lim);
   if (res.before.lufs > target + 2) w.push('원본이 이미 목표보다 커서 음량을 줄였어요. Suno 결과물은 이미 크게 나오는 경우가 많아요.');
   if (res.qc) {
     if (res.qc.clips >= CLIP_WARN) w.push(`원본 파형이 ${res.qc.clips}곳에서 잘려 있어요(하드 클리핑). 마스터링으로는 되살릴 수 없어요 — 가능하면 Suno에서 WAV로 다시 받아 오세요.`);

@@ -52,6 +52,7 @@
 /vercel.json              웹사이트 단독 배포 설정
 /assets/samples           악기 샘플 묶음(JSON, base64 MP3)과 출처
 /tools/fetch-samples.mjs  샘플 다시 받기 (ffmpeg 필요)
+/tools/limiter-survey.cjs 음원 폴더를 앱 마스터링으로 돌려 리미터 감소 실측 (ffmpeg·Playwright 필요, D-029)
 /tests                    단위·엔진·화면 테스트
 /docs                     개발 지침·기록 문서
 ```

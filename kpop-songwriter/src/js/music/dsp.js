@@ -9,6 +9,9 @@ export const DEFAULT_TARGET = -9;
 const CEILING_DB = -1; // 트루 피크 한도 (dBTP)
 const MAX_PASSES = 8;
 const MAX_REDUCTION_DB = 12; // 이보다 많이 누르면 목표 음량을 포기하고 알린다
+// 리미터 경고 문턱 (dB, 곡 전체에서 가장 깊게 누른 순간). Suno 공개 곡 101곡 실측(기본 -9 LUFS, K-pop 음색):
+// 중앙값 5.8dB라 예전 6dB는 곡의 43%에 경고가 떴다. 8dB면 약 12%. 경고 빈도를 고른 값이다 (D-029, 소유자 확인 필요)
+export const LIMITER_WARN_DB = 8;
 
 function maxReductionDb(curve) {
   let m = 1;

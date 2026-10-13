@@ -188,6 +188,26 @@ import { finishEdges } from '../src/js/music/master.js';
   console.log('master checks OK');
 }
 
+// 리미터 경고 문턱 (D-029): 화면에 보이는 0.1dB 값이 8dB를 넘을 때만, 처방은 한 칸 작은 목표를 숫자로
+{
+  const { masterWarnings } = await import('../src/js/music/master.js');
+  const { LIMITER_WARN_DB, DEFAULT_TARGET } = await import('../src/js/music/dsp.js');
+  assert.equal(LIMITER_WARN_DB, 8);
+  const res = (mr, more = {}) => ({ reached: true, maxReduction: mr, before: { lufs: -14, peak: -1.5 }, after: { lufs: -9, peak: -1 }, qc: { clips: 0, corr: 0.5 }, ...more });
+  const lim = (r, t) => masterWarnings(r, t).filter((x) => x.startsWith('리미터가'));
+  assert.equal(lim(res(6.5), -9).length, 0, '예전 문턱(6dB)과 8dB 사이는 경고 없음');
+  assert.equal(lim(res(8.04), -9).length, 0, '화면 값 8.0dB는 경고 없음');
+  const at9 = lim(res(8.05), -9);
+  assert.equal(at9.length, 1);
+  assert.ok(at9[0].includes('최대 8.1dB') && at9[0].includes('-11 LUFS로 낮춰'), at9[0]);
+  assert.ok(lim(res(9), -8)[0].includes(`기본값인 ${DEFAULT_TARGET} LUFS로 낮춰`), '-8 → 기본값');
+  assert.ok(lim(res(9), -11)[0].includes('-14 LUFS로 낮춰'));
+  assert.ok(lim(res(9), -14)[0].includes("음색을 '자연스럽게'로 바꾸거나"), '가장 작은 목표면 음색·테이크');
+  assert.ok(!lim(res(9, { settings: { preset: 'natural' } }), -14)[0].includes('음색을'), '이미 자연스럽게면 테이크만');
+  assert.equal(lim(res(12.5, { reached: false }), -8).length, 0, '목표를 포기한 곡은 포기 경고만');
+  console.log('limiter warn OK');
+}
+
 // WAV 헤더 읽기: 24비트 PCM, float(3), 앞에 큰 LIST 덩어리(4KB 넘음)가 있는 파일
 import { wavHeader } from '../src/js/album/release.js';
 import { encodeWav } from '../src/js/music/pack.js';
