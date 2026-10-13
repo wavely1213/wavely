@@ -8,6 +8,7 @@ import { isBusy, runJob, stopJob, job } from '../aijob.js';
 import { feedbackBar } from '../learn/feedback.js';
 import { renderVariants } from './variants.js';
 import { STYLE_SEEDS, seedStyle } from '../music/genres.js';
+import { singerOf } from '../recording/model.js';
 
 const why = {};
 
@@ -20,10 +21,15 @@ function renderSeedRow(song) {
   return h('div', { class: 'row' },
     sel,
     h('button', { type: 'button', class: 'btn', id: 'style-seed-run', onclick: () => {
-      const st = seedStyle(sel.value, song);
+      const st = seedStyle(sel.value, song, singerOf(song)?.voice);
       if (!st) return;
-      mutate((s) => { Object.assign(s.style, st); });
-      toast('스타일 칸을 채웠어요. 편곡 탭의 "장르 기본 편곡으로 바꾸기"로 섹션 편곡도 맞출 수 있어요');
+      const ko = STYLE_SEEDS.find((x) => x.id === sel.value)?.koRatio;
+      const raise = ko != null && Number(song.concept?.koRatio ?? 70) < ko;
+      mutate((s) => {
+        Object.assign(s.style, st);
+        if (raise) s.concept.koRatio = ko;
+      });
+      toast(`스타일 칸을 채웠어요${raise ? ` (한국어 비율도 ${ko}%로 올렸어요)` : ''}. 편곡 탭의 "장르 기본 편곡으로 바꾸기"로 섹션 편곡도 맞출 수 있어요`);
     } }, '장르 스타일로 채우기'),
     desc);
 }

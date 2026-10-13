@@ -11,13 +11,20 @@ function progressionFor(mode, id) {
 
 // 섹션 기본 편곡. genre는 songGenre(song)의 결과 (없으면 청량 댄스 팝). 장르 묶음 표는 music/genres.js.
 // bars를 주면 그 마디 수에 맞춘다 (버튼은 마디를 그대로 둠). 진행이 마디보다 길면 들리는 마디만큼만 남긴다 (재생은 마디마다 코드 하나).
+// 아웃트로와 끝이 중요한 진행(프리셋 keepEnd, 예: 후렴으로 돌아오는 2–5)은 앞 절반 + 뒤 절반을 남긴다 (예: 아웃트로 [4,5,1,1] 2마디 → [4,1])
+function fitChords(degrees, n, keepEnd) {
+  if (degrees.length <= n) return degrees.slice();
+  if (!keepEnd) return degrees.slice(0, n);
+  return n <= 1 ? degrees.slice(-1) : [...degrees.slice(0, Math.ceil(n / 2)), ...degrees.slice(degrees.length - Math.floor(n / 2))];
+}
+
 export function defaultSectionMusic(type, mode = 'major', genre, bars) {
   const d = genreSection(type, mode, genre);
   const p = Array.isArray(d.prog) ? { degrees: d.prog, seventh: false } : progressionFor(mode, d.prog);
   const n = bars || d.bars;
   return {
     bars: n,
-    chords: p.degrees.slice(0, Math.max(n, 1)),
+    chords: fitChords(p.degrees, Math.max(n, 1), type === 'Outro' || !!p.keepEnd),
     seventh: d.seventh ?? !!p.seventh,
     energy: d.energy,
     instruments: d.instruments,

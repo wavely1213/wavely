@@ -12,7 +12,7 @@ import { MELODY_TEXT_NOTE } from './music/melodytext.js';
 import { GROUP_TYPES } from './constants.js';
 import { ARRANGE_RULES, GENRE_CHORDS, melodyRules, presetBrief } from './ai-rules.js';
 import { defaultSectionMusic } from './music/arrangement.js';
-import { songGenre } from './music/genres.js';
+import { songGenre, tempoRange } from './music/genres.js';
 
 function referenceBrief(song) {
   return song.references.filter((r) => r.use).map((r) => {
@@ -58,6 +58,8 @@ export async function arrangeSong(song, { targetIds, request, signal }) {
   const m = song.music;
   const ids = targetIds?.length ? targetIds : song.sections.map((s) => s.id);
   const whole = !targetIds?.length;
+  const genre = songGenre(song);
+  const tempo = tempoRange(genre);
   const prompt = [
     '너는 K-pop 프로듀서다. 아래 곡을 편곡한다. 정해진 선택지 안에서만 고른다.',
     `악기 id: ${ARRANGE_INSTRUMENTS.map((i) => `${i.id}(${i.name})`).join(', ')}`,
@@ -67,6 +69,7 @@ export async function arrangeSong(song, { targetIds, request, signal }) {
     ' energy는 1(조용)~5(폭발). bars는 2~16, 4의 배수 권장.',
     ARRANGE_RULES,
     GENRE_CHORDS,
+    `이 곡의 장르 묶음: ${genre.name}${tempo ? ` (권장 빠르기 ${tempo[0]}~${tempo[1]} BPM)` : ''}. 위 장르별 진행에서 이 묶음의 줄을 먼저 따른다 (작곡가 요청이 있으면 요청을 따른다).`,
     presetBrief(),
     `곡 컨셉: ${JSON.stringify(conceptBrief(song))}`,
     `현재 설정: BPM ${m.bpm}, 키 ${keyName(m.root, m.mode)}`,
@@ -80,7 +83,6 @@ export async function arrangeSong(song, { targetIds, request, signal }) {
   const res = await sample.json(prompt, { signal, cache: false });
   const instIds = ARRANGE_INSTRUMENTS.map((i) => i.id);
   // 모르는 드럼·베이스 id는 곡 장르의 섹션 기본값으로 (예전엔 서양 팝 비트 'pop')
-  const genre = songGenre(song);
   const mode = whole ? (res?.mode === 'minor' ? 'minor' : 'major') : m.mode;
   const fallback = (id) => defaultSectionMusic(song.sections.find((s) => s.id === id)?.type, mode, genre);
   // AI가 드럼 악기를 넣었는데 기본값이 '드럼 없음'이면 그 장르의 후렴 드럼으로 (드럼 칩만 켜지고 소리가 안 나지 않게)

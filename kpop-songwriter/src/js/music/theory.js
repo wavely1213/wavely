@@ -142,7 +142,8 @@ export const PROGRESSIONS = {
     { id: 'relminor', name: '목이 메는 (1-4-VIIm-III7-6)', degrees: [1, 4, '7m', '3d7', 6, 1, 4, 5], use: '정통 발라드 후렴' },
     { id: 'stairs44m', name: '차곡차곡 오르다 꺾이는 (1-2-3-4-4m)', degrees: [1, 2, 3, 4, '4m', 3, 6, 5], seventh: true, use: '정통 발라드 벌스' },
     { id: 'chain67', name: '살며시 당겨 잇는 (3-VI7-2-5, 7th)', degrees: [3, '6d7', 2, 5], seventh: true, use: '정통 발라드 프리코러스·벌스' },
-    { id: 'mixbridge', name: '그늘이 드리우는 (♭VI-♭VII-iv-♭III, 브릿지)', degrees: ['b6M', 'b7M', '4m', 'b7M', 'b3M', 'b6M', 2, 5], use: '정통 발라드 브릿지' },
+    // keepEnd: 4마디 브릿지로 줄여도 후렴으로 돌아오는 2–5를 남긴다 (arrangement.js)
+    { id: 'mixbridge', name: '그늘이 드리우는 (♭VI-♭VII-iv-♭III, 브릿지)', degrees: ['b6M', 'b7M', '4m', 'b7M', 'b3M', 'b6M', 2, 5], keepEnd: true, use: '정통 발라드 브릿지' },
     { id: 'circle', name: '한 바퀴 도는 (4736·2511 순환, 7th)', degrees: [4, 7, 3, 6, 2, 5, 1, 1], seventh: true, use: '발라드 브릿지' },
     { id: 'simple', name: '단순 반복 (1-4 두 코드)', degrees: [1, 4], use: '벌스' },
     { id: 'drop', name: '한 코드로 미는 (원코드)', degrees: [1], use: '드롭·댄스 브레이크' },

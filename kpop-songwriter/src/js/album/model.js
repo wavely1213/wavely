@@ -178,6 +178,14 @@ export function releaseChecklist(album, songs, { masters = {}, coverInfo = null,
   else if (!ALBUM_GENRES.includes(album.genre)) add('info', `장르 "${album.genre}"는 국내 등록 분류(${ALBUM_GENRES.join('·')})에 없어요. 유통사 양식에서 고를 수 있는지 확인하세요.`, { tab: 'meta' });
   if (subgenreCount(album.subgenre) > 2) add('info', `세부 장르가 ${subgenreCount(album.subgenre)}개예요. 멜론 등록은 2개까지예요.`, { tab: 'meta' });
 
+  // AI 사용 표기는 앨범 하나: 노래 곡(Inst. 제외)을 모두 직접 불렀을 때만 '보컬'을 끄라고 하고, 섞였으면 켜 둔 채 메모에 적게 한다 (D-027)
+  const sung = tracks.map((t, i) => ({ i, song: songs.find((s) => s.id === t.songId) })).filter((x) => !x.song.instOf);
+  const self = sung.filter((x) => recordingOf(x.song));
+  if (self.length && album.ai.vocals) {
+    if (self.length === sung.length) add('warn', `수록곡을 모두 직접 녹음해서 발매하는데 AI 사용 표기에 "보컬(Suno 등)"이 켜져 있어요. 내 목소리로 녹음했으면 꺼 주세요 (가이드 보컬만 Suno).`, { tab: 'meta' });
+    else if (!String(album.ai.note || '').trim()) add('info', `${self.map((x) => `${x.i + 1}번`).join('·')} 곡은 직접 녹음했어요. AI 사용 표기는 앨범 전체라 다른 곡에 Suno 보컬이 있으면 "보컬(Suno 등)"은 켜 두고, AI 메모에 직접 부른 곡을 적어 두세요.`, { tab: 'meta' });
+  }
+
   const once = new Set(); // 리메이크·번안 곡마다 같은 안내는 한 번만
   tracks.forEach((t, i) => {
     const song = songs.find((s) => s.id === t.songId);
@@ -228,11 +236,8 @@ export function releaseChecklist(album, songs, { masters = {}, coverInfo = null,
       if (Number.isFinite(m.lufs) && (m.lufs < -18 || m.lufs > -6)) add('warn', `${n}: 음량 ${m.lufs.toFixed(1)} LUFS — 이 앱의 권장 범위(-18~-6)를 벗어났어요.`, { tab: 'tracks' });
       else if (Number.isFinite(m.lufs) && m.lufs < DEFAULT_TARGET - 4) add('info', `${n}: 음량 ${m.lufs.toFixed(1)} LUFS — 음량을 맞추지 않는 재생(벅스 기본 설정 등)에선 다른 곡보다 작게 들려요. 발라드라면 그대로 둬도 돼요.`, { tab: 'tracks' });
     }
-    // 직접 녹음해서 발매 (D-027): 보컬은 사람이 불렀으니 AI 표기의 보컬을 끄고, Suno MR이면 작곡·편곡은 켜 둔다
-    if (recordingOf(song) && !song.instOf) {
-      if (album.ai.vocals) add('warn', `${n}: 직접 녹음해서 발매하는 곡인데 AI 사용 표기에 "보컬(Suno 등)"이 켜져 있어요. 내 목소리로 녹음했으면 꺼 주세요 (가이드 보컬만 Suno).`, { tab: 'meta' });
-      if (!album.ai.composition) add('info', `${n}: MR을 Suno로 만들었다면 AI 사용 표기의 "작곡·편곡"을 켜 두세요 (직접 만든 MR이면 그대로).`, { tab: 'meta' });
-    }
+    // 직접 녹음해서 발매 (D-027): Suno MR이면 작곡·편곡은 켜 둔다. 커버·번안 곡의 MR은 사람·DAW로 만들므로 묻지 않는다 (D-026). 보컬 표기는 아래 앨범 단위
+    if (recordingOf(song) && !song.instOf && !remakeOf(song, songs) && !album.ai.composition) add('info', `${n}: MR을 Suno로 만들었다면 AI 사용 표기의 "작곡·편곡"을 켜 두세요 (직접 만든 MR이면 그대로).`, { tab: 'meta' });
     // 리메이크·번안: 원곡 정보·이용 허락·크레딧 (D-026)
     remakeIssues(song, t, album, { songs, today }).forEach((x) => {
       if (!x.go) { if (!once.has(x.text)) { once.add(x.text); add(x.level, x.text); } return; }

@@ -528,12 +528,15 @@ const { chromium } = require(require('child_process').execSync('npm root -g').to
     const voice = await p5.inputValue('#self-voice');
     await p5.click('#self-add-member');
     await p5.waitForSelector('#self-singer');
+    const focused = await p5.evaluate(() => document.activeElement?.id || '');
     const over = await p5.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
     await p5.screenshot({ path: path.join(TMP, `${tag}-self-record.png`), fullPage: true });
     await p5.click('.tab:text-is("컨셉·멤버")');
     const member = await p5.inputValue('.member-row select[id^="m-voice-"]');
-    global.ballad = { tag, seeded, genreNow, bpm, noMelody, voice, member, over };
-    global.balladOk = (global.balladOk ?? true) && seeded && genreNow.includes('감미로운 정통 발라드') && noMelody && voice === 'm-baritone' && member === 'm-baritone' && !over;
+    const group = await p5.inputValue('#group');
+    global.ballad = { tag, seeded, genreNow, bpm, noMelody, voice, member, focused, group, over };
+    global.balladOk = (global.balladOk ?? true) && seeded && genreNow.includes('감미로운 정통 발라드') && noMelody && voice === 'm-baritone' && member === 'm-baritone'
+      && focused === 'self-singer' && group === 'solo_m' && !over;
     if (!global.balladOk) console.log('ballad', global.ballad);
     await c5.close();
   }

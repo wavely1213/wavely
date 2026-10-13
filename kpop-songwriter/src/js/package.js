@@ -12,7 +12,8 @@ function safeName(title) {
   return (title || 'song').replace(/^예시:\s*/, '').replace(/[\\/:*?"<>|]+/g, '').trim().slice(0, 60) || 'song';
 }
 
-function guide(song) {
+// README.txt (작업 안내서). 테스트가 직접 읽는다
+export function guide(song) {
   const sec = Math.round(songSeconds(song));
   return [
     `${song.title}`,
@@ -45,7 +46,14 @@ function guide(song) {
     '2. 원하는 가상 악기로 바꾸고, 가이드 멜로디 트랙을 보고 보컬을 녹음하거나 보컬 신스를 쓴다.',
     '3. Suno 결과물의 스템(보컬 분리 등)을 함께 쓰면 믹싱 자유도가 높아진다.',
     '',
-    ...(recordingOf(song) ? [
+    ...(recordingOf(song) && song.remake ? [
+      // 커버·번안 곡은 Suno MR을 쓰지 않는다 (D-026)
+      '[직접 녹음해서 발매하기 — 커버·번안 곡]',
+      '1. 서면 허락을 받은 뒤 MR은 사람 편곡자나 DAW(song.mid)로 만든다. Suno로 만든 MR·가이드 보컬은 발매에 쓰지 않는다.',
+      '2. DAW에 MR을 올리고 recording_sheet.txt를 보며 내 목소리로 녹음한다. demo.wav의 가이드 멜로디로 연습해도 된다.',
+      '3. 믹스한 WAV(24비트, 44.1kHz 이상)를 앱의 마스터링 탭에 넣고, 앨범 AI 표기에서 쓰지 않은 항목은 끈다.',
+      '',
+    ] : recordingOf(song) ? [
       '[직접 녹음해서 발매하기]',
       '1. Suno로 가이드 보컬이 든 곡을 만들고, 스템(보컬·반주)이나 Instrumental 버전으로 MR을 받는다. 상업 발매용 MR은 유료 요금제로 만든 것만 쓴다.',
       '2. DAW에 MR과 가이드 보컬을 올리고 recording_sheet.txt를 보며 내 목소리로 녹음한다. 가이드 보컬은 빼고 내 보컬과 MR만 믹스한다.',

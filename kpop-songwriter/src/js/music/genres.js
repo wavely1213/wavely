@@ -3,7 +3,7 @@
 // sounds-korean-2026-10-12.md E(발라드는 피아노 → 스트링 → 풀 밴드). 결정: D-022.
 
 // 섹션 한 칸: 마디, 에너지, 악기, 드럼, 베이스, 장조 진행, 단조 진행 (music/theory.js PROGRESSIONS id, 또는 도수 배열)
-// 진행이 마디보다 길면 들리는 마디만큼만 쓴다 (arrangement.js). 2마디 아웃트로는 으뜸화음으로 끝나게 5→1(단조 VII→i)
+// 진행이 마디보다 길면 들리는 마디만큼만 쓴다 (arrangement.js, 아웃트로는 앞 절반 + 끝 절반). 2마디 아웃트로는 으뜸화음으로 끝나게 5→1(단조 VII→i)
 const S = (bars, energy, instruments, drum, bass, major, minor) => ({ bars, energy, instruments, drum, bass, major, minor });
 // 클럽은 곡 장르의 리듬(하우스·개러지·저지 등)을 곡 전체에 쓴다
 const GROOVE = 'groove';
@@ -65,6 +65,7 @@ export const GENRE_PROFILES = {
       genre: 'Korean ballad',
       subgenre: 'mellow piano pop ballad',
       bpm: 68,
+      koRatio: 90, // 영어는 거의 쓰지 않는다 (작사 규칙). Suno 표시 'sung in Korean, Korean lyrics'
       vocals: 'warm soft male vocal, low-mid register, restrained delivery',
       vocalsBaritone: 'warm rich baritone male vocal, low-mid register, restrained delivery',
       instruments: 'piano, string section, soft bass, light drums',
@@ -138,15 +139,20 @@ export const GENRE_PROFILES = {
 export const DEFAULT_GENRE = 'bright';
 
 // 스타일 탭 '장르 스타일로 채우기'에 보일 묶음 (시드가 있는 것)
-export const STYLE_SEEDS = Object.entries(GENRE_PROFILES).filter(([, p]) => p.seed).map(([id, p]) => ({ id, name: p.name, desc: p.desc || '' }));
+// koRatio: 채울 때 컨셉의 한국어 비율을 이 값 이상으로 올린다 (작사 규칙·Suno 언어 표시가 장르 규칙과 같은 말을 하게)
+export const STYLE_SEEDS = Object.entries(GENRE_PROFILES).filter(([, p]) => p.seed).map(([id, p]) => ({ id, name: p.name, desc: p.desc || '', koRatio: p.seed.koRatio ?? null }));
 
-// 시드로 채울 스타일 칸. 멤버 중 바리톤(m-baritone)이 있으면 바리톤 보컬 묘사 (직접 부를 사람의 목소리에 맞춘 가이드)
-export function seedStyle(id, song) {
+// 시드로 채울 스타일 칸. 부를 사람이 바리톤(m-baritone)이면 바리톤 보컬 묘사 (직접 부를 사람의 목소리에 맞춘 가이드).
+// singerVoice: 직접 녹음할 때 부를 사람 음역 (recording/model.js singerOf). 없으면 멤버 중 바리톤이 있는지 본다.
+// 빠르기는 곡 빠르기가 장르 범위 안이면 그대로, 밖이면 시드 값 (편곡·데모와 Suno 스타일이 같은 빠르기를 보게)
+export function seedStyle(id, song, singerVoice = null) {
   const s = GENRE_PROFILES[id]?.seed;
   if (!s) return null;
-  const baritone = (song?.members || []).some((m) => m.voice === 'm-baritone');
+  const baritone = singerVoice ? singerVoice === 'm-baritone' : (song?.members || []).some((m) => m.voice === 'm-baritone');
+  const r = TEMPO[id];
+  const bpm = Number(song?.music?.bpm);
   return {
-    genre: s.genre, subgenre: s.subgenre, bpm: s.bpm, vocals: baritone && s.vocalsBaritone ? s.vocalsBaritone : s.vocals,
+    genre: s.genre, subgenre: s.subgenre, bpm: Array.isArray(r) && bpm >= r[0] && bpm <= r[1] ? bpm : s.bpm, vocals: baritone && s.vocalsBaritone ? s.vocalsBaritone : s.vocals,
     instruments: s.instruments, production: s.production, extra: s.extra, exclude: s.exclude,
   };
 }
