@@ -33,7 +33,7 @@
 | 백엔드 | Next 서버 액션 (관리자 쓰기) | 공개 읽기는 `src/lib/repo.ts` |
 | 데이터베이스 | Supabase Postgres (전용 새 프로젝트) + Storage `media` | 미설정 시 `src/data` 정적 데이터로 동작 |
 | 인증 | Supabase Auth 이메일+비밀번호, 관리자 허용 목록 | 공개 가입 없음 |
-| 배포/호스팅 | 미정 (Vercel 권장, 루트 디렉터리 `sites/eunpyeong-denforce`) | |
+| 배포/호스팅 | Vercel 프로젝트 `eunpyeong-denforce` (서울 icn1), https://eunpyeong-denforce.vercel.app | 사이트 전용 `vercel.json`. 와벨리 프로젝트와 별개 |
 | 기타 | 없음 | |
 
 > 스택 변경은 반드시 `DECISION_LOG.md`에 이유와 함께 기록한다.
@@ -65,7 +65,7 @@
 - **로컬 개발 환경 준비**: `cd sites/eunpyeong-denforce && npm install && npm run dev`
 - **필요한 환경변수**: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (둘 다 없으면 정적 데이터 모드). service_role 키는 쓰지 않는다
 - **실행 명령어**: `AGENTS.md` 5번 항목과 동일하게 유지
-- **배포 방법**: 미정 — 와벨리 루트 `vercel.json`(풋살 스튜디오용)과 별개의 Vercel 프로젝트로 연결 필요
+- **배포 방법**: Vercel 프로젝트 `eunpyeong-denforce` (Root Directory `sites/eunpyeong-denforce`). Git 자동 배포 미연결(KNOWN_ISSUES I-011) — 연결 전에는 Vercel 대시보드 Redeploy 또는 API 로 배포. DB 는 Supabase 프로젝트 `eunpyeong-denforce` (와벨리 DB 와 별개)
 
 ## 6. 외부 서비스·연동
 

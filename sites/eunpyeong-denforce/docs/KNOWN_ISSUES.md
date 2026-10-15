@@ -27,6 +27,13 @@
 
 <!-- 최신 항목을 위에 추가. 심각도 '높음'은 발견 즉시 소유자에게 별도 보고 -->
 
+## I-011 | 2026-10-15 | Vercel 프로젝트가 Git 저장소에 연결되지 않음 (푸시 자동 배포 없음)
+- **상태**: 열림
+- **심각도**: 낮음
+- **증상/내용**: 프로젝트 생성 당시 Vercel 계정에 GitHub 로그인 연결이 없어 저장소 연결 없이 만들었다. 배포는 API(Git 소스 지정)로 수동 실행 중. 브랜치에 푸시해도 자동 배포되지 않는다.
+- **해결 방향**: Vercel → eunpyeong-denforce → Settings → Git → Connect Git Repository → wavely1213/wavely (Root Directory 는 이미 sites/eunpyeong-denforce). 연결 후 Production Branch 를 운영 브랜치로 지정.
+
+
 ## I-010 | 2026-10-15 | Supabase Free 플랜 자동 백업 없음 · 7일 미사용 시 일시정지
 - **상태**: 열림
 - **심각도**: 중간
@@ -61,7 +68,7 @@
 - **해결 방향**: 필요 시 proxy 에서 slug 사전 검증.
 
 ## I-005 | 2026-10-15 | 배포 미설정
-- **상태**: 열림
+- **상태**: 해결(2026-10-15) — Vercel 프로젝트 `eunpyeong-denforce` (https://eunpyeong-denforce.vercel.app), Supabase 프로젝트 `eunpyeong-denforce`(ref vunnzagbsrujdernvetl, 서울). 사이트 전용 vercel.json 으로 루트 설정과 분리
 - **심각도**: 중간
 - **증상/내용**: 도메인·호스팅 미정. 루트 `vercel.json` 은 풋살 스튜디오용이라 이 사이트에 쓰면 안 됨.
 - **해결 방향**: Vercel 새 프로젝트, Root Directory = `sites/eunpyeong-denforce`.
