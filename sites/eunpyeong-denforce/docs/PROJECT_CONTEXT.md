@@ -11,7 +11,7 @@
 - **이름**: 서울은평 덴포스 구단 홈페이지 (`sites/eunpyeong-denforce`)
 - **한 줄 설명**: FK리그 풋살팀 서울은평 덴포스의 공식 웹사이트
 - **개발 형태**: 1인 개발 + AI 협업
-- **현재 단계**: 운영 준비 — 공개 사이트 + 관리자 대시보드 완성. Supabase 프로젝트 연결(docs/SUPABASE_SETUP.md)과 실제 콘텐츠 입력 대기
+- **현재 단계**: 운영 준비 — 공개 사이트 배포(https://eunpyeong-denforce.vercel.app) + Supabase 연결 완료. 선수단·경기 결과·순위·연혁은 실데이터(한국풋살연맹 + 구단 인스타그램), 선수 사진·스폰서 로고는 대기. 관리자 대시보드 최종 점검 진행 중
 
 ## 2. 목표와 대상
 
@@ -72,7 +72,8 @@
 | 서비스 | 용도 | 키 관리 위치 |
 |---|---|---|
 | Supabase | DB·로그인·이미지 저장소 | Vercel 환경변수 (`docs/SUPABASE_SETUP.md`) |
-| Instagram (@eunpyeong_denforce) | 외부 링크 | 없음 |
+| Instagram (@eunpyeong_denforce) | 외부 링크, 26-27 선수단 변동·소식 출처 | 없음 |
+| 한국풋살연맹 (futsal.or.kr, HTTP) | 경기 결과·순위·선수 명단·기록 출처 (수동 수집, 이용 허락 확인 필요 I-013) | 없음 |
 
 ## 7. 참고 링크
 

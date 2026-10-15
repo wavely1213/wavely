@@ -52,6 +52,7 @@ proxy.ts (/admin/*) ─→ 세션 쿠키 갱신만 (권한 판단 X)
 |---|---|---|
 | 사이트 설정·메뉴 | /src/config/site.ts | 구단명·엠블럼·NAV (고정값). 연락처·SNS·주소는 DB(club_settings) |
 | 관리자 메뉴 | /src/config/admin-nav.ts | 관리자 사이드바 순서 |
+| 리그 표기·출처 | /src/config/league.ts | 순위표 시즌 제목, 기록 기준 시즌, 다음 시즌, 새 경기 대회 기본값, 자료 출처 (D-011) |
 | 레이아웃 | /src/components/layout | Header(모바일 메뉴), Footer(연락처·SNS), PageHeader(섹션 탭) |
 | 메인 섹션 | /src/components/home | Hero, NewsTabs, PlayersPreview, QuickLinks, SponsorStrip |
 | 도메인 UI | /src/components/{match,news,player} | MatchRow(목록), MatchCard(메인), NewsCard, PlayerCard |
@@ -60,12 +61,13 @@ proxy.ts (/admin/*) ─→ 세션 쿠키 갱신만 (권한 판단 X)
 | 공개 데이터 접근 | /src/lib/repo.ts | 모든 공개 조회 함수 (캐시 태그: lib/cache-tags.ts) |
 | 데이터 소스 | /src/lib/data | source.ts(계약), db-source.ts, static-source.ts, rows.ts(DB↔도메인 변환) |
 | 관리자 DAL | /src/lib/admin | auth.ts, form.ts, storage.ts |
+| 경기 표시 도우미 | /src/lib/match.ts | 대회별 묶기, 대회·라운드 라벨 (BR-011) |
 | 세션 갱신 | /src/proxy.ts | /admin 요청의 Supabase 쿠키 갱신 |
 | 디자인 토큰 | /src/styles/tokens.css | 색·간격·라운드. hex 하드코딩은 여기만 |
 
 ## 5. 데이터 모델 요약
 
-DB 진실의 원천: `supabase/migrations/*.sql`. 도메인 타입: `src/types/index.ts`, DB 행 타입·변환: `src/lib/data/rows.ts`.
+DB 진실의 원천: `supabase/migrations/*.sql`. 실데이터 적재본: `supabase/data/*.sql` (연맹·인스타그램 출처, D-010). 도메인 타입: `src/types/index.ts`, DB 행 타입·변환: `src/lib/data/rows.ts`.
 - 테이블: admins(허용 목록), club_settings(단일 행), history_items, players, staff, matches, standings(played·points 생성 컬럼), news_posts(published), sponsors
 - 공통: uuid id, updated_at·updated_by(트리거), check 제약 = 폼 검증 범위
 - 저장소: 버킷 `media` (공개 읽기, 관리자 쓰기), 경로 `<news|players|staff|sponsors>/<uuid>.<ext>`

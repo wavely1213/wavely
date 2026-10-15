@@ -14,6 +14,11 @@
 1. `supabase/migrations/20261015000000_init.sql` — 테이블, 접근 권한(RLS), 이미지 버킷 `media`
 2. `supabase/seed.sql` — 지금 홈페이지와 같은 초기 데이터 (선수·경기는 자리표시이므로 나중에 관리자 화면에서 교체)
 
+3. (실데이터) `supabase/data/2025-26_kfl.sql` — 한국풋살연맹 자료 + 26-27 선수단 변동으로 선수·스태프·경기·순위·연혁·연락처를 교체 (D-010)
+4. (실데이터) `supabase/data/2026-27_club_news.sql` — 구단 인스타그램 공지를 옮긴 구단소식 5건 (추가만 하므로 1번만 실행)
+
+> 3·4 는 관리자 화면에서 고친 내용을 덮어쓰거나 중복을 만들므로 새 프로젝트에서 처음 1번만 실행한다.
+
 > CLI 를 쓴다면: `npx supabase link --project-ref <ref>` 후 `npx supabase db push`, seed 는 SQL Editor 로.
 
 ## 3. 로그인 설정
