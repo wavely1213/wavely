@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { NAV, SITE } from "@/config/site";
+import { NAV, NAV_EXTERNAL, SITE } from "@/config/site";
 import styles from "./Header.module.css";
 
 /** pathname 은 활성 메뉴 표시용. 모르면 빈 문자열 (Suspense fallback). */
@@ -62,6 +62,21 @@ export function Header({ pathname }: { pathname: string }) {
                 </li>
               );
             })}
+            <li className={styles.menuItem}>
+              <a
+                href={NAV_EXTERNAL.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.menuLink}
+                onClick={() => setOpen(false)}
+              >
+                {NAV_EXTERNAL.label}
+                <span className={styles.external} aria-hidden="true">
+                  ↗
+                </span>
+                <span className="sr-only">(새 창)</span>
+              </a>
+            </li>
           </ul>
         </nav>
       </div>

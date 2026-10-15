@@ -35,7 +35,7 @@ function readClubSettings(f: FormReader): ClubSettingsRow {
       patternHint: "이메일 형식이 올바르지 않습니다. 예: name@example.com",
     }),
     contact_phone: f.optText("contact_phone", { label: "문의 전화", max: 30 }),
-    contact_address: f.optText("contact_address", { label: "연락처 주소", max: 120 }),
+    contact_address: f.optText("contact_address", { label: "사무국 주소", max: 120 }),
     instagram_url: f.optUrl("instagram_url", "인스타그램 주소"),
     youtube_url: f.optUrl("youtube_url", "유튜브 주소"),
     venue_address: f.optText("venue_address", { label: "홈구장 주소", max: 120 }),

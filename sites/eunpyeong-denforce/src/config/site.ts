@@ -57,6 +57,9 @@ export const NAV: NavItem[] = [
   { label: "문의", href: "/contact" },
 ];
 
+/** 메뉴 맨 오른쪽 외부 링크 — 네이밍 스폰서 덴포스 스포츠 공식 홈페이지, 새 창 (D-019). 하위 탭·사이트맵에는 넣지 않는다 */
+export const NAV_EXTERNAL = { label: "덴포스스포츠", href: "https://denforce.co.kr" } as const;
+
 /** 현재 경로가 속한 1차 메뉴 (하위 탭 표시용) */
 export function findSection(pathname: string): NavItem | undefined {
   return NAV.find((item) =>

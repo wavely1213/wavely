@@ -14,6 +14,7 @@ export async function Footer() {
           <p>
             창단 {SITE.founded} · 홈구장 {SITE.homeVenue}
           </p>
+          {settings.contactAddress && <p>사무국 {settings.contactAddress}</p>}
           {(settings.contactEmail || settings.contactPhone) && (
             <p>
               문의{" "}

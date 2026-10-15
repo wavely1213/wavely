@@ -43,9 +43,9 @@ export function ClubSettingsForm({
       </Row>
       <TextField
         name="contact_address"
-        label="연락처 주소"
+        label="사무국 주소"
         maxLength={120}
-        hint="문의 페이지에 보입니다 (비우면 표시하지 않음)"
+        hint="문의 페이지·푸터에 보입니다 (비우면 표시하지 않음)"
         defaultValue={initial?.contact_address}
       />
       <Row>

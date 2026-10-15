@@ -77,6 +77,12 @@
   background: var(--c-yellow);
 }
 
+/* 외부 링크 표시 (새 창) */
+.external {
+  margin-left: 3px;
+  font-size: 0.8em;
+}
+
 .sub {
   display: none;
   position: absolute;
