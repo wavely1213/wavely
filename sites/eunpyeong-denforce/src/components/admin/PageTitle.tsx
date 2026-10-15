@@ -1,5 +1,5 @@
-import Link from "@/components/admin/AdminLink";
 import type { ReactNode } from "react";
+import Link from "./AdminLink";
 import styles from "./admin.module.css";
 
 /** 관리자 페이지 머리: 제목 + 설명 + 오른쪽 버튼 영역, 선택적으로 '목록으로' 링크 */

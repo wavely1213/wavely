@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Link from "@/components/admin/AdminLink";
 import { Suspense } from "react";
+import Link from "@/components/admin/AdminLink";
 import { AdminLoading, PageTitle } from "@/components/admin/PageTitle";
 import styles from "@/components/admin/admin.module.css";
 import { NEWS_CATEGORY_LABEL } from "@/data/news";

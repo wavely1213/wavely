@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "@/components/admin/AdminLink";
 import { usePathname } from "next/navigation";
 import { ADMIN_NAV } from "@/config/admin-nav";
+import Link from "./AdminLink";
 import styles from "./admin.module.css";
 
 /** pathname 을 모를 때(Suspense fallback)는 활성 표시 없이 그린다 */

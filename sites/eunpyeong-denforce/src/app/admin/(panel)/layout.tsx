@@ -1,5 +1,5 @@
-import Link from "@/components/admin/AdminLink";
 import { Suspense } from "react";
+import Link from "@/components/admin/AdminLink";
 import { AdminNav, AdminNavLinks } from "@/components/admin/AdminNav";
 import styles from "@/components/admin/admin.module.css";
 import { SITE } from "@/config/site";
