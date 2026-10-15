@@ -1,8 +1,9 @@
-// 도메인 타입 — 지금은 src/data 의 정적 데이터가 채우고, 나중에 DB/CMS 응답이 같은 모양으로 채운다.
+// 도메인 타입 — 정적 데이터(src/data)와 DB(src/lib/data/db.ts) 양쪽이 같은 모양으로 채운다.
 
 export type Position = "GK" | "FIXO" | "ALA" | "PIVO";
 
 export type Player = {
+  id: string;
   slug: string;
   number: number | null;
   name: string;
@@ -14,7 +15,7 @@ export type Player = {
 };
 
 export type Staff = {
-  slug: string;
+  id: string;
   role: string;
   name: string;
   photo: string | null;
@@ -35,6 +36,7 @@ export type Match = {
 };
 
 export type StandingRow = {
+  id: string;
   team: string;
   played: number;
   win: number;
@@ -61,10 +63,24 @@ export type NewsPost = {
 export type SponsorTier = "naming" | "official" | "partner";
 
 export type Sponsor = {
+  id: string;
   name: string;
   tier: SponsorTier;
   logo: string | null;
   url: string | null;
 };
 
-export type HistoryItem = { year: string; text: string };
+export type HistoryItem = { id: string; year: string; text: string };
+
+/** 관리자 화면에서 고치는 구단 정보 (단일) */
+export type ClubSettings = {
+  intro: string[]; // 문단 목록
+  contactEmail: string | null;
+  contactPhone: string | null;
+  contactAddress: string | null;
+  instagramUrl: string | null;
+  youtubeUrl: string | null;
+  venueAddress: string | null;
+  venueTransit: string | null;
+  venueParking: string | null;
+};

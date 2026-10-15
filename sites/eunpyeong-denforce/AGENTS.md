@@ -73,7 +73,10 @@ FK리그 풋살팀 **서울은평 덴포스** 공식 구단 홈페이지 (Next.j
 - 린트: `npm run lint`
 - 타입 검사: `npx tsc --noEmit` (최초 1회 `npm run build` 후 — 라우트 타입이 빌드 때 생성됨)
 - 빌드: `npm run build` → 확인 `npm start`
-- 테스트: 아직 없음 (`docs/TESTING_GUIDELINES.md`)
+- 단위 테스트: `npm test` (폼 검증·DB 변환, Node 내장 테스트 러너)
+- 권한(RLS) 검사: 로컬 Supabase 에서 `node supabase/tests/rls-check.mjs` (`docs/TESTING_GUIDELINES.md`)
+- 로컬 Supabase: `npx supabase start` (Docker 필요) → `.env.local` 에 URL·publishable key → `npm run dev`
+- 관리자 기능 설정: `docs/SUPABASE_SETUP.md`
 
 **Next.js 16 주의**: 학습 데이터와 API가 다르다. 코드 작성 전 `node_modules/next/dist/docs/` 의 해당 문서를 읽는다 (아래 Next 블록 참고). `cacheComponents` 가 켜져 있어 `new Date()`·`cookies()` 등 런타임 값은 Suspense 경계가 필요하다.
 

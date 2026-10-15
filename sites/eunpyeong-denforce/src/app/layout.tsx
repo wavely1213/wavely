@@ -1,9 +1,5 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { Suspense } from "react";
-import { Footer } from "@/components/layout/Footer";
-import { Header } from "@/components/layout/Header";
-import { HeaderWithPath } from "@/components/layout/HeaderWithPath";
 import { SITE } from "@/config/site";
 import "./globals.css";
 
@@ -26,14 +22,8 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="ko" className={kfa.variable}>
-      <body>
-        {/* 경로를 빌드 때 모르는 페이지(404 등)에서도 헤더가 prerender 되도록 Suspense 로 감싼다 */}
-        <Suspense fallback={<Header pathname="" />}>
-          <HeaderWithPath />
-        </Suspense>
-        <main>{children}</main>
-        <Footer />
-      </body>
+      {/* 사이트 헤더·푸터는 (site)/layout.tsx, 관리자 화면은 admin/layout.tsx */}
+      <body>{children}</body>
     </html>
   );
 }

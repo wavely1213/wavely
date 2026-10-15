@@ -22,7 +22,7 @@
 ## 3. 버전 관리
 
 - 락파일(`package-lock.json`)은 반드시 커밋한다.
-- 버전 지정: next·react 는 정확 버전 고정, devDependencies 는 캐럿 허용 (create-next-app 기본)
+- 버전 지정: next·react·@supabase/* 는 정확 버전 고정, devDependencies 는 캐럿 허용 (create-next-app 기본)
 - **메이저 업그레이드는 승인 필요** + 변경사항(breaking changes) 요약 보고 후 진행.
 - 마이너/패치 업데이트는 테스트 통과를 확인하고 진행, 결과 보고.
 
@@ -44,5 +44,7 @@
 |---|---|---|
 | next 16.4.1 | 프레임워크 | 소유자 선택. 추후 DB/CMS 연결 용이 (D-001) |
 | react / react-dom 19.3 | UI | next 동반 |
+| @supabase/supabase-js 2.117.3 | DB·저장소 클라이언트 | 소유자 선택(Supabase, D-007). MIT |
+| @supabase/ssr 0.12.7 | 쿠키 세션 (서버 컴포넌트·액션·proxy) | Next App Router 공식 연동. MIT |
 | eslint + eslint-config-next | 린트 | create-next-app 기본 |
 | typescript | 타입 | strict |

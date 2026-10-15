@@ -1,4 +1,4 @@
-// 사이트 전역 설정: 구단명·연락처·SNS·메뉴. 메뉴를 바꾸려면 이 파일만 고친다.
+// 사이트 고정 설정: 구단명·엠블럼·메뉴. 연락처·SNS·주소는 관리자 화면(구단정보)에서 고친다 (getClubSettings).
 
 export const SITE = {
   name: "서울은평 덴포스",
@@ -7,15 +7,6 @@ export const SITE = {
   emblem: "/brand/emblem.jpg",
   founded: "2012",
   homeVenue: "은평다목적체육관",
-  contact: {
-    email: "futbol10@naver.com",
-    phone: null as string | null, // TODO(I-004): 공개용 대표번호
-    address: null as string | null, // TODO(I-004): 사무국 주소
-  },
-  sns: [
-    { label: "Instagram", href: "https://www.instagram.com/eunpyeong_denforce" },
-    { label: "YouTube", href: null as string | null }, // TODO(I-004): 풋살사관학교 채널 URL
-  ],
 } as const;
 
 export type NavItem = { label: string; href: string; children?: NavItem[] };

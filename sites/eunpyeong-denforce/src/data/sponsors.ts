@@ -8,6 +8,6 @@ export const SPONSOR_TIER_LABEL: Record<SponsorTier, string> = {
 };
 
 export const SPONSORS: Sponsor[] = [
-  { name: "덴포스 (Denforce)", tier: "naming", logo: null, url: null },
-  { name: "풋살사관학교", tier: "partner", logo: null, url: null },
+  { id: "sp1", name: "덴포스 (Denforce)", tier: "naming", logo: null, url: null },
+  { id: "sp2", name: "풋살사관학교", tier: "partner", logo: null, url: null },
 ];

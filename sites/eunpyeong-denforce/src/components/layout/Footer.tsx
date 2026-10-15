@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { NAV, SITE } from "@/config/site";
+import { snsLinks } from "@/lib/club";
+import { getClubSettings } from "@/lib/repo";
 import styles from "./Footer.module.css";
 
-export function Footer() {
+export async function Footer() {
+  const settings = await getClubSettings();
   return (
     <footer className={styles.footer}>
       <div className={`container ${styles.inner}`}>
@@ -11,20 +14,22 @@ export function Footer() {
           <p>
             창단 {SITE.founded} · 홈구장 {SITE.homeVenue}
           </p>
-          <p>
-            문의 <a href={`mailto:${SITE.contact.email}`}>{SITE.contact.email}</a>
-            {SITE.contact.phone && <> · {SITE.contact.phone}</>}
-          </p>
+          {(settings.contactEmail || settings.contactPhone) && (
+            <p>
+              문의{" "}
+              {settings.contactEmail && <a href={`mailto:${settings.contactEmail}`}>{settings.contactEmail}</a>}
+              {settings.contactEmail && settings.contactPhone && " · "}
+              {settings.contactPhone}
+            </p>
+          )}
           <ul className={styles.sns}>
-            {SITE.sns
-              .filter((s) => s.href)
-              .map((s) => (
-                <li key={s.label}>
-                  <a href={s.href!} target="_blank" rel="noreferrer">
-                    {s.label}
-                  </a>
-                </li>
-              ))}
+            {snsLinks(settings).map((s) => (
+              <li key={s.label}>
+                <a href={s.href} target="_blank" rel="noreferrer">
+                  {s.label}
+                </a>
+              </li>
+            ))}
           </ul>
         </div>
 

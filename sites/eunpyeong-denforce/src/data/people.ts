@@ -9,6 +9,7 @@ const PLACEHOLDER_ROSTER: Array<[number, Position]> = [
 ];
 
 export const PLAYERS: Player[] = PLACEHOLDER_ROSTER.map(([number, position]) => ({
+  id: `no-${number}`,
   slug: `no-${number}`,
   number,
   name: `선수 ${number}`,
@@ -20,10 +21,10 @@ export const PLAYERS: Player[] = PLACEHOLDER_ROSTER.map(([number, position]) => 
 }));
 
 export const STAFF: Staff[] = [
-  { slug: "head-coach", role: "감독", name: "장성호", photo: null },
-  { slug: "coach", role: "코치", name: "미정", photo: null },
-  { slug: "gk-coach", role: "골키퍼 코치", name: "미정", photo: null },
-  { slug: "trainer", role: "트레이너", name: "미정", photo: null },
+  { id: "head-coach", role: "감독", name: "장성호", photo: null },
+  { id: "coach", role: "코치", name: "미정", photo: null },
+  { id: "gk-coach", role: "골키퍼 코치", name: "미정", photo: null },
+  { id: "trainer", role: "트레이너", name: "미정", photo: null },
 ];
 
 export const POSITION_LABEL: Record<Position, string> = {

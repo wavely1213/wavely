@@ -13,7 +13,7 @@ export function SponsorStrip({ sponsors }: { sponsors: Sponsor[] }) {
           <span className={styles.name}>{s.name}</span>
         );
         return (
-          <li key={s.name} className={styles.item}>
+          <li key={s.id} className={styles.item}>
             <span className={styles.tier}>{SPONSOR_TIER_LABEL[s.tier]}</span>
             {s.url ? (
               <a href={s.url} target="_blank" rel="noreferrer">
