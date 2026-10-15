@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/admin/AdminLink";
 import { usePathname } from "next/navigation";
 import { ADMIN_NAV } from "@/config/admin-nav";
 import styles from "./admin.module.css";

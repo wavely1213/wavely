@@ -2,13 +2,11 @@
 
 import { AdminForm } from "@/components/admin/AdminForm";
 import { Row, SelectField, TextField } from "@/components/admin/fields";
+import { LEAGUE } from "@/config/league";
 import { SITE } from "@/config/site";
 import { isoToKst, type ActionState } from "@/lib/admin/form";
 import type { MatchRow } from "@/lib/data/rows";
 import { MATCH_SIDE_OPTIONS, MATCH_STATUS_OPTIONS } from "./labels";
-
-/** 새 경기의 대회 기본값 (현재 시즌) */
-const DEFAULT_COMPETITION = "FK리그 2026-27";
 
 export function MatchForm({
   action,
@@ -27,7 +25,7 @@ export function MatchForm({
           label="대회"
           required
           maxLength={60}
-          defaultValue={initial?.competition ?? DEFAULT_COMPETITION}
+          defaultValue={initial?.competition ?? LEAGUE.currentCompetition}
         />
         <TextField name="round" label="라운드" maxLength={30} placeholder="예: 3R" defaultValue={initial?.round} />
       </Row>

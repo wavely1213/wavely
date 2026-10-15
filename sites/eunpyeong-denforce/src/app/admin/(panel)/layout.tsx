@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/admin/AdminLink";
 import { Suspense } from "react";
 import { AdminNav, AdminNavLinks } from "@/components/admin/AdminNav";
 import styles from "@/components/admin/admin.module.css";

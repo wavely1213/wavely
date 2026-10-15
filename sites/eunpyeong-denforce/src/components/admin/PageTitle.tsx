@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/admin/AdminLink";
 import type { ReactNode } from "react";
 import styles from "./admin.module.css";
 

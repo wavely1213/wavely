@@ -34,7 +34,10 @@ export async function createSponsor(_prev: ActionState, fd: FormData): Promise<A
   if (f.hasErrors) return f.state();
 
   const { error } = await ctx.supabase.from("sponsors").insert({ ...values, logo_url });
-  if (error) return { message: dbErrorMessage(error), values: submittedValues(fd) };
+  if (error) {
+    await removeImage(ctx, logo_url); // 방금 올린 파일이 고아로 남지 않게
+    return { message: dbErrorMessage(error), values: submittedValues(fd) };
+  }
 
   updateTag(TAGS.sponsors);
   redirect("/admin/sponsors");
@@ -56,7 +59,10 @@ export async function updateSponsor(id: string, _prev: ActionState, fd: FormData
   if (f.hasErrors) return f.state();
 
   const { error } = await ctx.supabase.from("sponsors").update({ ...values, logo_url }).eq("id", id);
-  if (error) return { message: dbErrorMessage(error), values: submittedValues(fd) };
+  if (error) {
+    if (logo_url !== current.logo_url) await removeImage(ctx, logo_url);
+    return { message: dbErrorMessage(error), values: submittedValues(fd) };
+  }
   if (logo_url !== current.logo_url) await removeImage(ctx, current.logo_url);
 
   updateTag(TAGS.sponsors);

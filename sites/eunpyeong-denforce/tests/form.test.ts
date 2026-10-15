@@ -87,3 +87,14 @@ test("dbErrorMessage: 내부 정보 없이 사용자 문구", () => {
   assert.ok(dbErrorMessage({ code: "42501" }).includes("권한"));
   assert.ok(!dbErrorMessage({ code: "XX000", message: "secret internals" }).includes("secret"));
 });
+
+test("isCalendarDate: 없는 날짜·0000년 거부 (Date.parse 넘김 방지)", async () => {
+  const { isCalendarDate } = await import("../src/lib/admin/form.ts");
+  assert.equal(isCalendarDate("2024-02-29"), true);
+  assert.equal(isCalendarDate("2023-02-29"), false);
+  assert.equal(isCalendarDate("2000-02-30"), false);
+  assert.equal(isCalendarDate("2000-04-31"), false);
+  assert.equal(isCalendarDate("0000-01-01"), false);
+  assert.equal(kstToIso("2026-02-30", "15:00"), null);
+  assert.equal(kstToIso("2026-10-24", "24:00"), null);
+});

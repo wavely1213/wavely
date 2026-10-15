@@ -94,7 +94,10 @@ export function SelectField({
   const value = useFieldDefault(base.name, defaultValue ?? options[0]?.value ?? "");
   return (
     <FieldShell {...base}>
+      {/* key: React 는 select 의 defaultValue 변경을 기본 선택에 반영하지 않아, 액션 후 form.reset()
+          이 처음 값으로 되돌린다. 제출값이 바뀌면 다시 마운트해서 고른 값을 유지한다. */}
       <select
+        key={value}
         id={`f-${base.name}`}
         name={base.name}
         defaultValue={value}

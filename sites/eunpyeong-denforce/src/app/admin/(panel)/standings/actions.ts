@@ -9,11 +9,14 @@ import { dbErrorMessage, FormReader, submittedValues, type ActionState } from "@
 // 리그순위 관리 서버 액션 — 모든 액션이 직접 관리자 권한을 확인한다 (페이지 검사에 기대지 않음).
 // played·points 는 DB 생성 컬럼(승·무·패에서 계산)이라 쓰지 않는다.
 
-/** DB 범위와 같게: check (≥ 0) + integer 컬럼 상한 (넘으면 DB 오류가 나므로 폼에서 먼저 막는다) */
-const PG_INT_MAX = 2_147_483_647;
+/**
+ * DB 범위와 같게: check (≥ 0). 상한은 생성 컬럼(points = 승×3 + 무, played = 승+무+패)이
+ * integer 를 넘쳐 DB 오류(22003)가 나지 않도록 폼에서 먼저 막는 값 (9999×3+9999 ≪ 2^31).
+ */
+const COUNT_MAX = 9999;
 
 function readStanding(f: FormReader) {
-  const count = (name: string, label: string) => f.int(name, { label, min: 0, max: PG_INT_MAX, required: true });
+  const count = (name: string, label: string) => f.int(name, { label, min: 0, max: COUNT_MAX, required: true });
   return {
     team: f.text("team", { label: "팀", max: 40 }),
     win: count("win", "승"),

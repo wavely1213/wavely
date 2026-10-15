@@ -95,7 +95,7 @@ export class FormReader {
   /** YYYY-MM-DD (선택) */
   optDate(name: string, label: string): string | null {
     const v = this.optText(name, { label, pattern: /^\d{4}-\d{2}-\d{2}$/, patternHint: `${label}은(는) YYYY-MM-DD 형식으로 입력해 주세요.` });
-    if (v && Number.isNaN(Date.parse(`${v}T00:00:00Z`))) this.fail(name, `${label}이(가) 올바른 날짜가 아닙니다.`);
+    if (v && !isCalendarDate(v)) this.fail(name, `${label}이(가) 올바른 날짜가 아닙니다.`);
     return v;
   }
 
@@ -115,6 +115,13 @@ export class FormReader {
   }
 }
 
+/** YYYY-MM-DD 가 실제 달력 날짜인지 (Date.parse 는 2000-02-30 을 3월로 넘기므로 왕복 비교). 0000년 제외 */
+export function isCalendarDate(v: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(v) || v.startsWith("0000")) return false;
+  const t = Date.parse(`${v}T00:00:00Z`);
+  return !Number.isNaN(t) && new Date(t).toISOString().slice(0, 10) === v;
+}
+
 /** 폼 재표시용 제출값 (문자열만, 비밀번호 제외) */
 export function submittedValues(fd: FormData): Record<string, string> {
   const out: Record<string, string> = {};
@@ -126,7 +133,7 @@ export function submittedValues(fd: FormData): Record<string, string> {
 
 /** "2026-10-24" + "15:00" (한국 시간) → ISO 문자열. 형식이 틀리면 null */
 export function kstToIso(date: string, time: string): string | null {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(time)) return null;
+  if (!isCalendarDate(date) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) return null;
   const iso = `${date}T${time}:00+09:00`;
   return Number.isNaN(Date.parse(iso)) ? null : iso;
 }

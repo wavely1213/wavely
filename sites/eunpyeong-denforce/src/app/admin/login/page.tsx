@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/components/admin/AdminLink";
 import styles from "@/components/admin/admin.module.css";
 import { SITE } from "@/config/site";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
