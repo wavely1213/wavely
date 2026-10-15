@@ -432,6 +432,19 @@
   background: var(--c-bg-soft);
 }
 
+/* 여러 장 사진 — 미리보기 + 삭제 체크 */
+.imageList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.imageList li {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .formMessage {
   padding: 12px 14px;
   border-radius: var(--radius-s);

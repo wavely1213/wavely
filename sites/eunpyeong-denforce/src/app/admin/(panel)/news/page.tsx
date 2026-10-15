@@ -16,7 +16,7 @@ export const metadata: Metadata = { title: "구단소식" };
 // 라우트 타입(.next/types)이 빌드 때 생성되므로 searchParams 타입은 직접 적는다 (PageProps 와 호환)
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
-type ListRow = Pick<NewsRow, "id" | "category" | "title" | "date" | "thumbnail_url" | "published" | "created_at">;
+type ListRow = Pick<NewsRow, "id" | "category" | "title" | "date" | "thumbnail_url" | "images" | "published" | "created_at">;
 
 const TABS: Array<{ value: NewsCategory | null; label: string }> = [
   { value: null, label: "전체" },
@@ -44,7 +44,7 @@ async function NewsList({ searchParams }: { searchParams: SearchParams }) {
   // 잘못된 값·여러 값은 전체로 본다
   const category = typeof raw === "string" ? toNewsCategory(raw) : null;
 
-  let query = supabase.from("news_posts").select("id, category, title, date, thumbnail_url, published, created_at");
+  let query = supabase.from("news_posts").select("id, category, title, date, thumbnail_url, images, published, created_at");
   if (category) query = query.eq("category", category);
   const { data, error } = await query
     .order("date", { ascending: false })
@@ -89,32 +89,36 @@ async function NewsList({ searchParams }: { searchParams: SearchParams }) {
               </tr>
             </thead>
             <tbody>
-              {rows.map((n) => (
-                <tr key={n.id}>
-                  <td>
-                    {n.thumbnail_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={n.thumbnail_url} alt="" className={styles.thumb} />
-                    ) : (
-                      <span className={styles.badge}>없음</span>
-                    )}
-                  </td>
-                  <td className={styles.wrap}>
-                    <Link href={`/admin/news/${n.id}`} className={styles.rowLink}>
-                      {n.title}
-                    </Link>
-                  </td>
-                  <td>{NEWS_CATEGORY_LABEL[n.category]}</td>
-                  <td>{n.date ? formatPostDate(n.date) : "-"}</td>
-                  <td>
-                    {n.published ? (
-                      <span className={`${styles.badge} ${styles.badgeBlue}`}>공개</span>
-                    ) : (
-                      <span className={styles.badge}>비공개</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
+              {rows.map((n) => {
+                // BR-015: 공개 목록과 같이, 썸네일이 없으면 첫 사진
+                const thumb = n.thumbnail_url ?? n.images?.[0];
+                return (
+                  <tr key={n.id}>
+                    <td>
+                      {thumb ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={thumb} alt="" className={styles.thumb} />
+                      ) : (
+                        <span className={styles.badge}>없음</span>
+                      )}
+                    </td>
+                    <td className={styles.wrap}>
+                      <Link href={`/admin/news/${n.id}`} className={styles.rowLink}>
+                        {n.title}
+                      </Link>
+                    </td>
+                    <td>{NEWS_CATEGORY_LABEL[n.category]}</td>
+                    <td>{n.date ? formatPostDate(n.date) : "-"}</td>
+                    <td>
+                      {n.published ? (
+                        <span className={`${styles.badge} ${styles.badgeBlue}`}>공개</span>
+                      ) : (
+                        <span className={styles.badge}>비공개</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

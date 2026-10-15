@@ -5,12 +5,14 @@ import { redirect } from "next/navigation";
 import { TAGS } from "@/lib/cache-tags";
 import { NOT_ADMIN_MESSAGE, requireAdminAction } from "@/lib/admin/auth";
 import { dbErrorMessage, FormReader, submittedValues, type ActionState } from "@/lib/admin/form";
-import { removeImage, resolveImage } from "@/lib/admin/storage";
+import { MAX_NEWS_IMAGES } from "@/lib/admin/image-list";
+import { removeImages, resolveImage, resolveImages } from "@/lib/admin/storage";
 import type { NewsRow } from "@/lib/data/rows";
 import { NEWS_CATEGORIES } from "@/lib/params";
 
 // 구단소식 관리 서버 액션 — 모든 액션이 직접 관리자 권한을 확인한다 (페이지 검사에 기대지 않음).
 // 순서: 권한 → 입력 검증 → 이미지 업로드 → DB 저장 → updateTag → redirect
+// 이미지: thumbnail(목록 카드용 한 장) + images(상세 사진 여러 장, D-017)
 
 // DB check: date ~ '^([0-9]{4}(-[0-9]{2}-[0-9]{2})?)?$' — 빈 값은 FormReader 가 패턴 검사 전에 통과시킨다
 const POST_DATE = /^[0-9]{4}(-[0-9]{2}-[0-9]{2})?$/;
@@ -52,12 +54,17 @@ export async function createNews(_prev: ActionState, fd: FormData): Promise<Acti
   if (f.hasErrors) return f.state();
 
   const thumbnail_url = await resolveImage(ctx, f, "thumbnail", "news", null);
-  if (f.hasErrors) return f.state();
+  const images = await resolveImages(ctx, f, "images", "news", [], MAX_NEWS_IMAGES);
+  // 저장하지 못하면 방금 올린 이미지는 고아가 되므로 지운다 (한쪽 필드만 실패한 경우 포함)
+  const uploaded = [thumbnail_url, ...images.uploaded];
+  if (f.hasErrors) {
+    await removeImages(ctx, uploaded);
+    return f.state();
+  }
 
-  const { error } = await ctx.supabase.from("news_posts").insert({ ...values, thumbnail_url });
+  const { error } = await ctx.supabase.from("news_posts").insert({ ...values, thumbnail_url, images: images.urls });
   if (error) {
-    // 저장 실패 시 방금 올린 이미지는 고아가 되므로 지운다
-    await removeImage(ctx, thumbnail_url);
+    await removeImages(ctx, uploaded);
     return { message: dbErrorMessage(error), values: submittedValues(fd) };
   }
 
@@ -72,9 +79,9 @@ export async function updateNews(id: string, _prev: ActionState, fd: FormData): 
   // 현재 값은 클라이언트가 아니라 DB 에서 다시 읽는다
   const { data: current } = await ctx.supabase
     .from("news_posts")
-    .select("thumbnail_url")
+    .select("thumbnail_url, images")
     .eq("id", id)
-    .maybeSingle<Pick<NewsRow, "thumbnail_url">>();
+    .maybeSingle<Pick<NewsRow, "thumbnail_url" | "images">>();
   if (!current) return { message: "이미 삭제된 항목입니다." };
 
   const f = newsReader(fd);
@@ -82,15 +89,25 @@ export async function updateNews(id: string, _prev: ActionState, fd: FormData): 
   if (f.hasErrors) return f.state();
 
   const thumbnail_url = await resolveImage(ctx, f, "thumbnail", "news", current.thumbnail_url);
-  if (f.hasErrors) return f.state();
+  const images = await resolveImages(ctx, f, "images", "news", current.images ?? [], MAX_NEWS_IMAGES);
+  const thumbnailChanged = thumbnail_url !== current.thumbnail_url;
+  // 실패 시 새로 올린 이미지만 정리 (기존 이미지는 그대로 둔다)
+  const uploaded = [thumbnailChanged ? thumbnail_url : null, ...images.uploaded];
+  if (f.hasErrors) {
+    await removeImages(ctx, uploaded);
+    return f.state();
+  }
 
-  const { error } = await ctx.supabase.from("news_posts").update({ ...values, thumbnail_url }).eq("id", id);
+  const { error } = await ctx.supabase
+    .from("news_posts")
+    .update({ ...values, thumbnail_url, images: images.urls })
+    .eq("id", id);
   if (error) {
-    // 새로 올린 이미지만 정리 (기존 이미지는 그대로 둔다)
-    if (thumbnail_url !== current.thumbnail_url) await removeImage(ctx, thumbnail_url);
+    await removeImages(ctx, uploaded);
     return { message: dbErrorMessage(error), values: submittedValues(fd) };
   }
-  if (thumbnail_url !== current.thumbnail_url) await removeImage(ctx, current.thumbnail_url);
+  // 저장이 끝난 뒤에 바뀐 기존 이미지를 지운다
+  await removeImages(ctx, [thumbnailChanged ? current.thumbnail_url : null, ...images.removed]);
 
   updateTag(TAGS.news);
   redirect("/admin/news");
@@ -104,9 +121,9 @@ export async function deleteNews(id: string): Promise<void> {
     .from("news_posts")
     .delete()
     .eq("id", id)
-    .select("thumbnail_url")
-    .maybeSingle<Pick<NewsRow, "thumbnail_url">>();
-  await removeImage(ctx, data?.thumbnail_url);
+    .select("thumbnail_url, images")
+    .maybeSingle<Pick<NewsRow, "thumbnail_url" | "images">>();
+  await removeImages(ctx, [data?.thumbnail_url, ...(data?.images ?? [])]);
   updateTag(TAGS.news);
   redirect("/admin/news");
 }

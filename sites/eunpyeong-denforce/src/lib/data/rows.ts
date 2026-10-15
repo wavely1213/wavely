@@ -63,6 +63,7 @@ export type NewsRow = {
   title: string;
   date: string;
   thumbnail_url: string | null;
+  images: string[];
   summary: string;
   body: string;
   published: boolean;
@@ -142,15 +143,20 @@ export const toStanding = (r: StandingDbRow): StandingRow => ({
   isUs: r.is_us,
 });
 
-export const toNewsPost = (r: NewsRow): NewsPost => ({
-  id: r.id,
-  category: r.category,
-  title: r.title,
-  date: r.date,
-  thumbnail: r.thumbnail_url,
-  summary: r.summary,
-  body: splitParagraphs(r.body),
-});
+/** BR-015: 썸네일이 없으면 첫 사진을 목록 카드에 쓴다 */
+export const toNewsPost = (r: NewsRow): NewsPost => {
+  const images = r.images ?? []; // 마이그레이션 전 DB 에는 열이 없다
+  return {
+    id: r.id,
+    category: r.category,
+    title: r.title,
+    date: r.date,
+    thumbnail: r.thumbnail_url ?? images[0] ?? null,
+    images,
+    summary: r.summary,
+    body: splitParagraphs(r.body),
+  };
+};
 
 export const toSponsor = (r: SponsorRow): Sponsor => ({
   id: r.id,

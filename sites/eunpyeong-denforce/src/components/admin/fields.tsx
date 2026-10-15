@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useFieldDefault, useFieldError } from "./AdminForm";
 import styles from "./admin.module.css";
 
@@ -144,6 +144,58 @@ export function ImageField({ currentUrl, ...base }: Base & { currentUrl?: string
         aria-invalid={Boolean(error)}
       />
       {currentUrl && <CheckboxField name={`${base.name}_remove`} label="현재 이미지 삭제" />}
+    </FieldShell>
+  );
+}
+
+/**
+ * 사진 여러 장 — 서버의 resolveImages() 규약: <name> 새 파일 여러 개, <name>_remove 에 지울 기존 사진 URL.
+ * 고른 파일 합계가 batchBytes 를 넘으면 선택을 비우고 안내한다 (서버 요청 본문 한도 — image-list.ts).
+ */
+export function ImagesField({
+  currentUrls = [],
+  batchBytes,
+  ...base
+}: Base & { currentUrls?: string[]; batchBytes: number }) {
+  const error = useFieldError(base.name);
+  const [tooLarge, setTooLarge] = useState(false);
+  return (
+    <FieldShell {...base}>
+      {currentUrls.length > 0 && (
+        <ul className={styles.imageList}>
+          {currentUrls.map((url, i) => (
+            <li key={url}>
+              {/* 관리자 미리보기는 원본 그대로 보여준다 (최적화 불필요) */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={url} alt={`현재 사진 ${i + 1}`} className={styles.imagePreview} />
+              <label className={styles.check}>
+                <input type="checkbox" name={`${base.name}_remove`} value={url} />
+                삭제
+              </label>
+            </li>
+          ))}
+        </ul>
+      )}
+      <input
+        id={`f-${base.name}`}
+        name={base.name}
+        type="file"
+        multiple
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        className={`${styles.input} ${error || tooLarge ? styles.invalid : ""}`}
+        aria-invalid={Boolean(error) || tooLarge}
+        onChange={(e) => {
+          const total = Array.from(e.currentTarget.files ?? []).reduce((sum, f) => sum + f.size, 0);
+          const over = total > batchBytes;
+          if (over) e.currentTarget.value = "";
+          setTooLarge(over);
+        }}
+      />
+      {tooLarge && (
+        <span className={styles.error} role="alert">
+          한 번에 합계 {Math.floor(batchBytes / 1024 / 1024)}MB 이하로 골라 주세요. 나눠서 여러 번 저장하면 됩니다.
+        </span>
+      )}
     </FieldShell>
   );
 }

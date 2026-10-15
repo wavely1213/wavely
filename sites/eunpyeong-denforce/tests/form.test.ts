@@ -98,3 +98,17 @@ test("isCalendarDate: 없는 날짜·0000년 거부 (Date.parse 넘김 방지)",
   assert.equal(kstToIso("2026-02-30", "15:00"), null);
   assert.equal(kstToIso("2026-10-24", "24:00"), null);
 });
+
+test("files·values: 같은 이름 여러 개, 빈 파일 칸은 뺀다", () => {
+  const f = new FormData();
+  f.append("images", new File(["a"], "a.jpg", { type: "image/jpeg" }));
+  f.append("images", new File([], "", { type: "application/octet-stream" })); // 아무것도 안 고른 칸
+  f.append("images", new File(["bb"], "b.png", { type: "image/png" }));
+  f.append("images_remove", "u1");
+  f.append("images_remove", "u2");
+  const r = new FormReader(f);
+  assert.deepEqual(r.files("images").map((x) => x.name), ["a.jpg", "b.png"]);
+  assert.deepEqual(r.values("images_remove"), ["u1", "u2"]);
+  assert.deepEqual(r.files("none"), []);
+  assert.deepEqual(r.values("none"), []);
+});

@@ -9,15 +9,16 @@
 2. 이름 예: `eunpyeong-denforce`, 지역 **Northeast Asia (Seoul)**, DB 비밀번호는 비밀번호 관리자에 저장
 3. 무료(Free) 플랜으로 충분 (DB 500MB · 저장소 1GB)
 
-## 2. 테이블·권한 만들기 (SQL 2개 실행)
+## 2. 테이블·권한 만들기 (SQL 순서대로 실행)
 대시보드 왼쪽 **SQL Editor** → New query 에 아래 파일 내용을 **순서대로** 붙여넣고 Run.
 1. `supabase/migrations/20261015000000_init.sql` — 테이블, 접근 권한(RLS), 이미지 버킷 `media`
-2. `supabase/seed.sql` — 지금 홈페이지와 같은 초기 데이터 (선수·경기는 자리표시이므로 나중에 관리자 화면에서 교체)
+2. `supabase/migrations/20261015120000_news_images.sql` — 구단소식 상세 사진 여러 장 칸 (D-017)
+3. `supabase/seed.sql` — 지금 홈페이지와 같은 초기 데이터 (선수·경기는 자리표시이므로 나중에 관리자 화면에서 교체)
 
-3. (실데이터) `supabase/data/2025-26_kfl.sql` — 한국풋살연맹 자료 + 26-27 선수단 변동으로 선수·스태프·경기·순위·연혁·연락처를 교체 (D-010)
-4. (실데이터) `supabase/data/2026-27_club_news.sql` — 구단 인스타그램 공지를 옮긴 구단소식 5건 (추가만 하므로 1번만 실행)
+4. (실데이터) `supabase/data/2025-26_kfl.sql` — 한국풋살연맹 자료 + 26-27 선수단 변동으로 선수·스태프·경기·순위·연혁·연락처를 교체 (D-010)
+5. (실데이터) `supabase/data/2026-27_club_news.sql` — 구단 인스타그램 공지를 옮긴 구단소식 5건 (추가만 하므로 1번만 실행)
 
-> 3·4 는 관리자 화면에서 고친 내용을 덮어쓰거나 중복을 만들므로 새 프로젝트에서 처음 1번만 실행한다.
+> 4·5 는 관리자 화면에서 고친 내용을 덮어쓰거나 중복을 만들므로 새 프로젝트에서 처음 1번만 실행한다.
 
 > CLI 를 쓴다면: `npx supabase link --project-ref <ref>` 후 `npx supabase db push`, seed 는 SQL Editor 로.
 

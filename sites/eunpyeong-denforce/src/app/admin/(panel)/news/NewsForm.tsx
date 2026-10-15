@@ -1,9 +1,10 @@
 "use client";
 
 import { AdminForm } from "@/components/admin/AdminForm";
-import { CheckboxField, ImageField, Row, SelectField, TextArea, TextField } from "@/components/admin/fields";
+import { CheckboxField, ImageField, ImagesField, Row, SelectField, TextArea, TextField } from "@/components/admin/fields";
 import { NEWS_CATEGORY_LABEL } from "@/data/news";
 import type { ActionState } from "@/lib/admin/form";
+import { MAX_NEWS_IMAGES, MAX_UPLOAD_BATCH_BYTES } from "@/lib/admin/image-list";
 import type { NewsRow } from "@/lib/data/rows";
 
 const CATEGORY_OPTIONS = Object.entries(NEWS_CATEGORY_LABEL).map(([value, label]) => ({ value, label }));
@@ -30,7 +31,19 @@ export function NewsForm({
       <TextField name="title" label="제목" required maxLength={120} defaultValue={initial?.title} />
       <TextArea name="summary" label="요약" rows={3} hint="300자 이하" defaultValue={initial?.summary} />
       <TextArea name="body" label="본문" hint="빈 줄(엔터 두 번)로 문단을 나눕니다." defaultValue={initial?.body} />
-      <ImageField name="thumbnail" label="썸네일" currentUrl={initial?.thumbnail_url} />
+      <ImageField
+        name="thumbnail"
+        label="썸네일"
+        hint="목록 카드에 쓰는 사진. 비워 두면 아래 첫 번째 사진을 씁니다. JPG·PNG·WEBP·GIF, 5MB 이하"
+        currentUrl={initial?.thumbnail_url}
+      />
+      <ImagesField
+        name="images"
+        label="사진"
+        hint={`글 상세에 올린 순서대로 보입니다. 여러 장을 한 번에 고를 수 있습니다 (최대 ${MAX_NEWS_IMAGES}장, 한 번 저장에 합계 4MB 이하).`}
+        currentUrls={initial?.images}
+        batchBytes={MAX_UPLOAD_BATCH_BYTES}
+      />
       <CheckboxField name="published" label="홈페이지에 공개" defaultChecked={initial?.published ?? true} />
     </AdminForm>
   );

@@ -105,6 +105,16 @@ export class FormReader {
     return v instanceof File && v.size > 0 ? v : null;
   }
 
+  /** 업로드 파일 여러 개 (multiple) — 빈 칸은 뺀다 */
+  files(name: string): File[] {
+    return this.fd.getAll(name).filter((v): v is File => v instanceof File && v.size > 0);
+  }
+
+  /** 같은 이름의 문자열 값 전부 (여러 체크박스) */
+  values(name: string): string[] {
+    return this.fd.getAll(name).filter((v): v is string => typeof v === "string");
+  }
+
   get hasErrors() {
     return Object.keys(this.errors).length > 0;
   }

@@ -55,7 +55,8 @@ export type NewsPost = {
   category: NewsCategory;
   title: string;
   date: string; // YYYY-MM-DD · 날짜를 모르면 YYYY 또는 ""
-  thumbnail: string | null;
+  thumbnail: string | null; // 목록 카드용 대표 사진
+  images: string[]; // 상세 화면 사진 (순서대로)
   summary: string;
   body: string[];
 };
