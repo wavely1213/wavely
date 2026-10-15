@@ -1,7 +1,14 @@
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  /* PC 한 줄 5명 고정 (인원이 적은 포지션도 카드 크기 동일) */
+  grid-template-columns: repeat(5, 1fr);
   gap: 28px 16px;
+}
+
+@media (max-width: 960px) {
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 .card {
