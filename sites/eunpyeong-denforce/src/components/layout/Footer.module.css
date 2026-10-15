@@ -1,0 +1,62 @@
+.footer {
+  margin-top: 80px;
+  background: var(--c-navy-deep);
+  color: var(--c-on-dark-sub);
+  font-size: 14px;
+}
+
+.inner {
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  flex-wrap: wrap;
+  padding-top: 40px;
+  padding-bottom: 32px;
+}
+
+.about {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.name {
+  color: var(--c-on-dark);
+  font-size: 18px;
+  margin-bottom: 4px;
+}
+
+.about a:hover,
+.links a:hover {
+  color: var(--c-yellow);
+}
+
+.sns {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+  color: var(--c-on-dark);
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  align-content: flex-start;
+  color: var(--c-on-dark);
+}
+
+.copy {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-top: 16px;
+  padding-bottom: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 12px;
+}
+
+.legal a {
+  color: var(--c-on-dark);
+}

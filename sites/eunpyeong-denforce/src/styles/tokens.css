@@ -1,0 +1,41 @@
+/*
+ * 디자인 토큰 — 색·간격·라운드는 여기서만 정의한다. 컴포넌트에서 hex 하드코딩 금지.
+ * 색 출처: 스폰서십 제안서(헤더 네이비·포인트 옐로), 유니폼(로열블루), 엠블럼(스카이블루).
+ * 공식 브랜드 가이드를 받으면 이 파일의 값만 교체한다.
+ */
+:root {
+  --c-navy: #002060;
+  --c-navy-deep: #0f1d56;
+  --c-blue: #1a349a;
+  --c-sky: #2888b7;
+  --c-yellow: #ffc000;
+
+  --c-bg: #ffffff;
+  --c-bg-soft: #f4f6fb;
+  --c-text: #111827;
+  --c-text-sub: #5b6475;
+  --c-line: #e3e7ef;
+  --c-on-dark: #ffffff;
+  --c-on-dark-sub: rgba(255, 255, 255, 0.72);
+
+  --c-win: #1a349a;
+  --c-draw: #8a93a6;
+  --c-loss: #c8323b;
+
+  --font: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
+
+  --radius-s: 6px;
+  --radius-m: 12px;
+  --shadow-card: 0 4px 16px rgba(0, 32, 96, 0.08);
+
+  --container: 1200px;
+  --gutter: 20px;
+  --header-h: 72px;
+}
+
+@media (max-width: 720px) {
+  :root {
+    --gutter: 16px;
+    --header-h: 60px;
+  }
+}

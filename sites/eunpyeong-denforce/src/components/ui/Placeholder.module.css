@@ -1,0 +1,14 @@
+.box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 120px;
+  padding: 16px;
+  background: var(--c-bg-soft);
+  border: 1px dashed var(--c-line);
+  border-radius: var(--radius-m);
+  color: var(--c-text-sub);
+  font-size: 14px;
+  text-align: center;
+}
