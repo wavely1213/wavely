@@ -14,6 +14,11 @@
   gap: 12px;
 }
 
+/* 문단 안의 줄바꿈(관리자 입력)은 그대로 보여준다 */
+.lead p {
+  white-space: pre-line;
+}
+
 .h2 {
   font-size: 24px;
   font-weight: 700;
@@ -118,6 +123,11 @@
 .note {
   font-size: 13px;
   color: var(--c-text-sub);
+}
+
+/* 표·목록 아래 출처 표기 */
+.source {
+  margin-top: 16px;
 }
 
 .center {

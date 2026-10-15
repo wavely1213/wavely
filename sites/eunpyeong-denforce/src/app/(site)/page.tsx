@@ -27,17 +27,21 @@ export default async function HomePage() {
     getSponsors(),
   ]);
 
-  const matchItems: Array<{ match: Match; label: string }> = [
-    ...finished.slice(0, 1).map((match) => ({ match, label: "지난 경기" })),
-    ...upcoming.slice(0, 2).map((match, i) => ({ match, label: i === 0 ? "다음 경기" : "예정" })),
-  ];
+  // 예정 경기가 있으면 지난 1 + 예정 2, 시즌 휴식기(예정 없음)에는 최근 결과 3
+  const matchItems: Array<{ match: Match; label: string }> =
+    upcoming.length > 0
+      ? [
+          ...finished.slice(0, 1).map((match) => ({ match, label: "지난 경기" })),
+          ...upcoming.slice(0, 2).map((match, i) => ({ match, label: i === 0 ? "다음 경기" : "예정" })),
+        ]
+      : finished.slice(0, 3).map((match) => ({ match, label: "지난 경기" }));
 
   return (
     <>
       <Hero nextHome={nextHome} />
 
       {matchItems.length > 0 && (
-        <Section title="경기" more={{ href: "/match/schedule" }}>
+        <Section title="경기" more={{ href: upcoming.length > 0 ? "/match/schedule" : "/match/results" }}>
           <MatchCards items={matchItems} />
         </Section>
       )}

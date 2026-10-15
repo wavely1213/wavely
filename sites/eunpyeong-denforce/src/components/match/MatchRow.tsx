@@ -14,7 +14,8 @@ export function MatchRow({ match }: { match: Match }) {
       <div className={styles.when}>
         <strong>{date}</strong>
         <span>
-          {time} · {match.round}
+          {time}
+          {match.round && ` · ${match.round}`}
         </span>
       </div>
       <div className={styles.versus}>

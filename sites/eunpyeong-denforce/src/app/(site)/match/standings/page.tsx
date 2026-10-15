@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { LEAGUE } from "@/config/league";
 import { getStandings } from "@/lib/repo";
 import styles from "@/styles/prose.module.css";
 
@@ -11,6 +12,7 @@ export default async function StandingsPage() {
     <>
       <PageHeader title="리그순위" current="/match/standings" />
       <div className="container">
+        <h2 className={styles.h2}>{LEAGUE.standingsTitle}</h2>
         <div className={styles.tableWrap}>
           <table className={styles.table}>
             <thead>
@@ -47,7 +49,9 @@ export default async function StandingsPage() {
             </tbody>
           </table>
         </div>
-        <p className={styles.note}>순위 기준: 승점 → 득실차 → 다득점</p>
+        <p className={`${styles.note} ${styles.source}`}>
+          순위 기준: 승점 → 득실차 → 다득점 · 자료: {LEAGUE.source}
+        </p>
       </div>
     </>
   );

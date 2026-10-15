@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { EmblemFallback } from "@/components/ui/EmblemFallback";
+import { LEAGUE } from "@/config/league";
 import { POSITION_LABEL } from "@/data/people";
 import { nonEmptyParams } from "@/lib/params";
 import { getPlayer, getPlayers } from "@/lib/repo";
@@ -27,7 +29,9 @@ export default async function PlayerPage({ params }: PageProps<"/team/players/[s
     ["생년월일", player.birth ?? "-"],
     ["신장", player.heightCm ? `${player.heightCm}cm` : "-"],
     ["출전", `${player.stats.apps}경기`],
-    ["득점 / 도움", `${player.stats.goals} / ${player.stats.assists}`],
+    ["득점", `${player.stats.goals}골`],
+    // 도움은 연맹이 공개하지 않아 기록이 있을 때만 보여준다
+    ...(player.stats.assists > 0 ? [["도움", `${player.stats.assists}개`] as [string, string]] : []),
   ];
 
   return (
@@ -36,7 +40,11 @@ export default async function PlayerPage({ params }: PageProps<"/team/players/[s
       <div className={`container ${styles.body}`}>
         <div className={styles.split}>
           <div className={styles.figure} style={{ aspectRatio: "3 / 4", maxWidth: 360 }}>
-            <EmblemFallback label={player.number ?? undefined} />
+            {player.photo ? (
+              <Image src={player.photo} alt={player.name} fill preload sizes="(max-width: 720px) 100vw, 360px" />
+            ) : (
+              <EmblemFallback label={player.number ?? undefined} />
+            )}
           </div>
           <div>
             <h2 className={styles.h2}>
@@ -50,6 +58,9 @@ export default async function PlayerPage({ params }: PageProps<"/team/players/[s
                 </li>
               ))}
             </ul>
+            <p className={`${styles.note} ${styles.source}`}>
+              출전·득점: {LEAGUE.statsSeason} 기록 · 자료: {LEAGUE.source}
+            </p>
           </div>
         </div>
         <p>

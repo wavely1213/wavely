@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SITE } from "@/config/site";
 import { formatKickoff, matchResult, matchSides, RESULT_LABEL } from "@/lib/format";
+import { matchLabel } from "@/lib/match";
 import type { Match } from "@/types";
 import styles from "./MatchCard.module.css";
 
@@ -23,9 +24,9 @@ export function MatchCard({ match, label }: { match: Match; label: string }) {
         <span>{away}</span>
       </div>
       <p className={styles.meta}>
-        {date} {time} · {match.round}
+        {matchLabel(match)}
         <br />
-        {match.venue}
+        {date} {time} · {match.venue}
       </p>
     </Link>
   );
