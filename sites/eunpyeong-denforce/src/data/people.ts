@@ -29,7 +29,7 @@ export const STAFF: Staff[] = [
 export const POSITION_LABEL: Record<Position, string> = {
   GK: "골레이로",
   FIXO: "픽소",
-  ALA: "알라",
+  ALA: "아라",
   PIVO: "피보",
 };
 
