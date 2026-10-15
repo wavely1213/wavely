@@ -204,7 +204,10 @@ begin
     execute format('create policy %I on public.%I for select to anon, authenticated using (true)', t || ': 공개 조회', t);
     execute format('create policy %I on public.%I for insert to authenticated with check (public.is_admin())', t || ': 관리자 추가', t);
     execute format('create policy %I on public.%I for update to authenticated using (public.is_admin()) with check (public.is_admin())', t || ': 관리자 수정', t);
-    execute format('create policy %I on public.%I for delete to authenticated using (public.is_admin())', t || ': 관리자 삭제', t);
+    -- 구단 정보(club_settings)는 단일 행이라 삭제 정책을 만들지 않는다
+    if t <> 'club_settings' then
+      execute format('create policy %I on public.%I for delete to authenticated using (public.is_admin())', t || ': 관리자 삭제', t);
+    end if;
   end loop;
 end;
 $$;
@@ -214,9 +217,6 @@ create policy "news_posts: 공개 글 조회" on public.news_posts for select to
 create policy "news_posts: 관리자 추가" on public.news_posts for insert to authenticated with check (public.is_admin());
 create policy "news_posts: 관리자 수정" on public.news_posts for update to authenticated using (public.is_admin()) with check (public.is_admin());
 create policy "news_posts: 관리자 삭제" on public.news_posts for delete to authenticated using (public.is_admin());
-
--- 구단 정보는 단일 행이라 삭제를 막는다
-drop policy "club_settings: 관리자 삭제" on public.club_settings;
 
 -- ─────────────────────────────────────────────
 -- 이미지 저장소 (공개 버킷, 관리자만 업로드)
