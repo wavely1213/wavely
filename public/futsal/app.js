@@ -363,7 +363,7 @@ async function pair(code, hint) {
     }
     if (base && (base !== hb || !res)) res = await pairAt(base, pk);
   }
-  if (!res) return unpaired("PC를 찾지 못했어요 · PC에서 원격 접속이 켜져 있는지, QR이 10분 안에 만든 것인지 확인해 주세요");
+  if (!res) return unpaired("PC를 찾지 못했어요 · PC에서 실행기가 ON 인지, QR이 10분 안에 만든 것인지 확인해 주세요");
   if (!res.inner) return unpaired(res.error);
   const inner = res.inner;
   const keys = await P.importKeys(inner.keys.auth, inner.keys.beacon);
@@ -408,7 +408,7 @@ function finding() {
 function unpaired(err) {
   dot("", "연결 전");
   $("tabs").hidden = true;
-  $("pcName").textContent = "휴대폰으로 보기";
+  $("pcName").textContent = "실행기";
   // 코드 입력 칸은 없음 (소유자 결정 · 스튜디오 D-259): 손으로 치는 연결은 아이디·비밀번호 하나 · PC 앞에서는 QR(#pair=)만
   view(
     err && h("section", { class: "card alert" }, h("p", { text: err })),
@@ -416,7 +416,7 @@ function unpaired(err) {
     loginCard({ resume: !!S.resume || S.guestEnded, id: S.loginPrefill }),
     h("h3", { class: "lbl", text: "PC 앞에 있다면" }),
     h("section", { class: "card stack", id: "qrCard" }, h("p", { text: "PC 화면의 QR을 휴대폰 카메라로 찍으면 바로 연결돼요" }),
-      h("p", { class: "muted", text: "QR은 PC 스튜디오 왼쪽 아래 '휴대폰으로 보기' → [원격 접속 켜기] → [휴대폰 연결하기]에 나와요" })),
+      h("p", { class: "muted", text: "QR은 PC 스튜디오 왼쪽 아래 '실행기'를 ON 으로 켠 뒤 [휴대폰 QR로 연결]을 누르면 나와요" })),
     installCard());
 }
 function installCard() {
@@ -431,7 +431,7 @@ function installCard() {
       h("p", { class: "muted", text: `원격 홈 주소 · ${location.host}` }));
   }
   return h("section", { class: "card" }, h("h3", { text: "홈 화면에 두고 앱처럼 쓰기" }),
-    IOS ? h("p", { text: "아이폰: 먼저 사파리 아래 공유 버튼 → '홈 화면에 추가' → 홈 화면의 '풋살 스튜디오'를 열고, 그 안에서 '아이디·비밀번호로 연결'로 연결해 주세요 (아이디·비밀번호는 PC '휴대폰으로 보기'에서 정해요)." })
+    IOS ? h("p", { text: "아이폰: 먼저 사파리 아래 공유 버튼 → '홈 화면에 추가' → 홈 화면의 '풋살 스튜디오'를 열고, 그 안에서 '아이디·비밀번호로 연결'로 연결해 주세요 (아이디·비밀번호는 PC '실행기'에서 정해요)." })
       : h("p", { text: "안드로이드: 크롬 메뉴(⋮) → '앱 설치' 또는 '홈 화면에 추가'. 연결은 그대로 이어져요." }),
     IOS ? h("p", { class: "muted", text: "아이폰은 홈 화면 앱과 사파리가 따로 저장해요. 사파리에서 이미 연결했다면 홈 화면 앱에서 아이디·비밀번호로 한 번 더 연결하고, PC 목록에서 사파리 쪽은 [끊기] 해 주세요." }) : null);
 }
@@ -454,13 +454,13 @@ function inAppScreen(hp) {
 function offline() {
   const c = S.cred, b = c.lastBeacon, why = b && b.state === "off" ? b.reason : null;
   const phoneOff = !navigator.onLine || S.ntfyReached === false;  // PC 도 ntfy 도 안 닿음 = 이 휴대폰 인터넷 문제
-  let title = "PC가 꺼졌거나 잠들었어요", sub = "PC가 켜져 있다면 인터넷과 스튜디오가 켜져 있는지 확인해 주세요 · 밖에서 쓰려면 PC 스튜디오 '휴대폰으로 보기' → 'PC 잠들지 않게: 켜 둔 동안 항상'", cls = "off";
-  if (phoneOff) { title = "이 휴대폰이 인터넷에 연결돼 있지 않아요"; sub = "와이파이나 데이터가 다시 되면 저절로 PC를 찾아요"; cls = "wait"; }
+  let title = "PC가 꺼졌거나 잠들었어요", sub = "PC가 켜져 있다면 인터넷과 스튜디오가 켜져 있는지 확인해 주세요 · 밖에서 쓰려면 PC 스튜디오 '실행기' → 'PC 잠들지 않게: 켜 둔 동안 항상'", cls = "off";
+  if (phoneOff) { title = "이 기기가 인터넷에 연결돼 있지 않아요"; sub = "와이파이나 데이터가 다시 되면 저절로 PC를 찾아요"; cls = "wait"; }
   else if (c.apiMismatch) { title = "PC 스튜디오를 업데이트해 주세요"; sub = "PC 스튜디오 왼쪽 아래 '업데이트 확인'을 눌러 주세요"; }
-  else if (why === "원격 접속을 껐어요") { title = "PC에서 원격 접속을 껐어요"; sub = "다시 쓰려면 PC 스튜디오의 '휴대폰으로 보기' → [원격 접속 켜기]를 눌러 주세요"; }
-  else if (why === "오래 쓰지 않아서 껐어요") { title = "오래 쓰지 않아서 원격 접속을 껐어요"; sub = "다시 쓰려면 PC 스튜디오의 '휴대폰으로 보기' → [원격 접속 켜기]를 눌러 주세요"; }
-  else if (why === "앱을 껐어요") { title = "PC에서 스튜디오를 껐어요"; sub = "스튜디오를 다시 켜면 원격 접속도 저절로 켜져요 · 그때 알아서 다시 연결해요"; cls = "wait"; }
-  else if (why === "연결이 끊겼어요") { title = "PC의 원격 연결에 문제가 생겼어요"; sub = "PC가 잠시 뒤 저절로 다시 연결해 봐요 · 계속 안 되면 PC 화면의 '휴대폰으로 보기'를 확인해 주세요"; }
+  else if (why === "원격 접속을 껐어요") { title = "PC에서 실행기를 껐어요 (OFF)"; sub = "다시 쓰려면 PC 스튜디오 왼쪽 아래 '실행기'를 ON 으로 바꿔 주세요"; }
+  else if (why === "오래 쓰지 않아서 껐어요") { title = "오래 쓰지 않아서 실행기가 꺼졌어요"; sub = "다시 쓰려면 PC 스튜디오 왼쪽 아래 '실행기'를 ON 으로 바꿔 주세요"; }
+  else if (why === "앱을 껐어요") { title = "PC에서 스튜디오를 껐어요"; sub = "스튜디오를 다시 켜면 실행기도 저절로 켜져요 · 그때 알아서 다시 연결해요"; cls = "wait"; }
+  else if (why === "연결이 끊겼어요") { title = "PC의 원격 연결에 문제가 생겼어요"; sub = "PC가 잠시 뒤 저절로 다시 연결해 봐요 · 계속 안 되면 PC 화면의 '실행기'를 확인해 주세요"; }
   dot(cls, title);
   $("pcName").textContent = clean(c.pcName || "내 PC") + " · 연결 안 됨";
   const last = Math.max(c.lastContact || 0, (b && b.ts) || 0);
@@ -585,7 +585,7 @@ async function openStudio(path) {  // → 넘어가면 true
   try {
     const r = await api("POST", "/r/handoff", { path: P.nextOk(path) ? path : "/" }, 10000);
     if (!r.ok) {
-      toast(r.j.code === "studio_off" ? "PC에서 '밖에서 작업 허용'이 꺼져 있어요 · PC의 '휴대폰으로 보기'에서 켜 주세요" : (r.j.error || "지금은 열 수 없어요 · 잠시 뒤 다시 눌러 주세요"));
+      toast(r.j.code === "studio_off" ? "PC에서 '밖에서 작업 허용'이 꺼져 있어요 · PC의 '실행기'에서 켜 주세요" : (r.j.error || "지금은 열 수 없어요 · 잠시 뒤 다시 눌러 주세요"));
       return false;
     }
     const base = P.hostOk(r.j.url, DEV);  // 받아도 되는 PC 주소만 (빠른 터널 · 개발 때만 루프백)
@@ -606,7 +606,7 @@ function studioCard() {
     h("p", { text: "PC 화면 그대로 밖에서 작업해요 (노트북·태블릿 추천) · 영상 처리는 PC가 해요" }),
     S.cookieHelp ? h("p", { class: "warn", text: "브라우저 쿠키가 막혀 있어요 · 이 브라우저 설정에서 쿠키(사이트 데이터)를 허용한 뒤 다시 눌러 주세요 (시크릿·개인 정보 보호 모드라면 일반 창에서)" }) : null,
     ok ? h("button", { class: "btn primary block", id: "studioGo", onclick: () => { S.cookieHelp = false; openStudio("/"); } }, "PC 스튜디오 열기")
-      : h("p", { class: "muted", id: "studioOff", text: "PC에서 '밖에서 작업 허용'이 꺼져 있어요 · PC의 '휴대폰으로 보기'에서 켜 주세요" }));
+      : h("p", { class: "muted", id: "studioOff", text: "PC에서 '밖에서 작업 허용'이 꺼져 있어요 · PC의 '실행기'에서 켜 주세요" }));
 }
 function renderProgress() {
   if (!S.status) return;
@@ -832,7 +832,7 @@ function renderMore() {
     h("section", { class: "card" }, h("h3", { text: "PC" }),
       h("p", { text: `${c.pcName || "내 PC"}${st.ver ? " · 스튜디오 v" + st.ver : ""}` }),
       h("p", { class: "muted", text: `이 기기 이름 · ${c.deviceName || ""}` }),
-      st.remote && st.remote.autoOffAt ? h("p", { class: "muted", text: `쓰지 않으면 ${clock(st.remote.autoOffAt)}에 원격 접속이 저절로 꺼져요` }) : null),
+      st.remote && st.remote.autoOffAt ? h("p", { class: "muted", text: `쓰지 않으면 ${clock(st.remote.autoOffAt)}에 실행기가 저절로 꺼져요` }) : null),
     h("section", { class: "card stack" },
       c.guest ? null : h("button", { class: "btn block danger", onclick: async () => {
         if (!await ask(code ? "이 기기의 연결을 끊을까요? 다시 쓰려면 PC 앞에서 QR을 찍거나 아이디·비밀번호로 다시 연결해야 해요."
@@ -840,13 +840,13 @@ function renderMore() {
         try { await api("POST", "/r/forget", {}); } catch (e) { /* 그래도 이 기기 정보는 지움 */ }
         forgetLocal("이 기기 연결을 끊었어요");
       } }, "이 기기 연결 끊기"),
-      // 이번만 기기(빌린 기기)에는 없음 — 모두의 원격 접속을 꺼 버리지 않게 (끝낼 때는 맨 위 [이 기기에서 나가기] · PC 도 거절함)
+      // 이번만 기기(빌린 기기)에는 없음 — 모두의 실행기를 꺼 버리지 않게 (끝낼 때는 맨 위 [이 기기에서 나가기] · PC 도 거절함)
       c.guest ? null : h("button", { class: "btn block", id: "remoteOff", onclick: async () => {
-        if (!await ask("PC의 원격 접속을 끌까요? 다시 켜려면 PC에서 직접 켜야 해요.", "끄기", true)) return;
+        if (!await ask("PC의 실행기를 끌까요? (OFF) 다시 켜려면 PC에서 직접 ON 을 눌러야 해요.", "끄기", true)) return;
         try { const r = await api("POST", "/r/remote-off", {}); if (!r.ok) return toast(r.j.error || "끄지 못했어요"); } catch (e) { return; }
         S.cred.lastBeacon = { ts: now(), state: "off", reason: "원격 접속을 껐어요" };
         await save(); goOffline(); schedule();
-      } }, "원격 접속 끄기")),
+      } }, "실행기 끄기")),
     installCard());
 }
 
@@ -892,9 +892,9 @@ function loginCard(o = {}) {
     h("p", { class: "muted", text: "주소창이 futsal.mulgyeol.kr 인지 확인해 주세요 · 스튜디오는 알림이나 다른 화면에서 비밀번호를 묻지 않아요" }),
     h("div", { class: "row" },
       h("button", { type: "button", class: "btn sm ghost", onclick: () => sheet(h("h2", { text: "비밀번호를 잊었어요" }),
-        h("p", { text: "비밀번호는 PC에서만 새로 정할 수 있어요 (다른 사람이 못 바꾸게) · PC 스튜디오 → 휴대폰으로 보기 → 아이디·비밀번호로 연결 → [비밀번호 바꾸기] · 옛 비밀번호는 몰라도 돼요 · 이미 연결된 휴대폰은 비밀번호 없이 그대로 써요" })) }, "비밀번호를 잊었어요"),
+        h("p", { text: "비밀번호는 PC에서만 새로 정할 수 있어요 (다른 사람이 못 바꾸게) · PC 스튜디오 → 실행기 → 아이디·비밀번호로 연결 → [비밀번호 바꾸기] · 옛 비밀번호는 몰라도 돼요 · 이미 연결된 휴대폰은 비밀번호 없이 그대로 써요" })) }, "비밀번호를 잊었어요"),
       h("button", { type: "button", class: "btn sm ghost", onclick: () => sheet(h("h2", { text: "아이디를 잊었어요" }),
-        h("p", { text: "아이디는 이미 연결된 휴대폰의 '더보기'나 PC의 '휴대폰으로 보기'에서 볼 수 있어요" })) }, "아이디를 잊었어요")));
+        h("p", { text: "아이디는 이미 연결된 기기의 '더보기'나 PC의 '실행기'에서 볼 수 있어요" })) }, "아이디를 잊었어요")));
 }
 function loginStatus(o) {
   const box = $("loginStatus");
@@ -957,21 +957,21 @@ async function loginAttempt(auto) {
 }
 function loginTexts(out) {
   const last = out.ts ? `마지막 소식 ${clock(out.ts)} (${ago(out.ts)})` : null;
-  const LOGIN_OFF = "이 PC는 지금 아이디·비밀번호 연결을 쓰지 않아요 · PC '휴대폰으로 보기'에서 켜 주세요";
+  const LOGIN_OFF = "이 PC는 지금 아이디·비밀번호 연결을 쓰지 않아요 · PC '실행기'에서 켜 주세요";
   switch (out.kind) {
     case "not_found": return { title: "이 아이디로 켜진 PC를 찾지 못했어요", again: true,
       lines: ["아이디가 맞는지 확인해 주세요 (한글·영문 자판은 상관없어요)", "PC가 12시간 넘게 꺼져 있었다면 PC를 켜고 다시 해 주세요",
         "PC 스튜디오에서 '아이디·비밀번호로 연결'이 켜져 있고 최신 버전인지 확인해 주세요"] };
     case "off": {
       if (out.reason === "login_off") return { title: LOGIN_OFF, lines: [last], again: true };
-      const T = { app: ["PC 스튜디오가 꺼져 있어요", "PC에서 스튜디오를 켜면 원격 접속도 저절로 켜져요"],
-        idle: ["오래 쓰지 않아서 원격 접속이 꺼졌어요", "PC에서 다시 켜야 해요 · 밖에서 자주 쓰면 PC '자동으로 끄기'를 '안 함'으로 바꿔 두세요"],
+      const T = { app: ["PC 스튜디오가 꺼져 있어요", "PC에서 스튜디오를 켜면 실행기도 저절로 켜져요"],
+        idle: ["오래 쓰지 않아서 실행기가 꺼졌어요", "PC에서 다시 켜야 해요 · 밖에서 자주 쓰면 PC '자동으로 끄기'를 '안 함'으로 바꿔 두세요"],
         error: ["PC의 원격 연결이 잠깐 끊겼어요 · PC가 몇 분 안에 다시 켜 봐요", null] }[out.reason]
-        || ["PC에서 원격 접속을 껐어요", "PC '휴대폰으로 보기' → [원격 접속 켜기]"];
+        || ["PC에서 실행기를 껐어요 (OFF)", "PC 스튜디오 왼쪽 아래 '실행기'를 ON 으로 바꿔 주세요"];
       return { title: T[0], lines: [last, T[1]], again: true, auto: true };
     }
     case "asleep": return { title: `PC가 잠들었거나 인터넷이 끊긴 것 같아요${out.ts ? ` (마지막 소식 ${clock(out.ts)})` : ""}`, again: true, auto: true,
-      lines: ["PC를 깨우거나 집에 있는 분께 PC를 켜 달라고 부탁해 주세요 · PC '휴대폰으로 보기' → 'PC 잠들지 않게: 켜 둔 동안 항상'이면 잠들지 않아요"] };
+      lines: ["PC를 깨우거나 집에 있는 분께 PC를 켜 달라고 부탁해 주세요 · PC '실행기' → 'PC 잠들지 않게: 켜 둔 동안 항상'이면 잠들지 않아요"] };
     case "ntfy": return { title: "PC를 찾는 서버(ntfy.sh)에 닿지 않아요 · 회사·학교 인터넷이 막았을 수 있어요 · 휴대폰 데이터로 해 보세요", again: true };
     case "old_pc": return { title: "PC 스튜디오를 업데이트해 주세요" };
     case "bad":
@@ -1217,7 +1217,7 @@ function killPage(k) {
   } }, "끊기");
   view(h("section", { class: "card stack", id: "killCard" }, h("h2", { text: "이 연결을 끊을까요?" }),
     h("p", { text: "내가 한 연결이 아니라면 [끊기]를 눌러 주세요 · 그 기기 연결을 바로 끊고 아이디·비밀번호 연결도 잠가요 (PC에서 새 비밀번호를 정하면 다시 열려요)" }),
-    old ? h("p", { class: "warn", id: "killOld", text: "하루가 지난 연결은 PC의 '휴대폰으로 보기' → '최근 아이디로 연결한 기기'에서 끊어 주세요" }) : go,
+    old ? h("p", { class: "warn", id: "killOld", text: "하루가 지난 연결은 PC의 '실행기' → '최근 아이디로 연결한 기기'에서 끊어 주세요" }) : go,
     h("button", { class: "btn block", id: "killMine", onclick: afterKill }, "내가 한 거예요"), msg));
 }
 async function afterKill() {
