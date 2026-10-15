@@ -5,8 +5,9 @@
 export const MAX_NEWS_IMAGES = 10;
 
 /**
- * 한 번 저장에 올릴 사진 합계 상한 (클라이언트 안내·차단용).
+ * 한 번 저장(요청)에 보내는 파일 합계 상한 — 썸네일 포함 폼 전체 (클라이언트 차단용).
  * 서버 액션 본문 한도(next.config bodySizeLimit 6mb)와 Vercel 함수 요청 본문 한도(4.5MB)보다 작게 둔다.
+ * 제출 시 AdminForm(maxUploadBytes)이 폼 전체를, 고를 때 ImagesField 가 사진 칸만 바로 검사한다.
  */
 export const MAX_UPLOAD_BATCH_BYTES = 4 * 1024 * 1024;
 

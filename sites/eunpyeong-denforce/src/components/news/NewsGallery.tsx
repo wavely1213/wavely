@@ -14,7 +14,7 @@ export function NewsGallery({ images, title }: { images: string[]; title: string
             alt={`${title} 사진 ${i + 1}`}
             width={1080}
             height={1350}
-            sizes="(max-width: 720px) 100vw, 600px"
+            sizes="(max-width: 720px) 100vw, (max-width: 1200px) 50vw, 600px"
             className={styles.image}
           />
         </li>

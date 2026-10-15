@@ -17,7 +17,7 @@ export function NewsForm({
   initial?: NewsRow;
 }) {
   return (
-    <AdminForm action={action}>
+    <AdminForm action={action} maxUploadBytes={MAX_UPLOAD_BATCH_BYTES}>
       <Row>
         <SelectField name="category" label="분류" required options={CATEGORY_OPTIONS} defaultValue={initial?.category} />
         <TextField
@@ -34,13 +34,13 @@ export function NewsForm({
       <ImageField
         name="thumbnail"
         label="썸네일"
-        hint="목록 카드에 쓰는 사진. 비워 두면 아래 첫 번째 사진을 씁니다. JPG·PNG·WEBP·GIF, 5MB 이하"
+        hint="목록 카드에 쓰는 사진. 비워 두면 아래 첫 번째 사진을 씁니다. JPG·PNG·WEBP·GIF"
         currentUrl={initial?.thumbnail_url}
       />
       <ImagesField
         name="images"
         label="사진"
-        hint={`글 상세에 올린 순서대로 보입니다. 여러 장을 한 번에 고를 수 있습니다 (최대 ${MAX_NEWS_IMAGES}장, 한 번 저장에 합계 4MB 이하).`}
+        hint={`글 상세에 올린 순서대로 보입니다. 여러 장을 한 번에 고를 수 있습니다 (최대 ${MAX_NEWS_IMAGES}장). 한 번 저장에 올리는 파일은 썸네일 포함 합계 4MB 이하 — 넘으면 나눠서 저장하세요.`}
         currentUrls={initial?.images}
         batchBytes={MAX_UPLOAD_BATCH_BYTES}
       />
