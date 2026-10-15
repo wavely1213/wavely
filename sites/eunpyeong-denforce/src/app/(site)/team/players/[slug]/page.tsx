@@ -7,7 +7,7 @@ import { EmblemFallback } from "@/components/ui/EmblemFallback";
 import { LEAGUE } from "@/config/league";
 import { POSITION_LABEL } from "@/data/people";
 import { nonEmptyParams } from "@/lib/params";
-import { getPlayer, getPlayers } from "@/lib/repo";
+import { getPlayer, getPlayers, isLiveData } from "@/lib/repo";
 import styles from "@/styles/prose.module.css";
 
 export async function generateStaticParams() {
@@ -41,7 +41,7 @@ export default async function PlayerPage({ params }: PageProps<"/team/players/[s
         <div className={styles.split}>
           <div className={styles.figure} style={{ aspectRatio: "3 / 4", maxWidth: 360 }}>
             {player.photo ? (
-              <Image src={player.photo} alt={player.name} fill preload sizes="(max-width: 720px) 100vw, 360px" />
+              <Image src={player.photo} alt={player.name} fill preload sizes="360px" />
             ) : (
               <EmblemFallback label={player.number ?? undefined} />
             )}
@@ -58,9 +58,11 @@ export default async function PlayerPage({ params }: PageProps<"/team/players/[s
                 </li>
               ))}
             </ul>
-            <p className={`${styles.note} ${styles.source}`}>
-              출전·득점: {LEAGUE.statsSeason} 기록 · 자료: {LEAGUE.source}
-            </p>
+            {isLiveData() && (
+              <p className={`${styles.note} ${styles.source}`}>
+                출전·득점: {LEAGUE.statsSeason} 기록 · 자료: {LEAGUE.source}
+              </p>
+            )}
           </div>
         </div>
         <p>

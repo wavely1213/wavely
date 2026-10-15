@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { MatchList } from "@/components/match/MatchList";
+import { MatchTable } from "@/components/match/MatchTable";
 import { Placeholder } from "@/components/ui/Placeholder";
 import { LEAGUE } from "@/config/league";
 import { getUpcomingMatches } from "@/lib/repo";
@@ -14,7 +14,7 @@ export default async function SchedulePage() {
       <PageHeader title="경기일정" current="/match/schedule" />
       <div className="container">
         {matches.length > 0 ? (
-          <MatchList matches={matches} />
+          <MatchTable matches={matches} />
         ) : (
           <Placeholder label={`${LEAGUE.nextSeason} 시즌 일정은 ${LEAGUE.source} 발표 후 업데이트됩니다.`} />
         )}

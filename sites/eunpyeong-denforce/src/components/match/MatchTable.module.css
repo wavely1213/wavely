@@ -1,0 +1,129 @@
+.group + .group {
+  margin-top: 48px;
+}
+
+.title {
+  margin-bottom: 14px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* 좁은 화면에서는 표 전체를 가로로 넘겨 본다 (tableWrap). 칸 안에서는 줄을 바꾸지 않는다 */
+.table {
+  min-width: 760px;
+}
+
+.table td {
+  white-space: nowrap;
+}
+
+.round {
+  width: 72px;
+}
+
+.when {
+  width: 190px;
+}
+
+.venue {
+  width: 200px;
+}
+
+.result {
+  width: 88px;
+}
+
+.versus {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+}
+
+.home {
+  text-align: right;
+}
+
+.vs {
+  font-size: 12px;
+  color: var(--c-text-sub);
+}
+
+.us {
+  font-weight: 700;
+  color: var(--c-blue);
+}
+
+.score {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.mobileRound {
+  display: none;
+}
+
+/* 모바일: 가로 스크롤 없이 일정·대진·결과 3칸 */
+@media (max-width: 720px) {
+  .table {
+    min-width: 0;
+    font-size: 14px;
+  }
+
+  .table th,
+  .table td {
+    padding: 12px 6px;
+  }
+
+  .round,
+  .venue {
+    display: none;
+  }
+
+  .when {
+    width: 128px;
+  }
+
+  .result {
+    width: 52px;
+  }
+
+  .table td {
+    white-space: normal;
+  }
+
+  .time,
+  .mobileRound {
+    font-size: 13px;
+    color: var(--c-text-sub);
+  }
+
+  .time {
+    display: block;
+  }
+
+  .mobileRound {
+    display: inline;
+  }
+
+  .versus {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  .home {
+    text-align: left;
+  }
+
+  .versus > span {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .vs {
+    display: none;
+  }
+}

@@ -26,7 +26,8 @@ export function MatchCard({ match, label }: { match: Match; label: string }) {
       <p className={styles.meta}>
         {matchLabel(match)}
         <br />
-        {date} {time} · {match.venue}
+        {date} {time}
+        {match.venue && ` · ${match.venue}`}
       </p>
     </Link>
   );

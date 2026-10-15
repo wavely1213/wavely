@@ -15,6 +15,14 @@ function source(): DataSource {
   return isSupabaseConfigured() ? dbSource : staticSource;
 }
 
+/**
+ * 실데이터(DB)를 보여주는 중인지. 연맹 시즌 제목·"자료: 한국풋살연맹" 표기는 이때만 붙인다
+ * (정적 자리표시 데이터를 실제 기록처럼 보이게 하지 않는다 — BR-004, BR-008).
+ */
+export function isLiveData() {
+  return isSupabaseConfigured();
+}
+
 const byKickoff = (a: Match, b: Match) => a.kickoff.localeCompare(b.kickoff);
 
 // ── 구단 정보 ─────────────────────────────────

@@ -20,6 +20,20 @@ export function formatKickoff(iso: string) {
   return { date, time };
 }
 
+/** 연맹 경기일정 표기: { date: "2025-11-15 (토)", time: "15:00" } (한국 시간) */
+export function formatKickoffFull(iso: string) {
+  const d = new Date(iso);
+  // en-CA 는 YYYY-MM-DD 형식
+  const ymd = new Intl.DateTimeFormat("en-CA", {
+    timeZone: TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(d);
+  const weekday = new Intl.DateTimeFormat("ko-KR", { timeZone: TZ, weekday: "short" }).format(d);
+  return { date: `${ymd} (${weekday})`, time: formatKickoff(iso).time };
+}
+
 /** "2026-10-15" → "2026.10.15", "2019" → "2019", "" → "" */
 export function formatPostDate(date: string) {
   return date.replaceAll("-", ".");
