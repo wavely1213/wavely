@@ -85,7 +85,8 @@ insert into public.staff (role, name, sort_order) values
   ('사무국장·팀매니저', '김민승', 70),
   ('미디어', '장영환', 80);
 
--- 경기: 2025-26 FK1리그 은평 15경기 + 2026 FK CUP 3라운드 (PK 3:4 패 — 정규 스코어만 기록)
+-- 경기: 2025-26 FK1리그 은평 15경기 + 승강 플레이오프 + 2026 FK CUP 3라운드 (PK 3:4 패 — 정규 스코어만 기록)
+-- 승강 플레이오프는 연맹 스코어 미공개 → 구단 인스타그램 경기결과 게시물(서울은평덴포스 3 : 4 화성FS) 기준
 delete from public.matches;
 insert into public.matches (competition, round, kickoff, venue, is_home, opponent, status, score_us, score_them) values
   ('2025-26 FK1리그', '1R', '2025-11-15T15:00:00+09:00', '은평다목적체육관', true, '강원FS', 'finished', 2, 5),
@@ -103,6 +104,7 @@ insert into public.matches (competition, round, kickoff, venue, is_home, opponen
   ('2025-26 FK1리그', '13R', '2026-03-14T13:00:00+09:00', '은평다목적체육관', true, '고양불스풋살클럽', 'finished', 2, 7),
   ('2025-26 FK1리그', '14R', '2026-03-21T18:00:00+09:00', '경기LBFS트레이닝센터', false, '경기LBFS', 'finished', 1, 9),
   ('2025-26 FK1리그', '15R', '2026-03-28T13:00:00+09:00', '은평다목적체육관', true, '전주시민풋살구단', 'finished', 7, 5),
+  ('2025-26 승강 플레이오프', '', '2026-04-04T17:00:00+09:00', '이천LBFS트레이닝센터', true, '화성FS', 'finished', 3, 4),
   ('2026 FK CUP', '3R', '2026-08-25T15:00:00+09:00', '단양국민체육센터', true, '인천ZD스포츠', 'finished', 3, 3);
 
 -- 리그 순위: 2025-26 FK1리그 최종

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { StaffGrid } from "@/components/player/StaffCard";
 import { getStaff } from "@/lib/repo";
-import styles from "@/styles/prose.module.css";
 
 export const metadata: Metadata = { title: "코칭스태프" };
 
@@ -11,14 +11,7 @@ export default async function StaffPage() {
     <>
       <PageHeader title="코칭스태프" current="/team/staff" />
       <div className="container">
-        <div className={styles.cards}>
-          {staff.map((s) => (
-            <div key={s.id} className={styles.card}>
-              <h3>{s.role}</h3>
-              <p>{s.name}</p>
-            </div>
-          ))}
-        </div>
+        <StaffGrid staff={staff} />
       </div>
     </>
   );

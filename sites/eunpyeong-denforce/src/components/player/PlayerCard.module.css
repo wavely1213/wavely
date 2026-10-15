@@ -52,6 +52,11 @@
   text-underline-offset: 3px;
 }
 
+/* 링크가 아닌 카드(코칭스태프)는 hover 밑줄 없음 */
+.plain:hover .name {
+  text-decoration: none;
+}
+
 .position {
   font-size: 13px;
   color: var(--c-text-sub);
