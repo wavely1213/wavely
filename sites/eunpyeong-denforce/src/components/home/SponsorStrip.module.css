@@ -1,33 +1,30 @@
 .list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
 }
 
 .item {
-  flex: 1 1 200px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  min-height: 110px;
+  gap: 6px;
+  min-height: 112px;
   padding: 16px;
-  background: var(--c-bg);
-  border: 1px solid var(--c-line);
+  background: var(--c-bg-soft);
   border-radius: var(--radius-m);
 }
 
 .tier {
   font-size: 12px;
   font-weight: 700;
-  color: var(--c-blue);
+  color: var(--c-text-sub);
 }
 
 .name {
-  font-size: 18px;
-  font-weight: 800;
-  color: var(--c-navy);
+  font-size: 19px;
+  font-weight: 700;
 }
 
 .logo {

@@ -26,7 +26,7 @@ export function PlayersPreview({ groups }: { groups: Array<[Position, Player[]]>
           </button>
         ))}
       </div>
-      <PlayerGrid players={players} />
+      <PlayerGrid players={players} scroll />
     </>
   );
 }

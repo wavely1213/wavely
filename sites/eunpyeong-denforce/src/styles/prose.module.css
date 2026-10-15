@@ -3,7 +3,7 @@
 .body {
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  gap: 56px;
 }
 
 .lead {
@@ -15,53 +15,55 @@
 }
 
 .h2 {
-  font-size: 22px;
-  font-weight: 800;
-  margin-bottom: 16px;
-  color: var(--c-navy);
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 18px;
 }
 
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 20px;
+  gap: 16px;
 }
 
 .card {
   padding: 24px;
-  background: var(--c-bg);
+  border: 1px solid var(--c-line);
   border-radius: var(--radius-m);
-  box-shadow: var(--shadow-card);
 }
 
 .card h3 {
   font-size: 17px;
   margin-bottom: 10px;
-  color: var(--c-blue);
 }
 
 .card li {
-  padding: 4px 0;
+  padding: 3px 0;
+  color: var(--c-text-sub);
+}
+
+.list {
+  border-top: 2px solid var(--c-black);
 }
 
 .list li {
   display: flex;
   gap: 16px;
-  padding: 14px 0;
+  padding: 16px 0;
   border-bottom: 1px solid var(--c-line);
 }
 
 .list li > :first-child {
   flex: none;
   min-width: 96px;
-  font-weight: 800;
-  color: var(--c-navy);
+  font-weight: 700;
+  color: var(--c-blue);
 }
 
 .split {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 40px;
+  gap: 48px;
   align-items: start;
 }
 
@@ -71,7 +73,7 @@
   aspect-ratio: 4 / 3;
   border-radius: var(--radius-m);
   overflow: hidden;
-  box-shadow: var(--shadow-card);
+  background: var(--c-bg-soft);
 }
 
 .figure img {
@@ -86,7 +88,7 @@
 
 .table th,
 .table td {
-  padding: 12px 8px;
+  padding: 14px 8px;
   text-align: center;
   border-bottom: 1px solid var(--c-line);
 }
@@ -94,8 +96,8 @@
 .table th {
   font-size: 13px;
   color: var(--c-text-sub);
-  font-weight: 600;
-  border-bottom: 2px solid var(--c-navy);
+  font-weight: 700;
+  border-top: 2px solid var(--c-black);
 }
 
 .table td.left,
@@ -104,9 +106,9 @@
 }
 
 .highlight td {
-  background: var(--c-bg-soft);
-  font-weight: 800;
-  color: var(--c-navy);
+  background: var(--c-blue-tint);
+  font-weight: 700;
+  color: var(--c-blue);
 }
 
 .tableWrap {
@@ -130,18 +132,19 @@
 .button {
   display: inline-block;
   padding: 12px 28px;
-  background: var(--c-navy);
+  background: var(--c-blue);
   color: var(--c-on-dark);
   font-weight: 700;
   border-radius: var(--radius-s);
 }
 
 .button:hover {
-  background: var(--c-blue);
+  background: var(--c-blue-hover);
 }
 
 @media (max-width: 760px) {
   .split {
     grid-template-columns: 1fr;
+    gap: 24px;
   }
 }

@@ -41,7 +41,8 @@ Next.js App Router 정적 사이트. 페이지(서버 컴포넌트)가 `lib/repo
 | 사이트 설정·메뉴 | /src/config/site.ts | 구단명·연락처·SNS·NAV. 메뉴 변경은 여기만 |
 | 레이아웃 | /src/components/layout | Header(모바일 메뉴), Footer, PageHeader(섹션 탭) |
 | 메인 섹션 | /src/components/home | Hero, NewsTabs, PlayersPreview, QuickLinks, SponsorStrip |
-| 도메인 UI | /src/components/{match,news,player} | MatchRow, NewsCard, PlayerCard |
+| 도메인 UI | /src/components/{match,news,player} | MatchRow(목록), MatchCard(메인), NewsCard, PlayerCard |
+| 공용 UI | /src/components/ui | Section, Placeholder, EmblemFallback(사진 없을 때) |
 | 데이터 접근 | /src/lib/repo.ts | 모든 조회 함수 |
 | 디자인 토큰 | /src/styles/tokens.css | 색·간격·라운드. hex 하드코딩은 여기만 |
 

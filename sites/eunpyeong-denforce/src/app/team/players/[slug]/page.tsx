@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Placeholder } from "@/components/ui/Placeholder";
+import { EmblemFallback } from "@/components/ui/EmblemFallback";
 import { POSITION_LABEL } from "@/data/people";
 import { getPlayer, getPlayers } from "@/lib/repo";
 import styles from "@/styles/prose.module.css";
@@ -34,7 +34,9 @@ export default async function PlayerPage({ params }: PageProps<"/team/players/[s
       <PageHeader title="선수" current="/team/players" />
       <div className={`container ${styles.body}`}>
         <div className={styles.split}>
-          <Placeholder label="선수 사진" ratio="3 / 4" />
+          <div className={styles.figure} style={{ aspectRatio: "3 / 4", maxWidth: 360 }}>
+            <EmblemFallback label={player.number ?? undefined} />
+          </div>
           <div>
             <h2 className={styles.h2}>
               No.{player.number ?? "-"} {player.name}

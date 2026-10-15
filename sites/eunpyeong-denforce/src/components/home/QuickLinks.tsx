@@ -15,8 +15,10 @@ export function QuickLinks() {
       {LINKS.map((l) => (
         <li key={l.href}>
           <Link href={l.href} className={styles.item}>
-            <strong>{l.label}</strong>
-            <span>{l.desc}</span>
+            <span className={styles.text}>
+              <strong>{l.label}</strong>
+              <span>{l.desc}</span>
+            </span>
           </Link>
         </li>
       ))}

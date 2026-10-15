@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { EmblemFallback } from "@/components/ui/EmblemFallback";
 import { POSITION_LABEL } from "@/data/people";
 import type { Player } from "@/types";
 import styles from "./PlayerCard.module.css";
@@ -9,27 +10,24 @@ export function PlayerCard({ player }: { player: Player }) {
     <Link href={`/team/players/${player.slug}`} className={styles.card}>
       <div className={styles.photo}>
         {player.photo ? (
-          <Image src={player.photo} alt="" fill sizes="(max-width: 720px) 50vw, 240px" />
+          <Image src={player.photo} alt="" fill sizes="(max-width: 720px) 45vw, 220px" />
         ) : (
-          <span className={styles.silhouette} aria-hidden>
-            {player.number ?? "-"}
-          </span>
+          <EmblemFallback label={player.number ?? undefined} />
         )}
       </div>
       <div className={styles.info}>
         <span className={styles.number}>{player.number ?? "-"}</span>
-        <div>
-          <strong className={styles.name}>{player.name}</strong>
-          <span className={styles.position}>{POSITION_LABEL[player.position]}</span>
-        </div>
+        <strong className={styles.name}>{player.name}</strong>
       </div>
+      <span className={styles.position}>{POSITION_LABEL[player.position]}</span>
     </Link>
   );
 }
 
-export function PlayerGrid({ players }: { players: Player[] }) {
+/** scroll: 모바일에서 한 줄 가로 스와이프 (메인용) */
+export function PlayerGrid({ players, scroll = false }: { players: Player[]; scroll?: boolean }) {
   return (
-    <div className={styles.grid}>
+    <div className={`${styles.grid} ${scroll ? styles.scroll : ""}`}>
       {players.map((p) => (
         <PlayerCard key={p.slug} player={p} />
       ))}

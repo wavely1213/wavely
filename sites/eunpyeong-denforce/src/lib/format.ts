@@ -31,3 +31,12 @@ export function matchResult(m: Match): "W" | "D" | "L" | null {
   if (m.score.us < m.score.them) return "L";
   return "D";
 }
+
+/** 홈팀을 왼쪽에 두는 표기 (BR-002) */
+export function matchSides(m: Match, ourName: string) {
+  const [home, away] = m.isHome ? [ourName, m.opponent] : [m.opponent, ourName];
+  const score = m.score ? (m.isHome ? [m.score.us, m.score.them] : [m.score.them, m.score.us]) : null;
+  return { home, away, score };
+}
+
+export const RESULT_LABEL = { W: "승", D: "무", L: "패" } as const;

@@ -1,57 +1,48 @@
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 28px 16px;
 }
 
 .card {
   display: flex;
   flex-direction: column;
-  background: var(--c-bg);
-  color: var(--c-text);
-  border-radius: var(--radius-m);
-  box-shadow: var(--shadow-card);
-  overflow: hidden;
+  min-width: 0;
 }
 
 .photo {
   position: relative;
   aspect-ratio: 3 / 4;
-  background: linear-gradient(160deg, var(--c-blue), var(--c-navy));
+  margin-bottom: 12px;
+  border-radius: var(--radius-m);
+  overflow: hidden;
+  background: var(--c-bg-soft);
 }
 
 .photo img {
   object-fit: cover;
 }
 
-.silhouette {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 72px;
-  font-weight: 900;
-  color: rgba(255, 255, 255, 0.18);
-}
-
 .info {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
+  align-items: baseline;
+  gap: 8px;
 }
 
 .number {
-  font-size: 28px;
-  font-weight: 900;
+  font-size: 22px;
+  font-weight: 700;
   color: var(--c-blue);
-  min-width: 36px;
 }
 
 .name {
-  display: block;
-  font-size: 16px;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.card:hover .name {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .position {
@@ -59,9 +50,25 @@
   color: var(--c-text-sub);
 }
 
-@media (max-width: 480px) {
-  .grid {
-    grid-template-columns: repeat(2, 1fr);
+@media (max-width: 720px) {
+  .scroll {
+    display: flex;
     gap: 12px;
+    margin: 0 calc(var(--gutter) * -1);
+    padding: 0 var(--gutter);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding: 0 var(--gutter);
+    scrollbar-width: none;
+  }
+
+  .scroll .card {
+    flex: 0 0 42%;
+    scroll-snap-align: start;
+  }
+
+  .grid:not(.scroll) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px 12px;
   }
 }

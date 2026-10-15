@@ -18,7 +18,7 @@ export default function ClubPage() {
             ))}
           </div>
           <div className={styles.figure}>
-            <Image src="/photos/superleague-2021-runnerup.jpg" alt="2020-21 슈퍼리그 준우승 기념 사진" fill sizes="(max-width: 760px) 100vw, 50vw" />
+            <Image src="/photos/superleague-2021-runnerup.webp" alt="2020-21 슈퍼리그 준우승 기념 사진" fill sizes="(max-width: 760px) 100vw, 50vw" />
           </div>
         </div>
 

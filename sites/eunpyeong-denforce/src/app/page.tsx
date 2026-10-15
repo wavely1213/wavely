@@ -3,8 +3,7 @@ import { NewsTabs } from "@/components/home/NewsTabs";
 import { PlayersPreview } from "@/components/home/PlayersPreview";
 import { QuickLinks } from "@/components/home/QuickLinks";
 import { SponsorStrip } from "@/components/home/SponsorStrip";
-import { MatchRow } from "@/components/match/MatchRow";
-import { Placeholder } from "@/components/ui/Placeholder";
+import { MatchCards } from "@/components/match/MatchCard";
 import { Section } from "@/components/ui/Section";
 import {
   getFinishedMatches,
@@ -14,8 +13,10 @@ import {
   getSponsors,
   getUpcomingMatches,
 } from "@/lib/repo";
+import type { Match } from "@/types";
 
-// 메인 섹션 순서: 다음 홈경기 → 경기 결과·일정 → 구단 소식 → 선수단 → 바로가기 → 영상 → 스폰서
+// 메인 섹션 순서: 히어로(다음 홈경기) → 경기 → 구단 소식 → 선수단 → 바로가기 → 스폰서
+// 구단 영상 섹션은 영상 콘텐츠가 생기면 추가한다 (빈 섹션은 노출하지 않음).
 export default async function HomePage() {
   const [nextHome, finished, upcoming, news, groups, sponsors] = await Promise.all([
     getNextHomeMatch(),
@@ -25,25 +26,23 @@ export default async function HomePage() {
     getPlayersByPosition(),
     getSponsors(),
   ]);
-  const matches = [...finished.slice(0, 1), ...upcoming.slice(0, 2)];
+
+  const matchItems: Array<{ match: Match; label: string }> = [
+    ...finished.slice(0, 1).map((match) => ({ match, label: "지난 경기" })),
+    ...upcoming.slice(0, 2).map((match, i) => ({ match, label: i === 0 ? "다음 경기" : "예정" })),
+  ];
 
   return (
     <>
       <Hero nextHome={nextHome} />
 
-      <Section title="경기 일정·결과" more={{ href: "/match/schedule" }}>
-        {matches.length > 0 ? (
-          <ul>
-            {matches.map((m) => (
-              <MatchRow key={m.id} match={m} />
-            ))}
-          </ul>
-        ) : (
-          <Placeholder label="등록된 경기가 없습니다." />
-        )}
-      </Section>
+      {matchItems.length > 0 && (
+        <Section title="경기" more={{ href: "/match/schedule" }}>
+          <MatchCards items={matchItems} />
+        </Section>
+      )}
 
-      <Section title="구단 소식" tone="soft" more={{ href: "/news" }}>
+      <Section title="구단 소식" more={{ href: "/news" }}>
         <NewsTabs posts={news} />
       </Section>
 
@@ -51,17 +50,15 @@ export default async function HomePage() {
         <PlayersPreview groups={groups} />
       </Section>
 
-      <Section title="바로가기" tone="dark">
+      <Section title="바로가기">
         <QuickLinks />
       </Section>
 
-      <Section title="구단 영상" more={{ href: "/news/video" }}>
-        <Placeholder label="유튜브 채널 연동 예정" ratio="16 / 5" />
-      </Section>
-
-      <Section title="스폰서" tone="soft" more={{ href: "/sponsors" }}>
-        <SponsorStrip sponsors={sponsors} />
-      </Section>
+      {sponsors.length > 0 && (
+        <Section title="스폰서" more={{ href: "/sponsors" }}>
+          <SponsorStrip sponsors={sponsors} />
+        </Section>
+      )}
     </>
   );
 }

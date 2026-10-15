@@ -23,7 +23,7 @@ export default function EmblemPage() {
         </section>
         <section className={styles.split}>
           <div className={styles.figure}>
-            <Image src="/photos/kit.jpg" alt="유니폼 디자인" fill sizes="(max-width: 760px) 100vw, 50vw" />
+            <Image src="/photos/kit.webp" alt="유니폼 디자인" fill sizes="(max-width: 760px) 100vw, 50vw" />
           </div>
           <div className={styles.lead}>
             <h2 className={styles.h2}>유니폼</h2>

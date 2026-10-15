@@ -20,6 +20,7 @@ body {
   color: var(--c-text);
   background: var(--c-bg);
   line-height: 1.6;
+  word-break: keep-all;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
@@ -62,7 +63,9 @@ button {
   width: 100%;
   max-width: var(--container);
   margin: 0 auto;
-  padding: 0 var(--gutter);
+  /* 상하 padding 은 각 모듈이 정하도록 좌우만 지정 */
+  padding-left: var(--gutter);
+  padding-right: var(--gutter);
 }
 
 .sr-only {

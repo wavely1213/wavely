@@ -8,7 +8,7 @@ import styles from "./Tabs.module.css";
 
 const TABS: Array<NewsCategory | "all"> = ["all", "notice", "news", "photo", "video"];
 
-export function NewsTabs({ posts, limit = 6 }: { posts: NewsPost[]; limit?: number }) {
+export function NewsTabs({ posts, limit = 4 }: { posts: NewsPost[]; limit?: number }) {
   const [tab, setTab] = useState<NewsCategory | "all">("all");
   const visible = (tab === "all" ? posts : posts.filter((p) => p.category === tab)).slice(0, limit);
 
@@ -28,7 +28,7 @@ export function NewsTabs({ posts, limit = 6 }: { posts: NewsPost[]; limit?: numb
           </button>
         ))}
       </div>
-      {visible.length > 0 ? <NewsGrid posts={visible} /> : <p className={styles.empty}>게시물이 없습니다.</p>}
+      {visible.length > 0 ? <NewsGrid posts={visible} scroll /> : <p className={styles.empty}>게시물이 없습니다.</p>}
     </>
   );
 }

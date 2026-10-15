@@ -15,11 +15,8 @@ export function Header({ pathname }: { pathname: string }) {
     <header className={styles.header}>
       <div className={`container ${styles.bar}`}>
         <Link href="/" className={styles.brand} onClick={() => setOpen(false)}>
-          <Image src={SITE.emblem} alt="" width={40} height={46} className={styles.emblem} priority />
-          <span className={styles.brandText}>
-            <strong>{SITE.name}</strong>
-            <small>{SITE.nameEn}</small>
-          </span>
+          <Image src={SITE.emblem} alt="" width={32} height={36} className={styles.emblem} loading="eager" />
+          <span className={styles.brandText}>{SITE.name}</span>
         </Link>
 
         <button

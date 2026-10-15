@@ -2,9 +2,8 @@
   position: sticky;
   top: 0;
   z-index: 50;
-  background: var(--c-navy);
+  background: var(--c-black);
   color: var(--c-on-dark);
-  border-bottom: 3px solid var(--c-yellow);
 }
 
 .bar {
@@ -18,37 +17,25 @@
 .brand {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   min-width: 0;
 }
 
 .emblem {
-  border-radius: var(--radius-s);
+  border-radius: 4px;
   background: var(--c-bg);
 }
 
 .brandText {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.2;
-}
-
-.brandText strong {
-  font-size: 18px;
-  font-weight: 800;
-  white-space: nowrap;
-}
-
-.brandText small {
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  color: var(--c-on-dark-sub);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   white-space: nowrap;
 }
 
 .menu {
   display: flex;
-  gap: 4px;
+  height: var(--header-h);
 }
 
 .menuItem {
@@ -56,16 +43,30 @@
 }
 
 .menuLink {
-  display: block;
-  padding: 0 16px;
-  line-height: var(--header-h);
-  font-weight: 700;
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 18px;
   font-size: 16px;
+  font-weight: 700;
+  color: var(--c-on-dark-sub);
+  transition: color 0.15s ease;
 }
 
 .menuLink:hover,
 .active {
-  color: var(--c-yellow);
+  color: var(--c-on-dark);
+}
+
+.active::after {
+  content: "";
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 0;
+  height: 3px;
+  background: var(--c-yellow);
 }
 
 .sub {
@@ -78,20 +79,19 @@
   padding: 8px 0;
   background: var(--c-bg);
   color: var(--c-text);
-  border-radius: 0 0 var(--radius-m) var(--radius-m);
-  box-shadow: var(--shadow-card);
+  border: 1px solid var(--c-line);
+  border-top: 0;
 }
 
 .sub a {
   display: block;
-  padding: 8px 18px;
-  font-size: 14px;
+  padding: 9px 20px;
+  font-size: 15px;
   white-space: nowrap;
 }
 
 .sub a:hover {
   color: var(--c-blue);
-  background: var(--c-bg-soft);
 }
 
 .menuItem:hover .sub,
@@ -111,7 +111,8 @@
     gap: 5px;
     width: 40px;
     height: 40px;
-    padding: 8px;
+    margin-right: -8px;
+    padding: 9px;
     background: none;
     border: 0;
     cursor: pointer;
@@ -125,8 +126,8 @@
   .nav {
     display: none;
     position: fixed;
-    inset: calc(var(--header-h) + 3px) 0 0 0;
-    background: var(--c-navy);
+    inset: var(--header-h) 0 0 0;
+    background: var(--c-black);
     overflow-y: auto;
   }
 
@@ -136,14 +137,23 @@
 
   .menu {
     flex-direction: column;
-    padding: 8px var(--gutter) 32px;
+    height: auto;
+    padding: 8px var(--gutter) 40px;
   }
 
   .menuLink {
-    line-height: 52px;
-    padding: 0;
-    font-size: 18px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    height: auto;
+    padding: 16px 0 6px;
+    font-size: 20px;
+    color: var(--c-on-dark);
+  }
+
+  .active {
+    color: var(--c-yellow);
+  }
+
+  .active::after {
+    display: none;
   }
 
   .sub,
@@ -154,9 +164,10 @@
     position: static;
     transform: none;
     background: none;
+    border: 0;
     color: var(--c-on-dark-sub);
-    box-shadow: none;
-    padding: 8px 0 12px;
+    padding: 0 0 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
 
   .sub a {
@@ -164,13 +175,6 @@
   }
 
   .sub a:hover {
-    background: none;
-    color: var(--c-yellow);
-  }
-}
-
-@media (max-width: 420px) {
-  .brandText small {
-    display: none;
+    color: var(--c-on-dark);
   }
 }

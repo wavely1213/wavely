@@ -1,19 +1,13 @@
 import { SITE } from "@/config/site";
-import { formatKickoff, matchResult } from "@/lib/format";
+import { formatKickoff, matchResult, matchSides, RESULT_LABEL } from "@/lib/format";
 import type { Match } from "@/types";
 import styles from "./MatchRow.module.css";
 
-const RESULT_LABEL = { W: "승", D: "무", L: "패" } as const;
-
+/** 경기 목록 한 줄 (일정·결과 페이지) */
 export function MatchRow({ match }: { match: Match }) {
   const { date, time } = formatKickoff(match.kickoff);
   const result = matchResult(match);
-  const [left, right] = match.isHome ? [SITE.name, match.opponent] : [match.opponent, SITE.name];
-  const score = match.score
-    ? match.isHome
-      ? `${match.score.us} : ${match.score.them}`
-      : `${match.score.them} : ${match.score.us}`
-    : "VS";
+  const { home, away, score } = matchSides(match, SITE.name);
 
   return (
     <li className={styles.row}>
@@ -24,13 +18,16 @@ export function MatchRow({ match }: { match: Match }) {
         </span>
       </div>
       <div className={styles.versus}>
-        <span className={styles.team}>{left}</span>
-        <span className={styles.score}>{score}</span>
-        <span className={styles.team}>{right}</span>
+        <span className={styles.home}>{home}</span>
+        <span className={score ? styles.score : styles.vs}>{score ? `${score[0]} : ${score[1]}` : "VS"}</span>
+        <span className={styles.away}>{away}</span>
       </div>
       <div className={styles.meta}>
-        <span className={match.isHome ? styles.home : styles.away}>{match.isHome ? "HOME" : "AWAY"}</span>
-        {result && <span className={`${styles.result} ${styles[result]}`}>{RESULT_LABEL[result]}</span>}
+        {result ? (
+          <span className={`${styles.result} ${styles[result]}`}>{RESULT_LABEL[result]}</span>
+        ) : (
+          <span className={styles.side}>{match.isHome ? "HOME" : "AWAY"}</span>
+        )}
         <span className={styles.venue}>{match.venue}</span>
       </div>
     </li>

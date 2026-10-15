@@ -1,128 +1,95 @@
 .hero {
   position: relative;
-  min-height: 560px;
+  min-height: min(76vh, 640px);
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   color: var(--c-on-dark);
+  background: var(--c-black);
   overflow: hidden;
 }
 
 .bg {
   object-fit: cover;
+  object-position: center 30%;
 }
 
 .overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, rgba(0, 32, 96, 0.92) 0%, rgba(0, 32, 96, 0.55) 55%, rgba(0, 32, 96, 0.2) 100%);
+  background: linear-gradient(180deg, rgba(14, 15, 18, 0.15) 0%, rgba(14, 15, 18, 0.35) 45%, rgba(14, 15, 18, 0.9) 100%);
 }
 
 .inner {
   position: relative;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
-  gap: 40px;
-  padding-top: 56px;
-  padding-bottom: 56px;
+  gap: 32px;
+  padding-top: 120px;
+  padding-bottom: 48px;
 }
 
 .eyebrow {
-  font-size: 13px;
-  letter-spacing: 0.12em;
-  color: var(--c-yellow);
+  font-size: 14px;
   font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--c-yellow);
 }
 
 .title {
-  margin: 12px 0;
-  font-size: clamp(32px, 5vw, 56px);
-  font-weight: 900;
-  line-height: 1.15;
+  margin-top: 10px;
+  font-size: clamp(40px, 7vw, 76px);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
 }
 
-.sub {
+.next {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 280px;
+  padding: 18px 22px;
+  border-left: 3px solid var(--c-yellow);
+  background: rgba(14, 15, 18, 0.55);
+  backdrop-filter: blur(6px);
+}
+
+.next:hover .nextTeams {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.nextLabel {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   color: var(--c-on-dark-sub);
 }
 
-.card {
-  flex: none;
-  width: 340px;
-  padding: 24px;
-  background: var(--c-bg);
-  color: var(--c-text);
-  border-radius: var(--radius-m);
-  border-top: 4px solid var(--c-yellow);
-  box-shadow: var(--shadow-card);
-}
-
-.cardLabel {
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  color: var(--c-blue);
-}
-
-.round {
-  margin-top: 8px;
-  font-size: 13px;
-  color: var(--c-text-sub);
-}
-
-.teams {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin: 16px 0;
-  font-size: 18px;
-}
-
-.vs {
-  font-weight: 900;
-  color: var(--c-navy);
-}
-
-.when {
+.nextTeams {
+  font-size: 24px;
   font-weight: 700;
 }
 
-.venue {
+.nextMeta {
   font-size: 14px;
-  color: var(--c-text-sub);
+  color: var(--c-on-dark-sub);
 }
 
-.empty {
-  margin: 24px 0;
-  color: var(--c-text-sub);
-}
-
-.cta {
-  display: block;
-  margin-top: 20px;
-  padding: 12px;
-  text-align: center;
-  font-weight: 700;
-  background: var(--c-navy);
-  color: var(--c-on-dark);
-  border-radius: var(--radius-s);
-}
-
-.cta:hover {
-  background: var(--c-blue);
-}
-
-@media (max-width: 860px) {
+@media (max-width: 760px) {
   .hero {
-    min-height: auto;
+    min-height: 520px;
   }
 
   .inner {
     flex-direction: column;
     align-items: stretch;
+    padding-bottom: 28px;
   }
 
-  .card {
-    width: 100%;
+  .next {
+    min-width: 0;
   }
 }

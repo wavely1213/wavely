@@ -29,7 +29,7 @@
 | 영역 | 선택 | 비고 |
 |---|---|---|
 | 언어 | TypeScript (strict) | |
-| 프론트엔드 | Next.js 16.4 App Router + React 19, CSS Modules | `cacheComponents` 켜짐 |
+| 프론트엔드 | Next.js 16.4 App Router + React 19, CSS Modules, KFA고딕(self-host) | `cacheComponents` 켜짐 |
 | 백엔드 | 없음 (정적 데이터 `src/data`) | `src/lib/repo.ts` 경계 뒤로 추후 교체 |
 | 데이터베이스 | 미정 | KNOWN_ISSUES I-003 |
 | 인증 | 없음 | |
@@ -44,6 +44,7 @@
 /src/app         라우트(페이지)
 /src/components  UI 컴포넌트 (layout / ui / home / match / news / player)
 /src/config      사이트 설정·메뉴 (site.ts)
+/src/fonts       KFA고딕 woff2
 /src/data        정적 데이터 (구단·선수·경기·소식·스폰서)
 /src/lib         데이터 접근(repo.ts)·포맷터·파라미터 검증
 /src/styles      디자인 토큰(tokens.css)·공용 본문 스타일

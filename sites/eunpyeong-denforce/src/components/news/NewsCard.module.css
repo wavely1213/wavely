@@ -1,59 +1,43 @@
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px 20px;
 }
 
 .card {
   display: flex;
   flex-direction: column;
-  background: var(--c-bg);
-  color: var(--c-text);
-  border-radius: var(--radius-m);
-  box-shadow: var(--shadow-card);
-  overflow: hidden;
-  transition: transform 0.15s ease;
-}
-
-.card:hover {
-  transform: translateY(-3px);
+  min-width: 0;
 }
 
 .thumb {
   position: relative;
   aspect-ratio: 16 / 10;
-  background: linear-gradient(135deg, var(--c-navy), var(--c-blue));
+  margin-bottom: 14px;
+  border-radius: var(--radius-m);
+  overflow: hidden;
+  background: var(--c-bg-soft);
 }
 
 .thumb img {
   object-fit: cover;
+  transition: transform 0.3s ease;
 }
 
-.noThumb {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--c-on-dark-sub);
-  font-weight: 700;
-}
-
-.body {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 16px 18px 20px;
+.card:hover .thumb img {
+  transform: scale(1.04);
 }
 
 .category {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--c-blue);
 }
 
 .title {
-  font-size: 16px;
+  margin-top: 4px;
+  font-size: 17px;
+  font-weight: 700;
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -61,7 +45,43 @@
   overflow: hidden;
 }
 
+.card:hover .title {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .date {
+  margin-top: 6px;
   font-size: 13px;
   color: var(--c-text-sub);
+}
+
+@media (max-width: 960px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .scroll {
+    display: flex;
+    gap: 14px;
+    margin: 0 calc(var(--gutter) * -1);
+    padding: 0 var(--gutter);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding: 0 var(--gutter);
+    scrollbar-width: none;
+  }
+
+  .scroll .card {
+    flex: 0 0 78%;
+    scroll-snap-align: start;
+  }
+}
+
+@media (max-width: 480px) {
+  .grid:not(.scroll) {
+    grid-template-columns: 1fr;
+  }
 }
