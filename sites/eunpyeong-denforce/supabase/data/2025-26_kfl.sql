@@ -23,7 +23,7 @@ where id = 1;
 delete from public.history_items;
 insert into public.history_items (year, text, sort_order) values
   ('2026-27', 'FK리그 2부(FK2) 소속', 10),
-  ('2025-26', 'FK리그 1부(FK1) 5위 · 승강 플레이오프 출전', 20),
+  ('2025-26', 'FK리그 1부(FK1) 5위 · 승강 플레이오프 패배 — 2부 강등', 20),
   ('2025', 'FK CUP 준우승', 30),
   ('2025', '덴포스(Denforce) 네이밍 스폰서 계약 — 팀명 ''서울은평 덴포스''로 변경', 40),
   ('2023', 'FK CUP 3위', 50),

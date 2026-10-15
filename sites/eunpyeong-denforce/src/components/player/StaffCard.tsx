@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { EmblemFallback } from "@/components/ui/EmblemFallback";
+import { SITE } from "@/config/site";
 import type { Staff } from "@/types";
 import styles from "./PlayerCard.module.css";
 
@@ -11,7 +11,10 @@ export function StaffCard({ staff }: { staff: Staff }) {
         {staff.photo ? (
           <Image src={staff.photo} alt="" fill sizes="(max-width: 720px) 45vw, 220px" />
         ) : (
-          <EmblemFallback />
+          // 사진이 없으면 빈 회색 칸 대신 파란 브랜드 카드
+          <div className={styles.brand} aria-hidden>
+            <Image src={SITE.emblemMark} alt="" width={67} height={86} />
+          </div>
         )}
       </div>
       <strong className={styles.name}>{staff.name}</strong>

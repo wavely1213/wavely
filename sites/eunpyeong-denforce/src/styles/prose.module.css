@@ -65,6 +65,11 @@
   color: var(--c-blue);
 }
 
+/* 항목 이름이 긴 목록(프런트 직책 등) — 값 열을 한 줄로 맞춘다 */
+.listWide li > :first-child {
+  min-width: 150px;
+}
+
 .split {
   display: grid;
   grid-template-columns: 1fr 1fr;
