@@ -16,7 +16,7 @@ const kfa = localFont({
 export const metadata: Metadata = {
   title: { default: SITE.name, template: `%s | ${SITE.name}` },
   description: SITE.tagline,
-  icons: { icon: SITE.emblem },
+  icons: { icon: SITE.emblemMark },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

@@ -21,16 +21,24 @@
   min-width: 0;
 }
 
-.emblem {
-  border-radius: 4px;
-  background: var(--c-bg);
+.brandText {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+  white-space: nowrap;
 }
 
-.brandText {
+.brandText small {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--c-on-dark-sub);
+}
+
+.brandText strong {
   font-size: 19px;
   font-weight: 700;
   letter-spacing: -0.01em;
-  white-space: nowrap;
 }
 
 .menu {

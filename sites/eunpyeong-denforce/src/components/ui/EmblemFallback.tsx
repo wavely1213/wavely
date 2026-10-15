@@ -6,7 +6,7 @@ import styles from "./EmblemFallback.module.css";
 export function EmblemFallback({ label }: { label?: string | number }) {
   return (
     <div className={styles.box} aria-hidden>
-      <Image src={SITE.emblem} alt="" width={48} height={55} className={styles.emblem} />
+      <Image src={SITE.emblem} alt="" width={48} height={66} className={styles.emblem} />
       {label !== undefined && <span className={styles.label}>{label}</span>}
     </div>
   );
