@@ -1,5 +1,5 @@
 import { SITE } from "@/config/site";
-import { formatKickoffFull, matchSides } from "@/lib/format";
+import { formatKickoffFull, matchResult, matchSides, RESULT_LABEL } from "@/lib/format";
 import { groupByCompetition } from "@/lib/match";
 import prose from "@/styles/prose.module.css";
 import type { Match } from "@/types";
@@ -39,6 +39,7 @@ export function MatchTable({ matches }: { matches: Match[] }) {
 function MatchTableRow({ match }: { match: Match }) {
   const { date, time } = formatKickoffFull(match.kickoff);
   const { home, away, score } = matchSides(match, SITE.name);
+  const result = matchResult(match);
   // 홈팀이 왼쪽 (BR-002), 우리 팀 이름은 강조
   const [homeClass, awayClass] = match.isHome ? [styles.us, undefined] : [undefined, styles.us];
 
@@ -60,7 +61,17 @@ function MatchTableRow({ match }: { match: Match }) {
         </span>
       </td>
       <td className={styles.venue}>{match.venue || "-"}</td>
-      <td className={styles.score}>{score ? `${score[0]} : ${score[1]}` : "-"}</td>
+      <td className={styles.score}>
+        {score ? (
+          // 승·무·패를 색 박스로 구분 (색만으로 전달하지 않도록 글자도 숨겨 둔다)
+          <span className={`${styles.scoreBox} ${result ? styles[result] : ""}`}>
+            {result && <span className="sr-only">{RESULT_LABEL[result]} </span>}
+            {score[0]} : {score[1]}
+          </span>
+        ) : (
+          "-"
+        )}
+      </td>
     </tr>
   );
 }

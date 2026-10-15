@@ -60,6 +60,28 @@
   white-space: nowrap;
 }
 
+.scoreBox {
+  display: inline-block;
+  min-width: 60px;
+  padding: 4px 8px;
+  border-radius: var(--radius-s);
+}
+
+.W {
+  background: var(--c-win);
+  color: var(--c-on-dark);
+}
+
+.D {
+  background: var(--c-draw-tint);
+  color: var(--c-text-sub);
+}
+
+.L {
+  background: var(--c-loss-tint);
+  color: var(--c-loss);
+}
+
 .mobileRound {
   display: none;
 }
@@ -86,7 +108,12 @@
   }
 
   .result {
-    width: 52px;
+    width: 64px;
+  }
+
+  .scoreBox {
+    min-width: 52px;
+    padding: 3px 6px;
   }
 
   .table td {

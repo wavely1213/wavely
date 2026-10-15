@@ -24,9 +24,12 @@
   --c-on-dark: #ffffff;
   --c-on-dark-sub: rgba(255, 255, 255, 0.64);
 
-  --c-win: #1a349a;
+  /* 경기 결과 — 승은 초록(소유자 지정), 표의 무·패는 옅은 바탕(tint) */
+  --c-win: #17a34a;
   --c-draw: #8a8f9c;
+  --c-draw-tint: #eef0f3;
   --c-loss: #d63b3b;
+  --c-loss-tint: #fdeded;
 
   --font: var(--font-kfa), "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
 
