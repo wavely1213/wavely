@@ -71,6 +71,8 @@ insert into public.players (slug, number, name, position, apps, goals, assists) 
   ('no-77', 77, '김영록', 'PIVO', 12, 10, 0),
   ('no-95', 95, '박결', 'FIXO', 0, 0, 0),
   ('no-99', 99, '한견희', 'PIVO', 0, 0, 0);
+-- 박영완 이적(2026-10-16, 구단 인스타그램 GOOD LUCK) — 2025-26 기록은 남기고 공개 명단에서만 뺀다
+update public.players set is_active = false where slug = 'no-25';
 
 -- 스태프: 연맹 구단 소개 기준 + 26-27 신임 정상현 감독·김기범 수석코치 (전 감독 장성호 퇴임 — 구단 인스타그램)
 delete from public.staff;
