@@ -1,7 +1,7 @@
 // 메인 스폰서 띠(한 줄 자동 흐름) 도우미 (D-029)
 
-/** 띠 절반(한 바퀴)에 들어갈 최소 칸 수 — 넓은 화면에서도 끝이 비어 보이지 않게 */
-export const MARQUEE_MIN_ITEMS = 12;
+/** 띠 절반(한 바퀴)에 들어갈 최소 칸 수 — 가장 좁은 칸(정사각 로고 64 + 여백 80 = 144px)으로도 4K(3840px) 화면을 덮어 끝이 비지 않게 */
+export const MARQUEE_MIN_ITEMS = 28;
 /** 칸 하나가 지나가는 시간(초) — 칸 수에 비례해 속도를 일정하게 */
 export const MARQUEE_SECONDS_PER_ITEM = 4;
 
