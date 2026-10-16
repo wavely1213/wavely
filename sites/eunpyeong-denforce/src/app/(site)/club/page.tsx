@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { COMMUNITY, NATIONAL_TEAM_ALUMNI, ORGANIZATION } from "@/data/club";
-import { getClubSettings } from "@/lib/repo";
+import { COMMUNITY, ORGANIZATION } from "@/data/club";
+import { getClubSettings, getNationalTeamAlumni } from "@/lib/repo";
 import styles from "@/styles/prose.module.css";
 
 export const metadata: Metadata = { title: "구단소개" };
 
 export default async function ClubPage() {
-  const { intro } = await getClubSettings();
+  const [{ intro }, alumni] = await Promise.all([getClubSettings(), getNationalTeamAlumni()]);
   return (
     <>
       <PageHeader title="구단소개" current="/club" />
@@ -40,29 +40,31 @@ export default async function ClubPage() {
           </div>
         </section>
 
-        <section>
-          <h2 className={styles.h2}>배출 풋살 국가대표</h2>
-          <div className={styles.tableWrap}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th className={styles.left}>이름</th>
-                  <th>포지션</th>
-                  <th className={styles.left}>국가대표 발탁</th>
-                </tr>
-              </thead>
-              <tbody>
-                {NATIONAL_TEAM_ALUMNI.map((a) => (
-                  <tr key={a.name}>
-                    <td className={styles.left}>{a.name}</td>
-                    <td>{a.position}</td>
-                    <td className={styles.left}>{a.years}</td>
+        {alumni.length > 0 && (
+          <section>
+            <h2 className={styles.h2}>배출 풋살 국가대표</h2>
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th className={styles.left}>이름</th>
+                    <th>포지션</th>
+                    <th className={styles.left}>국가대표 발탁</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
+                </thead>
+                <tbody>
+                  {alumni.map((a) => (
+                    <tr key={a.id}>
+                      <td className={styles.left}>{a.name}</td>
+                      <td>{a.position}</td>
+                      <td className={styles.left}>{a.years}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
 
         <section>
           <h2 className={styles.h2}>지역 활동</h2>

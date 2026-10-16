@@ -94,6 +94,9 @@ export type Sponsor = {
 
 export type HistoryItem = { id: string; year: string; text: string };
 
+/** 배출 풋살 국가대표 (구단소개 표, D-043) */
+export type NationalTeamAlumnus = { id: string; name: string; position: string; years: string };
+
 /** 관리자 화면에서 고치는 구단 정보 (단일) */
 export type ClubSettings = {
   intro: string[]; // 문단 목록

@@ -1,7 +1,7 @@
 // DB 행 → 도메인 변환 단위 테스트 — 실행: npm test
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { splitParagraphs, toClubSettings, toMatch, toNewsPost, toPlayer, toPosting } from "../src/lib/data/rows.ts";
+import { splitParagraphs, toAlumnus, toClubSettings, toMatch, toNewsPost, toPlayer, toPosting } from "../src/lib/data/rows.ts";
 
 test("splitParagraphs: 빈 줄 기준, 공백 줄·앞뒤 공백 정리", () => {
   assert.deepEqual(splitParagraphs("첫 문단\n이어짐\n\n  둘째 문단  \n \n\n셋째"), ["첫 문단\n이어짐", "둘째 문단", "셋째"]);
@@ -50,4 +50,13 @@ test("toPosting: 날짜·썸네일 필드명 변환 (공개 열만 — 요약 �
   assert.equal(r.thumbnail, null);
   assert.equal(r.platform, "naver_blog");
   assert.equal("excerpt" in r, false);
+});
+
+test("toAlumnus: 배출 국가대표 행 → 표 한 줄 (표시 순서는 빼고)", () => {
+  assert.deepEqual(toAlumnus({ id: "x", name: "이우진", position: "GK", years: "2014, 2015", sort_order: 20 }), {
+    id: "x",
+    name: "이우진",
+    position: "GK",
+    years: "2014, 2015",
+  });
 });

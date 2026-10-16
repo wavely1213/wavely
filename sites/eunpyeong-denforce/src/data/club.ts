@@ -1,5 +1,5 @@
 // 구단 기본 정보. 출처: 서울은평 풋살팀 스폰서십 제안서(2025-26), 위키백과(팀명 변천·감독).
-import type { ClubSettings, HistoryItem } from "@/types";
+import type { ClubSettings, HistoryItem, NationalTeamAlumnus } from "@/types";
 
 const CLUB_INTRO = [
   "서울은평 덴포스는 2012년 창단한 서울 은평구 연고의 풋살팀으로, 대한민국 풋살 세미프로 리그 FK리그에 참가하고 있습니다.",
@@ -45,18 +45,19 @@ export const ORGANIZATION = [
   { group: "유소년", items: ["U-18 (고등부)", "U-15 (중등부)", "U-12 (초등부)", "U-6 (유치부)"] },
 ];
 
-export const NATIONAL_TEAM_ALUMNI = [
-  { name: "최경진", position: "FP", years: "2013, 2014, 2017" },
-  { name: "이우진", position: "GK", years: "2014, 2015, 2019, 2020, 2021, 2022" },
-  { name: "전원조", position: "FP", years: "2014, 2015" },
-  { name: "이경호", position: "GK", years: "2014" },
-  { name: "이주섭", position: "FP", years: "2014" },
-  { name: "박영재", position: "FP", years: "2018" },
-  { name: "조병걸", position: "FP", years: "2018, 2019" },
-  { name: "이안", position: "FP", years: "2018, 2021" },
-  { name: "이준원", position: "FP", years: "2019, 2020, 2021" },
-  { name: "이한울", position: "FP", years: "2020, 2021, 2022" },
-  { name: "강주광", position: "FP", years: "2020, 2021, 2022" },
+/** 정적 모드 기본값 — DB 모드에서는 national_team_alumni 테이블(관리자 › 구단정보)이 대신한다 (D-043) */
+export const NATIONAL_TEAM_ALUMNI: NationalTeamAlumnus[] = [
+  { id: "a1", name: "최경진", position: "FP", years: "2013, 2014, 2017" },
+  { id: "a2", name: "이우진", position: "GK", years: "2014, 2015, 2019, 2020, 2021, 2022" },
+  { id: "a3", name: "전원조", position: "FP", years: "2014, 2015" },
+  { id: "a4", name: "이경호", position: "GK", years: "2014" },
+  { id: "a5", name: "이주섭", position: "FP", years: "2014" },
+  { id: "a6", name: "박영재", position: "FP", years: "2018" },
+  { id: "a7", name: "조병걸", position: "FP", years: "2018, 2019" },
+  { id: "a8", name: "이안", position: "FP", years: "2018, 2021" },
+  { id: "a9", name: "이준원", position: "FP", years: "2019, 2020, 2021" },
+  { id: "a10", name: "이한울", position: "FP", years: "2020, 2021, 2022" },
+  { id: "a11", name: "강주광", position: "FP", years: "2020, 2021, 2022" },
 ];
 
 export const COMMUNITY = [

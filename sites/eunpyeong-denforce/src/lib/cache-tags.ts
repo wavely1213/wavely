@@ -2,6 +2,7 @@
 export const TAGS = {
   club: "club",
   history: "history",
+  alumni: "alumni",
   players: "players",
   staff: "staff",
   matches: "matches",

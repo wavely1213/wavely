@@ -73,7 +73,7 @@ proxy.ts (/admin/*) ─→ 세션 쿠키 갱신만 (권한 판단 X)
 ## 5. 데이터 모델 요약
 
 DB 진실의 원천: `supabase/migrations/*.sql`. 실데이터 적재본: `supabase/data/*.sql` (연맹·인스타그램 출처, D-010). 도메인 타입: `src/types/index.ts`, DB 행 타입·변환: `src/lib/data/rows.ts`.
-- 테이블: admins(허용 목록), club_settings(단일 행 — 연락처·SNS·주소 + 링크 미리보기 이미지·제목·설명 og_*·admin_og_*, D-037·D-038), history_items, players, staff, matches, standings(season = 대회명, played·points 생성 컬럼 — D-020), news_posts(published, thumbnail_url 목록용 + images 상세 사진 배열 — D-017), postings(바깥 글 모음: kind·platform·원문 url 유일·posted_on·published — D-022), sponsors
+- 테이블: admins(허용 목록), club_settings(단일 행 — 연락처·SNS·주소 + 링크 미리보기 이미지·제목·설명 og_*·admin_og_*, D-037·D-038), history_items, national_team_alumni(배출 풋살 국가대표 — D-043), players, staff, matches, standings(season = 대회명, played·points 생성 컬럼 — D-020), news_posts(published, thumbnail_url 목록용 + images 상세 사진 배열 — D-017), postings(바깥 글 모음: kind·platform·원문 url 유일·posted_on·published — D-022), sponsors
 - 공통: uuid id, updated_at·updated_by(트리거), check 제약 = 폼 검증 범위
 - 저장소: 버킷 `media` (공개 읽기, 관리자 쓰기), 경로 `<news|players|staff|sponsors|postings|og>/<uuid>.<ext>` (일괄 적재한 포스팅 사진은 `postings/<url 해시>.jpg`, 처음 받은 스폰서 로고는 `sponsors/<영문 이름>.png` — D-029)
 

@@ -3,6 +3,7 @@ import { CLUB_SETTINGS } from "@/data/club";
 import { createPublicClient } from "@/lib/supabase/public";
 import type { DataSource } from "./source";
 import {
+  toAlumnus,
   toClubSettings,
   toHistoryItem,
   toMatch,
@@ -12,6 +13,7 @@ import {
   toSponsor,
   toStaff,
   toStanding,
+  type AlumniRow,
   type ClubSettingsRow,
   type HistoryRow,
   type MatchRow,
@@ -39,6 +41,10 @@ export const dbSource: DataSource = {
   async history() {
     const res = await createPublicClient().from("history_items").select("*").order("sort_order").returns<HistoryRow[]>();
     return unwrap("history_items", res).map(toHistoryItem);
+  },
+  async nationalTeamAlumni() {
+    const res = await createPublicClient().from("national_team_alumni").select("*").order("sort_order").returns<AlumniRow[]>();
+    return unwrap("national_team_alumni", res).map(toAlumnus);
   },
   async players() {
     const res = await createPublicClient().from("players").select("*").eq("is_active", true).returns<PlayerRow[]>();

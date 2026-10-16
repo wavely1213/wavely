@@ -4,6 +4,7 @@ import type {
   ClubSettings,
   HistoryItem,
   Match,
+  NationalTeamAlumnus,
   NewsCategory,
   NewsPost,
   Player,
@@ -100,6 +101,8 @@ export type SponsorRow = {
 };
 
 export type HistoryRow = { id: string; year: string; text: string; sort_order: number };
+
+export type AlumniRow = { id: string; name: string; position: string; years: string; sort_order: number };
 
 export type ClubSettingsRow = {
   intro: string;
@@ -211,6 +214,8 @@ export const toSponsor = (r: SponsorRow): Sponsor => ({
 });
 
 export const toHistoryItem = (r: HistoryRow): HistoryItem => ({ id: r.id, year: r.year, text: r.text });
+
+export const toAlumnus = (r: AlumniRow): NationalTeamAlumnus => ({ id: r.id, name: r.name, position: r.position, years: r.years });
 
 export const toClubSettings = (r: ClubSettingsRow): ClubSettings => ({
   intro: splitParagraphs(r.intro),

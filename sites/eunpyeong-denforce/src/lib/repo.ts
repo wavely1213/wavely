@@ -44,6 +44,14 @@ export async function getHistory() {
   return source().history();
 }
 
+/** 배출 풋살 국가대표 (구단소개 표) — 관리자 › 구단정보에서 고친다 (D-043) */
+export async function getNationalTeamAlumni() {
+  "use cache";
+  cacheTag(TAGS.alumni);
+  cacheLife("minutes");
+  return source().nationalTeamAlumni();
+}
+
 // ── 경기 ─────────────────────────────────────
 
 export async function getMatches(): Promise<Match[]> {
