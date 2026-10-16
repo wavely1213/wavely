@@ -70,6 +70,8 @@ export type NewsRow = {
   images: string[];
   summary: string;
   body: string;
+  video_url: string | null;
+  featured: boolean;
   published: boolean;
   created_at: string;
 };
@@ -174,6 +176,8 @@ export const toNewsPost = (r: NewsRow): NewsPost => {
     images,
     summary: r.summary,
     body: splitParagraphs(r.body),
+    videoUrl: r.video_url ?? null, // 마이그레이션 전 DB 에는 열이 없다
+    featured: r.featured ?? false,
   };
 };
 

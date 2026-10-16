@@ -9,6 +9,7 @@ import { MAX_NEWS_IMAGES } from "@/lib/admin/image-list";
 import { removeImages, resolveImage, resolveImages } from "@/lib/admin/storage";
 import type { NewsRow } from "@/lib/data/rows";
 import { NEWS_CATEGORIES } from "@/lib/params";
+import { parseVideoUrl } from "@/lib/video";
 
 // 구단소식 관리 서버 액션 — 모든 액션이 직접 관리자 권한을 확인한다 (페이지 검사에 기대지 않음).
 // 순서: 권한 → 입력 검증 → 이미지 업로드 → DB 저장 → updateTag → redirect
@@ -41,8 +42,17 @@ function readNews(f: FormReader) {
     }),
     summary: f.text("summary", { label: "요약", max: 300, required: false }),
     body: f.text("body", { label: "본문", required: false }),
+    video_url: readVideoUrl(f),
+    featured: f.bool("featured"),
     published: f.bool("published"),
   };
+}
+
+/** 구단영상 주소 (선택) — 유튜브·인스타그램만, 글 상세에서 재생 (D-035) */
+function readVideoUrl(f: FormReader): string | null {
+  const v = f.optText("video_url", { label: "영상 주소", max: 300 });
+  if (v && !parseVideoUrl(v)) f.reject("video_url", "유튜브(watch·shorts·youtu.be) 또는 인스타그램(게시물·릴스) https 주소만 넣을 수 있습니다.");
+  return v;
 }
 
 export async function createNews(_prev: ActionState, fd: FormData): Promise<ActionState> {

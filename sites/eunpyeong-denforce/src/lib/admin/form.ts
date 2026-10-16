@@ -34,6 +34,11 @@ export class FormReader {
     if (!this.errors[name]) this.errors[name] = message;
   }
 
+  /** 정규식으로 못 거르는 검사(예: 영상 주소 해석)를 액션에서 직접 할 때 오류를 남긴다 */
+  reject(name: string, message: string) {
+    this.fail(name, message);
+  }
+
   /** 필수 문자열 (비면 오류) */
   text(name: string, opts: TextOpts): string {
     const v = this.raw(name);

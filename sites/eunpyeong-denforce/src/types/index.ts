@@ -61,6 +61,8 @@ export type NewsPost = {
   images: string[]; // 상세 화면 사진 (순서대로)
   summary: string;
   body: string[];
+  videoUrl: string | null; // 구단영상 — 상세에서 재생 (D-035)
+  featured: boolean; // 구단소식 메인 배너 고정 (D-035)
 };
 
 /** 포스팅 분류: 구단이 올린 글 / 언론 기사 / 팬·외부 글 (D-022) / 한국풋살연맹 공식 영상 (D-032) */

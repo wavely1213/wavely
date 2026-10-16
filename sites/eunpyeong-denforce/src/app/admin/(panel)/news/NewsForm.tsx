@@ -31,6 +31,14 @@ export function NewsForm({
       <TextField name="title" label="제목" required maxLength={120} defaultValue={initial?.title} />
       <TextArea name="summary" label="요약" rows={3} hint="300자 이하" defaultValue={initial?.summary} />
       <TextArea name="body" label="본문" hint="빈 줄(엔터 두 번)로 문단을 나눕니다." defaultValue={initial?.body} />
+      <TextField
+        name="video_url"
+        label="영상 주소"
+        type="url"
+        maxLength={300}
+        hint="구단영상: 유튜브·인스타그램(릴스) 주소를 넣으면 글 상세에서 바로 재생됩니다. 목록 카드 사진은 썸네일을 올려 주세요."
+        defaultValue={initial?.video_url}
+      />
       <ImageField
         name="thumbnail"
         label="썸네일"
@@ -44,6 +52,7 @@ export function NewsForm({
         currentUrls={initial?.images}
         batchBytes={MAX_UPLOAD_BATCH_BYTES}
       />
+      <CheckboxField name="featured" label="구단소식 맨 위 메인 배너에 고정 (고정한 글이 없으면 최근 소식이 자동으로 나옵니다)" defaultChecked={initial?.featured ?? false} />
       <CheckboxField name="published" label="홈페이지에 공개" defaultChecked={initial?.published ?? true} />
     </AdminForm>
   );

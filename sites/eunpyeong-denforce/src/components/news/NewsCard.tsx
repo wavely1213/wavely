@@ -19,9 +19,19 @@ export function NewsCard({ post }: { post: NewsPost }) {
         ) : (
           <EmblemFallback />
         )}
+        {post.videoUrl && (
+          <span className={styles.play} aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="18" height="18">
+              <path d="M8 5v14l11-7z" fill="currentColor" />
+            </svg>
+          </span>
+        )}
       </div>
       <span className={styles.category}>{NEWS_CATEGORY_LABEL[post.category]}</span>
-      <strong className={styles.title}>{post.title}</strong>
+      <strong className={styles.title}>
+        {post.title}
+        {post.videoUrl && <span className="sr-only"> (영상)</span>}
+      </strong>
       {post.date && <span className={styles.date}>{formatPostDate(post.date)}</span>}
     </Link>
   );

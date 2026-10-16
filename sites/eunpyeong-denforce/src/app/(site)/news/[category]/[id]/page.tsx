@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { NewsGallery } from "@/components/news/NewsGallery";
+import { VideoEmbed } from "@/components/news/VideoEmbed";
 import { LinkifiedText } from "@/components/ui/LinkifiedText";
 import { NEWS_CATEGORY_LABEL } from "@/data/news";
 import { formatPostDate } from "@/lib/format";
@@ -41,11 +42,14 @@ export default async function NewsPostPage({ params }: PageProps<"/news/[categor
           <h2 className={styles.h2}>{post.title}</h2>
           <p className={styles.note}>{formatPostDate(post.date)}</p>
         </header>
-        {/* BR-015: 상세 사진이 있으면 사진 전부, 없으면 썸네일 한 장 */}
+        {/* 구단영상은 영상을 맨 위에서 재생, 사진은 그 아래 (D-035) */}
+        {post.videoUrl && <VideoEmbed url={post.videoUrl} title={post.title} />}
+        {/* BR-015: 상세 사진이 있으면 사진 전부, 없으면 썸네일 한 장 (영상 글은 썸네일을 다시 보이지 않는다) */}
         {post.images.length > 0 ? (
           <NewsGallery images={post.images} title={post.title} />
         ) : (
-          post.thumbnail && (
+          post.thumbnail &&
+          !post.videoUrl && (
             <div className={styles.figure}>
               <Image src={post.thumbnail} alt="" fill sizes="(max-width: 1200px) 100vw, 1200px" />
             </div>

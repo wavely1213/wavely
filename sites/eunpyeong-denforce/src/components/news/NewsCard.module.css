@@ -33,6 +33,20 @@
   transform: scale(1.04);
 }
 
+/* 구단영상 표시 (D-035) */
+.play {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--c-black) 70%, transparent);
+  color: var(--c-on-dark);
+}
+
 .category {
   font-size: 13px;
   font-weight: 700;
