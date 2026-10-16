@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "@/components/admin/AdminLink";
+import { DeleteButton } from "@/components/admin/DeleteButton";
 import { AdminLoading, PageTitle } from "@/components/admin/PageTitle";
 import styles from "@/components/admin/admin.module.css";
 import { requireAdminPage } from "@/lib/admin/auth";
 import type { StaffRow } from "@/lib/data/rows";
+import { deleteStaff } from "./actions";
 
 export const metadata: Metadata = { title: "코칭스태프" };
 
@@ -42,6 +44,9 @@ async function StaffList() {
             <th>사진</th>
             <th>직책</th>
             <th>이름</th>
+            <th>
+              <span className="sr-only">수정·삭제</span>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -61,6 +66,19 @@ async function StaffList() {
                 <Link href={`/admin/staff/${s.id}`} className={styles.rowLink}>
                   {s.name}
                 </Link>
+              </td>
+              <td>
+                <div className={styles.rowActions}>
+                  <Link href={`/admin/staff/${s.id}`} className={`${styles.buttonGhost} ${styles.buttonSmall}`}>
+                    수정
+                  </Link>
+                  <DeleteButton
+                    action={deleteStaff.bind(null, s.id)}
+                    label="삭제"
+                    small
+                    confirmText={`${s.role} ${s.name} 님을 명단에서 삭제할까요?\n사진도 함께 지워지고 되돌릴 수 없습니다.`}
+                  />
+                </div>
               </td>
             </tr>
           ))}

@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "@/components/admin/AdminLink";
+import { DeleteButton } from "@/components/admin/DeleteButton";
 import { AdminLoading, PageTitle } from "@/components/admin/PageTitle";
 import styles from "@/components/admin/admin.module.css";
 import { POSITION_LABEL, POSITION_ORDER } from "@/data/people";
 import { requireAdminPage } from "@/lib/admin/auth";
 import type { PlayerRow } from "@/lib/data/rows";
+import { deletePlayer } from "./actions";
 
 export const metadata: Metadata = { title: "선수" };
 
@@ -62,6 +64,9 @@ async function PlayerList() {
             <th>득점</th>
             <th>도움</th>
             <th>상태</th>
+            <th>
+              <span className="sr-only">수정·삭제</span>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -91,6 +96,19 @@ async function PlayerList() {
                 ) : (
                   <span className={styles.badge}>비활동</span>
                 )}
+              </td>
+              <td>
+                <div className={styles.rowActions}>
+                  <Link href={`/admin/players/${p.id}`} className={`${styles.buttonGhost} ${styles.buttonSmall}`}>
+                    수정
+                  </Link>
+                  <DeleteButton
+                    action={deletePlayer.bind(null, p.id)}
+                    label="삭제"
+                    small
+                    confirmText={`${p.number != null ? `No.${p.number} ` : ""}${p.name} 선수를 명단에서 삭제할까요?\n기록·사진도 함께 지워지고 되돌릴 수 없습니다.\n(잠시 빼 두려면 수정 화면에서 '활동 중'을 끄면 홈페이지에서만 숨겨집니다)`}
+                  />
+                </div>
               </td>
             </tr>
           ))}

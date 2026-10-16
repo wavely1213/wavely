@@ -338,6 +338,20 @@
   border-color: var(--c-loss);
 }
 
+/* 목록 줄 안의 작은 버튼 (예: 선수·스태프 목록의 수정·삭제) */
+.buttonSmall {
+  min-height: 32px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+.rowActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  white-space: nowrap;
+}
+
 /* ── 폼 ───────────────────────────────── */
 .form {
   display: flex;
