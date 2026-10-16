@@ -7,7 +7,7 @@ import type { Posting, PostingKind, PostingPlatform } from "@/types";
 import { PostingCard } from "./PostingCard";
 import styles from "./PostingBoard.module.css";
 
-/** 포스팅 목록 — 왼쪽 분류 탭(전체·구단·뉴스·팬) + 오른쪽 출처 칩 + 카드 격자, '더 보기'로 늘린다 */
+/** 포스팅 목록 — 왼쪽 분류 탭(전체·구단·뉴스·팬·FK리그, 전체에는 FK리그 제외) + 오른쪽 출처 칩 + 카드 격자, '더 보기'로 늘린다 */
 export function PostingBoard({ postings }: { postings: Posting[] }) {
   const [kind, setKind] = useState<PostingKind | null>(null);
   const [platform, setPlatform] = useState<PostingPlatform | null>(null);

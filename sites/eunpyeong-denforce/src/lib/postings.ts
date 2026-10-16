@@ -22,15 +22,22 @@ export function byPostedDesc(a: Posting, b: Posting): number {
 
 export type PostingFilter = { kind: PostingKind | null; platform: PostingPlatform | null };
 
-/** null 은 전체 */
+/** '전체' 탭에 넣지 않는 분류 — FK리그(한국풋살연맹 영상)는 자기 탭에서만 보인다 (D-032, 소유자 지시) */
+export const KINDS_OUTSIDE_ALL: readonly PostingKind[] = ["league"];
+const inAll = (p: Posting) => !KINDS_OUTSIDE_ALL.includes(p.kind);
+
+/** kind null 은 '전체'(FK리그 제외) */
 export function filterPostings(list: Posting[], { kind, platform }: PostingFilter): Posting[] {
-  return list.filter((p) => (!kind || p.kind === kind) && (!platform || p.platform === platform));
+  return list.filter((p) => (kind ? p.kind === kind : inAll(p)) && (!platform || p.platform === platform));
 }
 
-/** 분류 탭 개수 — all 은 전체 */
+/** 분류 탭 개수 — all 은 '전체' 탭(FK리그 제외) */
 export function countByKind(list: Posting[]): Record<PostingKind | "all", number> {
-  const counts = { all: list.length, club: 0, news: 0, fan: 0, league: 0 };
-  for (const p of list) counts[p.kind] += 1;
+  const counts = { all: 0, club: 0, news: 0, fan: 0, league: 0 };
+  for (const p of list) {
+    counts[p.kind] += 1;
+    if (inAll(p)) counts.all += 1;
+  }
   return counts;
 }
 
