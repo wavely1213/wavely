@@ -27,6 +27,12 @@
 
 <!-- 최신 항목을 위에 추가. 심각도 '높음'은 발견 즉시 소유자에게 별도 보고 -->
 
+## I-028 | 2026-10-16 | eunpyeong-fs.com DNS 레코드 입력 대기 (가비아)
+- **상태**: 열림 (소유자 작업 대기)
+- **심각도**: 중간
+- **증상/내용**: Vercel 에는 도메인을 추가했지만(D-024) 가비아 DNS 레코드가 0개라 아직 접속되지 않는다(Vercel 'misconfigured').
+- **해결 방향**: 가비아 DNS 관리 → 레코드 수정에 A `@` 216.198.79.1, CNAME `www` 28dd416c47e68d56.vercel-dns-017.com. (TTL 600) 입력 → 수 분~수 시간 뒤 Vercel 인증서 발급 확인. 이후 Supabase Authentication → URL Configuration 의 Site URL 을 https://eunpyeong-fs.com 으로(SUPABASE_SETUP 3번), PROJECT_CONTEXT 주소 갱신.
+
 ## I-027 | 2026-10-16 | 포스팅은 2026-10-16 시점 수집본 (자동 갱신 없음)
 - **상태**: 열림
 - **심각도**: 낮음
