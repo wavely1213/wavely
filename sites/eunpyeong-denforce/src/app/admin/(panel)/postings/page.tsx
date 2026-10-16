@@ -99,7 +99,7 @@ async function PostingList({ searchParams }: { searchParams: SearchParams }) {
                   <td>
                     {p.thumbnail_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={p.thumbnail_url} alt="" className={styles.thumb} />
+                      <img src={p.thumbnail_url} alt="" className={styles.thumb} loading="lazy" decoding="async" />
                     ) : (
                       <span className={styles.badge}>없음</span>
                     )}

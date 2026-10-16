@@ -1,7 +1,7 @@
 // 포스팅 목록 도우미 단위 테스트 — 실행: npm test
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { byPostedDesc, countByKind, filterPostings, platformCounts } from "../src/lib/postings.ts";
+import { byPostedDesc, countByKind, filterPostings, isPreshrunkThumbnail, platformCounts } from "../src/lib/postings.ts";
 import type { Posting } from "../src/types/index.ts";
 
 const p = (id: string, kind: Posting["kind"], platform: Posting["platform"], date: string, title = id): Posting => ({
@@ -10,7 +10,6 @@ const p = (id: string, kind: Posting["kind"], platform: Posting["platform"], dat
   platform,
   title,
   author: "",
-  excerpt: "",
   url: `https://example.com/${id}`,
   thumbnail: null,
   date,
@@ -49,4 +48,12 @@ test("platformCounts: 고른 분류 안에서 글 있는 출처만, 많은 순 �
     platformCounts(list, null).map((c) => c.platform),
     ["naver_blog", "naver_cafe", "article", "youtube"],
   );
+});
+
+test("isPreshrunkThumbnail: 일괄 적재 사진(url 해시 16자 .jpg)만 true, 관리자 업로드(uuid)는 false", () => {
+  const base = "https://x.supabase.co/storage/v1/object/public/media/postings/";
+  assert.equal(isPreshrunkThumbnail(`${base}f204c86537b82aa3.jpg`), true);
+  assert.equal(isPreshrunkThumbnail(`${base}0b6f2a4e-1c2d-4e5f-8a9b-0c1d2e3f4a5b.jpg`), false);
+  assert.equal(isPreshrunkThumbnail(`${base}f204c86537b82aa3.png`), false);
+  assert.equal(isPreshrunkThumbnail("https://x.supabase.co/storage/v1/object/public/media/news/f204c86537b82aa3.jpg"), false);
 });

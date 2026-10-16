@@ -11,6 +11,13 @@ import { POSTING_KINDS, POSTING_PLATFORMS } from "@/lib/postings";
 // 포스팅(바깥 글 모음) 관리 서버 액션 — 모든 액션이 직접 관리자 권한을 확인한다 (D-022).
 // 순서: 권한 → 입력 검증 → 이미지 업로드 → DB 저장 → updateTag → redirect
 
+// 브라우저는 textarea 줄바꿈을 CRLF 로 보낸다 — 글자 수 검사·저장을 화면과 맞추려고 LF 로 바꾼다 (구단소식과 같음)
+function postingReader(fd: FormData): FormReader {
+  const v = fd.get("excerpt");
+  if (typeof v === "string") fd.set("excerpt", v.replace(/\r\n?/g, "\n"));
+  return new FormReader(fd);
+}
+
 function readPosting(f: FormReader) {
   return {
     kind: f.choice("kind", POSTING_KINDS, "분류"),
@@ -28,7 +35,7 @@ export async function createPosting(_prev: ActionState, fd: FormData): Promise<A
   const ctx = await requireAdminAction();
   if (!ctx) return { message: NOT_ADMIN_MESSAGE };
 
-  const f = new FormReader(fd);
+  const f = postingReader(fd);
   const values = readPosting(f);
   if (f.hasErrors) return f.state();
 
@@ -53,7 +60,7 @@ export async function updatePosting(id: string, _prev: ActionState, fd: FormData
   const { data: current } = await ctx.supabase.from("postings").select("thumbnail_url").eq("id", id).maybeSingle();
   if (!current) return { message: "이미 삭제된 글입니다." };
 
-  const f = new FormReader(fd);
+  const f = postingReader(fd);
   const values = readPosting(f);
   if (f.hasErrors) return f.state();
 

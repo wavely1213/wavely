@@ -44,9 +44,10 @@ test("toClubSettings: intro 문단 분리", () => {
   assert.deepEqual(c.intro, ["가", "나"]);
 });
 
-test("toPosting: 날짜·썸네일 필드명 변환", () => {
-  const r = toPosting({ id: "p", kind: "fan", platform: "naver_blog", title: "t", author: "a", excerpt: "e", url: "https://x", thumbnail_url: null, posted_on: "2026-04-08", published: true, created_at: "" });
+test("toPosting: 날짜·썸네일 필드명 변환 (공개 열만 — 요약 없음)", () => {
+  const r = toPosting({ id: "p", kind: "fan", platform: "naver_blog", title: "t", author: "a", url: "https://x", thumbnail_url: null, posted_on: "2026-04-08" });
   assert.equal(r.date, "2026-04-08");
   assert.equal(r.thumbnail, null);
   assert.equal(r.platform, "naver_blog");
+  assert.equal("excerpt" in r, false);
 });

@@ -177,13 +177,15 @@ export const toNewsPost = (r: NewsRow): NewsPost => {
   };
 };
 
-export const toPosting = (r: PostingRow): Posting => ({
+/** 공개 조회에 쓰는 열 (요약·공개 여부·등록 시각 제외) */
+export type PublicPostingRow = Pick<PostingRow, "id" | "kind" | "platform" | "title" | "author" | "url" | "thumbnail_url" | "posted_on">;
+
+export const toPosting = (r: PublicPostingRow): Posting => ({
   id: r.id,
   kind: r.kind,
   platform: r.platform,
   title: r.title,
   author: r.author,
-  excerpt: r.excerpt,
   url: r.url,
   thumbnail: r.thumbnail_url,
   date: r.posted_on,

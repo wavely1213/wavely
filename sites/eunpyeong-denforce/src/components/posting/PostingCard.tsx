@@ -2,6 +2,7 @@ import Image from "next/image";
 import { EmblemFallback } from "@/components/ui/EmblemFallback";
 import { POSTING_PLATFORM_LABEL } from "@/data/postings";
 import { formatPostDate } from "@/lib/format";
+import { isPreshrunkThumbnail } from "@/lib/postings";
 import type { Posting } from "@/types";
 import styles from "./PostingCard.module.css";
 
@@ -11,8 +12,14 @@ export function PostingCard({ posting }: { posting: Posting }) {
     <a href={posting.url} target="_blank" rel="noopener noreferrer" className={styles.card}>
       <div className={styles.thumb}>
         {posting.thumbnail ? (
-          // 대표 사진은 적재 때 640×480 으로 줄여 두었다 — 수백 장이라 Vercel 이미지 최적화(무료 한도)를 거치지 않고 Storage 에서 바로 받는다 (D-022)
-          <Image src={posting.thumbnail} alt="" fill unoptimized loading="lazy" />
+          // 일괄 적재한 사진은 이미 640×480 이라 Vercel 이미지 최적화(무료 한도)를 거치지 않고 Storage 에서 바로 받는다 (D-022)
+          <Image
+            src={posting.thumbnail}
+            alt=""
+            fill
+            sizes="(max-width: 560px) 100vw, (max-width: 960px) 50vw, 300px"
+            unoptimized={isPreshrunkThumbnail(posting.thumbnail)}
+          />
         ) : (
           <EmblemFallback />
         )}

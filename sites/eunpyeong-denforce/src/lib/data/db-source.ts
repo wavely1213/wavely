@@ -17,7 +17,7 @@ import {
   type MatchRow,
   type NewsRow,
   type PlayerRow,
-  type PostingRow,
+  type PublicPostingRow,
   type SponsorRow,
   type StaffRow,
   type StandingDbRow,
@@ -68,10 +68,11 @@ export const dbSource: DataSource = {
   async postings() {
     const res = await createPublicClient()
       .from("postings")
-      .select("*")
+      // 요약(excerpt)은 관리용이라 공개 화면에 보내지 않는다 (목록 전체가 클라이언트로 넘어간다)
+      .select("id, kind, platform, title, author, url, thumbnail_url, posted_on")
       .eq("published", true)
       .order("posted_on", { ascending: false })
-      .returns<PostingRow[]>();
+      .returns<PublicPostingRow[]>();
     return unwrap("postings", res).map(toPosting);
   },
   async sponsors() {

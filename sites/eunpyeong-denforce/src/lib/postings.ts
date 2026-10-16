@@ -7,6 +7,14 @@ export const POSTING_PLATFORMS: readonly PostingPlatform[] = ["naver_blog", "nav
 /** 한 번에 보여 줄 카드 수 ('더 보기'로 이만큼씩 늘린다) */
 export const POSTINGS_PAGE_SIZE = 24;
 
+/**
+ * 일괄 적재 때 640×480 으로 줄여 둔 대표 사진(media/postings/<url 해시 16자>.jpg)인지.
+ * 이 사진은 이미지 최적화를 거치지 않고 바로 받는다 — 관리자가 올린 원본(postings/<uuid>.<ext>)은 최적화 (D-022)
+ */
+export function isPreshrunkThumbnail(url: string): boolean {
+  return /\/media\/postings\/[0-9a-f]{16}\.jpg$/.test(url);
+}
+
 /** 최근 글 먼저, 같은 날이면 제목 가나다순 (순서 고정) */
 export function byPostedDesc(a: Posting, b: Posting): number {
   return b.date.localeCompare(a.date) || a.title.localeCompare(b.title, "ko");

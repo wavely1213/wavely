@@ -75,7 +75,6 @@ export type Posting = {
   platform: PostingPlatform;
   title: string;
   author: string; // 블로그 이름·언론사·채널 이름
-  excerpt: string;
   url: string;
   thumbnail: string | null;
   date: string; // YYYY-MM-DD
