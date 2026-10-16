@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
   title: { default: SITE.name, template: `%s | ${SITE.name}` },
   description: DESCRIPTION,
-  icons: { icon: SITE.emblemMark },
+  // 아이콘은 파일 규칙으로: app/favicon.ico·icon.png·apple-icon.png (구단 엠블럼, 정사각)
   openGraph: {
     type: "website",
     siteName: SITE.name,
