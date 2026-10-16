@@ -29,7 +29,6 @@ export const HISTORY: HistoryItem[] = [
   { id: "h7", year: "2018-19", text: "FK리그 (2부, 드림리그) 우승 — 1부 승격" },
   { id: "h8", year: "2018", text: "FK컵 3위" },
   { id: "h9", year: "2017-18", text: "FK리그 (2부, 드림리그) 준우승" },
-  { id: "h10", year: "2016-17", text: "FK리그 (2부, 드림리그) 강등" },
   { id: "h11", year: "2012-13", text: "FK리그 첫 참가" },
   { id: "h12", year: "2012", text: "'서울은평 FS' 창단 (11월 17일)" },
 ];
