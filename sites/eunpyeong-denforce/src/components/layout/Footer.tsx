@@ -55,6 +55,10 @@ export async function Footer() {
           © {SITE.name}. All rights reserved.
         </span>
         <span className={styles.legal}>
+          <span>
+            <span className={styles.label}>대표</span>
+            {SITE.representative}
+          </span>
           <Link href="/privacy">개인정보처리방침</Link>
         </span>
       </div>

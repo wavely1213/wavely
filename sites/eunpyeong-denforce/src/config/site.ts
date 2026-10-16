@@ -9,6 +9,8 @@ export const SITE = {
   /** 방패만 (SINCE 2012 제외, 134×171) — 헤더·파비콘 */
   emblemMark: "/brand/emblem-mark.png",
   founded: "2012",
+  /** 구단 대표 — 푸터 오른쪽 아래 표기 */
+  representative: "최경진",
   homeVenue: "은평다목적체육관",
 } as const;
 

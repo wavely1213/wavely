@@ -63,6 +63,11 @@
   font-size: 12px;
 }
 
+.legal {
+  display: flex;
+  gap: 16px;
+}
+
 .legal a:hover {
   color: var(--c-on-dark);
 }
