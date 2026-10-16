@@ -2,6 +2,7 @@
 export const ADMIN_NAV = [
   { href: "/admin", label: "대시보드" },
   { href: "/admin/news", label: "구단소식" },
+  { href: "/admin/postings", label: "포스팅" },
   { href: "/admin/matches", label: "경기" },
   { href: "/admin/standings", label: "리그순위" },
   { href: "/admin/players", label: "선수" },

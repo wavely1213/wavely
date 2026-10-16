@@ -8,6 +8,7 @@ import {
   toMatch,
   toNewsPost,
   toPlayer,
+  toPosting,
   toSponsor,
   toStaff,
   toStanding,
@@ -16,6 +17,7 @@ import {
   type MatchRow,
   type NewsRow,
   type PlayerRow,
+  type PostingRow,
   type SponsorRow,
   type StaffRow,
   type StandingDbRow,
@@ -62,6 +64,15 @@ export const dbSource: DataSource = {
       .order("created_at", { ascending: false })
       .returns<NewsRow[]>();
     return unwrap("news_posts", res).map(toNewsPost);
+  },
+  async postings() {
+    const res = await createPublicClient()
+      .from("postings")
+      .select("*")
+      .eq("published", true)
+      .order("posted_on", { ascending: false })
+      .returns<PostingRow[]>();
+    return unwrap("postings", res).map(toPosting);
   },
   async sponsors() {
     const res = await createPublicClient().from("sponsors").select("*").order("sort_order").returns<SponsorRow[]>();

@@ -15,7 +15,7 @@ const EXT_BY_TYPE: Record<string, string> = {
 };
 const UPLOAD_FAILED = "이미지를 올리지 못했습니다. 다시 시도해 주세요.";
 
-export type ImageFolder = "news" | "players" | "staff" | "sponsors";
+export type ImageFolder = "news" | "players" | "staff" | "sponsors" | "postings";
 
 /** 형식·크기 검사. 문제가 있으면 오류 문구 */
 function checkImage(file: File): string | null {

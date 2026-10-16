@@ -3,6 +3,7 @@ import { CLUB_SETTINGS, HISTORY } from "@/data/club";
 import { MATCHES, STANDINGS } from "@/data/matches";
 import { NEWS } from "@/data/news";
 import { PLAYERS, STAFF } from "@/data/people";
+import { POSTINGS } from "@/data/postings";
 import { SPONSORS } from "@/data/sponsors";
 import type { DataSource } from "./source";
 
@@ -14,5 +15,6 @@ export const staticSource: DataSource = {
   matches: async () => MATCHES,
   standings: async () => STANDINGS,
   news: async () => NEWS,
+  postings: async () => POSTINGS,
   sponsors: async () => SPONSORS,
 };

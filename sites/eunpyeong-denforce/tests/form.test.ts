@@ -112,3 +112,25 @@ test("files·values: 같은 이름 여러 개, 빈 파일 칸은 뺀다", () => 
   assert.deepEqual(r.files("none"), []);
   assert.deepEqual(r.values("none"), []);
 });
+
+test("date: 필수 YYYY-MM-DD, 형식·달력 오류를 구분", () => {
+  const r = new FormReader(fd({ ok: "2026-04-08", bad: "2026/04/08", feb: "2026-02-30", empty: "" }));
+  assert.equal(r.date("ok", "날짜"), "2026-04-08");
+  r.date("bad", "날짜");
+  r.date("feb", "날짜");
+  r.date("empty", "날짜");
+  assert.match(r.errors.bad, /YYYY-MM-DD/);
+  assert.match(r.errors.feb, /올바른 날짜가 아닙니다/);
+  assert.match(r.errors.empty, /입력해 주세요/);
+  assert.equal(r.errors.ok, undefined);
+});
+
+test("url: 필수 http(s) 주소", () => {
+  const r = new FormReader(fd({ ok: "https://blog.naver.com/a/1", bad: "blog.naver.com/a/1", sp: "https://a b" }));
+  assert.equal(r.url("ok", "원문 주소"), "https://blog.naver.com/a/1");
+  r.url("bad", "원문 주소");
+  r.url("sp", "원문 주소");
+  assert.match(r.errors.bad, /https?:\/\/|http:\/\//);
+  assert.ok(r.errors.sp);
+  assert.equal(r.errors.ok, undefined);
+});

@@ -63,6 +63,24 @@ export type NewsPost = {
   body: string[];
 };
 
+/** 포스팅 분류: 구단이 올린 글 / 언론 기사·연맹 영상 / 팬·외부 글 (D-022) */
+export type PostingKind = "club" | "news" | "fan";
+
+export type PostingPlatform = "naver_blog" | "naver_cafe" | "article" | "youtube" | "instagram" | "web";
+
+/** 바깥 글 모음 — 카드를 누르면 원문(url)으로 간다 */
+export type Posting = {
+  id: string;
+  kind: PostingKind;
+  platform: PostingPlatform;
+  title: string;
+  author: string; // 블로그 이름·언론사·채널 이름
+  excerpt: string;
+  url: string;
+  thumbnail: string | null;
+  date: string; // YYYY-MM-DD
+};
+
 export type SponsorTier = "naming" | "official" | "partner";
 
 export type Sponsor = {

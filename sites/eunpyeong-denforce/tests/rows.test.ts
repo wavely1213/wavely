@@ -1,7 +1,7 @@
 // DB 행 → 도메인 변환 단위 테스트 — 실행: npm test
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { splitParagraphs, toClubSettings, toMatch, toNewsPost, toPlayer } from "../src/lib/data/rows.ts";
+import { splitParagraphs, toClubSettings, toMatch, toNewsPost, toPlayer, toPosting } from "../src/lib/data/rows.ts";
 
 test("splitParagraphs: 빈 줄 기준, 공백 줄·앞뒤 공백 정리", () => {
   assert.deepEqual(splitParagraphs("첫 문단\n이어짐\n\n  둘째 문단  \n \n\n셋째"), ["첫 문단\n이어짐", "둘째 문단", "셋째"]);
@@ -42,4 +42,11 @@ test("toNewsPost: 썸네일이 없으면 첫 사진을 목록 카드에 쓴다 (
 test("toClubSettings: intro 문단 분리", () => {
   const c = toClubSettings({ intro: "가\n\n나", contact_email: null, contact_phone: null, contact_address: null, instagram_url: null, youtube_url: null, venue_address: null, venue_transit: null, venue_parking: null });
   assert.deepEqual(c.intro, ["가", "나"]);
+});
+
+test("toPosting: 날짜·썸네일 필드명 변환", () => {
+  const r = toPosting({ id: "p", kind: "fan", platform: "naver_blog", title: "t", author: "a", excerpt: "e", url: "https://x", thumbnail_url: null, posted_on: "2026-04-08", published: true, created_at: "" });
+  assert.equal(r.date, "2026-04-08");
+  assert.equal(r.thumbnail, null);
+  assert.equal(r.platform, "naver_blog");
 });

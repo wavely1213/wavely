@@ -9,9 +9,10 @@ import { TAGS } from "@/lib/cache-tags";
 import { dbSource } from "@/lib/data/db-source";
 import type { DataSource } from "@/lib/data/source";
 import { staticSource } from "@/lib/data/static-source";
+import { byPostedDesc } from "@/lib/postings";
 import { byRank, pastLeagues, seasonYear, type PastLeague } from "@/lib/standings";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import type { Match, NewsCategory, NewsPost, Player, Position, StandingRow } from "@/types";
+import type { Match, NewsCategory, NewsPost, Player, Position, Posting, StandingRow } from "@/types";
 
 function source(): DataSource {
   return isSupabaseConfigured() ? dbSource : staticSource;
@@ -110,6 +111,15 @@ export async function getNews(category?: NewsCategory): Promise<NewsPost[]> {
 
 export async function getNewsPost(category: NewsCategory, id: string) {
   return (await getAllNews()).find((n) => n.category === category && n.id === id);
+}
+
+// ── 포스팅 (바깥 글 모음) ─────────────────────
+
+export async function getPostings(): Promise<Posting[]> {
+  "use cache";
+  cacheTag(TAGS.postings);
+  cacheLife("minutes");
+  return [...(await source().postings())].sort(byPostedDesc);
 }
 
 // ── 선수단 ───────────────────────────────────

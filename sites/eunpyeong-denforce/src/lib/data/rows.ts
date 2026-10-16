@@ -8,6 +8,9 @@ import type {
   NewsPost,
   Player,
   Position,
+  Posting,
+  PostingKind,
+  PostingPlatform,
   Sponsor,
   SponsorTier,
   Staff,
@@ -67,6 +70,20 @@ export type NewsRow = {
   images: string[];
   summary: string;
   body: string;
+  published: boolean;
+  created_at: string;
+};
+
+export type PostingRow = {
+  id: string;
+  kind: PostingKind;
+  platform: PostingPlatform;
+  title: string;
+  author: string;
+  excerpt: string;
+  url: string;
+  thumbnail_url: string | null;
+  posted_on: string;
   published: boolean;
   created_at: string;
 };
@@ -159,6 +176,18 @@ export const toNewsPost = (r: NewsRow): NewsPost => {
     body: splitParagraphs(r.body),
   };
 };
+
+export const toPosting = (r: PostingRow): Posting => ({
+  id: r.id,
+  kind: r.kind,
+  platform: r.platform,
+  title: r.title,
+  author: r.author,
+  excerpt: r.excerpt,
+  url: r.url,
+  thumbnail: r.thumbnail_url,
+  date: r.posted_on,
+});
 
 export const toSponsor = (r: SponsorRow): Sponsor => ({
   id: r.id,

@@ -34,6 +34,7 @@ export const NAV: NavItem[] = [
       { label: "구단뉴스", href: "/news/news" },
       { label: "구단사진", href: "/news/photo" },
       { label: "구단영상", href: "/news/video" },
+      { label: "포스팅", href: "/news/posting" },
     ],
   },
   {

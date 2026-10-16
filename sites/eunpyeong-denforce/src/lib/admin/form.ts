@@ -99,6 +99,18 @@ export class FormReader {
     return v;
   }
 
+  /** YYYY-MM-DD (필수) */
+  date(name: string, label: string): string {
+    const v = this.text(name, { label, pattern: /^\d{4}-\d{2}-\d{2}$/, patternHint: `${label}은(는) YYYY-MM-DD 형식으로 입력해 주세요.` });
+    if (v && !this.errors[name] && !isCalendarDate(v)) this.fail(name, `${label}이(가) 올바른 날짜가 아닙니다.`);
+    return v;
+  }
+
+  /** http(s) 주소 (필수) */
+  url(name: string, label: string, max = 1000): string {
+    return this.text(name, { label, max, pattern: /^https?:\/\/\S+$/, patternHint: `${label}은(는) http:// 또는 https:// 로 시작해야 합니다.` });
+  }
+
   /** 업로드 파일 (선택) — 비어 있으면 null */
   file(name: string): File | null {
     const v = this.fd.get(name);

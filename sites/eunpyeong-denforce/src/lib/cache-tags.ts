@@ -7,6 +7,7 @@ export const TAGS = {
   matches: "matches",
   standings: "standings",
   news: "news",
+  postings: "postings",
   sponsors: "sponsors",
 } as const;
 

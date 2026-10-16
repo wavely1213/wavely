@@ -12,7 +12,7 @@ const mk = () => createClient(URL, KEY, { auth: { persistSession: false } });
 let fail = 0;
 const check = (label, cond) => { console.log(cond ? "PASS" : "FAIL", label); if (!cond) fail++; };
 
-const tables = { sponsors: { name: "rls", tier: "partner" }, players: { slug: "rls-x", name: "rls", position: "GK" }, matches: { competition: "c", kickoff: "2026-01-01T00:00:00Z", opponent: "o" }, standings: { season: "rls", team: "rls" }, news_posts: { category: "notice", title: "rls" }, staff: { role: "r", name: "n" }, history_items: { year: "1", text: "t" } };
+const tables = { sponsors: { name: "rls", tier: "partner" }, players: { slug: "rls-x", name: "rls", position: "GK" }, matches: { competition: "c", kickoff: "2026-01-01T00:00:00Z", opponent: "o" }, standings: { season: "rls", team: "rls" }, news_posts: { category: "notice", title: "rls" }, staff: { role: "r", name: "n" }, history_items: { year: "1", text: "t" }, postings: { kind: "fan", platform: "web", title: "rls", url: "https://example.com/rls", posted_on: "2026-01-01" } };
 
 async function writes(c, who, expectOk) {
   for (const [t, row] of Object.entries(tables)) {
@@ -49,6 +49,10 @@ check("anon 에게 비공개 글 안 보임", anonSee.data?.length === 0);
 const adminSee = await admin.from("news_posts").select("id").eq("id", hidden.data.id);
 check("관리자에게 비공개 글 보임", adminSee.data?.length === 1);
 await admin.from("news_posts").delete().eq("id", hidden.data.id);
+const hiddenPosting = await admin.from("postings").insert({ kind: "fan", platform: "web", title: "비공개 테스트", url: "https://example.com/rls-hidden", posted_on: "2026-01-01", published: false }).select("id").single();
+check("anon 에게 비공개 포스팅 안 보임", (await anon.from("postings").select("id").eq("id", hiddenPosting.data.id)).data?.length === 0);
+check("관리자에게 비공개 포스팅 보임", (await admin.from("postings").select("id").eq("id", hiddenPosting.data.id)).data?.length === 1);
+await admin.from("postings").delete().eq("id", hiddenPosting.data.id);
 // 2) 로그인했지만 관리자 아님
 const user = mk();
 const si = await user.auth.signInWithPassword({ email: "user@test.local", password: "User12345!" });
