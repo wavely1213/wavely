@@ -44,8 +44,12 @@
   letter-spacing: -0.02em;
 }
 
-.phrase {
-  white-space: nowrap;
+/* 윗줄 문구는 구단명과 폭이 딱 맞는 크기 — KFA고딕에서 '대한민국 풋살의 중심' 폭 × 0.7625 = '서울은평 덴포스' 폭.
+   자간도 em 으로 다시 지정해야 글자 크기와 같은 비율로 줄어 폭이 정확히 맞는다 */
+.lead {
+  display: block;
+  font-size: 0.7625em;
+  letter-spacing: -0.02em;
 }
 
 .next {
