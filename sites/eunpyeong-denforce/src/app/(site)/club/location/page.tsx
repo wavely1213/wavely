@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
+import { VenueMap } from "@/components/club/VenueMap";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Placeholder } from "@/components/ui/Placeholder";
 import { SITE } from "@/config/site";
 import { getClubSettings } from "@/lib/repo";
 import styles from "@/styles/prose.module.css";
@@ -15,7 +15,7 @@ export default async function LocationPage() {
       <div className={`container ${styles.body}`}>
         <section>
           <h2 className={styles.h2}>홈구장 · {SITE.homeVenue}</h2>
-          <Placeholder label="지도 영역 (주소 확정 후 지도 연동)" ratio="16 / 7" />
+          <VenueMap address={settings.venueAddress} />
         </section>
         <ul className={styles.list}>
           <li>

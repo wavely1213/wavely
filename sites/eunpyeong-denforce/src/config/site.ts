@@ -2,7 +2,7 @@
 
 export const SITE = {
   name: "서울은평 덴포스",
-  nameEn: "SEOUL EUNPYEONG FUTSAL TEAM",
+  nameEn: "SEOUL EUNPYEONG DENFORCE FUTSAL TEAM",
   tagline: "FK리그 서울은평 풋살팀 공식 홈페이지",
   /** 공식 주소 — 링크 미리보기(og:image 등)의 절대 주소 기준 (D-024·D-025) */
   url: "https://eunpyeong-fs.com",
@@ -11,6 +11,10 @@ export const SITE = {
   /** 방패만 (SINCE 2012 제외, 134×171) — 헤더·파비콘 */
   emblemMark: "/brand/emblem-mark.png",
   founded: "2012",
+  /** 창단일 (연혁 '서울은평 FS 창단 11월 17일') — 구조화 데이터용 */
+  foundedDate: "2012-11-17",
+  /** 같은 구단의 다른 이름 (DOMAIN_KNOWLEDGE) — 검색엔진 구조화 데이터용 */
+  alternateNames: ["서울은평덴포스", "서울은평FS", "서울은평 FS", "서울은평 풋볼아카데미", "서울은평 나인티플러스", "서울은평 ZD스포츠"],
   /** 구단 대표 — 푸터 오른쪽 아래 표기 */
   representative: "최경진",
   homeVenue: "은평다목적체육관",
@@ -61,6 +65,12 @@ export const NAV: NavItem[] = [
   { label: "스폰서", href: "/sponsors" },
   { label: "문의", href: "/contact" },
 ];
+
+/**
+ * 검색 사이트 소유 확인 값 — 네이버 서치어드바이저에서 받은 HTML 태그의 content 값을 넣는다 (D-027).
+ * 비어 있으면 태그를 넣지 않는다. 비밀값이 아니다(공개 메타 태그).
+ */
+export const SEARCH_VERIFICATION: { naver: string | null } = { naver: null };
 
 /** 메뉴 맨 오른쪽 외부 링크 — 네이밍 스폰서 덴포스 스포츠 공식 홈페이지, 새 창 (D-019). 하위 탭·사이트맵에는 넣지 않는다 */
 export const NAV_EXTERNAL = { label: "덴포스스포츠", href: "https://denforce.co.kr" } as const;

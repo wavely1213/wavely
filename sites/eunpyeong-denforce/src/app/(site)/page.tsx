@@ -5,7 +5,10 @@ import { QuickLinks } from "@/components/home/QuickLinks";
 import { SponsorStrip } from "@/components/home/SponsorStrip";
 import { MatchCards } from "@/components/match/MatchCard";
 import { Section } from "@/components/ui/Section";
+import { SITE } from "@/config/site";
+import { snsLinks } from "@/lib/club";
 import {
+  getClubSettings,
   getFinishedMatches,
   getNews,
   getNextHomeMatch,
@@ -13,19 +16,33 @@ import {
   getSponsors,
   getUpcomingMatches,
 } from "@/lib/repo";
+import { clubJsonLd, jsonLdString } from "@/lib/seo";
 import type { Match } from "@/types";
 
 // 메인 섹션 순서: 히어로(다음 홈경기) → 경기 → 구단 소식 → 선수단 → 바로가기 → 스폰서
 // 구단 영상 섹션은 영상 콘텐츠가 생기면 추가한다 (빈 섹션은 노출하지 않음).
 export default async function HomePage() {
-  const [nextHome, finished, upcoming, news, groups, sponsors] = await Promise.all([
+  const [nextHome, finished, upcoming, news, groups, sponsors, settings] = await Promise.all([
     getNextHomeMatch(),
     getFinishedMatches(),
     getUpcomingMatches(),
     getNews(),
     getPlayersByPosition(),
     getSponsors(),
+    getClubSettings(),
   ]);
+
+  // 검색엔진용 구단 정보 — 공식 홈페이지·다른 이름·SNS 연결 (D-027)
+  const jsonLd = clubJsonLd({
+    name: SITE.name,
+    alternateNames: [SITE.nameEn, ...SITE.alternateNames],
+    url: SITE.url,
+    logo: `${SITE.url}${SITE.emblem}`,
+    foundingDate: SITE.foundedDate,
+    venueName: SITE.homeVenue,
+    venueAddress: settings.venueAddress,
+    sameAs: snsLinks(settings).map((s) => s.href),
+  });
 
   // 예정 경기가 있으면 지난 1 + 예정 2, 시즌 휴식기(예정 없음)에는 최근 결과 3
   const matchItems: Array<{ match: Match; label: string }> =
@@ -38,6 +55,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(jsonLd) }} />
       <Hero nextHome={nextHome} />
 
       {matchItems.length > 0 && (

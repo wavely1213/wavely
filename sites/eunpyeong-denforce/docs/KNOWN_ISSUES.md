@@ -33,6 +33,18 @@
 - **증상/내용**: Vercel 에는 도메인을 추가했지만(D-024) 가비아 DNS 레코드가 0개라 아직 접속되지 않는다(Vercel 'misconfigured').
 - **해결 방향**: 가비아 DNS 관리 → 레코드 수정에 A `@` 216.198.79.1, CNAME `www` 28dd416c47e68d56.vercel-dns-017.com. (TTL 600) 입력 → 수 분~수 시간 뒤 Vercel 인증서 발급 확인. 이후 Supabase Authentication → URL Configuration 의 Site URL 을 https://eunpyeong-fs.com 으로(SUPABASE_SETUP 3번), PROJECT_CONTEXT 주소 갱신.
 
+## I-031 | 2026-10-16 | 네이버 서치어드바이저 등록·소유 확인 대기
+- **상태**: 열림 (소유자 작업 대기)
+- **심각도**: 중간
+- **증상/내용**: 사이트맵·robots·구조화 데이터는 배포됨(D-027). 네이버 소유 확인 값이 없어 메타 태그는 아직 비어 있다.
+- **해결 방향**: searchadvisor.naver.com → 웹마스터 도구 → 사이트 등록 `https://eunpyeong-fs.com` → 'HTML 태그' 방식의 content 값을 받아 `SEARCH_VERIFICATION.naver` 에 넣고 배포 → 소유 확인 → 요청 > 사이트맵 제출 `https://eunpyeong-fs.com/sitemap.xml`, 웹 페이지 수집 요청(홈). 반영까지 며칠~몇 주.
+
+## I-030 | 2026-10-16 | 오시는 길 네이버 지도 키(Client ID) 대기
+- **상태**: 열림 (소유자 작업 대기)
+- **심각도**: 낮음
+- **증상/내용**: 키가 없어 지도 자리에 장소 안내만 보인다(버튼은 동작). D-026.
+- **해결 방향**: 네이버 클라우드 플랫폼 가입 → Services > Application Services > Maps → Application 등록(Dynamic Map 선택, Web 서비스 URL: https://eunpyeong-fs.com, https://www.eunpyeong-fs.com, https://eunpyeong-denforce.vercel.app, http://localhost:3000) → Client ID 를 Vercel 환경변수 `NEXT_PUBLIC_NAVER_MAP_KEY_ID`(Production·Preview) 로 넣고 재배포. 무료 사용량 안에서 쓰는지 콘솔에서 확인.
+
 ## I-029 | 2026-10-16 | (제안) 구단소식 글을 공유하면 글 사진이 아니라 사이트 대표 이미지가 뜬다
 - **상태**: 열림 (제안 — 지시 범위 밖)
 - **심각도**: 낮음
@@ -206,7 +218,7 @@
 - **해결 방향**: Vercel 새 프로젝트, Root Directory = `sites/eunpyeong-denforce`.
 
 ## I-004 | 2026-10-15 | 연락처·주소·지도·SNS 일부 미입력
-- **상태**: 부분 해결(2026-10-15) — 대표전화 02-6368-2308, 구단 주소, 홈경기장 주소를 연맹 구단 소개 기준으로 입력. 지도·교통·주차·유튜브는 미입력
+- **상태**: 부분 해결(2026-10-15) — 대표전화 02-6368-2308, 구단 주소, 홈경기장 주소를 연맹 구단 소개 기준으로 입력. 지도는 D-026(키 대기 I-030). 교통·주차·유튜브는 미입력
 - **심각도**: 낮음
 - **증상/내용**: 공개 대표전화, 사무국 주소, 홈구장 주소·지도, 유튜브(풋살사관학교) URL 없음. 제안서의 개인 휴대폰 번호는 공개 사이트에 넣지 않았다.
 - **위치**: `src/config/site.ts`, `src/app/club/location/page.tsx`

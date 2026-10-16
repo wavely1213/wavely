@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { SITE } from "@/config/site";
+import { SEARCH_VERIFICATION, SITE } from "@/config/site";
 import "./globals.css";
 
 // KFA고딕 (대한축구협회 서체, 산돌 제작) — 사용 조건은 KNOWN_ISSUES I-007
@@ -27,6 +27,8 @@ export const metadata: Metadata = {
     locale: "ko_KR",
   },
   twitter: { card: "summary_large_image" },
+  // 네이버 서치어드바이저 소유 확인 (D-027)
+  ...(SEARCH_VERIFICATION.naver ? { verification: { other: { "naver-site-verification": SEARCH_VERIFICATION.naver } } } : {}),
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

@@ -52,10 +52,12 @@ proxy.ts (/admin/*) ─→ 세션 쿠키 갱신만 (권한 판단 X)
 |---|---|---|
 | 사이트 설정·메뉴 | /src/config/site.ts | 구단명·엠블럼·NAV (고정값). 연락처·SNS·주소는 DB(club_settings) |
 | 관리자 메뉴 | /src/config/admin-nav.ts | 관리자 사이드바 순서 |
+| 지도 설정 | /src/config/map.ts | 홈구장 네이버 장소(번호·좌표), 네이버 지도 키(NEXT_PUBLIC_NAVER_MAP_KEY_ID) — D-026 |
+| 검색 등록 | /src/lib/seo.ts, /src/app/robots.ts, /src/app/sitemap.ts | 사이트맵 목록·구단 JSON-LD(순수 함수) — D-027. 소유 확인 값은 config/site.ts SEARCH_VERIFICATION |
 | 리그 표기·출처 | /src/config/league.ts | 순위표 시즌 제목, 기록 기준 시즌, 다음 시즌, 새 경기 대회 기본값, 자료 출처 (D-011) |
 | 레이아웃 | /src/components/layout | Header(모바일 메뉴), Footer(연락처·SNS), PageHeader(섹션 탭) |
 | 메인 섹션 | /src/components/home | Hero, NewsTabs, PlayersPreview, QuickLinks, SponsorStrip |
-| 도메인 UI | /src/components/{match,news,player,posting} | MatchRow(목록), MatchCard(메인), NewsCard, PlayerCard, PostingBoard(분류 탭·출처 칩·더 보기, 클라이언트)·PostingCard |
+| 도메인 UI | /src/components/{club,match,news,player,posting} | VenueMap·NaverMap(오시는 길 지도, 네이버 지도 스크립트는 키가 있을 때만), MatchRow(목록), MatchCard(메인), NewsCard, PlayerCard, PostingBoard(분류 탭·출처 칩·더 보기, 클라이언트)·PostingCard |
 | 포스팅 도우미 | /src/lib/postings.ts | 정렬(최근 먼저)·분류/출처 필터·개수 (순수 함수, D-022) |
 | 공용 UI | /src/components/ui | Section, Placeholder, EmblemFallback(사진 없을 때) |
 | 관리자 UI | /src/components/admin | AdminForm(useActionState + 필드 오류·입력값 유지), fields, DeleteButton, PageTitle, AdminNav |
