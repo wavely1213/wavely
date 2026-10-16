@@ -65,7 +65,16 @@
 
 .legal {
   display: flex;
+  align-items: center;
   gap: 16px;
+}
+
+/* 관리자 대시보드 이동 — 눈에 띄지 않게 작은 테두리 버튼 */
+.admin {
+  padding: 1px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: var(--radius-s);
+  line-height: 1.6;
 }
 
 .legal a:hover {

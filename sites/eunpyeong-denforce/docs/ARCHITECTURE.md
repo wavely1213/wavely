@@ -54,6 +54,7 @@ proxy.ts (/admin/*) ─→ 세션 쿠키 갱신만 (권한 판단 X)
 | 관리자 메뉴 | /src/config/admin-nav.ts | 관리자 사이드바 순서 |
 | 지도 설정 | /src/config/map.ts | 홈구장 네이버 장소(번호·좌표), 네이버 지도 키(NEXT_PUBLIC_NAVER_MAP_KEY_ID) — D-026 |
 | 검색 등록 | /src/lib/seo.ts, /src/app/robots.ts, /src/app/sitemap.ts | 사이트맵 목록·구단 JSON-LD(순수 함수) — D-027. 소유 확인 값은 config/site.ts SEARCH_VERIFICATION |
+| 링크 미리보기 | /src/lib/og.ts, app/layout.tsx·admin/layout.tsx generateMetadata | 관리자가 올린 이미지(club_settings) 또는 기본 public/og/site.jpg·admin.jpg (순수 함수, D-037) |
 | 리그 표기·출처 | /src/config/league.ts | 순위표 시즌 제목, 기록 기준 시즌, 다음 시즌, 새 경기 대회 기본값, 자료 출처 (D-011) |
 | 레이아웃 | /src/components/layout | Header(모바일 메뉴), Footer(연락처·SNS), PageHeader(섹션 탭) |
 | 메인 섹션 | /src/components/home | Hero, SponsorMarquee(히어로 아래 스폰서 띠, D-029), HomeColumns(본문 + 오른쪽 위젯 칸)·StandingsWidget(리그 순위, D-034), NewsTabs, PlayersPreview, QuickLinks, SponsorStrip(스폰서 페이지 격자) |
@@ -71,9 +72,9 @@ proxy.ts (/admin/*) ─→ 세션 쿠키 갱신만 (권한 판단 X)
 ## 5. 데이터 모델 요약
 
 DB 진실의 원천: `supabase/migrations/*.sql`. 실데이터 적재본: `supabase/data/*.sql` (연맹·인스타그램 출처, D-010). 도메인 타입: `src/types/index.ts`, DB 행 타입·변환: `src/lib/data/rows.ts`.
-- 테이블: admins(허용 목록), club_settings(단일 행), history_items, players, staff, matches, standings(season = 대회명, played·points 생성 컬럼 — D-020), news_posts(published, thumbnail_url 목록용 + images 상세 사진 배열 — D-017), postings(바깥 글 모음: kind·platform·원문 url 유일·posted_on·published — D-022), sponsors
+- 테이블: admins(허용 목록), club_settings(단일 행 — 연락처·SNS·주소 + 링크 미리보기 이미지 og_image_url·admin_og_image_url, D-037), history_items, players, staff, matches, standings(season = 대회명, played·points 생성 컬럼 — D-020), news_posts(published, thumbnail_url 목록용 + images 상세 사진 배열 — D-017), postings(바깥 글 모음: kind·platform·원문 url 유일·posted_on·published — D-022), sponsors
 - 공통: uuid id, updated_at·updated_by(트리거), check 제약 = 폼 검증 범위
-- 저장소: 버킷 `media` (공개 읽기, 관리자 쓰기), 경로 `<news|players|staff|sponsors|postings>/<uuid>.<ext>` (일괄 적재한 포스팅 사진은 `postings/<url 해시>.jpg`, 처음 받은 스폰서 로고는 `sponsors/<영문 이름>.png` — D-029)
+- 저장소: 버킷 `media` (공개 읽기, 관리자 쓰기), 경로 `<news|players|staff|sponsors|postings|og>/<uuid>.<ext>` (일괄 적재한 포스팅 사진은 `postings/<url 해시>.jpg`, 처음 받은 스폰서 로고는 `sponsors/<영문 이름>.png` — D-029)
 
 ## 6. 횡단 관심사 처리 방식
 

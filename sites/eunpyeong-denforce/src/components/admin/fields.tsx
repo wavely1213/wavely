@@ -125,25 +125,38 @@ export function CheckboxField({ name, label, defaultChecked }: { name: string; l
   );
 }
 
-/** 이미지 업로드 — 서버의 resolveImage() 규약: <name> 파일, <name>_remove 체크 시 제거 */
-export function ImageField({ currentUrl, ...base }: Base & { currentUrl?: string | null }) {
+/**
+ * 이미지 업로드 — 서버의 resolveImage() 규약: <name> 파일, <name>_remove 체크 시 제거.
+ * defaultUrl: 올린 이미지가 없을 때 대신 쓰이는 기본 이미지를 보여준다 (예: 링크 미리보기 — D-037).
+ * accept: 고를 수 있는 형식 (서버 검사와 맞춘다)
+ */
+export function ImageField({
+  currentUrl,
+  defaultUrl,
+  accept = "image/jpeg,image/png,image/webp,image/gif",
+  ...base
+}: Base & { currentUrl?: string | null; defaultUrl?: string; accept?: string }) {
   const error = useFieldError(base.name);
+  const previewUrl = currentUrl || defaultUrl;
   return (
     <FieldShell {...base} hint={base.hint ?? "JPG·PNG·WEBP·GIF, 5MB 이하"}>
-      {currentUrl && (
+      {previewUrl && (
         // 관리자 미리보기는 원본 그대로 보여준다 (최적화 불필요)
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={currentUrl} alt="현재 이미지" className={styles.imagePreview} />
+        <img src={previewUrl} alt={currentUrl ? "현재 이미지" : "기본 이미지"} className={styles.imagePreview} />
       )}
+      {!currentUrl && defaultUrl && <span className={styles.hint}>지금은 기본 이미지를 쓰고 있습니다</span>}
       <input
         id={`f-${base.name}`}
         name={base.name}
         type="file"
-        accept="image/jpeg,image/png,image/webp,image/gif"
+        accept={accept}
         className={`${styles.input} ${error ? styles.invalid : ""}`}
         aria-invalid={Boolean(error)}
       />
-      {currentUrl && <CheckboxField name={`${base.name}_remove`} label="현재 이미지 삭제" />}
+      {currentUrl && (
+        <CheckboxField name={`${base.name}_remove`} label={defaultUrl ? "올린 이미지 삭제 (기본 이미지로)" : "현재 이미지 삭제"} />
+      )}
     </FieldShell>
   );
 }

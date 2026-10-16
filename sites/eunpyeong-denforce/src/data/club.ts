@@ -17,6 +17,8 @@ export const CLUB_SETTINGS: ClubSettings = {
   venueAddress: null,
   venueTransit: null,
   venueParking: null,
+  ogImageUrl: null,
+  adminOgImageUrl: null,
 };
 
 export const HISTORY: HistoryItem[] = [

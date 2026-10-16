@@ -8,6 +8,10 @@ import type { ClubSettingsRow, HistoryRow } from "@/lib/data/rows";
 import { saveClubSettings } from "./actions";
 import { ClubSettingsForm } from "./ClubSettingsForm";
 import local from "./club.module.css";
+import { savePreviewImages } from "./preview-actions";
+import { PreviewImagesForm } from "./PreviewImagesForm";
+
+const KAKAO_DEBUGGER = "https://developers.kakao.com/tool/debugger/sharing";
 
 export const metadata: Metadata = { title: "구단정보" };
 
@@ -16,7 +20,7 @@ export default function ClubAdminPage() {
     <>
       <PageTitle
         title="구단정보"
-        description="구단소개·오시는 길·문의 페이지와 하단 푸터에 보이는 정보, 연혁 페이지에 보이는 연혁을 관리합니다."
+        description="구단소개·오시는 길·문의 페이지와 하단 푸터에 보이는 정보, 링크 미리보기 이미지, 연혁 페이지에 보이는 연혁을 관리합니다."
       />
       <Suspense fallback={<AdminLoading />}>
         <ClubPanels />
@@ -31,7 +35,7 @@ async function ClubPanels() {
     supabase
       .from("club_settings")
       .select(
-        "intro, contact_email, contact_phone, contact_address, instagram_url, youtube_url, venue_address, venue_transit, venue_parking",
+        "intro, contact_email, contact_phone, contact_address, instagram_url, youtube_url, venue_address, venue_transit, venue_parking, og_image_url, admin_og_image_url",
       )
       .eq("id", 1)
       .maybeSingle<ClubSettingsRow>(),
@@ -50,6 +54,33 @@ async function ClubPanels() {
         ) : (
           // 행이 없으면(data: null) 빈 폼 — 저장하면 행이 만들어진다
           <ClubSettingsForm action={saveClubSettings} initial={settings.data} />
+        )}
+      </section>
+
+      <section className={styles.panel}>
+        <h2 className={styles.panelTitle}>링크 미리보기 (카카오톡·SNS)</h2>
+        <p className={local.note}>
+          주소를 카카오톡·문자·SNS에 보낼 때 뜨는 이미지입니다. 사이트 주소와 관리자 주소에 각각 다른 이미지를 쓸 수
+          있고, 올리지 않으면 기본 이미지가 쓰입니다. 바꾼 뒤에도 카카오톡에 예전 이미지가 보이면{" "}
+          <a href={KAKAO_DEBUGGER} target="_blank" rel="noreferrer">
+            카카오 공유 디버거
+          </a>
+          에서 주소(https://eunpyeong-fs.com/ 등)를 넣고 캐시 초기화를 눌러 주세요.
+        </p>
+        {settings.error ? (
+          <p className={styles.formMessage} role="alert">
+            미리보기 설정을 불러오지 못했습니다. 새로고침해 주세요.
+          </p>
+        ) : settings.data ? (
+          <PreviewImagesForm
+            action={savePreviewImages}
+            initial={{
+              og_image_url: settings.data.og_image_url ?? null,
+              admin_og_image_url: settings.data.admin_og_image_url ?? null,
+            }}
+          />
+        ) : (
+          <p className={styles.empty}>위의 구단정보를 먼저 저장해 주세요.</p>
         )}
       </section>
 

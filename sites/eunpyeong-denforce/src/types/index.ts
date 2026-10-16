@@ -105,4 +105,7 @@ export type ClubSettings = {
   venueAddress: string | null;
   venueTransit: string | null;
   venueParking: string | null;
+  /** 링크 미리보기 이미지 — 사이트 주소용·관리자 주소용. null 이면 기본 이미지 (D-037) */
+  ogImageUrl: string | null;
+  adminOgImageUrl: string | null;
 };

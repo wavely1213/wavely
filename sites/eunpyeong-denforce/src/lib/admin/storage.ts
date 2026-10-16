@@ -15,11 +15,16 @@ const EXT_BY_TYPE: Record<string, string> = {
 };
 const UPLOAD_FAILED = "이미지를 올리지 못했습니다. 다시 시도해 주세요.";
 
-export type ImageFolder = "news" | "players" | "staff" | "sponsors" | "postings";
+export type ImageFolder = "news" | "players" | "staff" | "sponsors" | "postings" | "og";
+
+/** 받을 이미지 형식 제한 — 링크 미리보기(카카오톡·SNS)는 JPG·PNG 만 확실히 보인다 (D-037) */
+export type ImageAccept = { types: readonly string[]; label: string };
+export const PREVIEW_IMAGE_ACCEPT: ImageAccept = { types: ["image/jpeg", "image/png"], label: "JPG·PNG" };
 
 /** 형식·크기 검사. 문제가 있으면 오류 문구 */
-function checkImage(file: File): string | null {
+function checkImage(file: File, accept?: ImageAccept): string | null {
   if (!EXT_BY_TYPE[file.type]) return "JPG·PNG·WEBP·GIF 이미지만 올릴 수 있습니다.";
+  if (accept && !accept.types.includes(file.type)) return `${accept.label} 이미지만 올릴 수 있습니다.`;
   if (file.size > MAX_IMAGE_BYTES) return "이미지는 5MB 이하만 올릴 수 있습니다.";
   return null;
 }
@@ -41,6 +46,7 @@ async function upload(ctx: AdminContext, folder: ImageFolder, file: File): Promi
  *   <name>        새 파일 (선택)
  *   <name>_remove 체크 시 기존 이미지 제거
  * 반환: 저장할 URL (변경 없으면 current 그대로). 실패 시 reader 에 오류를 남기고 current 반환.
+ * accept: 형식을 더 좁힐 때 (예: PREVIEW_IMAGE_ACCEPT)
  */
 export async function resolveImage(
   ctx: AdminContext,
@@ -48,11 +54,12 @@ export async function resolveImage(
   name: string,
   folder: ImageFolder,
   current: string | null,
+  accept?: ImageAccept,
 ): Promise<string | null> {
   const file = reader.file(name);
   if (!file) return reader.bool(`${name}_remove`) ? null : current;
 
-  const invalid = checkImage(file);
+  const invalid = checkImage(file, accept);
   if (invalid) {
     reader.errors[name] = invalid;
     return current;

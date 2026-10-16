@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { SEARCH_VERIFICATION, SITE } from "@/config/site";
+import { previewImage } from "@/lib/og";
+import { getClubSettings } from "@/lib/repo";
 import "./globals.css";
 
 // KFA고딕 (대한축구협회 서체, 산돌 제작) — 사용 조건은 KNOWN_ISSUES I-007
@@ -13,23 +15,31 @@ const kfa = localFont({
   display: "swap",
 });
 
-// 링크 미리보기(카카오톡·문자·SNS): 사진은 app/opengraph-image.jpg (홈 첫 화면과 같은 구성, 1200×630) — D-025
 const DESCRIPTION = `${SITE.tagline} · 경기 일정·결과, 선수단, 구단 소식`;
 
-export const metadata: Metadata = {
-  metadataBase: new URL(SITE.url),
-  title: { default: SITE.name, template: `%s | ${SITE.name}` },
-  description: DESCRIPTION,
-  // 아이콘은 파일 규칙으로: app/favicon.ico·icon.png·apple-icon.png (구단 엠블럼, 정사각)
-  openGraph: {
-    type: "website",
-    siteName: SITE.name,
-    locale: "ko_KR",
-  },
-  twitter: { card: "summary_large_image" },
-  // 네이버 서치어드바이저 소유 확인 (D-027)
-  ...(SEARCH_VERIFICATION.naver ? { verification: { other: { "naver-site-verification": SEARCH_VERIFICATION.naver } } } : {}),
-};
+/**
+ * 링크 미리보기(카카오톡·문자·SNS) 이미지: 관리자 화면(구단정보 › 링크 미리보기)에서 올린 이미지, 없으면
+ * 기본 이미지 public/og/site.jpg (홈 히어로 구성, 1200×630) — D-025·D-037. /admin 은 admin/layout.tsx 가 따로 정한다.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const { ogImageUrl } = await getClubSettings();
+  const image = previewImage("site", ogImageUrl, SITE.name);
+  return {
+    metadataBase: new URL(SITE.url),
+    title: { default: SITE.name, template: `%s | ${SITE.name}` },
+    description: DESCRIPTION,
+    // 아이콘은 파일 규칙으로: app/favicon.ico·icon.png·apple-icon.png (구단 엠블럼, 정사각)
+    openGraph: {
+      type: "website",
+      siteName: SITE.name,
+      locale: "ko_KR",
+      images: [image],
+    },
+    twitter: { card: "summary_large_image", images: [image] },
+    // 네이버 서치어드바이저 소유 확인 (D-027)
+    ...(SEARCH_VERIFICATION.naver ? { verification: { other: { "naver-site-verification": SEARCH_VERIFICATION.naver } } } : {}),
+  };
+}
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

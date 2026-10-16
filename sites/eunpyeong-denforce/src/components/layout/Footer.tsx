@@ -60,6 +60,10 @@ export async function Footer() {
             {SITE.representative}
           </span>
           <Link href="/privacy">개인정보처리방침</Link>
+          {/* 관리자 대시보드로 가는 작은 버튼 — 로그인 전이면 로그인 화면으로 간다. 방문자마다 미리 받지 않게 prefetch 끔 */}
+          <Link href="/admin" prefetch={false} rel="nofollow" className={styles.admin}>
+            관리자
+          </Link>
         </span>
       </div>
     </footer>
