@@ -1,0 +1,193 @@
+// 취향 학습: AI 결과에 대한 반응(👍/👎·고친 내용)을 모아 프로필로 정리하고, 모든 AI 요청에 넣는다.
+// 모델 자체를 학습시키지는 않는다. 기록은 JSONL로 내보내 나중에 파인튜닝 데이터로 쓸 수 있다.
+import { uid } from '../dom.js';
+
+export const MAX_LOG = 150; // 문서 크기 한도(256KB) 안에 들도록
+const CLIP = 400;
+
+export const DISLIKE_REASONS = ['어색해요', '유치해요', '컨셉과 달라요', '영어가 너무 많아요', '라임이 약해요', '너무 뻔해요', '음역이 안 맞아요'];
+
+const PROFILE_KEYS = ['lyrics', 'sound', 'avoid'];
+
+export function emptyTaste() {
+  return {
+    enabled: true,
+    profile: { lyrics: '', avoid: '', sound: '', updatedAt: 0, summarizedAt: 0 },
+    log: [],
+  };
+}
+
+export function normalizeTaste(t) {
+  const base = emptyTaste();
+  const profile = { ...base.profile, ...(t?.profile || {}) };
+  const prev = profile.prev;
+  if (prev && typeof prev === 'object') profile.prev = { ...Object.fromEntries(PROFILE_KEYS.map((k) => [k, String(prev[k] ?? '')])), at: Number(prev.at) || 0 };
+  else delete profile.prev;
+  return { ...base, ...(t || {}), profile, log: Array.isArray(t?.log) ? t.log : [] };
+}
+
+// ---------- 프로필 정리·되돌리기 ----------
+// AI 정리는 직접 쓴 프로필을 덮어쓰므로, 바꾸기 직전 것을 prev로 하나 남긴다. 되돌리기는 지금 것과 prev를 맞바꿔 아무것도 잃지 않는다.
+export const profileText = (p) => Object.fromEntries(PROFILE_KEYS.map((k) => [k, p?.[k] || '']));
+
+// res: {lyrics, sound, avoid} — 빈 칸은 지금 것을 둔다
+export function applySummary(taste, res, now = Date.now()) {
+  const p = taste.profile;
+  const next = Object.fromEntries(PROFILE_KEYS.map((k) => [k, res[k] || p[k]]));
+  const changed = PROFILE_KEYS.some((k) => next[k] !== p[k]);
+  taste.profile = { ...p, ...next, updatedAt: now, summarizedAt: now, ...(changed ? { prev: { ...profileText(p), at: now } } : {}) };
+  return changed;
+}
+
+export function swapPrevProfile(taste, now = Date.now()) {
+  const p = taste.profile;
+  if (!p.prev) return false;
+  taste.profile = { ...p, ...profileText(p.prev), updatedAt: now, prev: { ...profileText(p), at: now } };
+  return true;
+}
+
+const clip = (s) => String(s ?? '').slice(0, CLIP);
+
+// kind: lyrics | hook | arrange | melody | style
+// rating: 1(좋아요) | -1(별로) | 0(고침 — before/after)
+export function makeEntry({ kind, rating, text = '', before = '', after = '', reasons = [], context = {} }) {
+  return { id: uid(), at: Date.now(), kind, rating, text: clip(text), before: clip(before), after: clip(after), reasons, context };
+}
+
+export function addEntry(taste, entry) {
+  // 같은 대상(context.ref)에 대한 이전 평가는 새것으로 바꾼다
+  const ref = entry.context?.ref;
+  const log = ref ? taste.log.filter((e) => !(e.context?.ref === ref && e.kind === entry.kind && (e.rating === 0) === (entry.rating === 0))) : [...taste.log];
+  log.push(entry);
+  taste.log = log.slice(-MAX_LOG);
+}
+
+// 두 취향 기록 합치기: base(저장된 것)에 extra의 기록을 더한다. 같은 id는 한 번만, 시간순, 최근 MAX_LOG개.
+// replace: extra가 이번 세션의 새 반응이면 addEntry처럼 같은 대상의 이전 평가를 새것으로 바꾼다.
+// 정리된 프로필은 base 것이 비어 있을 때만 extra 것으로.
+export function mergeTaste(base, extra, { replace = false } = {}) {
+  const b = normalizeTaste(base);
+  const x = normalizeTaste(extra);
+  const have = new Set(b.log.map((e) => e.id));
+  const added = x.log.filter((e) => e && e.id && !have.has(e.id)).sort(byAt);
+  const merged = { log: [...b.log] };
+  // 같은 대상의 더 새 평가가 이미 있으면 바꾸지 않고 둘 다 둔다 (이번 세션에 되살린 백업의 옛 평가 등)
+  const newer = (e) => merged.log.some((o) => o.context?.ref && o.context.ref === e.context?.ref && o.kind === e.kind && (o.rating === 0) === (e.rating === 0) && (o.at || 0) > (e.at || 0));
+  added.forEach((e) => { if (replace && !newer(e)) addEntry(merged, e); else merged.log.push(e); });
+  const filled = (p) => !!(p.lyrics.trim() || p.sound.trim() || p.avoid.trim());
+  const useExtra = !filled(b.profile) && filled(x.profile);
+  const taste = { ...b, log: merged.log.sort(byAt).slice(-MAX_LOG), profile: useExtra ? { ...b.profile, ...x.profile } : b.profile };
+  return { taste, added: added.length, changed: added.length > 0 || useExtra };
+}
+const byAt = (p, q) => (p.at || 0) - (q.at || 0);
+
+export function removeEntry(taste, id) {
+  taste.log = taste.log.filter((e) => e.id !== id);
+}
+
+// 기록에서 바로 계산하는 통계 (AI 없이)
+export function tasteStats(taste) {
+  const by = (k) => taste.log.filter((e) => e.kind === k);
+  const liked = taste.log.filter((e) => e.rating === 1);
+  const disliked = taste.log.filter((e) => e.rating === -1);
+  const reasons = {};
+  disliked.forEach((e) => e.reasons.forEach((r) => { reasons[r] = (reasons[r] || 0) + 1; }));
+  const likedArr = by('arrange').filter((e) => e.rating === 1);
+  const bpms = likedArr.map((e) => e.context.bpm).filter(Number.isFinite);
+  const inst = {};
+  likedArr.forEach((e) => (e.context.instruments || []).forEach((i) => { inst[i] = (inst[i] || 0) + 1; }));
+  return {
+    total: taste.log.length,
+    liked: liked.length,
+    disliked: disliked.length,
+    edits: taste.log.filter((e) => e.rating === 0).length,
+    reasons: Object.entries(reasons).sort((a, b) => b[1] - a[1]),
+    bpmRange: bpms.length ? [Math.min(...bpms), Math.max(...bpms)] : null,
+    instruments: Object.entries(inst).sort((a, b) => b[1] - a[1]).map(([k]) => k).slice(0, 5),
+  };
+}
+
+// 학습 효과: AI 결과에 누른 👍/👎만(줄 ♥·고른 것 제외) 시간 순으로 반으로 나눠 앞·뒤 👍 비율을 비교한다.
+// 반응이 TREND_MIN개 넘어야 보인다. 반환: null 또는 { n(반쪽 개수), early, recent (0~1), diff(%p) }
+export const TREND_MIN = 10;
+export function satisfactionTrend(taste) {
+  // 발매 성과로 배운 것(source: release)은 AI 결과에 대한 반응이 아니므로 뺀다
+  const rated = taste.log.filter((e) => (e.rating === 1 || e.rating === -1) && !e.context?.line && !Array.isArray(e.context?.rejected) && e.context?.source !== 'release')
+    .sort((a, b) => a.at - b.at);
+  if (rated.length < TREND_MIN) return null;
+  const n = Math.floor(rated.length / 2);
+  const ratio = (xs) => xs.filter((e) => e.rating === 1).length / xs.length;
+  const early = ratio(rated.slice(0, n));
+  const recent = ratio(rated.slice(-n));
+  return { n, early, recent, diff: Math.round((recent - early) * 100) };
+}
+
+export function trendText(t) {
+  if (!t) return '';
+  const pct = (x) => `${Math.round(x * 100)}%`;
+  const how = t.diff >= 10 ? '좋아지고 있어요' : t.diff <= -10 ? '나빠졌어요 — "기록으로 AI가 정리하기"로 프로필을 새로 고쳐 보세요' : '비슷해요';
+  return `처음 ${t.n}개 ${pct(t.early)} → 최근 ${t.n}개 ${pct(t.recent)} (${how})`;
+}
+
+// AI 요청에 붙일 취향 블록. kind에 맞는 좋아한 예시를 몇 개 넣는다.
+export function promptBlock(taste, kind = 'lyrics') {
+  if (!taste?.enabled) return '';
+  const p = taste.profile;
+  const lines = [];
+  if (p.lyrics.trim()) lines.push(`작사 스타일: ${p.lyrics.trim()}`);
+  if (p.sound.trim()) lines.push(`좋아하는 사운드·편곡: ${p.sound.trim()}`);
+  if (p.avoid.trim()) lines.push(`피할 것: ${p.avoid.trim()}`);
+  const stats = tasteStats(taste);
+  if (stats.reasons.length) lines.push(`예전에 싫다고 한 이유: ${stats.reasons.slice(0, 4).map(([r, n]) => `${r}(${n})`).join(', ')}`);
+  const sameKind = taste.log.filter((e) => e.kind === kind);
+  const liked = sameKind.filter((e) => e.rating === 1 && e.text && !e.context?.line).slice(-4).map((e) => e.text);
+  const likedLines = sameKind.filter((e) => e.rating === 1 && e.text && e.context?.line).slice(-8).map((e) => e.text);
+  const edits = sameKind.filter((e) => e.rating === 0 && e.before && e.after).slice(-3);
+  if (liked.length) lines.push(`좋아한 예시 (말투·결을 참고, 그대로 베끼지 말 것):\n${liked.map((t) => `- ${t.replace(/\n/g, ' / ')}`).join('\n')}`);
+  if (likedLines.length) lines.push(`작곡가가 특히 좋다고 고른 줄 (이런 표현·말맛을 살릴 것, 그대로 베끼지 말 것):\n${likedLines.map((t) => `- ${t}`).join('\n')}`);
+  if (edits.length) lines.push(`AI 초안을 작곡가가 이렇게 고쳤다 (고친 방향을 따를 것):\n${edits.map((e) => `- 전: ${e.before.replace(/\n/g, ' / ')}\n  후: ${e.after.replace(/\n/g, ' / ')}`).join('\n')}`);
+  if (kind === 'arrange' && stats.bpmRange) lines.push(`좋아한 편곡의 BPM 범위: ${stats.bpmRange[0]}~${stats.bpmRange[1]}`);
+  if (kind === 'arrange' && stats.instruments.length) lines.push(`좋아한 편곡에 자주 쓴 악기 id: ${stats.instruments.join(', ')}`);
+  if (!lines.length) return '';
+  return `작곡가의 취향 (반드시 반영):\n${lines.join('\n')}`;
+}
+
+export function toJsonl(taste) {
+  return taste.log.map((e) => JSON.stringify({
+    at: new Date(e.at).toISOString(), kind: e.kind, rating: e.rating, text: e.text, before: e.before, after: e.after, reasons: e.reasons, context: e.context,
+  })).join('\n') + (taste.log.length ? '\n' : '');
+}
+
+// 마지막 AI 정리 이후 새로 쌓인 반응 수. SUMMARY_EVERY개를 넘으면 정리를 권한다.
+export const SUMMARY_EVERY = 10;
+export function newSinceSummary(taste) {
+  const since = taste.profile.summarizedAt || 0;
+  return taste.log.filter((e) => e.at > since).length;
+}
+
+// 선호 쌍(고른 것 vs 버린 것): 선호 학습(DPO 등)용. 사람이 실제로 고른 것만 쓴다.
+// - 고침: AI 초안(버림) → 고친 글(고름)
+// - 스타일 변형: 정한 변형(고름) ↔ 나머지 변형(버림)
+// - 반응: 같은 종류·같은 섹션의 👍(고름) ↔ 👎(버림), 최근 것끼리 최대 maxRated쌍 (글이 같은 쌍은 뺀다: 같은 가사에 다른 멜로디 등)
+export function preferencePairs(taste, { maxRated = 50 } = {}) {
+  const out = [];
+  const ctx = (e) => ({ kind: e.kind, section: e.context?.section || '', song: e.context?.song || '' });
+  taste.log.filter((e) => e.rating === 0 && e.before && e.after && e.before.trim() !== e.after.trim())
+    .forEach((e) => out.push({ source: 'edit', ...ctx(e), chosen: e.after, rejected: e.before, at: e.at }));
+  taste.log.filter((e) => e.rating === 1 && Array.isArray(e.context?.rejected))
+    .forEach((e) => e.context.rejected.forEach((r) => { if (r && r !== e.text) out.push({ source: 'choice', ...ctx(e), chosen: e.text, rejected: r, at: e.at }); }));
+  const rated = [];
+  const plain = taste.log.filter((e) => e.text && !Array.isArray(e.context?.rejected) && !e.context?.line);
+  const liked = plain.filter((e) => e.rating === 1).reverse();
+  const disliked = plain.filter((e) => e.rating === -1).reverse();
+  liked.forEach((l) => disliked.forEach((d) => {
+    if (rated.length < maxRated && l.kind === d.kind && (l.context?.section || '') === (d.context?.section || '') && l.text.trim() !== d.text.trim()) {
+      rated.push({ source: 'rating', ...ctx(l), chosen: l.text, rejected: d.text, reasons: d.reasons, at: Math.max(l.at, d.at) });
+    }
+  }));
+  return [...out, ...rated];
+}
+
+export function pairsJsonl(taste) {
+  return preferencePairs(taste).map((p) => JSON.stringify({ ...p, at: new Date(p.at).toISOString() })).join('\n') + '\n';
+}
