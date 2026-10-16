@@ -1,11 +1,15 @@
 import Link from "next/link";
 import { NAV, SITE } from "@/config/site";
 import { snsLinks } from "@/lib/club";
-import { getClubSettings } from "@/lib/repo";
+import { getClubSettings, getStaff } from "@/lib/repo";
+import { staffNameByRole } from "@/lib/staff";
 import styles from "./Footer.module.css";
 
 export async function Footer() {
-  const settings = await getClubSettings();
+  const [settings, staff] = await Promise.all([getClubSettings(), getStaff()]);
+  // 단장 이름은 관리자 '스태프'(직책 '단장'), 문의 메일·전화는 관리자 '구단정보'에서 고친다
+  const director = staffNameByRole(staff, "단장");
+  const hasContact = Boolean(settings.contactEmail || settings.contactPhone);
   return (
     <footer className={styles.footer}>
       <div className={`container ${styles.inner}`}>
@@ -23,12 +27,25 @@ export async function Footer() {
               {settings.contactAddress}
             </p>
           )}
-          {(settings.contactEmail || settings.contactPhone) && (
+          {(director || hasContact) && (
             <p>
-              <span className={styles.label}>문의</span>
-              {settings.contactEmail && <a href={`mailto:${settings.contactEmail}`}>{settings.contactEmail}</a>}
-              {settings.contactEmail && settings.contactPhone && " · "}
-              {settings.contactPhone}
+              {/* 좁은 화면에서는 '단장'·'문의' 묶음째 줄을 바꾸고, 전화번호는 하이픈에서 끊기지 않게 */}
+              {director && (
+                <span className={styles.group}>
+                  <span className={styles.label}>단장</span>
+                  {director}
+                  {hasContact && " · "}
+                </span>
+              )}
+              {director && hasContact && " "}
+              {hasContact && (
+                <span className={styles.group}>
+                  <span className={styles.label}>문의</span>
+                  {settings.contactEmail && <a href={`mailto:${settings.contactEmail}`}>{settings.contactEmail}</a>}
+                  {settings.contactEmail && settings.contactPhone && " / "}
+                  {settings.contactPhone && <span className={styles.nowrap}>{settings.contactPhone}</span>}
+                </span>
+              )}
             </p>
           )}
           <ul className={styles.sns}>

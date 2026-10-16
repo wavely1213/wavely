@@ -32,6 +32,15 @@
   font-weight: 700;
 }
 
+/* 한 줄에 여러 정보 — 넘치면 묶음 단위로 다음 줄로 */
+.group {
+  display: inline-block;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
 .about a:hover,
 .links a:hover,
 .sns a:hover {

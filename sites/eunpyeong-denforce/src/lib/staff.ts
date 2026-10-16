@@ -12,3 +12,9 @@ export function splitStaff(staff: Staff[]) {
     front: staff.filter((s) => !isCoachingRole(s.role)),
   };
 }
+
+/** 직책이 정확히 role 인 첫 사람 이름 (푸터 '단장' 등). 없거나 이름이 비면 null */
+export function staffNameByRole(staff: Staff[], role: string) {
+  const name = staff.find((s) => s.role.trim() === role)?.name.trim();
+  return name || null;
+}

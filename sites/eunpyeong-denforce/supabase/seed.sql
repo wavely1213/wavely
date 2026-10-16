@@ -2,11 +2,12 @@
 -- 선수·경기·순위는 자리표시(KNOWN_ISSUES I-002). 운영 시작 시 관리자 화면에서 교체한다.
 -- 적용: 마이그레이션 다음에 SQL Editor 에서 1회 실행.
 
-insert into public.club_settings (id, intro, contact_email, instagram_url)
+insert into public.club_settings (id, intro, contact_email, contact_phone, instagram_url)
 values (
   1,
   E'서울은평 덴포스는 2012년 창단한 서울 은평구 연고의 풋살팀으로, 대한민국 풋살 세미프로 리그 FK리그에 참가하고 있습니다.\n\n2025-26 시즌을 앞두고 의류 브랜드 덴포스(Denforce)와 네이밍 스폰서 계약을 맺고 ''서울은평 덴포스''로 새 출발했습니다.',
-  'futbol10@naver.com',
+  'jonghbae@naver.com',
+  '010-5135-0309',
   'https://www.instagram.com/eunpyeong_denforce'
 )
 on conflict (id) do nothing;

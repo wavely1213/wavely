@@ -12,9 +12,10 @@
 
 begin;
 
--- 구단 정보: 연락처·홈경기장 (연맹 구단 소개 기준)
+-- 구단 정보: 연락처·홈경기장 (연맹 구단 소개 기준. 문의 메일·전화는 2026-10-16 구단 요청으로 단장 연락처로 교체 — D-044)
 update public.club_settings set
-  contact_phone = '02-6368-2308',
+  contact_email = 'jonghbae@naver.com',
+  contact_phone = '010-5135-0309',
   contact_address = '경기도 고양시 덕양구 고양대로 1840 (동산동)',
   venue_address = '서울시 은평구 진관1로 52 (은평다목적체육관)'
 where id = 1;

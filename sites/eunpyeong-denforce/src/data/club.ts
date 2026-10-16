@@ -9,8 +9,8 @@ const CLUB_INTRO = [
 /** 정적 모드 기본값. DB 모드에서는 club_settings 테이블이 대신한다. */
 export const CLUB_SETTINGS: ClubSettings = {
   intro: CLUB_INTRO,
-  contactEmail: "futbol10@naver.com",
-  contactPhone: null,
+  contactEmail: "jonghbae@naver.com",
+  contactPhone: "010-5135-0309",
   contactAddress: null,
   instagramUrl: "https://www.instagram.com/eunpyeong_denforce",
   youtubeUrl: null,
