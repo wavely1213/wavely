@@ -21,6 +21,7 @@ export const STATIC_PATHS = [
   "/match/standings",
   "/sponsors",
   "/contact",
+  "/sitemap",
 ] as const;
 
 export type SitemapEntry = { url: string; lastModified?: string };
