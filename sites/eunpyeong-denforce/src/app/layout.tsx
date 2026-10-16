@@ -26,6 +26,8 @@ export async function generateMetadata(): Promise<Metadata> {
     description: SITE_DESCRIPTION,
     // 아이콘은 파일 규칙으로: app/favicon.ico·icon.png·apple-icon.png (구단 엠블럼, 정사각)
     ...(await sitePreviewMeta()),
+    // 대표 주소(canonical) — './' 는 Next 가 지금 페이지 경로로 풀어 페이지마다 자기 주소가 된다(쿼리 제외) (D-039)
+    alternates: { canonical: "./" },
     // 네이버 서치어드바이저 소유 확인 (D-027)
     ...(SEARCH_VERIFICATION.naver ? { verification: { other: { "naver-site-verification": SEARCH_VERIFICATION.naver } } } : {}),
   };

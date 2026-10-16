@@ -58,7 +58,7 @@
 - **해결 방향**: 가비아 DNS 관리 → 레코드 수정에 A `@` 216.198.79.1, CNAME `www` 28dd416c47e68d56.vercel-dns-017.com. (TTL 600) 입력 → 수 분~수 시간 뒤 Vercel 인증서 발급 확인. 이후 Supabase Authentication → URL Configuration 의 Site URL 을 https://eunpyeong-fs.com 으로(SUPABASE_SETUP 3번), PROJECT_CONTEXT 주소 갱신.
 
 ## I-031 | 2026-10-16 | 네이버 서치어드바이저 등록·소유 확인 대기
-- **상태**: 열림 (소유자 작업 대기)
+- **상태**: 열림 — 소유 확인 값 입력·배포됨(D-039). 남은 것: 서치어드바이저에서 소유 확인 버튼 → 사이트맵 제출 → 웹 페이지 수집 요청 (소유자)
 - **심각도**: 중간
 - **증상/내용**: 사이트맵·robots·구조화 데이터는 배포됨(D-027). 네이버 소유 확인 값이 없어 메타 태그는 아직 비어 있다.
 - **해결 방향**: searchadvisor.naver.com → 웹마스터 도구 → 사이트 등록 `https://eunpyeong-fs.com` → 'HTML 태그' 방식의 content 값을 받아 `SEARCH_VERIFICATION.naver` 에 넣고 배포 → 소유 확인 → 요청 > 사이트맵 제출 `https://eunpyeong-fs.com/sitemap.xml`, 웹 페이지 수집 요청(홈). 반영까지 며칠~몇 주.

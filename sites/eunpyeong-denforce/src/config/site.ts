@@ -79,7 +79,9 @@ export const NAV: NavItem[] = [
  * 검색 사이트 소유 확인 값 — 네이버 서치어드바이저에서 받은 HTML 태그의 content 값을 넣는다 (D-027).
  * 비어 있으면 태그를 넣지 않는다. 비밀값이 아니다(공개 메타 태그).
  */
-export const SEARCH_VERIFICATION: { naver: string | null } = { naver: null };
+export const SEARCH_VERIFICATION: { naver: string | null } = {
+  naver: "dd57673238c6ec36c8ddfd4e49d4d6a003c0c538",
+};
 
 /** 메뉴 맨 오른쪽 외부 링크 — 네이밍 스폰서 덴포스 스포츠 공식 홈페이지, 새 창 (D-019). 하위 탭·사이트맵에는 넣지 않는다 */
 export const NAV_EXTERNAL = { label: "덴포스스포츠", href: "https://denforce.co.kr" } as const;
