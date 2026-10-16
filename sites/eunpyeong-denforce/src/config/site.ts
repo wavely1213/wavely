@@ -20,8 +20,8 @@ export const SITE = {
   homeVenue: "은평다목적체육관",
 } as const;
 
-/** 사이트 설명 — 검색 결과·링크 미리보기의 기본 설명 (D-025) */
-export const SITE_DESCRIPTION = `${SITE.tagline} · 경기 일정·결과, 선수단, 구단 소식`;
+/** 사이트 설명 — 검색 결과·링크 미리보기의 기본 설명 (D-025, 문구 D-040) */
+export const SITE_DESCRIPTION = "대한민국 풋살 프로팀, FK리그 서울은평 덴포스 공식 홈페이지";
 
 /** /admin 주소 링크 미리보기의 기본 제목·설명 — 관리자 화면에서 바꾸지 않았을 때 (D-037·D-038) */
 export const ADMIN_PREVIEW_TEXT = {
