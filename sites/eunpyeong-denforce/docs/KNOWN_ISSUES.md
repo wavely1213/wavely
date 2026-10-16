@@ -28,10 +28,16 @@
 <!-- 최신 항목을 위에 추가. 심각도 '높음'은 발견 즉시 소유자에게 별도 보고 -->
 
 ## I-028 | 2026-10-16 | eunpyeong-fs.com DNS 레코드 입력 대기 (가비아)
-- **상태**: 열림 (소유자 작업 대기)
+- **상태**: 해결(2026-10-16) — 가비아 A 레코드 입력, Vercel 확인(misconfigured false). 남은 일: Supabase Site URL 변경(아래), www CNAME 확인
 - **심각도**: 중간
 - **증상/내용**: Vercel 에는 도메인을 추가했지만(D-024) 가비아 DNS 레코드가 0개라 아직 접속되지 않는다(Vercel 'misconfigured').
 - **해결 방향**: 가비아 DNS 관리 → 레코드 수정에 A `@` 216.198.79.1, CNAME `www` 28dd416c47e68d56.vercel-dns-017.com. (TTL 600) 입력 → 수 분~수 시간 뒤 Vercel 인증서 발급 확인. 이후 Supabase Authentication → URL Configuration 의 Site URL 을 https://eunpyeong-fs.com 으로(SUPABASE_SETUP 3번), PROJECT_CONTEXT 주소 갱신.
+
+## I-029 | 2026-10-16 | (제안) 구단소식 글을 공유하면 글 사진이 아니라 사이트 대표 이미지가 뜬다
+- **상태**: 열림 (제안 — 지시 범위 밖)
+- **심각도**: 낮음
+- **증상/내용**: 링크 미리보기 이미지는 사이트 전체 공통(D-025). 글 제목·요약은 페이지마다 나오지만, 구단소식 상세를 공유해도 사진은 대표 이미지.
+- **해결 방향**: 원하면 구단소식 상세 generateMetadata 에 openGraph.images = 글 썸네일(없으면 기본) 추가.
 
 ## I-027 | 2026-10-16 | 포스팅은 2026-10-16 시점 수집본 (자동 갱신 없음)
 - **상태**: 열림

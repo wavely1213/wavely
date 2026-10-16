@@ -33,7 +33,7 @@
 | 백엔드 | Next 서버 액션 (관리자 쓰기) | 공개 읽기는 `src/lib/repo.ts` |
 | 데이터베이스 | Supabase Postgres (전용 새 프로젝트) + Storage `media` | 미설정 시 `src/data` 정적 데이터로 동작 |
 | 인증 | Supabase Auth 이메일+비밀번호, 관리자 허용 목록 | 공개 가입 없음 |
-| 배포/호스팅 | Vercel 프로젝트 `eunpyeong-denforce` (서울 icn1), https://eunpyeong-denforce.vercel.app · 공식 도메인 https://eunpyeong-fs.com (DNS 입력 대기, D-024·I-028) | 사이트 전용 `vercel.json`. 와벨리 프로젝트와 별개 |
+| 배포/호스팅 | Vercel 프로젝트 `eunpyeong-denforce` (서울 icn1), https://eunpyeong-denforce.vercel.app · 공식 도메인 https://eunpyeong-fs.com (D-024) | 사이트 전용 `vercel.json`. 와벨리 프로젝트와 별개 |
 | 기타 | 없음 | |
 
 > 스택 변경은 반드시 `DECISION_LOG.md`에 이유와 함께 기록한다.

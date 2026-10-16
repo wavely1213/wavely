@@ -4,6 +4,8 @@ export const SITE = {
   name: "서울은평 덴포스",
   nameEn: "SEOUL EUNPYEONG FUTSAL TEAM",
   tagline: "FK리그 서울은평 풋살팀 공식 홈페이지",
+  /** 공식 주소 — 링크 미리보기(og:image 등)의 절대 주소 기준 (D-024·D-025) */
+  url: "https://eunpyeong-fs.com",
   /** 엠블럼 전체 (바깥 여백 투명, 134×183) */
   emblem: "/brand/emblem.png",
   /** 방패만 (SINCE 2012 제외, 134×171) — 헤더·파비콘 */
