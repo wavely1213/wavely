@@ -55,7 +55,8 @@ proxy.ts (/admin/*) ─→ 세션 쿠키 갱신만 (권한 판단 X)
 | 리그 표기·출처 | /src/config/league.ts | 순위표 시즌 제목, 기록 기준 시즌, 다음 시즌, 새 경기 대회 기본값, 자료 출처 (D-011) |
 | 레이아웃 | /src/components/layout | Header(모바일 메뉴), Footer(연락처·SNS), PageHeader(섹션 탭) |
 | 메인 섹션 | /src/components/home | Hero, NewsTabs, PlayersPreview, QuickLinks, SponsorStrip |
-| 도메인 UI | /src/components/{match,news,player} | MatchRow(목록), MatchCard(메인), NewsCard, PlayerCard |
+| 도메인 UI | /src/components/{match,news,player,posting} | MatchRow(목록), MatchCard(메인), NewsCard, PlayerCard, PostingBoard(분류 탭·출처 칩·더 보기, 클라이언트)·PostingCard |
+| 포스팅 도우미 | /src/lib/postings.ts | 정렬(최근 먼저)·분류/출처 필터·개수 (순수 함수, D-022) |
 | 공용 UI | /src/components/ui | Section, Placeholder, EmblemFallback(사진 없을 때) |
 | 관리자 UI | /src/components/admin | AdminForm(useActionState + 필드 오류·입력값 유지), fields, DeleteButton, PageTitle, AdminNav |
 | 공개 데이터 접근 | /src/lib/repo.ts | 모든 공개 조회 함수 (캐시 태그: lib/cache-tags.ts) |
@@ -68,9 +69,9 @@ proxy.ts (/admin/*) ─→ 세션 쿠키 갱신만 (권한 판단 X)
 ## 5. 데이터 모델 요약
 
 DB 진실의 원천: `supabase/migrations/*.sql`. 실데이터 적재본: `supabase/data/*.sql` (연맹·인스타그램 출처, D-010). 도메인 타입: `src/types/index.ts`, DB 행 타입·변환: `src/lib/data/rows.ts`.
-- 테이블: admins(허용 목록), club_settings(단일 행), history_items, players, staff, matches, standings(season = 대회명, played·points 생성 컬럼 — D-020), news_posts(published, thumbnail_url 목록용 + images 상세 사진 배열 — D-017), sponsors
+- 테이블: admins(허용 목록), club_settings(단일 행), history_items, players, staff, matches, standings(season = 대회명, played·points 생성 컬럼 — D-020), news_posts(published, thumbnail_url 목록용 + images 상세 사진 배열 — D-017), postings(바깥 글 모음: kind·platform·원문 url 유일·posted_on·published — D-022), sponsors
 - 공통: uuid id, updated_at·updated_by(트리거), check 제약 = 폼 검증 범위
-- 저장소: 버킷 `media` (공개 읽기, 관리자 쓰기), 경로 `<news|players|staff|sponsors>/<uuid>.<ext>`
+- 저장소: 버킷 `media` (공개 읽기, 관리자 쓰기), 경로 `<news|players|staff|sponsors|postings>/<uuid>.<ext>` (일괄 적재한 포스팅 사진은 `postings/<url 해시>.jpg`)
 
 ## 6. 횡단 관심사 처리 방식
 
