@@ -1,0 +1,32 @@
+.columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 0 40px;
+}
+
+.main {
+  min-width: 0;
+}
+
+/* 첫 섹션 제목과 위 끝을 맞춘다 (Section 위 여백과 같음) */
+.aside {
+  padding-top: var(--section-gap);
+}
+
+.stick {
+  position: sticky;
+  top: calc(var(--header-h) + 24px);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (max-width: 1080px) {
+  .columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .stick {
+    position: static;
+  }
+}

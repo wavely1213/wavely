@@ -1,8 +1,10 @@
 import { Hero } from "@/components/home/Hero";
+import { HomeColumns } from "@/components/home/HomeColumns";
 import { NewsTabs } from "@/components/home/NewsTabs";
 import { PlayersPreview } from "@/components/home/PlayersPreview";
 import { QuickLinks } from "@/components/home/QuickLinks";
 import { SponsorMarquee } from "@/components/home/SponsorMarquee";
+import { StandingsWidget } from "@/components/home/StandingsWidget";
 import { MatchCards } from "@/components/match/MatchCard";
 import { Section } from "@/components/ui/Section";
 import { SITE } from "@/config/site";
@@ -14,15 +16,16 @@ import {
   getNextHomeMatch,
   getPlayersByPosition,
   getSponsors,
+  getStandings,
   getUpcomingMatches,
 } from "@/lib/repo";
+import { homeMatchItems } from "@/lib/match";
 import { clubJsonLd, jsonLdString } from "@/lib/seo";
-import type { Match } from "@/types";
 
-// 메인 섹션 순서: 히어로(다음 홈경기) → 스폰서 띠(한 줄 자동 흐름, D-029) → 경기 → 구단 소식 → 선수단 → 바로가기
+// 메인 섹션 순서: 히어로(다음 홈경기) → 스폰서 띠(한 줄 자동 흐름, D-029) → [경기 → 구단 소식 | 오른쪽 리그 순위 위젯] (D-034) → 선수단 → 바로가기
 // 구단 영상 섹션은 영상 콘텐츠가 생기면 추가한다 (빈 섹션은 노출하지 않음).
 export default async function HomePage() {
-  const [nextHome, finished, upcoming, news, groups, sponsors, settings] = await Promise.all([
+  const [nextHome, finished, upcoming, news, groups, sponsors, settings, standings] = await Promise.all([
     getNextHomeMatch(),
     getFinishedMatches(),
     getUpcomingMatches(),
@@ -30,6 +33,7 @@ export default async function HomePage() {
     getPlayersByPosition(),
     getSponsors(),
     getClubSettings(),
+    getStandings(),
   ]);
 
   // 검색엔진용 구단 정보 — 공식 홈페이지·다른 이름·SNS 연결 (D-027)
@@ -44,14 +48,7 @@ export default async function HomePage() {
     sameAs: snsLinks(settings).map((s) => s.href),
   });
 
-  // 예정 경기가 있으면 지난 1 + 예정 2, 시즌 휴식기(예정 없음)에는 최근 결과 3
-  const matchItems: Array<{ match: Match; label: string }> =
-    upcoming.length > 0
-      ? [
-          ...finished.slice(0, 1).map((match) => ({ match, label: "지난 경기" })),
-          ...upcoming.slice(0, 2).map((match, i) => ({ match, label: i === 0 ? "다음 경기" : "예정" })),
-        ]
-      : finished.slice(0, 3).map((match) => ({ match, label: "지난 경기" }));
+  const matchItems = homeMatchItems(finished, upcoming);
 
   return (
     <>
@@ -59,15 +56,21 @@ export default async function HomePage() {
       <Hero nextHome={nextHome} />
       {sponsors.length > 0 && <SponsorMarquee sponsors={sponsors} />}
 
-      {matchItems.length > 0 && (
-        <Section title="경기" more={{ href: upcoming.length > 0 ? "/match/schedule" : "/match/results" }}>
-          <MatchCards items={matchItems} />
-        </Section>
-      )}
-
-      <Section title="구단 소식" more={{ href: "/news" }}>
-        <NewsTabs posts={news} />
-      </Section>
+      <HomeColumns
+        main={
+          <>
+            {matchItems.length > 0 && (
+              <Section title="경기" contained={false} more={{ href: upcoming.length > 0 ? "/match/schedule" : "/match/results" }}>
+                <MatchCards items={matchItems} />
+              </Section>
+            )}
+            <Section title="구단 소식" contained={false} more={{ href: "/news" }}>
+              <NewsTabs posts={news} limit={6} columns={3} />
+            </Section>
+          </>
+        }
+        aside={standings.length > 0 ? <StandingsWidget rows={standings} /> : null}
+      />
 
       <Section title="선수단" more={{ href: "/team/players" }}>
         <PlayersPreview groups={groups} />

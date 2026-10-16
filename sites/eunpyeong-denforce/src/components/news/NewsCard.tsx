@@ -28,9 +28,9 @@ export function NewsCard({ post }: { post: NewsPost }) {
 }
 
 /** scroll: 모바일에서 한 줄 가로 스와이프 (메인용) */
-export function NewsGrid({ posts, scroll = false }: { posts: NewsPost[]; scroll?: boolean }) {
+export function NewsGrid({ posts, scroll = false, columns = 4 }: { posts: NewsPost[]; scroll?: boolean; columns?: 3 | 4 }) {
   return (
-    <div className={`${styles.grid} ${scroll ? styles.scroll : ""}`}>
+    <div className={`${styles.grid} ${columns === 3 ? styles.cols3 : ""} ${scroll ? styles.scroll : ""}`}>
       {posts.map((p) => (
         <NewsCard key={p.id} post={p} />
       ))}

@@ -56,7 +56,7 @@ proxy.ts (/admin/*) ─→ 세션 쿠키 갱신만 (권한 판단 X)
 | 검색 등록 | /src/lib/seo.ts, /src/app/robots.ts, /src/app/sitemap.ts | 사이트맵 목록·구단 JSON-LD(순수 함수) — D-027. 소유 확인 값은 config/site.ts SEARCH_VERIFICATION |
 | 리그 표기·출처 | /src/config/league.ts | 순위표 시즌 제목, 기록 기준 시즌, 다음 시즌, 새 경기 대회 기본값, 자료 출처 (D-011) |
 | 레이아웃 | /src/components/layout | Header(모바일 메뉴), Footer(연락처·SNS), PageHeader(섹션 탭) |
-| 메인 섹션 | /src/components/home | Hero, SponsorMarquee(히어로 아래 스폰서 띠, D-029), NewsTabs, PlayersPreview, QuickLinks, SponsorStrip(스폰서 페이지 격자) |
+| 메인 섹션 | /src/components/home | Hero, SponsorMarquee(히어로 아래 스폰서 띠, D-029), HomeColumns(본문 + 오른쪽 위젯 칸)·StandingsWidget(리그 순위, D-034), NewsTabs, PlayersPreview, QuickLinks, SponsorStrip(스폰서 페이지 격자) |
 | 도메인 UI | /src/components/{club,match,news,player,posting} | VenueMap·NaverMap(오시는 길 지도, 네이버 지도 스크립트는 키가 있을 때만), MatchRow(목록), MatchCard(메인), NewsCard, PlayerCard, PostingBoard(분류 탭·출처 칩·더 보기, 클라이언트)·PostingCard |
 | 포스팅 도우미 | /src/lib/postings.ts | 정렬(최근 먼저)·분류/출처 필터·개수 (순수 함수, D-022) |
 | 공용 UI | /src/components/ui | Section, Placeholder, EmblemFallback(사진 없을 때) |

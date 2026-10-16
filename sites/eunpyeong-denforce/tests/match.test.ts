@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { formatKickoffFull } from "../src/lib/format.ts";
-import { groupByCompetition, matchLabel } from "../src/lib/match.ts";
+import { groupByCompetition, homeMatchItems, matchLabel } from "../src/lib/match.ts";
 import type { Match } from "../src/types/index.ts";
 
 const m = (id: string, competition: string, round = ""): Match => ({
@@ -24,4 +24,15 @@ test("formatKickoffFull: 연맹 표기 YYYY-MM-DD (요일) + HH:MM, 한국 시�
   assert.deepEqual(formatKickoffFull("2025-11-15T15:00:00+09:00"), { date: "2025-11-15 (토)", time: "15:00" });
   // UTC 로 저장된 값도 한국 날짜로 (UTC 2026-08-24 23:30 = KST 08-25 08:30)
   assert.deepEqual(formatKickoffFull("2026-08-24T23:30:00Z"), { date: "2026-08-25 (화)", time: "08:30" });
+});
+
+test("homeMatchItems: 지난 1 + 다음 1 / 지난 경기 없으면 예정 2 / 예정 없으면 최근 결과 2", () => {
+  const f = [m("f1", "A"), m("f2", "A"), m("f3", "A")];
+  const u = [m("u1", "A"), m("u2", "A")];
+  const ids = (xs: Array<{ match: Match; label: string }>) => xs.map((x) => `${x.match.id}:${x.label}`);
+  assert.deepEqual(ids(homeMatchItems(f, u)), ["f1:지난 경기", "u1:다음 경기"]);
+  assert.deepEqual(ids(homeMatchItems([], u)), ["u1:다음 경기", "u2:예정"]);
+  assert.deepEqual(ids(homeMatchItems(f, [])), ["f1:지난 경기", "f2:지난 경기"]);
+  assert.deepEqual(homeMatchItems([], []), []);
+  assert.deepEqual(ids(homeMatchItems(f, u, 3)), ["f1:지난 경기", "u1:다음 경기", "u2:예정"]);
 });

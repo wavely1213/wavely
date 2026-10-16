@@ -4,6 +4,11 @@
   gap: 32px 20px;
 }
 
+/* 메인 왼쪽 칸(오른쪽 위젯 옆)용 3칸 (D-034) */
+.cols3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
 .card {
   display: flex;
   flex-direction: column;
