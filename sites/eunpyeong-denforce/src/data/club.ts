@@ -71,10 +71,6 @@ export const COMMUNITY = [
  * 사진은 공개 이미지에서 홈·어웨이 상의 한 장씩(public/photos/kit-2627-*.webp). 시즌이 바뀌면 이 값과 사진을 바꾼다.
  */
 export const KIT = {
-  text: [
-    "2026-27 시즌 홈 유니폼은 로열블루, 어웨이 유니폼은 화이트에 블루 스트라이프입니다.",
-    "스폰서: 덴포스 스포츠, 피크폼",
-  ],
   images: [
     { src: "/photos/kit-2627-home.webp", alt: "2026-27 홈 유니폼 (로열블루)", caption: "홈" },
     { src: "/photos/kit-2627-away.webp", alt: "2026-27 어웨이 유니폼 (화이트·블루 스트라이프)", caption: "어웨이" },

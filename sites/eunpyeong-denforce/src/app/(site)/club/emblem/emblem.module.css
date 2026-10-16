@@ -1,4 +1,4 @@
-/* 엠블럼·유니폼 페이지 — 홈·어웨이 유니폼 사진 두 장 나란히 + 바로가기 (사진 모서리는 prose .figure 와 같게) */
+/* 엠블럼·유니폼 페이지 — 홈·어웨이 유니폼 사진 두 장 나란히 + 바로가기 버튼 (사진 모서리는 prose .figure 와 같게) */
 .kits {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -29,14 +29,33 @@
   color: var(--c-text-sub);
 }
 
-.links {
+/* 바로가기 버튼 두 개 — 같은 폭으로 세로로 (prose .button 위에 폭·배치만) */
+.actions {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-top: 8px;
-  font-size: 16px;
+  gap: 12px;
+  max-width: 360px;
 }
 
-.links a::after {
-  content: " →";
+/* 본문(.lead) 링크 모양(파란 밑줄)보다 앞서도록 .actions 를 붙인다 */
+.actions .action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 22px;
+  font-size: 17px;
+  color: var(--c-on-dark);
+  text-decoration: none;
+}
+
+/* 두 번째 버튼은 같은 파랑의 테두리형 */
+.actions .outline {
+  background: var(--c-bg);
+  color: var(--c-blue);
+  box-shadow: inset 0 0 0 2px var(--c-blue);
+}
+
+.actions .outline:hover {
+  background: var(--c-blue-tint);
 }
