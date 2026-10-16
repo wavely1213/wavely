@@ -11,13 +11,21 @@ export async function Footer() {
       <div className={`container ${styles.inner}`}>
         <div className={styles.about}>
           <strong className={styles.name}>{SITE.name}</strong>
+          {/* 라벨(밝은 굵은 글씨)과 값(회색)을 나눠 한 줄에 여러 정보가 붙어 보이지 않게 한다 */}
           <p>
-            창단 {SITE.founded} · 홈구장 {SITE.homeVenue}
+            <span className={styles.label}>창단</span>
+            {SITE.founded} · <span className={styles.label}>홈구장</span>
+            {SITE.homeVenue}
           </p>
-          {settings.contactAddress && <p>사무국 {settings.contactAddress}</p>}
+          {settings.contactAddress && (
+            <p>
+              <span className={styles.label}>사무국</span>
+              {settings.contactAddress}
+            </p>
+          )}
           {(settings.contactEmail || settings.contactPhone) && (
             <p>
-              문의{" "}
+              <span className={styles.label}>문의</span>
               {settings.contactEmail && <a href={`mailto:${settings.contactEmail}`}>{settings.contactEmail}</a>}
               {settings.contactEmail && settings.contactPhone && " · "}
               {settings.contactPhone}

@@ -26,6 +26,12 @@
   margin-bottom: 6px;
 }
 
+.label {
+  margin-right: 8px;
+  color: var(--c-on-dark);
+  font-weight: 700;
+}
+
 .about a:hover,
 .links a:hover,
 .sns a:hover {
