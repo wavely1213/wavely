@@ -40,7 +40,7 @@
 - **해결 방향**: searchadvisor.naver.com → 웹마스터 도구 → 사이트 등록 `https://eunpyeong-fs.com` → 'HTML 태그' 방식의 content 값을 받아 `SEARCH_VERIFICATION.naver` 에 넣고 배포 → 소유 확인 → 요청 > 사이트맵 제출 `https://eunpyeong-fs.com/sitemap.xml`, 웹 페이지 수집 요청(홈). 반영까지 며칠~몇 주.
 
 ## I-030 | 2026-10-16 | 오시는 길 네이버 지도 키(Client ID) 대기
-- **상태**: 열림 (소유자 작업 대기)
+- **상태**: 해결(2026-10-16) — Client ID 를 Vercel 환경변수(Production·Preview·Development)에 넣고 재배포, https://eunpyeong-fs.com 에서 지도·핀 표시 확인(인증 200). eunpyeong-denforce.vercel.app 은 네이버 클라우드에 등록되지 않아 인증 401 → 장소 안내로 보인다(필요하면 Web 서비스 URL 에 추가). Client Secret 은 웹 지도에 쓰지 않는다
 - **심각도**: 낮음
 - **증상/내용**: 키가 없어 지도 자리에 장소 안내만 보인다(버튼은 동작). D-026.
 - **해결 방향**: 네이버 클라우드 플랫폼 가입 → Services > Application Services > Maps → Application 등록(Dynamic Map 선택, Web 서비스 URL: https://eunpyeong-fs.com, https://www.eunpyeong-fs.com, https://eunpyeong-denforce.vercel.app, http://localhost:3000) → Client ID 를 Vercel 환경변수 `NEXT_PUBLIC_NAVER_MAP_KEY_ID`(Production·Preview) 로 넣고 재배포. 무료 사용량 안에서 쓰는지 콘솔에서 확인.
