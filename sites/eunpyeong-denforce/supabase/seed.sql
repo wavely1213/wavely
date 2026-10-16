@@ -53,10 +53,10 @@ insert into public.matches (competition, round, kickoff, venue, is_home, opponen
 
 -- 리그순위 season = 지금 시즌(config LEAGUE.currentCompetition) 자리표시
 insert into public.standings (season, team, win, draw, loss, goals_for, goals_against, is_us) values
-  ('2026-27 FK2리그', '서울은평 덴포스', 1, 1, 0, 6, 4, true),
-  ('2026-27 FK2리그', '상대팀 A', 1, 0, 1, 5, 5, false),
-  ('2026-27 FK2리그', '상대팀 B', 0, 2, 0, 3, 3, false),
-  ('2026-27 FK2리그', '상대팀 C', 0, 1, 1, 2, 4, false);
+  ('2026-27 FK1리그', '서울은평 덴포스', 1, 1, 0, 6, 4, true),
+  ('2026-27 FK1리그', '상대팀 A', 1, 0, 1, 5, 5, false),
+  ('2026-27 FK1리그', '상대팀 B', 0, 2, 0, 3, 3, false),
+  ('2026-27 FK1리그', '상대팀 C', 0, 1, 1, 2, 4, false);
 
 insert into public.news_posts (category, title, date, thumbnail_url, summary, body) values
   ('notice', '서울은평 덴포스 공식 홈페이지 오픈 안내', '2026-10-15', null,
@@ -72,6 +72,11 @@ insert into public.news_posts (category, title, date, thumbnail_url, summary, bo
   ('photo', 'U-15 유소년팀 창단', '', '/photos/u15.webp',
    '아카데미 산하 U-15 유소년팀이 창단했습니다.', '서울은평 U-15 유소년팀 창단식 사진입니다.');
 
+-- 스폰서 순서는 소유자 지시 (D-029). 로고는 관리자 화면에서 올린다 (운영 로고: Storage media/sponsors/)
 insert into public.sponsors (name, tier, sort_order) values
-  ('덴포스 (Denforce)', 'naming', 1),
-  ('풋살사관학교', 'partner', 2);
+  ('은평구', 'partner', 1),
+  ('은평구체육회', 'partner', 2),
+  ('은평풋살연맹', 'partner', 3),
+  ('덴포스스포츠', 'naming', 4),
+  ('풋살사관학교', 'partner', 5),
+  ('꽁병지TV', 'partner', 6);

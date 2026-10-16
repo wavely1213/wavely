@@ -7,5 +7,5 @@ export const LEAGUE = {
   /** 일정 발표를 기다리는 다음 시즌 */
   nextSeason: "2026-27",
   /** 지금 시즌(대회) — 리그순위 첫 표, 관리자 새 경기·순위의 기본값. 나머지 시즌 순위는 '지난 리그' (D-020) */
-  currentCompetition: "2026-27 FK2리그",
+  currentCompetition: "2026-27 FK1리그",
 } as const;
