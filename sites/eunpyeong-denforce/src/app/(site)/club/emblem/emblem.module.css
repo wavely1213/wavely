@@ -29,7 +29,7 @@
   color: var(--c-text-sub);
 }
 
-/* 바로가기 버튼 두 개 — 같은 폭으로 세로로 (prose .button 위에 폭·배치만) */
+/* 바로가기 버튼 — prose .button 위에 폭·배치만 */
 .actions {
   display: flex;
   flex-direction: column;
@@ -47,15 +47,4 @@
   font-size: 17px;
   color: var(--c-on-dark);
   text-decoration: none;
-}
-
-/* 두 번째 버튼은 같은 파랑의 테두리형 */
-.actions .outline {
-  background: var(--c-bg);
-  color: var(--c-blue);
-  box-shadow: inset 0 0 0 2px var(--c-blue);
-}
-
-.actions .outline:hover {
-  background: var(--c-blue-tint);
 }

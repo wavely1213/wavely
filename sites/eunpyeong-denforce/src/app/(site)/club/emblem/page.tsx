@@ -12,7 +12,7 @@ import local from "./emblem.module.css";
 export const metadata: Metadata = { title: "엠블럼·유니폼" };
 
 export default async function EmblemPage() {
-  const { reveal, purchase } = kitLinks(await getNews());
+  const { reveal } = kitLinks(await getNews());
   return (
     <>
       <PageHeader title="엠블럼·유니폼" current="/club/emblem" />
@@ -39,24 +39,13 @@ export default async function EmblemPage() {
           </div>
           <div className={styles.lead}>
             <h2 className={styles.h2}>유니폼</h2>
-            {/* 설명 문구 대신 바로가기 버튼 두 개 (소유자 지시 — D-041) */}
-            {(reveal || purchase) && (
+            {/* 설명 문구 대신 바로가기 버튼 (소유자 지시 — D-041). '유니폼 구매 안내' 버튼은 소유자 지시로 내림 */}
+            {reveal && (
               <div className={local.actions}>
-                {reveal && (
-                  <Link href={`/news/${reveal.category}/${reveal.id}`} className={`${styles.button} ${local.action}`}>
-                    유니폼 공개 소식 보기
-                    <span aria-hidden="true">→</span>
-                  </Link>
-                )}
-                {purchase && (
-                  <Link
-                    href={`/news/${purchase.category}/${purchase.id}`}
-                    className={`${styles.button} ${local.action} ${local.outline}`}
-                  >
-                    유니폼 구매 안내
-                    <span aria-hidden="true">→</span>
-                  </Link>
-                )}
+                <Link href={`/news/${reveal.category}/${reveal.id}`} className={`${styles.button} ${local.action}`}>
+                  유니폼 공개 소식 보기
+                  <span aria-hidden="true">→</span>
+                </Link>
               </div>
             )}
           </div>

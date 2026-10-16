@@ -26,17 +26,14 @@ test("pickBanner: 관리자가 고정한 글이 있으면 그 글만 (사진 없
   assert.deepEqual(pickBanner([]), []);
 });
 
-test("kitLinks: 가장 최근 유니폼 공개 글(뉴스)·구매 안내 글(공지사항), 없으면 undefined", () => {
+test("kitLinks: 가장 최근 유니폼 공개 글(뉴스만), 없으면 undefined", () => {
   const post = (id: string, category: NewsPost["category"], title: string, date: string): NewsPost => ({ ...n(id, title), category, date });
   const posts = [
     post("old", "news", "25-26 HOME KIT 공개", "2025-09-01"),
     post("new", "news", "26-27 서울은평덴포스 HOME & AWAY KIT 공개", "2026-10-06"),
-    post("buy-news", "news", "서울은평 덴포스 유니폼 구매 안내", "2026-10-17"),
-    post("buy", "notice", "서울은평 덴포스 유니폼 구매 안내", "2026-10-16"),
+    post("notice", "notice", "26-27 유니폼 공개 일정 안내", "2026-10-20"),
     post("x", "notice", "홈페이지 오픈 안내", "2026-10-15"),
   ];
-  const { reveal, purchase } = kitLinks(posts);
-  assert.equal(reveal?.id, "new");
-  assert.equal(purchase?.id, "buy", "공지사항에 있는 구매 안내만");
-  assert.deepEqual(kitLinks([posts[4]]), { reveal: undefined, purchase: undefined });
+  assert.equal(kitLinks(posts).reveal?.id, "new", "공지사항은 빼고 뉴스 중 최근");
+  assert.deepEqual(kitLinks([posts[3]]), { reveal: undefined });
 });

@@ -26,12 +26,10 @@ function latest(posts: NewsPost[], match: (p: NewsPost) => boolean): NewsPost | 
 }
 
 /**
- * 엠블럼·유니폼 페이지의 바로가기 — 가장 최근 유니폼 공개 글(뉴스)과 유니폼 구매 안내 글(공지사항, BR-021).
- * 글 id 를 코드에 박지 않고 제목으로 찾는다 — 글을 지우거나 새로 올려도 깨진 링크가 남지 않게. 없으면 undefined (링크 숨김)
+ * 엠블럼·유니폼 페이지의 바로가기 — 가장 최근 유니폼 공개 글(뉴스).
+ * 글 id 를 코드에 박지 않고 제목으로 찾는다 — 글을 지우거나 새로 올려도 깨진 링크가 남지 않게. 없으면 undefined (버튼 숨김)
+ * ('유니폼 구매 안내' 버튼은 소유자 지시로 내렸다 — D-041)
  */
-export function kitLinks(posts: NewsPost[]): { reveal?: NewsPost; purchase?: NewsPost } {
-  return {
-    reveal: latest(posts, (p) => p.category === "news" && /KIT 공개|유니폼 공개/i.test(p.title)),
-    purchase: latest(posts, (p) => p.category === "notice" && /유니폼 구매/.test(p.title)),
-  };
+export function kitLinks(posts: NewsPost[]): { reveal?: NewsPost } {
+  return { reveal: latest(posts, (p) => p.category === "news" && /KIT 공개|유니폼 공개/i.test(p.title)) };
 }
