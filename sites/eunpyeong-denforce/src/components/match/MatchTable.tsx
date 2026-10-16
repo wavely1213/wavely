@@ -1,6 +1,6 @@
-import { SITE } from "@/config/site";
 import { formatKickoffFull, matchResult, matchSides, RESULT_LABEL } from "@/lib/format";
 import { groupByCompetition } from "@/lib/match";
+import { getSiteContent } from "@/lib/repo";
 import prose from "@/styles/prose.module.css";
 import type { Match } from "@/types";
 import styles from "./MatchTable.module.css";
@@ -9,8 +9,10 @@ import styles from "./MatchTable.module.css";
  * 경기일정·결과 표 — 한국풋살연맹 경기일정 양식(경기번호·일정·대진표·장소·결과).
  * 경기번호 칸은 라운드로 대신한다. 대회별로 표를 나눈다 (BR-011).
  * 모바일은 3칸(일정·대진·결과)으로 줄이고 라운드는 일정 칸에, 홈·원정은 위아래로 놓는다.
+ * 우리 팀 이름은 관리자 › 홈페이지 내용 › 기본 정보 '구단 이름' (D-046).
  */
-export function MatchTable({ matches }: { matches: Match[] }) {
+export async function MatchTable({ matches }: { matches: Match[] }) {
+  const ourName = (await getSiteContent())["site.name"];
   return groupByCompetition(matches).map((g, i) => (
     <section key={`${i}-${g.competition}`} className={styles.group}>
       <h2 className={styles.title}>{g.competition}</h2>
@@ -27,7 +29,7 @@ export function MatchTable({ matches }: { matches: Match[] }) {
           </thead>
           <tbody>
             {g.matches.map((m) => (
-              <MatchTableRow key={m.id} match={m} />
+              <MatchTableRow key={m.id} match={m} ourName={ourName} />
             ))}
           </tbody>
         </table>
@@ -36,9 +38,9 @@ export function MatchTable({ matches }: { matches: Match[] }) {
   ));
 }
 
-function MatchTableRow({ match }: { match: Match }) {
+function MatchTableRow({ match, ourName }: { match: Match; ourName: string }) {
   const { date, time } = formatKickoffFull(match.kickoff);
-  const { home, away, score } = matchSides(match, SITE.name);
+  const { home, away, score } = matchSides(match, ourName);
   const result = matchResult(match);
   // 홈팀이 왼쪽 (BR-002), 우리 팀 이름은 강조
   const [homeClass, awayClass] = match.isHome ? [styles.us, undefined] : [undefined, styles.us];

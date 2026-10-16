@@ -3,7 +3,6 @@
 import { AdminForm } from "@/components/admin/AdminForm";
 import { Row, SelectField, TextField } from "@/components/admin/fields";
 import { LEAGUE } from "@/config/league";
-import { SITE } from "@/config/site";
 import { isoToKst, type ActionState } from "@/lib/admin/form";
 import type { MatchRow } from "@/lib/data/rows";
 import { MATCH_SIDE_OPTIONS, MATCH_STATUS_OPTIONS } from "./labels";
@@ -11,9 +10,12 @@ import { MATCH_SIDE_OPTIONS, MATCH_STATUS_OPTIONS } from "./labels";
 export function MatchForm({
   action,
   initial,
+  defaultVenue,
 }: {
   action: (prev: ActionState, fd: FormData) => Promise<ActionState>;
   initial?: MatchRow;
+  /** 새 경기의 기본 장소 — 관리자 › 홈페이지 내용 › 기본 정보 '홈구장 이름' (D-046) */
+  defaultVenue?: string;
 }) {
   const kickoff = initial ? isoToKst(initial.kickoff) : null;
 
@@ -34,7 +36,7 @@ export function MatchForm({
         <TextField name="kickoff_time" label="시간" type="time" required hint="한국 시간" defaultValue={kickoff?.time} />
       </Row>
       <Row>
-        <TextField name="venue" label="장소" maxLength={60} defaultValue={initial?.venue ?? SITE.homeVenue} />
+        <TextField name="venue" label="장소" maxLength={60} defaultValue={initial?.venue ?? defaultVenue} />
         <SelectField
           name="is_home"
           label="홈/원정"

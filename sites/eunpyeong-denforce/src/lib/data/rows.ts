@@ -17,6 +17,7 @@ import type {
   Staff,
   StandingRow,
 } from "@/types";
+import type { ContentItem } from "@/lib/content/lists";
 
 export type PlayerRow = {
   id: string;
@@ -234,3 +235,32 @@ export const toClubSettings = (r: ClubSettingsRow): ClubSettings => ({
   adminOgTitle: r.admin_og_title ?? null,
   adminOgDescription: r.admin_og_description ?? null,
 });
+
+/** 홈페이지 내용 한 칸 (D-046) */
+export type SiteContentRow = { key: string; value: string };
+
+/** 홈페이지 내용 목록 한 줄 (D-046) */
+export type ContentItemRow = {
+  id: string;
+  list: string;
+  title: string;
+  body: string;
+  link: string;
+  image_url: string | null;
+  sort_order: number;
+};
+
+export const toContentItem = (r: ContentItemRow): ContentItem => ({
+  id: r.id,
+  list: r.list,
+  title: r.title,
+  body: r.body,
+  link: r.link,
+  image: r.image_url,
+  sortOrder: r.sort_order,
+});
+
+/** 저장된 칸들 → { key: value } */
+export function contentMap(rows: SiteContentRow[]): Record<string, string> {
+  return Object.fromEntries(rows.map((r) => [r.key, r.value]));
+}

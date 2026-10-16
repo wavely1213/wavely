@@ -213,6 +213,18 @@
     gap: 40px;
     padding: 40px 32px;
   }
+
+  /* 패널이 두 칸(엠블럼 | 정보)인 761~960px 에서도 색 칸이 좁아지지 않게 — 두 개씩, 가로로 넓게 */
+  .colors {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 12px;
+  }
+
+  .chip {
+    aspect-ratio: 2 / 1;
+    padding: 8px 10px;
+    font-size: 13px;
+  }
 }
 
 @media (max-width: 760px) {
@@ -228,18 +240,6 @@
 
   .emblem img {
     width: 200px;
-  }
-
-  /* 좁은 화면 — 두 칸씩, 색 칸은 가로로 넓게 */
-  .colors {
-    grid-template-columns: 1fr 1fr;
-    gap: 16px 12px;
-  }
-
-  .chip {
-    aspect-ratio: 2 / 1;
-    padding: 8px 10px;
-    font-size: 13px;
   }
 
   .colorName {

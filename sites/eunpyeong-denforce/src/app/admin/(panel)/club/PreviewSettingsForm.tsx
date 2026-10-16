@@ -2,7 +2,7 @@
 
 import { AdminForm } from "@/components/admin/AdminForm";
 import { ImageField, TextField } from "@/components/admin/fields";
-import { ADMIN_PREVIEW_TEXT, SITE, SITE_DESCRIPTION } from "@/config/site";
+import { adminPreviewText } from "@/config/site";
 import type { ActionState } from "@/lib/admin/form";
 import { MAX_UPLOAD_BATCH_BYTES } from "@/lib/admin/image-list";
 import { DEFAULT_PREVIEW } from "@/lib/og";
@@ -26,10 +26,16 @@ export type PreviewSettingsValues = {
 export function PreviewSettingsForm({
   action,
   initial,
+  siteName,
+  siteDescription,
 }: {
   action: (prev: ActionState, fd: FormData) => Promise<ActionState>;
   initial: PreviewSettingsValues;
+  /** 비웠을 때 쓰이는 기본 문구 — 관리자 › 홈페이지 내용 › 기본 정보의 구단 이름·사이트 설명 (D-046) */
+  siteName: string;
+  siteDescription: string;
 }) {
+  const adminText = adminPreviewText(siteName);
   return (
     <AdminForm action={action} maxUploadBytes={MAX_UPLOAD_BATCH_BYTES}>
       <h3 className={local.subTitle}>홈페이지 주소 (eunpyeong-fs.com)</h3>
@@ -45,7 +51,7 @@ export function PreviewSettingsForm({
         name="og_title"
         label="제목"
         maxLength={60}
-        placeholder={SITE.name}
+        placeholder={siteName}
         hint="60자 이하 · 비우면 기본 문구(흐린 글씨)"
         defaultValue={initial.og_title}
       />
@@ -53,7 +59,7 @@ export function PreviewSettingsForm({
         name="og_description"
         label="설명"
         maxLength={200}
-        placeholder={SITE_DESCRIPTION}
+        placeholder={siteDescription}
         hint="200자 이하 · 비우면 기본 문구(흐린 글씨)"
         defaultValue={initial.og_description}
       />
@@ -71,7 +77,7 @@ export function PreviewSettingsForm({
         name="admin_og_title"
         label="제목"
         maxLength={60}
-        placeholder={ADMIN_PREVIEW_TEXT.title}
+        placeholder={adminText.title}
         hint="60자 이하 · 비우면 기본 문구(흐린 글씨)"
         defaultValue={initial.admin_og_title}
       />
@@ -79,7 +85,7 @@ export function PreviewSettingsForm({
         name="admin_og_description"
         label="설명"
         maxLength={200}
-        placeholder={ADMIN_PREVIEW_TEXT.description}
+        placeholder={adminText.description}
         hint="200자 이하 · 비우면 기본 문구(흐린 글씨)"
         defaultValue={initial.admin_og_description}
       />

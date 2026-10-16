@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { SEARCH_VERIFICATION, SITE, SITE_DESCRIPTION } from "@/config/site";
+import { SEARCH_VERIFICATION, SITE } from "@/config/site";
 import { sitePreviewMeta } from "@/lib/og-metadata";
+import { getSiteContent } from "@/lib/repo";
 import "./globals.css";
 
 // KFA고딕 (대한축구협회 서체, 산돌 제작) — 사용 조건은 KNOWN_ISSUES I-007
@@ -20,10 +21,12 @@ const kfa = localFont({
  * (홈은 관리자 문구 — (site)/page.tsx, 구단소식 글·선수는 그 사진 — D-038). /admin 은 admin/layout.tsx 가 따로 정한다.
  */
 export async function generateMetadata(): Promise<Metadata> {
+  // 구단 이름·사이트 설명은 관리자 › 홈페이지 내용 › 기본 정보 (D-046)
+  const c = await getSiteContent();
   return {
     metadataBase: new URL(SITE.url),
-    title: { default: SITE.name, template: `%s | ${SITE.name}` },
-    description: SITE_DESCRIPTION,
+    title: { default: c["site.name"], template: `%s | ${c["site.name"]}` },
+    description: c["site.description"],
     // 아이콘은 파일 규칙으로: app/favicon.ico·icon.png·apple-icon.png (구단 엠블럼, 정사각)
     ...(await sitePreviewMeta()),
     // 대표 주소(canonical) — './' 는 Next 가 지금 페이지 경로로 풀어 페이지마다 자기 주소가 된다(쿼리 제외) (D-039)

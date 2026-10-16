@@ -1,12 +1,15 @@
 import Link from "next/link";
-import { NAV, SITE } from "@/config/site";
+import { NAV } from "@/config/site";
 import { snsLinks } from "@/lib/club";
-import { getClubSettings, getStaff } from "@/lib/repo";
+import { yearOf } from "@/lib/content/values";
+import { getClubSettings, getSiteContent, getStaff } from "@/lib/repo";
 import { staffNameByRole } from "@/lib/staff";
 import styles from "./Footer.module.css";
 
 export async function Footer() {
-  const [settings, staff] = await Promise.all([getClubSettings(), getStaff()]);
+  // 구단 이름·창단·홈구장·대표는 관리자 › 홈페이지 내용 › 기본 정보 (D-046)
+  const [settings, staff, content] = await Promise.all([getClubSettings(), getStaff(), getSiteContent()]);
+  const name = content["site.name"];
   // 단장 이름은 관리자 '스태프'(직책 '단장'), 문의 메일·전화는 관리자 '구단정보'에서 고친다
   const director = staffNameByRole(staff, "단장");
   const hasContact = Boolean(settings.contactEmail || settings.contactPhone);
@@ -14,12 +17,12 @@ export async function Footer() {
     <footer className={styles.footer}>
       <div className={`container ${styles.inner}`}>
         <div className={styles.about}>
-          <strong className={styles.name}>{SITE.name}</strong>
+          <strong className={styles.name}>{name}</strong>
           {/* 라벨(밝은 굵은 글씨)과 값(회색)을 나눠 한 줄에 여러 정보가 붙어 보이지 않게 한다 */}
           <p>
             <span className={styles.label}>창단</span>
-            {SITE.founded} · <span className={styles.label}>홈구장</span>
-            {SITE.homeVenue}
+            {yearOf(content["site.foundedDate"])} · <span className={styles.label}>홈구장</span>
+            {content["site.homeVenue"]}
           </p>
           {settings.contactAddress && (
             <p>
@@ -69,12 +72,12 @@ export async function Footer() {
       </div>
       <div className={`container ${styles.copy}`}>
         <span>
-          © {SITE.name}. All rights reserved.
+          © {name}. All rights reserved.
         </span>
         <span className={styles.legal}>
           <span>
             <span className={styles.label}>대표</span>
-            {SITE.representative}
+            {content["site.representative"]}
           </span>
           <Link href="/privacy">개인정보처리방침</Link>
           {/* 관리자 대시보드로 가는 작은 버튼 — 로그인 전이면 로그인 화면으로 간다. 방문자마다 미리 받지 않게 prefetch 끔 */}

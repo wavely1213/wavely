@@ -1,18 +1,19 @@
 import type { Metadata } from "next";
 import Link from "@/components/admin/AdminLink";
 import styles from "@/components/admin/admin.module.css";
-import { SITE } from "@/config/site";
+import { getSiteContent } from "@/lib/repo";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { LoginForm } from "./LoginForm";
 
 export const metadata: Metadata = { title: "로그인" };
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const clubName = (await getSiteContent())["site.name"];
   return (
     <div className={styles.loginWrap}>
       <div className={styles.loginBox}>
         <h1>관리자 로그인</h1>
-        <p className={styles.pageDesc}>{SITE.name} 홈페이지 관리</p>
+        <p className={styles.pageDesc}>{clubName} 홈페이지 관리</p>
         {isSupabaseConfigured() ? (
           <LoginForm />
         ) : (

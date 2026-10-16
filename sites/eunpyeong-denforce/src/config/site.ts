@@ -23,11 +23,16 @@ export const SITE = {
 /** 사이트 설명 — 검색 결과·링크 미리보기의 기본 설명 (D-025, 문구 D-040) */
 export const SITE_DESCRIPTION = "대한민국 풋살 프로팀, FK리그 서울은평 덴포스 공식 홈페이지";
 
-/** /admin 주소 링크 미리보기의 기본 제목·설명 — 관리자 화면에서 바꾸지 않았을 때 (D-037·D-038) */
-export const ADMIN_PREVIEW_TEXT = {
-  title: `${SITE.name} 관리자`,
-  description: `${SITE.name} 홈페이지 관리자 — 구단소식·경기·선수단·스폰서 관리`,
-} as const;
+/**
+ * /admin 주소 링크 미리보기의 기본 제목·설명 — 관리자 화면에서 바꾸지 않았을 때 (D-037·D-038).
+ * 구단 이름은 관리자 › 홈페이지 내용에서 바뀔 수 있어 이름을 받아 만든다 (D-046)
+ */
+export function adminPreviewText(siteName: string) {
+  return {
+    title: `${siteName} 관리자`,
+    description: `${siteName} 홈페이지 관리자 — 구단소식·경기·선수단·스폰서 관리`,
+  };
+}
 
 export type NavItem = { label: string; href: string; children?: NavItem[] };
 

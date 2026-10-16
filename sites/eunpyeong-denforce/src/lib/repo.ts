@@ -6,6 +6,8 @@ import { cacheLife, cacheTag } from "next/cache";
 import { LEAGUE } from "@/config/league";
 import { POSITION_ORDER } from "@/data/people";
 import { TAGS } from "@/lib/cache-tags";
+import type { ListKey } from "@/lib/content/lists";
+import { resolveContent } from "@/lib/content/values";
 import { dbSource } from "@/lib/data/db-source";
 import type { DataSource } from "@/lib/data/source";
 import { staticSource } from "@/lib/data/static-source";
@@ -50,6 +52,28 @@ export async function getNationalTeamAlumni() {
   cacheTag(TAGS.alumni);
   cacheLife("minutes");
   return source().nationalTeamAlumni();
+}
+
+// ── 홈페이지 내용 (관리자 › 홈페이지 내용, D-046) ──
+
+/** 화면에 쓸 값 전체 — 관리자가 바꾼 값, 없으면 코드 기본값 */
+export async function getSiteContent() {
+  "use cache";
+  cacheTag(TAGS.content);
+  cacheLife("minutes");
+  return resolveContent(await source().siteContent());
+}
+
+async function getAllContentItems() {
+  "use cache";
+  cacheTag(TAGS.contentItems);
+  cacheLife("minutes");
+  return source().contentItems();
+}
+
+/** 목록 하나 — 표시 순서대로 */
+export async function getContentList(list: ListKey) {
+  return (await getAllContentItems()).filter((i) => i.list === list);
 }
 
 // ── 경기 ─────────────────────────────────────

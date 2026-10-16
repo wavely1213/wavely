@@ -10,6 +10,9 @@ export const TAGS = {
   news: "news",
   postings: "postings",
   sponsors: "sponsors",
+  /** 홈페이지 내용 — 한 칸짜리 값 / 목록 (D-046) */
+  content: "content",
+  contentItems: "content-items",
 } as const;
 
 export type CacheTag = (typeof TAGS)[keyof typeof TAGS];

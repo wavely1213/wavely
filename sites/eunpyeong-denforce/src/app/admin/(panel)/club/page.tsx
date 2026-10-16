@@ -5,6 +5,7 @@ import { AdminLoading, PageTitle } from "@/components/admin/PageTitle";
 import styles from "@/components/admin/admin.module.css";
 import { requireAdminPage } from "@/lib/admin/auth";
 import type { AlumniRow, ClubSettingsRow, HistoryRow } from "@/lib/data/rows";
+import { getSiteContent } from "@/lib/repo";
 import { saveClubSettings } from "./actions";
 import { ClubSettingsForm } from "./ClubSettingsForm";
 import local from "./club.module.css";
@@ -31,7 +32,7 @@ export default function ClubAdminPage() {
 
 async function ClubPanels() {
   const { supabase } = await requireAdminPage();
-  const [settings, history, alumni] = await Promise.all([
+  const [settings, history, alumni, content] = await Promise.all([
     supabase
       .from("club_settings")
       .select(
@@ -45,6 +46,7 @@ async function ClubPanels() {
       .select("id, name, position, years, sort_order")
       .order("sort_order")
       .returns<AlumniRow[]>(),
+    getSiteContent(),
   ]);
 
   return (
@@ -90,6 +92,8 @@ async function ClubPanels() {
         ) : settings.data ? (
           <PreviewSettingsForm
             action={savePreviewSettings}
+            siteName={content["site.name"]}
+            siteDescription={content["site.description"]}
             initial={{
               og_image_url: settings.data.og_image_url ?? null,
               og_title: settings.data.og_title ?? null,

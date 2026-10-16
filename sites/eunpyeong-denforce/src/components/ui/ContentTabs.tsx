@@ -5,12 +5,30 @@ import styles from "./ContentTabs.module.css";
 
 export type ContentTab = { id: string; label: string; panel: ReactNode };
 
-// 주소 끝 #id 가 고른 탭 — 탭을 누르면 주소만 바꾸고(기록·스크롤 없이) 같은 신호로 다시 읽는다
+// 주소 끝 #id 가 고른 탭 — 탭을 누르면 주소만 바꾸고(기록·스크롤 없이) 같은 신호로 다시 읽는다.
+// Next 의 링크 이동(같은 페이지 메뉴를 눌러 #이 사라질 때 등)은 hashchange 가 안 나므로
+// 지원하는 브라우저에서는 Navigation API 의 currententrychange 로도 다시 읽는다.
+type NavigationLike = EventTarget;
 function subscribe(onChange: () => void) {
+  const nav = (window as Window & { navigation?: NavigationLike }).navigation;
   window.addEventListener("hashchange", onChange);
-  return () => window.removeEventListener("hashchange", onChange);
+  window.addEventListener("popstate", onChange);
+  nav?.addEventListener("currententrychange", onChange);
+  return () => {
+    window.removeEventListener("hashchange", onChange);
+    window.removeEventListener("popstate", onChange);
+    nav?.removeEventListener("currententrychange", onChange);
+  };
 }
-const readHash = () => decodeURIComponent(window.location.hash.slice(1));
+// '%' 가 깨진 주소(#%, 잘린 #%EC%9C 등)에서 decodeURIComponent 가 던지면 페이지 전체가 오류 화면이 되므로 원문으로
+const readHash = () => {
+  const raw = window.location.hash.slice(1);
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+};
 const noHash = () => "";
 
 /**
@@ -45,7 +63,11 @@ export function ContentTabs({ tabs, label }: { tabs: ContentTab[]; label: string
   }
 
   return (
-    <div>
+    <div data-content-tabs="">
+      {/* 자바스크립트가 없으면 탭을 못 누르므로 패널을 모두 펼쳐 보인다 */}
+      <noscript>
+        <style>{"[data-content-tabs] [role=tabpanel][hidden]{display:block}[data-content-tabs] [role=tablist]{display:none}"}</style>
+      </noscript>
       <div className={styles.tabs} role="tablist" aria-label={label}>
         {tabs.map((t, i) => (
           <button

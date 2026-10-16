@@ -15,7 +15,7 @@ const EXT_BY_TYPE: Record<string, string> = {
 };
 const UPLOAD_FAILED = "이미지를 올리지 못했습니다. 다시 시도해 주세요.";
 
-export type ImageFolder = "news" | "players" | "staff" | "sponsors" | "postings" | "og";
+export type ImageFolder = "news" | "players" | "staff" | "sponsors" | "postings" | "og" | "content";
 
 /** 받을 이미지 형식 제한 — 링크 미리보기(카카오톡·SNS)는 JPG·PNG 만 확실히 보인다 (D-037) */
 export type ImageAccept = { types: readonly string[]; label: string };

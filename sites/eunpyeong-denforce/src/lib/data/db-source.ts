@@ -3,7 +3,9 @@ import { CLUB_SETTINGS } from "@/data/club";
 import { createPublicClient } from "@/lib/supabase/public";
 import type { DataSource } from "./source";
 import {
+  contentMap,
   toAlumnus,
+  toContentItem,
   toClubSettings,
   toHistoryItem,
   toMatch,
@@ -15,11 +17,13 @@ import {
   toStanding,
   type AlumniRow,
   type ClubSettingsRow,
+  type ContentItemRow,
   type HistoryRow,
   type MatchRow,
   type NewsRow,
   type PlayerRow,
   type PublicPostingRow,
+  type SiteContentRow,
   type SponsorRow,
   type StaffRow,
   type StandingDbRow,
@@ -84,5 +88,18 @@ export const dbSource: DataSource = {
   async sponsors() {
     const res = await createPublicClient().from("sponsors").select("*").order("sort_order").returns<SponsorRow[]>();
     return unwrap("sponsors", res).map(toSponsor);
+  },
+  async siteContent() {
+    const res = await createPublicClient().from("site_content").select("key, value").returns<SiteContentRow[]>();
+    return contentMap(unwrap("site_content", res));
+  },
+  async contentItems() {
+    const res = await createPublicClient()
+      .from("content_items")
+      .select("id, list, title, body, link, image_url, sort_order")
+      .order("list")
+      .order("sort_order")
+      .returns<ContentItemRow[]>();
+    return unwrap("content_items", res).map(toContentItem);
   },
 };

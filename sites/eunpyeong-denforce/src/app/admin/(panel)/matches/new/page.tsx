@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AdminLoading, PageTitle } from "@/components/admin/PageTitle";
 import { requireAdminPage } from "@/lib/admin/auth";
+import { getSiteContent } from "@/lib/repo";
 import { createMatch } from "../actions";
 import { MatchForm } from "../MatchForm";
 
@@ -20,5 +21,6 @@ export default function NewMatchPage() {
 
 async function Guarded() {
   await requireAdminPage();
-  return <MatchForm action={createMatch} />;
+  const content = await getSiteContent();
+  return <MatchForm action={createMatch} defaultVenue={content["site.homeVenue"]} />;
 }

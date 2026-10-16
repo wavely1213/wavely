@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { NAV, NAV_EXTERNAL } from "@/config/site";
+import { NAV } from "@/config/site";
+import { getSiteContent } from "@/lib/repo";
 import styles from "./sitemap.module.css";
 
 export const metadata: Metadata = { title: "사이트맵", description: "서울은평 덴포스 홈페이지 전체 메뉴" };
 
 /** 전체 메뉴를 한 화면에 (D-042) — 메뉴 구성은 config/site.ts NAV 그대로 */
-export default function SitemapPage() {
+export default async function SitemapPage() {
+  // 바깥 링크는 관리자 › 홈페이지 내용 › 기본 정보 (D-046)
+  const c = await getSiteContent();
   return (
     <>
       <PageHeader title="사이트맵" current="/sitemap" />
@@ -33,8 +36,8 @@ export default function SitemapPage() {
             <h2 className={styles.title}>바로가기</h2>
             <ul className={styles.list}>
               <li>
-                <a href={NAV_EXTERNAL.href} target="_blank" rel="noopener noreferrer">
-                  {NAV_EXTERNAL.label} ↗<span className="sr-only">(새 창)</span>
+                <a href={c["nav.external.href"]} target="_blank" rel="noopener noreferrer">
+                  {c["nav.external.label"]} ↗<span className="sr-only">(새 창)</span>
                 </a>
               </li>
               <li>

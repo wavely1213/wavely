@@ -3,6 +3,7 @@ import { EmphasisText } from "@/components/ui/EmphasisText";
 import { SITE } from "@/config/site";
 import { EMBLEM_DOWNLOADS, EMBLEM_TEXT, TEAM_COLORS } from "@/data/club";
 import { hexToRgb, inkOn } from "@/lib/color";
+import { getSiteContent } from "@/lib/repo";
 import styles from "./emblem.module.css";
 
 // 형식이 맞는 색만 (나중에 관리자 입력으로 바뀌어도 잘못된 값은 칸을 그리지 않는다)
@@ -12,16 +13,17 @@ const COLORS = TEAM_COLORS.flatMap((c) => {
 });
 
 /** 엠블럼 탭 — 제목 / 모눈 패널(엠블럼 + Main Color + 파일 내려받기) / 굵게 강조한 설명 */
-export function EmblemPanel() {
+export async function EmblemPanel() {
+  const clubName = (await getSiteContent())["site.name"];
   return (
     <section className={styles.section} aria-labelledby="emblem-title">
       <h2 id="emblem-title" className={styles.title}>
-        {SITE.name} 엠블럼 소개 및 상징
+        {clubName} 엠블럼 소개 및 상징
       </h2>
 
       <div className={styles.board}>
         <div className={styles.emblem}>
-          <Image src={SITE.emblem} alt={`${SITE.name} 엠블럼`} width={600} height={829} sizes="(max-width: 760px) 200px, 280px" priority />
+          <Image src={SITE.emblem} alt={`${clubName} 엠블럼`} width={600} height={829} sizes="(max-width: 760px) 200px, 280px" priority />
         </div>
 
         <div className={styles.info}>

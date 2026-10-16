@@ -50,7 +50,8 @@ proxy.ts (/admin/*) ─→ 세션 쿠키 갱신만 (권한 판단 X)
 
 | 모듈 | 위치 | 역할 |
 |---|---|---|
-| 사이트 설정·메뉴 | /src/config/site.ts | 구단명·엠블럼·NAV (고정값). 연락처·SNS·주소는 DB(club_settings) |
+| 사이트 설정·메뉴 | /src/config/site.ts | 엠블럼 경로·NAV·공식 주소 (고정값). 구단 이름·창단일 등은 '홈페이지 내용'의 기본값 출처(SITE) — 화면은 getSiteContent() 를 쓴다. 연락처·SNS·주소는 DB(club_settings) |
+| 홈페이지 내용(총괄 관리자) | /src/lib/content/(fields·lists·sections·values·views).ts, app/admin/(panel)/content, getSiteContent()·getContentList() | 화면 곳곳 문구·사진(site_content, 바꾼 값만 저장)·목록(content_items) — 키·기본값·검사는 코드 목록이 정한다 (D-046) |
 | 관리자 메뉴 | /src/config/admin-nav.ts | 관리자 사이드바 순서 |
 | 지도 설정 | /src/config/map.ts | 홈구장 네이버 장소(번호·좌표), 네이버 지도 키(NEXT_PUBLIC_NAVER_MAP_KEY_ID) — D-026 |
 | 검색 등록 | /src/lib/seo.ts, /src/app/robots.ts, /src/app/sitemap.ts | 사이트맵 목록·구단 JSON-LD(순수 함수) — D-027. 소유 확인 값은 config/site.ts SEARCH_VERIFICATION |
@@ -74,7 +75,7 @@ proxy.ts (/admin/*) ─→ 세션 쿠키 갱신만 (권한 판단 X)
 ## 5. 데이터 모델 요약
 
 DB 진실의 원천: `supabase/migrations/*.sql`. 실데이터 적재본: `supabase/data/*.sql` (연맹·인스타그램 출처, D-010). 도메인 타입: `src/types/index.ts`, DB 행 타입·변환: `src/lib/data/rows.ts`.
-- 테이블: admins(허용 목록), club_settings(단일 행 — 연락처·SNS·주소 + 링크 미리보기 이미지·제목·설명 og_*·admin_og_*, D-037·D-038), history_items, national_team_alumni(배출 풋살 국가대표 — D-043), players, staff, matches, standings(season = 대회명, played·points 생성 컬럼 — D-020), news_posts(published, thumbnail_url 목록용 + images 상세 사진 배열 — D-017), postings(바깥 글 모음: kind·platform·원문 url 유일·posted_on·published — D-022), sponsors
+- 테이블: admins(허용 목록), club_settings(단일 행 — 연락처·SNS·주소 + 링크 미리보기 이미지·제목·설명 og_*·admin_og_*, D-037·D-038), history_items, national_team_alumni(배출 풋살 국가대표 — D-043), site_content(홈페이지 내용 한 칸 값, key/value — D-046), content_items(홈페이지 내용 목록 — D-046), players, staff, matches, standings(season = 대회명, played·points 생성 컬럼 — D-020), news_posts(published, thumbnail_url 목록용 + images 상세 사진 배열 — D-017), postings(바깥 글 모음: kind·platform·원문 url 유일·posted_on·published — D-022), sponsors
 - 공통: uuid id, updated_at·updated_by(트리거), check 제약 = 폼 검증 범위
 - 저장소: 버킷 `media` (공개 읽기, 관리자 쓰기), 경로 `<news|players|staff|sponsors|postings|og>/<uuid>.<ext>` (일괄 적재한 포스팅 사진은 `postings/<url 해시>.jpg`, 처음 받은 스폰서 로고는 `sponsors/<영문 이름>.png` — D-029)
 

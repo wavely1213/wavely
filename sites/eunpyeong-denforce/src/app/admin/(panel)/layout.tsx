@@ -4,6 +4,7 @@ import { AdminNav, AdminNavLinks } from "@/components/admin/AdminNav";
 import styles from "@/components/admin/admin.module.css";
 import { SITE } from "@/config/site";
 import { requireAdminPage } from "@/lib/admin/auth";
+import { getSiteContent } from "@/lib/repo";
 import { signOut } from "../actions";
 
 // 관리자 화면 틀. 권한 확인은 여기서 하지 않는다 — 각 페이지 본문과 서버 액션이 requireAdmin*() 으로 한다.
@@ -12,7 +13,9 @@ export default function PanelLayout({ children }: LayoutProps<"/admin">) {
     <div className={styles.shell}>
       <aside className={styles.side}>
         <Link href="/admin" className={styles.brand}>
-          <strong>{SITE.name}</strong>
+          <Suspense fallback={<strong>{SITE.name}</strong>}>
+            <BrandName />
+          </Suspense>
           <span>ADMIN</span>
         </Link>
         <Suspense fallback={<AdminNavLinks pathname="" />}>
@@ -35,6 +38,11 @@ export default function PanelLayout({ children }: LayoutProps<"/admin">) {
       <main className={styles.main}>{children}</main>
     </div>
   );
+}
+
+/** 구단 이름 — 관리자 › 홈페이지 내용 › 기본 정보 (D-046) */
+async function BrandName() {
+  return <strong>{(await getSiteContent())["site.name"]}</strong>;
 }
 
 async function SignedInAs() {

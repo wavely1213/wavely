@@ -1,0 +1,116 @@
+/* 관리자 › 홈페이지 내용 (D-046) — 버튼·표·폼 모양은 admin.module.css */
+
+/* 구역 탭 (기본 정보 · 메인 · …) */
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.tab {
+  padding: 8px 16px;
+  border: 1px solid var(--c-line);
+  border-radius: 999px;
+  background: var(--c-bg);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--c-text-sub);
+}
+
+.tab:hover {
+  color: var(--c-text);
+}
+
+.tabActive,
+.tabActive:hover {
+  border-color: var(--c-blue);
+  background: var(--c-blue);
+  color: var(--c-on-dark);
+}
+
+/* 총괄 첫 화면 — 구역 카드 */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 18px 20px;
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-m);
+  background: var(--c-bg);
+}
+
+.card:hover {
+  border-color: var(--c-blue);
+}
+
+.card strong {
+  font-size: 16px;
+}
+
+.card span {
+  font-size: 14px;
+  color: var(--c-text-sub);
+}
+
+/* 폼 안 묶음 */
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+  padding: 16px 0 0;
+  border: 0;
+  border-top: 1px solid var(--c-line);
+}
+
+.group:first-of-type {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.groupTitle {
+  margin-bottom: 4px;
+  padding: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.panelHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.panelHead h2 {
+  margin-bottom: 0;
+}
+
+.note {
+  margin-bottom: 16px;
+  font-size: 14px;
+  color: var(--c-text-sub);
+}
+
+/* 같은 화면의 다른 관리 메뉴 */
+.related {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.related a {
+  color: var(--c-blue);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
