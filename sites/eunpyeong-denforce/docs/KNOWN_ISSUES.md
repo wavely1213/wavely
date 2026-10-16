@@ -248,7 +248,7 @@
 - **위치**: `src/data/people.ts`, `src/data/matches.ts`, `src/data/sponsors.ts`
 
 ## I-001 | 2026-10-15 | 엠블럼이 저해상도 JPG, 공식 컬러 가이드 없음
-- **상태**: 열림
+- **상태**: 엠블럼은 해결(2026-10-16) — 소유자가 원본 벡터(서울은평엠블럼.ai)를 줘서 `public/brand/emblem.png`(600×829, SINCE 2012 포함)·`emblem-mark.png`(600×766)·브라우저 탭 아이콘(app/favicon.ico·icon.png·apple-icon.png)을 다시 만듦. 엠블럼 원본 색: 파랑 #008CD6, 주황 #ED8302, 선 #16100E — 사이트 색 토큰(`--c-blue` #1a349a 등)은 그대로(바꾸려면 소유자 결정). 공식 컬러 가이드는 여전히 없음
 - **심각도**: 낮음
 - **증상/내용**: 엠블럼은 제안서에서 추출한 171×195 JPG(흰 배경). 컬러는 제안서·유니폼에서 추출 (D-004).
 - **해결 방향**: 구단에서 SVG/PNG 원본 로고와 컬러값 받으면 `public/brand/`, `src/styles/tokens.css` 교체.

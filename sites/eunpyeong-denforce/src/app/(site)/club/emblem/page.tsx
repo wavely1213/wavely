@@ -13,7 +13,7 @@ export default function EmblemPage() {
       <PageHeader title="엠블럼·유니폼" current="/club/emblem" />
       <div className={`container ${styles.body}`}>
         <section className={styles.split}>
-          <Image src={SITE.emblem} alt={`${SITE.name} 엠블럼`} width={134} height={183} />
+          <Image src={SITE.emblem} alt={`${SITE.name} 엠블럼`} width={134} height={185} />
           <div className={styles.lead}>
             <h2 className={styles.h2}>엠블럼</h2>
             {EMBLEM_TEXT.map((p) => (
