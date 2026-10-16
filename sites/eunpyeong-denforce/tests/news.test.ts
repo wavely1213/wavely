@@ -1,7 +1,7 @@
 // 구단소식 메인 배너 고르기 단위 테스트 — 실행: npm test
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { isDeparture, pickBanner } from "../src/lib/news.ts";
+import { isDeparture, kitLinks, pickBanner } from "../src/lib/news.ts";
 import type { NewsPost } from "../src/types/index.ts";
 
 const n = (id: string, title: string, thumb = true, featured = false): NewsPost => ({
@@ -24,4 +24,19 @@ test("pickBanner: 관리자가 고정한 글이 있으면 그 글만 (사진 없
   const posts = [n("1", "x"), n("2", "y", true, true), n("3", "z", false, true), n("4", "w", true, true)];
   assert.deepEqual(pickBanner(posts).map((p) => p.id), ["2", "4"]);
   assert.deepEqual(pickBanner([]), []);
+});
+
+test("kitLinks: 가장 최근 유니폼 공개 글(뉴스)·구매 안내 글(공지사항), 없으면 undefined", () => {
+  const post = (id: string, category: NewsPost["category"], title: string, date: string): NewsPost => ({ ...n(id, title), category, date });
+  const posts = [
+    post("old", "news", "25-26 HOME KIT 공개", "2025-09-01"),
+    post("new", "news", "26-27 서울은평덴포스 HOME & AWAY KIT 공개", "2026-10-06"),
+    post("buy-news", "news", "서울은평 덴포스 유니폼 구매 안내", "2026-10-17"),
+    post("buy", "notice", "서울은평 덴포스 유니폼 구매 안내", "2026-10-16"),
+    post("x", "notice", "홈페이지 오픈 안내", "2026-10-15"),
+  ];
+  const { reveal, purchase } = kitLinks(posts);
+  assert.equal(reveal?.id, "new");
+  assert.equal(purchase?.id, "buy", "공지사항에 있는 구매 안내만");
+  assert.deepEqual(kitLinks([posts[4]]), { reveal: undefined, purchase: undefined });
 });

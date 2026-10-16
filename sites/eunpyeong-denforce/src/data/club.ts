@@ -65,6 +65,21 @@ export const COMMUNITY = [
   { group: "전국 풋살 순회교육", items: ["국민체육진흥공단 파견 스포츠스타 풋살 교육"] },
 ];
 
+/**
+ * 엠블럼·유니폼 페이지의 지금 시즌 유니폼 — 구단 공개(2026-10-06 '26-27 서울은평덴포스 HOME & AWAY KIT 공개', 인스타그램).
+ * 사진은 공개 이미지에서 홈·어웨이 상의 한 장씩(public/photos/kit-2627-*.webp). 시즌이 바뀌면 이 값과 사진을 바꾼다.
+ */
+export const KIT = {
+  text: [
+    "2026-27 시즌 홈 유니폼은 로열블루, 어웨이 유니폼은 화이트에 블루 스트라이프입니다.",
+    "스폰서: 덴포스 스포츠, 피크폼",
+  ],
+  images: [
+    { src: "/photos/kit-2627-home.webp", alt: "2026-27 홈 유니폼 (로열블루)", caption: "홈" },
+    { src: "/photos/kit-2627-away.webp", alt: "2026-27 어웨이 유니폼 (화이트·블루 스트라이프)", caption: "어웨이" },
+  ],
+} as const;
+
 export const EMBLEM_TEXT = [
   "엠블럼은 'SEOUL EUNPYEONG FUTSAL TEAM' 문구와 은평(Eunpyeong)의 머리글자 'E', 풋살공을 페넌트 형태에 담았습니다.",
   "하단의 'SINCE 2012'는 창단 연도를 뜻합니다.",

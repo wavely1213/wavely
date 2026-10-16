@@ -1,0 +1,42 @@
+/* 엠블럼·유니폼 페이지 — 홈·어웨이 유니폼 사진 두 장 나란히 + 바로가기 (사진 모서리는 prose .figure 와 같게) */
+.kits {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.kit {
+  margin: 0;
+}
+
+.kitImage {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  border-radius: var(--radius-m);
+  overflow: hidden;
+  background: var(--c-bg-soft);
+}
+
+.kitImage img {
+  object-fit: cover;
+}
+
+.caption {
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--c-text-sub);
+}
+
+.links {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 16px;
+}
+
+.links a::after {
+  content: " →";
+}

@@ -1,13 +1,18 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { SITE } from "@/config/site";
-import { EMBLEM_TEXT } from "@/data/club";
+import { EMBLEM_TEXT, KIT } from "@/data/club";
+import { kitLinks } from "@/lib/news";
+import { getNews } from "@/lib/repo";
 import styles from "@/styles/prose.module.css";
+import local from "./emblem.module.css";
 
 export const metadata: Metadata = { title: "엠블럼·유니폼" };
 
-export default function EmblemPage() {
+export default async function EmblemPage() {
+  const { reveal, purchase } = kitLinks(await getNews());
   return (
     <>
       <PageHeader title="엠블럼·유니폼" current="/club/emblem" />
@@ -22,13 +27,35 @@ export default function EmblemPage() {
           </div>
         </section>
         <section className={styles.split}>
-          <div className={styles.figure}>
-            <Image src="/photos/kit.webp" alt="유니폼 디자인" fill sizes="(max-width: 760px) 100vw, 50vw" />
+          <div className={local.kits}>
+            {KIT.images.map((k) => (
+              <figure key={k.src} className={local.kit}>
+                <div className={local.kitImage}>
+                  <Image src={k.src} alt={k.alt} fill sizes="(max-width: 760px) 50vw, 25vw" />
+                </div>
+                <figcaption className={local.caption}>{k.caption}</figcaption>
+              </figure>
+            ))}
           </div>
           <div className={styles.lead}>
             <h2 className={styles.h2}>유니폼</h2>
-            <p>로열블루와 화이트를 기본 컬러로 사용합니다.</p>
-            <p className={styles.note}>시즌 유니폼 이미지는 확정 후 교체 예정입니다.</p>
+            {KIT.text.map((p) => (
+              <p key={p}>{p}</p>
+            ))}
+            {(reveal || purchase) && (
+              <ul className={local.links}>
+                {reveal && (
+                  <li>
+                    <Link href={`/news/${reveal.category}/${reveal.id}`}>유니폼 공개 소식 보기</Link>
+                  </li>
+                )}
+                {purchase && (
+                  <li>
+                    <Link href={`/news/${purchase.category}/${purchase.id}`}>유니폼 구매 안내 (공지사항)</Link>
+                  </li>
+                )}
+              </ul>
+            )}
           </div>
         </section>
       </div>
