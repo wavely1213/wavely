@@ -52,11 +52,12 @@ insert into public.matches (competition, round, kickoff, venue, is_home, opponen
   ('FK리그 2026-27', '4R', '2026-10-31T17:00:00+09:00', '원정 경기장', false, '상대팀 D', 'scheduled', null, null),
   ('FK리그 2026-27', '5R', '2026-11-07T15:00:00+09:00', '은평다목적체육관', true, '상대팀 E', 'scheduled', null, null);
 
-insert into public.standings (team, win, draw, loss, goals_for, goals_against, is_us) values
-  ('서울은평 덴포스', 1, 1, 0, 6, 4, true),
-  ('상대팀 A', 1, 0, 1, 5, 5, false),
-  ('상대팀 B', 0, 2, 0, 3, 3, false),
-  ('상대팀 C', 0, 1, 1, 2, 4, false);
+-- 리그순위 season = 지금 시즌(config LEAGUE.currentCompetition) 자리표시
+insert into public.standings (season, team, win, draw, loss, goals_for, goals_against, is_us) values
+  ('2026-27 FK2리그', '서울은평 덴포스', 1, 1, 0, 6, 4, true),
+  ('2026-27 FK2리그', '상대팀 A', 1, 0, 1, 5, 5, false),
+  ('2026-27 FK2리그', '상대팀 B', 0, 2, 0, 3, 3, false),
+  ('2026-27 FK2리그', '상대팀 C', 0, 1, 1, 2, 4, false);
 
 insert into public.news_posts (category, title, date, thumbnail_url, summary, body) values
   ('notice', '서울은평 덴포스 공식 홈페이지 오픈 안내', '2026-10-15', null,

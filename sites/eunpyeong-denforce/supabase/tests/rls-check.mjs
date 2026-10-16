@@ -12,7 +12,7 @@ const mk = () => createClient(URL, KEY, { auth: { persistSession: false } });
 let fail = 0;
 const check = (label, cond) => { console.log(cond ? "PASS" : "FAIL", label); if (!cond) fail++; };
 
-const tables = { sponsors: { name: "rls", tier: "partner" }, players: { slug: "rls-x", name: "rls", position: "GK" }, matches: { competition: "c", kickoff: "2026-01-01T00:00:00Z", opponent: "o" }, standings: { team: "rls" }, news_posts: { category: "notice", title: "rls" }, staff: { role: "r", name: "n" }, history_items: { year: "1", text: "t" } };
+const tables = { sponsors: { name: "rls", tier: "partner" }, players: { slug: "rls-x", name: "rls", position: "GK" }, matches: { competition: "c", kickoff: "2026-01-01T00:00:00Z", opponent: "o" }, standings: { season: "rls", team: "rls" }, news_posts: { category: "notice", title: "rls" }, staff: { role: "r", name: "n" }, history_items: { year: "1", text: "t" } };
 
 async function writes(c, who, expectOk) {
   for (const [t, row] of Object.entries(tables)) {

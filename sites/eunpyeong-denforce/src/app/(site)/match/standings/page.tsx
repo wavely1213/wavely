@@ -1,57 +1,46 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { StandingsTable } from "@/components/match/StandingsTable";
+import { Placeholder } from "@/components/ui/Placeholder";
 import { LEAGUE } from "@/config/league";
-import { getStandings, isLiveData } from "@/lib/repo";
+import { getPastLeagues, getStandings, isLiveData } from "@/lib/repo";
 import styles from "@/styles/prose.module.css";
 
 export const metadata: Metadata = { title: "리그순위" };
 
+/** 지금 시즌 순위 + 지난 리그 목록 (BR-016) */
 export default async function StandingsPage() {
-  const rows = await getStandings();
+  const [rows, past] = await Promise.all([getStandings(), getPastLeagues()]);
+  const preseason = rows.length > 0 && rows.every((r) => r.played === 0);
   return (
     <>
       <PageHeader title="리그순위" current="/match/standings" />
-      <div className="container">
-        {isLiveData() && <h2 className={styles.h2}>{LEAGUE.standingsTitle}</h2>}
-        <div className={styles.tableWrap}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>순위</th>
-                <th className={styles.left}>팀명</th>
-                <th>경기수</th>
-                <th>승점</th>
-                <th>승</th>
-                <th>무</th>
-                <th>패</th>
-                <th>득점</th>
-                <th>실점</th>
-                <th>득실차</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r, i) => (
-                <tr key={r.team} className={r.isUs ? styles.highlight : undefined}>
-                  <td>{i + 1}</td>
-                  <td className={styles.left}>{r.team}</td>
-                  <td>{r.played}</td>
-                  <td>
-                    <strong>{r.points}</strong>
-                  </td>
-                  <td>{r.win}</td>
-                  <td>{r.draw}</td>
-                  <td>{r.loss}</td>
-                  <td>{r.goalsFor}</td>
-                  <td>{r.goalsAgainst}</td>
-                  <td>{r.goalsFor - r.goalsAgainst}</td>
-                </tr>
+      <div className={`container ${styles.body}`}>
+        <section>
+          {isLiveData() && <h2 className={styles.h2}>{LEAGUE.currentCompetition} 순위</h2>}
+          {rows.length > 0 ? <StandingsTable rows={rows} /> : <Placeholder label="순위 정보가 없습니다." />}
+          <p className={`${styles.note} ${styles.source}`}>
+            {preseason && "개막 전 · 팀명 가나다순 · "}순위 기준: 승점 → 득실차 → 다득점
+            {isLiveData() && ` · 자료: ${LEAGUE.source}`}
+          </p>
+        </section>
+
+        {past.length > 0 && (
+          <section>
+            <h2 className={styles.h2}>지난 리그</h2>
+            <ul className={`${styles.list} ${styles.listWide}`}>
+              {past.map((l) => (
+                <li key={l.slug}>
+                  <Link href={`/match/standings/${l.slug}`}>{l.season}</Link>
+                  <span>
+                    {l.us ? `최종 ${l.us.rank}위 · ${l.us.win}승 ${l.us.draw}무 ${l.us.loss}패` : "최종 순위"}
+                  </span>
+                </li>
               ))}
-            </tbody>
-          </table>
-        </div>
-        <p className={`${styles.note} ${styles.source}`}>
-          순위 기준: 승점 → 득실차 → 다득점{isLiveData() && ` · 자료: ${LEAGUE.source}`}
-        </p>
+            </ul>
+          </section>
+        )}
       </div>
     </>
   );

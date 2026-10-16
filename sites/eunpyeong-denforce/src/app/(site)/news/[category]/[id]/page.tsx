@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { NewsGallery } from "@/components/news/NewsGallery";
+import { LinkifiedText } from "@/components/ui/LinkifiedText";
 import { NEWS_CATEGORY_LABEL } from "@/data/news";
 import { formatPostDate } from "@/lib/format";
 import { nonEmptyParams, toNewsCategory } from "@/lib/params";
@@ -52,7 +53,9 @@ export default async function NewsPostPage({ params }: PageProps<"/news/[categor
         )}
         <div className={styles.lead}>
           {post.body.map((p) => (
-            <p key={p}>{p}</p>
+            <p key={p}>
+              <LinkifiedText text={p} />
+            </p>
           ))}
         </div>
         <p>

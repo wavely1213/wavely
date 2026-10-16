@@ -18,6 +18,8 @@ const COUNT_MAX = 9999;
 function readStanding(f: FormReader) {
   const count = (name: string, label: string) => f.int(name, { label, min: 0, max: COUNT_MAX, required: true });
   return {
+    // DB check: length(season) between 1 and 40
+    season: f.text("season", { label: "시즌(대회)", max: 40 }),
     team: f.text("team", { label: "팀", max: 40 }),
     win: count("win", "승"),
     draw: count("draw", "무"),

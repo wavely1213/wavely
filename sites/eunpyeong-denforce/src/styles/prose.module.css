@@ -19,6 +19,14 @@
   white-space: pre-line;
 }
 
+/* 본문 속 주소 링크 (LinkifiedText) — 긴 주소는 줄바꿈 */
+.lead a {
+  color: var(--c-blue);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+}
+
 .h2 {
   font-size: 24px;
   font-weight: 700;

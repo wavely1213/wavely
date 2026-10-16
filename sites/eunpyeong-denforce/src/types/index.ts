@@ -37,6 +37,8 @@ export type Match = {
 
 export type StandingRow = {
   id: string;
+  /** 시즌 = 대회명 ("2026-27 FK2리그"). 지금 시즌은 LEAGUE.currentCompetition */
+  season: string;
   team: string;
   played: number;
   win: number;

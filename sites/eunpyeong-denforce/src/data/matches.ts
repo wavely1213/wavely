@@ -1,4 +1,5 @@
 // 경기·순위. 2026-27 시즌 일정이 확정되지 않아 자리표시 데이터다 (KNOWN_ISSUES 참고).
+import { LEAGUE } from "@/config/league";
 import type { Match, StandingRow } from "@/types";
 
 const COMP = "FK리그 2026-27";
@@ -13,8 +14,8 @@ export const MATCHES: Match[] = [
 ];
 
 export const STANDINGS: StandingRow[] = [
-  { id: "s1", team: "서울은평 덴포스", played: 2, win: 1, draw: 1, loss: 0, goalsFor: 6, goalsAgainst: 4, points: 4, isUs: true },
-  { id: "s2", team: "상대팀 A", played: 2, win: 1, draw: 0, loss: 1, goalsFor: 5, goalsAgainst: 5, points: 3 },
-  { id: "s3", team: "상대팀 B", played: 2, win: 0, draw: 2, loss: 0, goalsFor: 3, goalsAgainst: 3, points: 2 },
-  { id: "s4", team: "상대팀 C", played: 2, win: 0, draw: 1, loss: 1, goalsFor: 2, goalsAgainst: 4, points: 1 },
+  { season: LEAGUE.currentCompetition, id: "s1", team: "서울은평 덴포스", played: 2, win: 1, draw: 1, loss: 0, goalsFor: 6, goalsAgainst: 4, points: 4, isUs: true },
+  { season: LEAGUE.currentCompetition, id: "s2", team: "상대팀 A", played: 2, win: 1, draw: 0, loss: 1, goalsFor: 5, goalsAgainst: 5, points: 3 },
+  { season: LEAGUE.currentCompetition, id: "s3", team: "상대팀 B", played: 2, win: 0, draw: 2, loss: 0, goalsFor: 3, goalsAgainst: 3, points: 2 },
+  { season: LEAGUE.currentCompetition, id: "s4", team: "상대팀 C", played: 2, win: 0, draw: 1, loss: 1, goalsFor: 2, goalsAgainst: 4, points: 1 },
 ];

@@ -3,13 +3,15 @@
 // - 'use cache' + 태그로 캐시하고, 관리자 저장 시 updateTag(TAGS.x) 로 즉시 갱신된다
 // - cacheLife('minutes'): 태그 갱신이 다른 서버 인스턴스에 닿지 않아도 1분 안에 새 데이터로 바뀐다
 import { cacheLife, cacheTag } from "next/cache";
+import { LEAGUE } from "@/config/league";
 import { POSITION_ORDER } from "@/data/people";
 import { TAGS } from "@/lib/cache-tags";
 import { dbSource } from "@/lib/data/db-source";
 import type { DataSource } from "@/lib/data/source";
 import { staticSource } from "@/lib/data/static-source";
+import { byRank, pastLeagues, seasonYear, type PastLeague } from "@/lib/standings";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import type { Match, NewsCategory, NewsPost, Player, Position } from "@/types";
+import type { Match, NewsCategory, NewsPost, Player, Position, StandingRow } from "@/types";
 
 function source(): DataSource {
   return isSupabaseConfigured() ? dbSource : staticSource;
@@ -63,17 +65,32 @@ export async function getNextHomeMatch(): Promise<Match | undefined> {
   return (await getUpcomingMatches()).find((m) => m.isHome);
 }
 
-/** BR-001: 승점 → 득실차 → 다득점 */
-export async function getStandings() {
+async function getAllStandings(): Promise<StandingRow[]> {
   "use cache";
   cacheTag(TAGS.standings);
   cacheLife("minutes");
-  return [...(await source().standings())].sort(
-    (a, b) =>
-      b.points - a.points ||
-      b.goalsFor - b.goalsAgainst - (a.goalsFor - a.goalsAgainst) ||
-      b.goalsFor - a.goalsFor,
-  );
+  return source().standings();
+}
+
+/** 지금 시즌(LEAGUE.currentCompetition) 순위 — BR-001 정렬 */
+export async function getStandings(): Promise<StandingRow[]> {
+  return (await getAllStandings()).filter((r) => r.season === LEAGUE.currentCompetition).sort(byRank);
+}
+
+/** 지난 리그: 지금 시즌을 뺀 시즌별 최종 순위, 최근 시즌 먼저 (BR-016) */
+export async function getPastLeagues(): Promise<PastLeague[]> {
+  return pastLeagues(await getAllStandings(), LEAGUE.currentCompetition);
+}
+
+export async function getPastLeague(slug: string): Promise<PastLeague | undefined> {
+  return (await getPastLeagues()).find((l) => l.slug === slug);
+}
+
+/** 그 시즌 연도의 종료 경기 (리그 + 플레이오프 등, 연도만 붙은 컵대회는 제외) — 최근 경기 먼저 */
+export async function getSeasonResults(season: string): Promise<Match[]> {
+  const year = seasonYear(season);
+  if (!year) return [];
+  return (await getFinishedMatches()).filter((m) => seasonYear(m.competition) === year);
 }
 
 // ── 구단소식 ─────────────────────────────────

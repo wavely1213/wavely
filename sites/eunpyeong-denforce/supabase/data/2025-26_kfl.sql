@@ -107,14 +107,14 @@ insert into public.matches (competition, round, kickoff, venue, is_home, opponen
   ('2025-26 승강 플레이오프', '', '2026-04-04T17:00:00+09:00', '이천LBFS트레이닝센터', true, '화성FS', 'finished', 3, 4),
   ('2026 FK CUP', '3R', '2026-08-25T15:00:00+09:00', '단양국민체육센터', true, '인천ZD스포츠', 'finished', 3, 3);
 
--- 리그 순위: 2025-26 FK1리그 최종
-delete from public.standings;
-insert into public.standings (team, win, draw, loss, goals_for, goals_against, is_us) values
-  ('경기LBFS', 10, 2, 3, 83, 24, false),
-  ('노원제너FS', 10, 2, 3, 60, 34, false),
-  ('고양불스풋살클럽', 8, 4, 3, 68, 44, false),
-  ('강원FS', 5, 4, 6, 45, 53, false),
-  ('서울은평 덴포스', 2, 3, 10, 34, 89, true),
-  ('전주시민풋살구단', 2, 1, 12, 36, 82, false);
+-- 리그 순위: 2025-26 FK1리그 최종 — 2026-27 부터는 '지난 리그' (season 칸, D-020)
+delete from public.standings where season = '2025-26 FK1리그';
+insert into public.standings (season, team, win, draw, loss, goals_for, goals_against, is_us) values
+  ('2025-26 FK1리그', '경기LBFS', 10, 2, 3, 83, 24, false),
+  ('2025-26 FK1리그', '노원제너FS', 10, 2, 3, 60, 34, false),
+  ('2025-26 FK1리그', '고양불스풋살클럽', 8, 4, 3, 68, 44, false),
+  ('2025-26 FK1리그', '강원FS', 5, 4, 6, 45, 53, false),
+  ('2025-26 FK1리그', '서울은평 덴포스', 2, 3, 10, 34, 89, true),
+  ('2025-26 FK1리그', '전주시민풋살구단', 2, 1, 12, 36, 82, false);
 
 commit;

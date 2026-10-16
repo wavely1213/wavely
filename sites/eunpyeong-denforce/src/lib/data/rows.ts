@@ -46,6 +46,7 @@ export type MatchRow = {
 
 export type StandingDbRow = {
   id: string;
+  season: string;
   team: string;
   win: number;
   draw: number;
@@ -132,6 +133,7 @@ export const toMatch = (r: MatchRow): Match => ({
 
 export const toStanding = (r: StandingDbRow): StandingRow => ({
   id: r.id,
+  season: r.season,
   team: r.team,
   played: r.played,
   win: r.win,
