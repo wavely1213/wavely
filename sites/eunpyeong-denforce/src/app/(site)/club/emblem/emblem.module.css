@@ -1,8 +1,164 @@
-/* 엠블럼·유니폼 페이지 — 홈·어웨이 유니폼 사진 두 장 나란히 + 바로가기 버튼 (사진 모서리는 prose .figure 와 같게) */
+/* 엠블럼·유니폼 페이지 — 강원FC 엠블럼 페이지 방식: 가운데 제목 / 모눈 패널 / 설명 (D-045) */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.title {
+  font-size: clamp(22px, 3vw, 30px);
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: -0.01em;
+}
+
+/* 모눈 패널 — 옅은 바탕 + 24px 모눈 선 */
+.board {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  align-items: center;
+  gap: 56px;
+  padding: 56px 64px;
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-m);
+  background-color: var(--c-bg-soft);
+  background-image:
+    linear-gradient(var(--c-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--c-line) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-position: -1px -1px;
+}
+
+.emblem {
+  display: flex;
+  justify-content: center;
+}
+
+.emblem img {
+  width: 280px;
+  max-width: 100%;
+  height: auto;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.infoTitle {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.infoTitle:not(:first-child) {
+  margin-top: 16px;
+}
+
+/* Main Color — 정사각 색 칸 안에 HEX, 아래 이름·RGB */
+.colors {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.color {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.chip {
+  display: flex;
+  align-items: flex-end;
+  aspect-ratio: 1;
+  margin-bottom: 6px;
+  padding: 10px;
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-s);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.inkLight {
+  color: var(--c-on-dark);
+}
+
+.inkDark {
+  color: var(--c-text);
+}
+
+.colorName {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.rgb {
+  font-size: 13px;
+  color: var(--c-text-sub);
+  white-space: nowrap;
+}
+
+/* 파일 내려받기 — 한 줄씩 칸 */
+.downloads {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.download {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-s);
+  background: var(--c-bg);
+  font-size: 16px;
+}
+
+.download:hover {
+  border-color: var(--c-blue);
+  color: var(--c-blue);
+}
+
+.note {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--c-text-sub);
+}
+
+.icon {
+  flex: none;
+}
+
+/* 설명 — 패널 아래 두 문단, 핵심어 굵게 */
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-size: 18px;
+  line-height: 1.8;
+  color: var(--c-text-sub);
+}
+
+.text strong {
+  color: var(--c-text);
+}
+
+/* 유니폼 탭 — 홈·어웨이 사진 두 장 (사진 모서리는 prose .figure 와 같게) */
+.kitBoard {
+  grid-template-columns: 1fr;
+}
+
 .kits {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 24px;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
 }
 
 .kit {
@@ -22,29 +178,89 @@
 }
 
 .caption {
-  margin-top: 8px;
-  font-size: 14px;
+  margin-top: 10px;
+  font-size: 16px;
   font-weight: 700;
   text-align: center;
-  color: var(--c-text-sub);
 }
 
-/* 바로가기 버튼 — prose .button 위에 폭·배치만 */
+/* 바로가기 버튼 — 파란 버튼 */
 .actions {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  max-width: 360px;
+  justify-content: center;
 }
 
-/* 본문(.lead) 링크 모양(파란 밑줄)보다 앞서도록 .actions 를 붙인다 */
-.actions .action {
+.action {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 24px;
+  min-width: 300px;
   padding: 16px 22px;
-  font-size: 17px;
+  border-radius: var(--radius-s);
+  background: var(--c-blue);
   color: var(--c-on-dark);
-  text-decoration: none;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.action:hover {
+  background: var(--c-blue-hover);
+}
+
+@media (max-width: 960px) {
+  .board {
+    gap: 40px;
+    padding: 40px 32px;
+  }
+}
+
+@media (max-width: 760px) {
+  .section {
+    gap: 24px;
+  }
+
+  .board {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    padding: 32px 20px;
+  }
+
+  .emblem img {
+    width: 200px;
+  }
+
+  /* 좁은 화면 — 두 칸씩, 색 칸은 가로로 넓게 */
+  .colors {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 12px;
+  }
+
+  .chip {
+    aspect-ratio: 2 / 1;
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  .colorName {
+    font-size: 14px;
+  }
+
+  .download {
+    padding: 12px 14px;
+    font-size: 15px;
+  }
+
+  .text {
+    font-size: 16px;
+  }
+
+  .kits {
+    gap: 12px;
+  }
+
+  .action {
+    min-width: 0;
+    width: 100%;
+  }
 }
