@@ -22,7 +22,8 @@ export function Hero({ nextHome }: { nextHome?: Match }) {
         <div className={styles.copy}>
           <p className={styles.eyebrow}>SINCE {SITE.founded} · FK LEAGUE</p>
           <h1 className={styles.title}>
-            은평의 자부심,
+            {/* 좁은 화면(360px)에서 '중심'만 홀로 떨어지지 않게 — 줄바꿈은 '대한민국 / 풋살의 중심' */}
+            대한민국 <span className={styles.phrase}>풋살의 중심</span>
             <br />
             {SITE.name}
           </h1>
