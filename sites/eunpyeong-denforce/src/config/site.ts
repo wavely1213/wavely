@@ -20,6 +20,15 @@ export const SITE = {
   homeVenue: "은평다목적체육관",
 } as const;
 
+/** 사이트 설명 — 검색 결과·링크 미리보기의 기본 설명 (D-025) */
+export const SITE_DESCRIPTION = `${SITE.tagline} · 경기 일정·결과, 선수단, 구단 소식`;
+
+/** /admin 주소 링크 미리보기의 기본 제목·설명 — 관리자 화면에서 바꾸지 않았을 때 (D-037·D-038) */
+export const ADMIN_PREVIEW_TEXT = {
+  title: `${SITE.name} 관리자`,
+  description: `${SITE.name} 홈페이지 관리자 — 구단소식·경기·선수단·스폰서 관리`,
+} as const;
+
 export type NavItem = { label: string; href: string; children?: NavItem[] };
 
 export const NAV: NavItem[] = [

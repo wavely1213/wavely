@@ -111,9 +111,13 @@ export type ClubSettingsRow = {
   venue_address: string | null;
   venue_transit: string | null;
   venue_parking: string | null;
-  /** 링크 미리보기 이미지 (D-037) — 미리보기 폼만 고친다. 구단정보 폼 저장에는 들어가지 않는다 */
+  /** 링크 미리보기 이미지·제목·설명 (D-037·D-038) — 미리보기 폼만 고친다. 구단정보 폼 저장에는 들어가지 않는다 */
   og_image_url?: string | null;
   admin_og_image_url?: string | null;
+  og_title?: string | null;
+  og_description?: string | null;
+  admin_og_title?: string | null;
+  admin_og_description?: string | null;
 };
 
 /** 빈 줄로 나눈 본문 → 문단 배열 */
@@ -220,4 +224,8 @@ export const toClubSettings = (r: ClubSettingsRow): ClubSettings => ({
   venueParking: r.venue_parking,
   ogImageUrl: r.og_image_url ?? null,
   adminOgImageUrl: r.admin_og_image_url ?? null,
+  ogTitle: r.og_title ?? null,
+  ogDescription: r.og_description ?? null,
+  adminOgTitle: r.admin_og_title ?? null,
+  adminOgDescription: r.admin_og_description ?? null,
 });

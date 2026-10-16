@@ -8,6 +8,8 @@ import { VideoEmbed } from "@/components/news/VideoEmbed";
 import { LinkifiedText } from "@/components/ui/LinkifiedText";
 import { NEWS_CATEGORY_LABEL } from "@/data/news";
 import { formatPostDate } from "@/lib/format";
+import { articleImage } from "@/lib/og";
+import { sitePreviewMeta } from "@/lib/og-metadata";
 import { nonEmptyParams, toNewsCategory } from "@/lib/params";
 import { getNews, getNewsPost } from "@/lib/repo";
 import styles from "@/styles/prose.module.css";
@@ -27,7 +29,20 @@ async function load(params: PageProps<"/news/[category]/[id]">["params"]) {
 
 export async function generateMetadata({ params }: PageProps<"/news/[category]/[id]">): Promise<Metadata> {
   const post = await load(params);
-  return { title: post?.title ?? "구단소식" };
+  if (!post) return { title: "구단소식" };
+  // 링크 미리보기 = 이 글의 사진·제목·요약 (사진 없으면 사이트 이미지) — D-038
+  const description = post.summary || undefined;
+  return {
+    title: post.title,
+    ...(description ? { description } : {}),
+    ...(await sitePreviewMeta({
+      type: "article",
+      imageUrl: articleImage(post),
+      imageAlt: post.title,
+      description,
+      publishedTime: post.date,
+    })),
+  };
 }
 
 export default async function NewsPostPage({ params }: PageProps<"/news/[category]/[id]">) {

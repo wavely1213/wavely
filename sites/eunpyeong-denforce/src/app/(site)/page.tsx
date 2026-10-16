@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Hero } from "@/components/home/Hero";
 import { HomeColumns } from "@/components/home/HomeColumns";
 import { NewsTabs } from "@/components/home/NewsTabs";
@@ -20,7 +21,14 @@ import {
   getUpcomingMatches,
 } from "@/lib/repo";
 import { homeMatchItems } from "@/lib/match";
+import { sitePreviewMeta } from "@/lib/og-metadata";
 import { clubJsonLd, jsonLdString } from "@/lib/seo";
+
+/** 홈페이지 주소 미리보기 제목·설명 — 관리자 화면에서 정한 문구, 비우면 사이트 이름·설명 (D-038) */
+export async function generateMetadata(): Promise<Metadata> {
+  const { ogTitle, ogDescription } = await getClubSettings();
+  return sitePreviewMeta({ title: ogTitle, description: ogDescription });
+}
 
 // 메인 섹션 순서: 히어로(다음 홈경기) → 스폰서 띠(한 줄 자동 흐름, D-029) → [경기 → 구단 소식 | 오른쪽 리그 순위 위젯] (D-034) → 선수단 → 바로가기
 // 구단 영상 섹션은 영상 콘텐츠가 생기면 추가한다 (빈 섹션은 노출하지 않음).

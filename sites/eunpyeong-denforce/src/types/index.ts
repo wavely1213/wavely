@@ -108,4 +108,9 @@ export type ClubSettings = {
   /** 링크 미리보기 이미지 — 사이트 주소용·관리자 주소용. null 이면 기본 이미지 (D-037) */
   ogImageUrl: string | null;
   adminOgImageUrl: string | null;
+  /** 링크 미리보기 제목·설명 — 홈페이지 주소용·관리자 주소용. null 이면 기본 문구 (D-038) */
+  ogTitle: string | null;
+  ogDescription: string | null;
+  adminOgTitle: string | null;
+  adminOgDescription: string | null;
 };

@@ -23,3 +23,18 @@
   color: var(--c-blue);
   text-decoration: underline;
 }
+
+/* 링크 미리보기 폼 안 묶음 제목 (홈페이지 주소 / 관리자 주소) */
+.subTitle {
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--c-line);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.subTitle:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}

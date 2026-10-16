@@ -5,7 +5,9 @@ import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { EmblemFallback } from "@/components/ui/EmblemFallback";
 import { LEAGUE } from "@/config/league";
+import { SITE } from "@/config/site";
 import { POSITION_LABEL } from "@/data/people";
+import { sitePreviewMeta } from "@/lib/og-metadata";
 import { nonEmptyParams } from "@/lib/params";
 import { getPlayer, getPlayers, isLiveData } from "@/lib/repo";
 import styles from "@/styles/prose.module.css";
@@ -16,7 +18,14 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps<"/team/players/[slug]">): Promise<Metadata> {
   const player = await getPlayer((await params).slug);
-  return { title: player?.name ?? "선수" };
+  if (!player) return { title: "선수" };
+  // 링크 미리보기 = 선수 사진 (없으면 사이트 이미지) + 포지션·등번호 — D-038
+  const description = `${SITE.name} ${POSITION_LABEL[player.position]}${player.number != null ? ` · 등번호 ${player.number}` : ""}`;
+  return {
+    title: player.name,
+    description,
+    ...(await sitePreviewMeta({ imageUrl: player.photo, imageAlt: player.name, description })),
+  };
 }
 
 export default async function PlayerPage({ params }: PageProps<"/team/players/[slug]">) {

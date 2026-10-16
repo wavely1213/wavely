@@ -19,6 +19,10 @@ export const CLUB_SETTINGS: ClubSettings = {
   venueParking: null,
   ogImageUrl: null,
   adminOgImageUrl: null,
+  ogTitle: null,
+  ogDescription: null,
+  adminOgTitle: null,
+  adminOgDescription: null,
 };
 
 export const HISTORY: HistoryItem[] = [

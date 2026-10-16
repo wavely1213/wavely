@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { SEARCH_VERIFICATION, SITE } from "@/config/site";
-import { previewImage } from "@/lib/og";
-import { getClubSettings } from "@/lib/repo";
+import { SEARCH_VERIFICATION, SITE, SITE_DESCRIPTION } from "@/config/site";
+import { sitePreviewMeta } from "@/lib/og-metadata";
 import "./globals.css";
 
 // KFA고딕 (대한축구협회 서체, 산돌 제작) — 사용 조건은 KNOWN_ISSUES I-007
@@ -15,27 +14,18 @@ const kfa = localFont({
   display: "swap",
 });
 
-const DESCRIPTION = `${SITE.tagline} · 경기 일정·결과, 선수단, 구단 소식`;
-
 /**
  * 링크 미리보기(카카오톡·문자·SNS) 이미지: 관리자 화면(구단정보 › 링크 미리보기)에서 올린 이미지, 없으면
- * 기본 이미지 public/og/site.jpg (홈 히어로 구성, 1200×630) — D-025·D-037. /admin 은 admin/layout.tsx 가 따로 정한다.
+ * 기본 이미지 public/og/site.jpg (홈 히어로 구성, 1200×630) — D-025·D-037. 제목·설명은 페이지 제목·설명을 따른다
+ * (홈은 관리자 문구 — (site)/page.tsx, 구단소식 글·선수는 그 사진 — D-038). /admin 은 admin/layout.tsx 가 따로 정한다.
  */
 export async function generateMetadata(): Promise<Metadata> {
-  const { ogImageUrl } = await getClubSettings();
-  const image = previewImage("site", ogImageUrl, SITE.name);
   return {
     metadataBase: new URL(SITE.url),
     title: { default: SITE.name, template: `%s | ${SITE.name}` },
-    description: DESCRIPTION,
+    description: SITE_DESCRIPTION,
     // 아이콘은 파일 규칙으로: app/favicon.ico·icon.png·apple-icon.png (구단 엠블럼, 정사각)
-    openGraph: {
-      type: "website",
-      siteName: SITE.name,
-      locale: "ko_KR",
-      images: [image],
-    },
-    twitter: { card: "summary_large_image", images: [image] },
+    ...(await sitePreviewMeta()),
     // 네이버 서치어드바이저 소유 확인 (D-027)
     ...(SEARCH_VERIFICATION.naver ? { verification: { other: { "naver-site-verification": SEARCH_VERIFICATION.naver } } } : {}),
   };

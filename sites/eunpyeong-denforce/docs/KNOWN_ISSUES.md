@@ -27,6 +27,12 @@
 
 <!-- 최신 항목을 위에 추가. 심각도 '높음'은 발견 즉시 소유자에게 별도 보고 -->
 
+## I-035 | 2026-10-16 | 링크 미리보기 이미지 칸이 https 주소만 받아 로컬 Supabase(http)에서는 업로드가 막힌다
+- **상태**: 열림 (D-037 코드 리뷰 확인 — 소유자 진행 여부 확인 대기)
+- **심각도**: 낮음 (운영은 https 라 영향 없음)
+- **증상/내용**: 마이그레이션 20261016160000 의 check `^https://` 때문에, 지침(TESTING_GUIDELINES)의 로컬 Supabase(http://127.0.0.1:54321)에서는 미리보기 이미지 저장이 DB 제약에 걸린다. 다른 이미지 칸은 이런 제약이 없다.
+- **해결 방향**: 새 마이그레이션으로 두 check 를 `^https?://` 로 바꾼다 (postings·sponsors 와 같게).
+
 ## I-034 | 2026-10-16 | 지운 이미지가 공개 주소로 한동안 더 열린다 (저장소 CDN 캐시)
 - **상태**: 열림 (기록 — 지시 범위 밖)
 - **심각도**: 낮음
@@ -64,7 +70,7 @@
 - **해결 방향**: 네이버 클라우드 플랫폼 가입 → Services > Application Services > Maps → Application 등록(Dynamic Map 선택, Web 서비스 URL: https://eunpyeong-fs.com, https://www.eunpyeong-fs.com, https://eunpyeong-denforce.vercel.app, http://localhost:3000) → Client ID 를 Vercel 환경변수 `NEXT_PUBLIC_NAVER_MAP_KEY_ID`(Production·Preview) 로 넣고 재배포. 무료 사용량 안에서 쓰는지 콘솔에서 확인.
 
 ## I-029 | 2026-10-16 | (제안) 구단소식 글을 공유하면 글 사진이 아니라 사이트 대표 이미지가 뜬다
-- **상태**: 열림 (제안 — 지시 범위 밖)
+- **상태**: 해결 (D-038 — 글 사진·선수 사진으로 미리보기)
 - **심각도**: 낮음
 - **증상/내용**: 링크 미리보기 이미지는 사이트 전체 공통(D-025). 글 제목·요약은 페이지마다 나오지만, 구단소식 상세를 공유해도 사진은 대표 이미지.
 - **해결 방향**: 원하면 구단소식 상세 generateMetadata 에 openGraph.images = 글 썸네일(없으면 `lib/og previewImage("site", 관리자 이미지)`) 추가. (D-037 로 사이트 공통 이미지는 관리자 화면에서 바꿀 수 있게 됨)
