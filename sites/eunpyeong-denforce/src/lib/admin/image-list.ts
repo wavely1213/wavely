@@ -2,7 +2,7 @@
 // 클라이언트 폼도 상한값을 쓰므로 server-only 로 두지 않는다.
 
 /** 구단소식 상세 사진 최대 장수 — DB check news_posts_images_max 와 같다 */
-export const MAX_NEWS_IMAGES = 10;
+export const MAX_NEWS_IMAGES = 20; // 인스타그램 한 게시물 최대 장수 (D-031)
 
 /**
  * 한 번 저장(요청)에 보내는 파일 합계 상한 — 썸네일 포함 폼 전체 (클라이언트 차단용).

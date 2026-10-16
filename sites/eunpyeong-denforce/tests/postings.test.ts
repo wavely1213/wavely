@@ -35,8 +35,9 @@ test("filterPostings: 분류·출처 (null = 전체)", () => {
 });
 
 test("countByKind: 전체·분류별 개수", () => {
-  assert.deepEqual(countByKind(list), { all: 5, club: 1, news: 1, fan: 3 });
-  assert.deepEqual(countByKind([]), { all: 0, club: 0, news: 0, fan: 0 });
+  assert.deepEqual(countByKind(list), { all: 5, club: 1, news: 1, fan: 3, league: 0 });
+  assert.deepEqual(countByKind([]), { all: 0, club: 0, news: 0, fan: 0, league: 0 });
+  assert.deepEqual(countByKind([...list, p("f", "league", "youtube", "2026-02-01")]), { all: 6, club: 1, news: 1, fan: 3, league: 1 });
 });
 
 test("platformCounts: 고른 분류 안에서 글 있는 출처만, 많은 순 → 같으면 정해진 순서", () => {

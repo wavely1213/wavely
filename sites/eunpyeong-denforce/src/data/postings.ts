@@ -5,6 +5,7 @@ export const POSTING_KIND_LABEL: Record<PostingKind, string> = {
   club: "구단 포스팅",
   news: "뉴스",
   fan: "팬 포스팅",
+  league: "FK리그",
 };
 
 export const POSTING_PLATFORM_LABEL: Record<PostingPlatform, string> = {

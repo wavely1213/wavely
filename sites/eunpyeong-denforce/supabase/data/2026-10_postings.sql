@@ -778,3 +778,6 @@ insert into public.postings (kind, platform, title, author, excerpt, url, thumbn
   ('club', 'instagram', '𝑾𝑬𝑳𝑪𝑶𝑴𝑬 🤝 서울은평덴포스가 든든한 수문장 정대연 선수를 영입했습니다.', '@eunpyeong_denforce', '𝑾𝑬𝑳𝑪𝑶𝑴𝑬 🤝 서울은평덴포스가 든든한 수문장 정대연 선수를 영입했습니다. 정대연 선수의 합류로 더욱 강해질 서울은평덴포스에 많은 관심과 응원 부탁드립니다. 💙', 'https://www.instagram.com/p/DebdGqCTOqw/', 'https://vunnzagbsrujdernvetl.supabase.co/storage/v1/object/public/media/postings/6a34eb039868cefc.jpg', '2026-10-13', true),
   ('club', 'instagram', '𝑾𝑬𝑳𝑪𝑶𝑴𝑬 🤝 서울은평덴포스가 숨은 조력자 이효수 선수를 영입했습니다.', '@eunpyeong_denforce', '𝑾𝑬𝑳𝑪𝑶𝑴𝑬 🤝 서울은평덴포스가 숨은 조력자 이효수 선수를 영입했습니다. 이효수 선수의 합류로 더욱 강해질 서울은평덴포스에 많은 관심과 응원 부탁드립니다. 💙', 'https://www.instagram.com/p/DebdgFoT6Hf/', 'https://vunnzagbsrujdernvetl.supabase.co/storage/v1/object/public/media/postings/90501f9b60a6b8e7.jpg', '2026-10-13', true)
 on conflict (url) do nothing;
+
+-- 한국풋살연맹 공식 유튜브 영상은 'FK리그' 분류로 (D-032, 마이그레이션 20261016140000 뒤)
+update public.postings set kind = 'league' where platform = 'youtube' and author = '한국풋살연맹 - KFL' and kind = 'news';

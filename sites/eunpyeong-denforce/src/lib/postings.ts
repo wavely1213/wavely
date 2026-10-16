@@ -1,7 +1,7 @@
 // 포스팅 목록 도우미 — 정렬·분류 필터·개수 (순수 함수, 테스트: postings.test.ts, D-022)
 import type { Posting, PostingKind, PostingPlatform } from "@/types";
 
-export const POSTING_KINDS: readonly PostingKind[] = ["club", "news", "fan"];
+export const POSTING_KINDS: readonly PostingKind[] = ["club", "news", "fan", "league"];
 export const POSTING_PLATFORMS: readonly PostingPlatform[] = ["naver_blog", "naver_cafe", "article", "youtube", "instagram", "web"];
 
 /** 한 번에 보여 줄 카드 수 ('더 보기'로 이만큼씩 늘린다) */
@@ -29,7 +29,7 @@ export function filterPostings(list: Posting[], { kind, platform }: PostingFilte
 
 /** 분류 탭 개수 — all 은 전체 */
 export function countByKind(list: Posting[]): Record<PostingKind | "all", number> {
-  const counts = { all: list.length, club: 0, news: 0, fan: 0 };
+  const counts = { all: list.length, club: 0, news: 0, fan: 0, league: 0 };
   for (const p of list) counts[p.kind] += 1;
   return counts;
 }

@@ -17,9 +17,9 @@ test("planImageList: 현재 목록에 없는 삭제 요청은 무시 (다른 파
 });
 
 test("planImageList: 남길 사진 + 새 사진이 상한을 넘으면 overLimit", () => {
-  const nine = Array.from({ length: 9 }, (_, i) => `u${i}`);
-  assert.equal(planImageList(nine, [], 1, MAX_NEWS_IMAGES).overLimit, false);
-  assert.equal(planImageList(nine, [], 2, MAX_NEWS_IMAGES).overLimit, true);
+  const almost = Array.from({ length: MAX_NEWS_IMAGES - 1 }, (_, i) => `u${i}`);
+  assert.equal(planImageList(almost, [], 1, MAX_NEWS_IMAGES).overLimit, false);
+  assert.equal(planImageList(almost, [], 2, MAX_NEWS_IMAGES).overLimit, true);
   // 지우면서 올리면 자리가 생긴다
-  assert.equal(planImageList(nine, ["u0"], 2, MAX_NEWS_IMAGES).overLimit, false);
+  assert.equal(planImageList(almost, ["u0"], 2, MAX_NEWS_IMAGES).overLimit, false);
 });

@@ -15,13 +15,15 @@
 2. `supabase/migrations/20261015120000_news_images.sql` — 구단소식 상세 사진 여러 장 칸 (D-017)
 3. `supabase/migrations/20261016000000_standings_season.sql` — 리그순위 시즌 칸 (D-020)
 4. `supabase/migrations/20261016120000_postings.sql` — 포스팅(바깥 글 모음) 테이블 (D-022)
+   - `20261016130000_news_images_max20.sql` — 구단소식 사진 상한 20장 (D-031)
+   - `20261016140000_postings_league.sql` — 포스팅 분류 'FK리그' (D-032)
 5. `supabase/seed.sql` — 지금 홈페이지와 같은 초기 데이터 (선수·경기는 자리표시이므로 나중에 관리자 화면에서 교체)
 
 6. (실데이터) `supabase/data/2025-26_kfl.sql` — 한국풋살연맹 자료 + 26-27 선수단 변동으로 선수·스태프·경기·순위·연혁·연락처를 교체 (D-010)
 7. (실데이터) `supabase/data/2026-27_club_news.sql` — 구단 인스타그램 공지를 옮긴 구단소식 5건 (추가만 하므로 1번만 실행)
 8. (실데이터) `supabase/data/2026-27_denforce_news.sql` — 덴포스 공식 홈페이지 자료를 옮긴 구단소식 2건 (D-018, 추가만 하므로 1번만 실행 · 사진은 관리자 화면에서)
 9. (실데이터) `supabase/data/2026-27_fk1_standings.sql` — 2026-27 FK1 참가 6팀 0점 순위 (D-020·D-030, 이 시즌 행만 지우고 다시 넣음)
-10. (실데이터) `supabase/data/2026-10_postings.sql` — 2026-10-16 수집한 포스팅 (D-022, 같은 원문 주소는 건너뜀 · 대표 사진은 운영 프로젝트 Storage 주소)
+10. (실데이터) `supabase/data/2026-10_postings.sql` — 2026-10-16 수집한 포스팅 (D-022, 같은 원문 주소는 건너뜀 · 대표 사진은 운영 프로젝트 Storage 주소 · 끝에서 연맹 유튜브를 FK리그로 — D-032)
 
 > 6·7·8 은 관리자 화면에서 고친 내용을 덮어쓰거나 중복을 만들므로 새 프로젝트에서 처음 1번만 실행한다.
 

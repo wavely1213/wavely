@@ -63,8 +63,8 @@ export type NewsPost = {
   body: string[];
 };
 
-/** 포스팅 분류: 구단이 올린 글 / 언론 기사·연맹 영상 / 팬·외부 글 (D-022) */
-export type PostingKind = "club" | "news" | "fan";
+/** 포스팅 분류: 구단이 올린 글 / 언론 기사 / 팬·외부 글 (D-022) / 한국풋살연맹 공식 영상 (D-032) */
+export type PostingKind = "club" | "news" | "fan" | "league";
 
 export type PostingPlatform = "naver_blog" | "naver_cafe" | "article" | "youtube" | "instagram" | "web";
 
