@@ -163,7 +163,9 @@ export async function getPlayers(): Promise<Player[]> {
   return [...(await source().players())].sort(
     (a, b) =>
       POSITION_ORDER.indexOf(a.position) - POSITION_ORDER.indexOf(b.position) ||
-      (a.number ?? 999) - (b.number ?? 999),
+      (a.number ?? 999) - (b.number ?? 999) ||
+      // 등번호가 없으면(시즌 번호 확정 전) 이름순 — 새로고침마다 순서가 바뀌지 않게
+      a.name.localeCompare(b.name, "ko"),
   );
 }
 

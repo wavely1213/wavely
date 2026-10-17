@@ -57,7 +57,8 @@ export default async function PlayerPage({ params }: PageProps<"/team/players/[s
           </div>
           <div>
             <h2 className={styles.h2}>
-              No.{player.number ?? "-"} {player.name}
+              {player.number != null && `No.${player.number} `}
+              {player.name}
             </h2>
             <ul className={styles.list}>
               {profile.map(([k, v]) => (

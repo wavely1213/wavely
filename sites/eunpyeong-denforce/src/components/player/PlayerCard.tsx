@@ -16,7 +16,8 @@ export function PlayerCard({ player }: { player: Player }) {
         )}
       </div>
       <div className={styles.info}>
-        <span className={styles.number}>{player.number ?? "-"}</span>
+        {/* 등번호가 비어 있으면(시즌 번호 확정 전, BR-025) 이름만 */}
+        {player.number != null && <span className={styles.number}>{player.number}</span>}
         <strong className={styles.name}>{player.name}</strong>
       </div>
       <span className={styles.position}>{POSITION_LABEL[player.position]}</span>
