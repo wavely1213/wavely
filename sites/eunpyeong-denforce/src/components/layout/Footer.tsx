@@ -19,10 +19,16 @@ export async function Footer() {
         <div className={styles.about}>
           <strong className={styles.name}>{name}</strong>
           {/* 라벨(밝은 굵은 글씨)과 값(회색)을 나눠 한 줄에 여러 정보가 붙어 보이지 않게 한다 */}
+          {/* 라벨이 칸을 나누므로 구분 기호 없이 간격만 (단장/문의 줄과 같음, 소유자 지시) */}
           <p>
-            <span className={styles.label}>창단</span>
-            {yearOf(content["site.foundedDate"])} / <span className={styles.label}>홈구장</span>
-            {content["site.homeVenue"]}
+            <span className={styles.group}>
+              <span className={styles.label}>창단</span>
+              {yearOf(content["site.foundedDate"])}
+            </span>{" "}
+            <span className={styles.group}>
+              <span className={styles.label}>홈구장</span>
+              {content["site.homeVenue"]}
+            </span>
           </p>
           {settings.contactAddress && (
             <p>
