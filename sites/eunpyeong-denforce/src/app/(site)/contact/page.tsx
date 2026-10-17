@@ -6,7 +6,8 @@ import styles from "@/styles/prose.module.css";
 
 export const metadata: Metadata = { title: "문의" };
 
-const TOPICS = ["스폰서십/제휴", "입단/테스트", "아카데미/유소년", "언론/취재", "기타"];
+// 입단/테스트는 받지 않는다 (2026-10-17 소유자 지시)
+const TOPICS = ["스폰서십/제휴", "아카데미/유소년", "언론/취재", "기타"];
 
 export default async function ContactPage() {
   const settings = await getClubSettings();
