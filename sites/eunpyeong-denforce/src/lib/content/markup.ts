@@ -33,21 +33,23 @@ function cleanLabel(s: string) {
 }
 
 function cleanValue(s: string) {
-  return s.replace(/\*{2,}/g, "*").replace(/\s+/g, " ").trim();
+  return s.replace(HOLD_CHARS, "").replace(/\*{2,}/g, "*").replace(/\s+/g, " ").trim();
 }
 
-/** 묶음들 → 저장할 글 (parseMarkup 의 반대) */
+/**
+ * 묶음들 → 저장할 글 (parseMarkup 의 반대).
+ * 이름표 없는 칸이 줄 맨 앞이 아니면 '**** 값' 으로 쓴다 — 그냥 쓰면 앞 칸 값에 붙어 한 칸이 되어 버린다.
+ */
 export function serializeMarkup(lines: MarkupGroup[][]): string {
   return lines
     .map((groups) =>
       groups
-        .map((g) => {
-          const label = cleanLabel(g.label);
-          const value = cleanValue(g.value);
-          if (!label) return value;
-          return value ? `**${label}** ${value}` : `**${label}**`;
+        .map((g) => ({ label: cleanLabel(g.label), value: cleanValue(g.value) }))
+        .filter((g) => g.label || g.value)
+        .map((g, i) => {
+          if (!g.label) return i === 0 ? g.value : `**** ${g.value}`;
+          return g.value ? `**${g.label}** ${g.value}` : `**${g.label}**`;
         })
-        .filter(Boolean)
         .join(" "),
     )
     .filter(Boolean)
@@ -58,16 +60,22 @@ export function serializeMarkup(lines: MarkupGroup[][]): string {
 export const TOKEN = /\{([^{}\s]+)\}/g;
 
 export type TokenValues = Readonly<Record<string, string | null | undefined>>;
+/** 값 이름의 종류 — 이메일은 값 전체를 메일 링크, 전화번호는 값 전체를 줄바꿈 없이 (글자 모양으로 다시 찾지 않는다) */
+export type TokenKinds = Readonly<Record<string, "email" | "phone">>;
 
 export type Segment = { kind: "text" | "email" | "phone"; text: string };
 export type RenderedGroup = { label: string; segments: Segment[] };
 
 const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
-const PHONE = /0\d{1,2}-\d{3,4}-\d{4}/g;
+/** 직접 쓴 전화번호 — 010-1234-5678 / 02 123 4567 / +82-10-1234-5678 / 1588-1234 */
+const PHONE = /(?<!\d)(?:(?:\+82[- ]?\d{1,2}|0\d{1,2})[- ]\d{3,4}[- ]\d{4}|1[5-9]\d{2}-\d{4})(?!\d)/g;
+/** 값 이름 자리표 (화면 글 안에서 잠시 쓴다) — 관리자가 쓴 글에서는 지운다 */
+const HOLD_CHARS = /[\uE000\uE001]/g;
+const HOLD = /\uE000(\d+)\uE001/g;
 /** 띄어쓴 '/' 하나 (주소의 'https://'·'1/2' 는 아님) */
 const SLASH = /(?<=^|\s)\/(?=\s|$)/;
 
-/** 값 글 → 글/이메일(메일 링크)/전화번호(줄바꿈 안 함) 조각 */
+/** 직접 쓴 글 → 글/이메일(메일 링크)/전화번호(줄바꿈 안 함) 조각 */
 export function segmentsOf(text: string): Segment[] {
   const marks: Array<{ start: number; end: number; kind: Segment["kind"] }> = [];
   for (const [re, kind] of [
@@ -93,19 +101,27 @@ export function segmentsOf(text: string): Segment[] {
 }
 
 /**
- * 묶음 하나의 값 → 화면 글. null 이면 숨긴다.
+ * 묶음 하나의 값 → 화면 조각. null 이면 숨긴다.
  * 아는 값 이름이 하나라도 있는데 모두 비었으면 숨김. 일부만 비었으면 남는 ' / ' 를 정리한다.
  * 모르는 값 이름({오타})은 그대로 보인다 — 관리자가 미리보기에서 알아챌 수 있게.
+ * kinds 에 있는 값 이름(문의메일 등)은 값 전체가 한 조각(메일 링크/전화번호), 나머지 글은 segmentsOf 로 찾는다.
  */
-export function renderValue(value: string, tokens: TokenValues): string | null {
+export function renderSegments(value: string, tokens: TokenValues, kinds: TokenKinds = {}): Segment[] | null {
   let known = 0;
   let empty = 0;
-  const out = value.replace(TOKEN, (whole, name: string) => {
+  const held: Segment[] = [];
+  const out = value.replace(HOLD_CHARS, "").replace(TOKEN, (whole, name: string) => {
     if (!Object.hasOwn(tokens, name)) return whole;
     known++;
     const v = tokens[name]?.trim() ?? "";
-    if (!v) empty++;
-    return v;
+    if (!v) {
+      empty++;
+      return "";
+    }
+    const kind = Object.hasOwn(kinds, name) ? kinds[name] : undefined;
+    if (!kind) return v;
+    held.push({ kind, text: v });
+    return `\uE000${held.length - 1}\uE001`;
   });
   if (known > 0 && empty === known) return null;
   let text = out.replace(/\s+/g, " ").trim();
@@ -115,16 +131,32 @@ export function renderValue(value: string, tokens: TokenValues): string | null {
       .map((s) => s.trim())
       .filter(Boolean)
       .join(" / ");
-  return text || null;
+  if (!text) return null;
+  const segments: Segment[] = [];
+  let at = 0;
+  for (const m of text.matchAll(HOLD)) {
+    const start = m.index ?? 0;
+    if (start > at) segments.push(...segmentsOf(text.slice(at, start)));
+    segments.push(held[Number(m[1])]);
+    at = start + m[0].length;
+  }
+  if (at < text.length) segments.push(...segmentsOf(text.slice(at)));
+  return segments;
+}
+
+/** 묶음 하나의 값 → 화면 글 (조각을 이어 붙인 것). null 이면 숨긴다 */
+export function renderValue(value: string, tokens: TokenValues): string | null {
+  const segments = renderSegments(value, tokens);
+  return segments ? segments.map((s) => s.text).join("") : null;
 }
 
 /** 저장된 글 → 화면에 그릴 줄들 (숨길 묶음·빈 줄 제외) */
-export function renderMarkup(src: string, tokens: TokenValues): RenderedGroup[][] {
+export function renderMarkup(src: string, tokens: TokenValues, kinds: TokenKinds = {}): RenderedGroup[][] {
   return parseMarkup(src)
     .map((groups) =>
       groups.flatMap((g) => {
-        const text = renderValue(g.value, tokens);
-        return text === null ? [] : [{ label: g.label, segments: segmentsOf(text) }];
+        const segments = renderSegments(g.value, tokens, kinds);
+        return segments === null ? [] : [{ label: g.label, segments }];
       }),
     )
     .filter((line) => line.length > 0);

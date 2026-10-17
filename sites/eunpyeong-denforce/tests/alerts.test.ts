@@ -35,12 +35,16 @@ test("parseRosterNews: 인사 소식이 아니거나 이름을 못 찾으면 nul
     "서울은평 덴포스 공식 홈페이지 오픈 안내",
     "2026 신규 영입",
     "서울은평 덴포스와 동행 마무리",
+    // 영입한 선수의 다음 기사 — '이적'이 있어도 떠나는 글귀가 아니다
+    "강민원, 이적 후 첫 경기서 결승골",
+    "임우성, 이적 첫 시즌 각오",
   ])
     assert.equal(parseRosterNews(t), null, t);
 });
 
 const today = "2026-10-17";
 const news = (title: string, date: string, extra: Partial<NewsLite> = {}): NewsLite => ({ title, date, category: "news", published: true, ...extra });
+const n = (title: string, date: string): NewsLite => ({ title, date, category: "news", published: true });
 const player = (id: string, name: string, number: number | null, isActive = true, hasPhoto = true): PlayerLite => ({ id, name, number, isActive, hasPhoto });
 
 test("rosterAlerts: 영입했는데 명단에 없음 / 이적했는데 활동 중 / 비활동", () => {
@@ -81,6 +85,20 @@ test("rosterAlerts: 가장 최근 소식만 / 기간 밖·비공개·다른 분�
   assert.deepEqual(alerts, []);
 });
 
+test("rosterAlerts: 영입 뒤 '이적 후 첫 골' 기사가 와도 들어옴 그대로", () => {
+  const news = [n("서울은평 덴포스, FS서울에서 이적한 아라 강민원 영입", "2026-10-16"), n("강민원, 이적 후 첫 경기서 결승골", "2026-10-27")];
+  assert.deepEqual(rosterAlerts({ today: "2026-10-30", news, players: [player("k", "강민원", null)], staff: [] }), []);
+  assert.deepEqual(rosterAlerts({ today: "2026-10-30", news, players: [], staff: [] }).map((a) => a.title), ["선수 추가 필요: 강민원"]);
+});
+
+test("rosterAlerts: 동명이인 — 한 명이 이미 비활동이면 처리됨, 모두 활동이면 직접 확인 (특정 선수로 보내지 않음)", () => {
+  const news = [n("김대현, 이적으로 서울은평 덴포스와 동행 마무리", "2026-10-16")];
+  const done = rosterAlerts({ today, news, players: [player("a", "김대현", null, false), player("b", "김대현", null)], staff: [] });
+  assert.deepEqual(done, []);
+  const both = rosterAlerts({ today, news, players: [player("a", "김대현", null), player("b", "김대현", null)], staff: [] });
+  assert.deepEqual(both.map((a) => [a.level, a.title, a.href]), [["check", "선수단 확인 필요: 김대현", "/admin/players"]]);
+});
+
 test("numberAlerts: 활동 선수끼리만, 동명이인은 알리지 않음", () => {
   const alerts = numberAlerts([
     player("1", "송민혁", 5),
@@ -96,13 +114,14 @@ test("numberAlerts: 활동 선수끼리만, 동명이인은 알리지 않음", (
 });
 
 test("siteGapAlerts / sortAlerts", () => {
-  const base = { upcomingMatches: 1, venueTransit: true, venueParking: true, contactEmail: true, contactPhone: true, draftNews: 0, activeWithoutPhoto: 0 };
+  const base = { upcomingMatches: 1, pastScheduled: 0, venueTransit: true, venueParking: true, contactEmail: true, contactPhone: true, draftNews: 0, activeWithoutPhoto: 0 };
   // 개인정보처리방침 안내는 4단계 전까지 늘 나온다
   assert.deepEqual(siteGapAlerts(base).map((a) => a.href), ["/privacy"]);
   const all = siteGapAlerts({ ...base, upcomingMatches: 0, venueTransit: false, venueParking: false, contactPhone: false, draftNews: 2, activeWithoutPhoto: 3 });
   assert.ok(all.some((a) => a.title.includes("'대중교통/주차'")));
   assert.ok(all.some((a) => a.title.includes("문의 전화")));
   assert.ok(all.some((a) => a.title === "예정된 경기가 없습니다"));
+  assert.ok(siteGapAlerts({ ...base, pastScheduled: 2 }).some((a) => a.level === "check" && a.title === "결과 입력이 필요한 경기 2개"));
   const sorted = sortAlerts([...all, { level: "warn", title: "w", href: "/", action: "" }]);
   assert.equal(sorted[0].level, "warn");
   assert.ok(sorted.findIndex((a) => a.level === "info") > sorted.findIndex((a) => a.level === "check"));

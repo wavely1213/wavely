@@ -9,7 +9,7 @@ import { CONTENT_FIELDS, type FieldDef } from "@/lib/content/fields";
 import { CONTENT_LISTS, type ListDef, type ListKey } from "@/lib/content/lists";
 import { CONTENT_SECTIONS, findSection, LEGACY_SECTION_IDS, type ContentSection } from "@/lib/content/sections";
 import { resolveContent } from "@/lib/content/values";
-import { FOOTER_TOKENS, footerTokens } from "@/lib/content/views";
+import { FOOTER_TOKEN_KINDS, FOOTER_TOKENS, footerTokens } from "@/lib/content/views";
 import { contentMap, type ContentItemRow, type SiteContentRow } from "@/lib/data/rows";
 import { getClubSettings, getStaff } from "@/lib/repo";
 import { staffNameByRole } from "@/lib/staff";
@@ -106,7 +106,7 @@ async function SectionBody({ params }: { params: Params }) {
 async function footerTokenInfo(shown: ReturnType<typeof resolveContent>): Promise<TokenInfo[]> {
   const [settings, staff] = await Promise.all([getClubSettings(), getStaff()]);
   const values = footerTokens(shown, settings, staffNameByRole(staff, "단장"));
-  return FOOTER_TOKENS.map((t) => ({ name: t.name, desc: t.desc, value: values[t.name] ?? null }));
+  return FOOTER_TOKENS.map((t) => ({ name: t.name, desc: t.desc, value: values[t.name] ?? null, kind: FOOTER_TOKEN_KINDS[t.name] }));
 }
 
 /** 목록 표 — 이름을 누르면 수정 */

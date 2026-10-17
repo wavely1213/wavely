@@ -1,6 +1,6 @@
 // 관리자 대시보드 '할 일/알림' — 순수 함수만 (테스트: alerts.test.ts, D-048).
 // 구단 소식 제목(영입·이적)과 선수/스태프 명단을 맞춰 보고, 홈페이지에 '준비 중'으로 보이는 빈 칸을 찾는다.
-// 같은 이름 선수는 알리지 않는다 — 김대현(8·18번)처럼 동명이인이 실제로 있다 (BR-025).
+// 같은 이름 선수가 있다는 것 자체는 알리지 않는다 — 김대현(옛 8·18번)처럼 동명이인이 실제로 있다 (BR-025). 인사 소식이 동명이인을 가리키면 직접 확인을 부탁한다.
 
 export type AlertLevel = "warn" | "check" | "info";
 
@@ -21,6 +21,8 @@ const STOP = new Set(["서울은평", "은평", "덴포스", "구단", "선수�
 const ROLE = /^(감독|수석코치|코치|골키퍼코치|피지컬코치|전력분석관|분석관|트레이너|단장|부단장|사무국장|매니저|팀매니저)$/;
 const NAME = /^[가-힣]{2,4}$/;
 const LEAVE = /동행\s*마무리|계약\s*(만료|종료|해지)|은퇴|작별|방출/;
+/** '이적으로'·'이적하며' 처럼 떠나는 글귀일 때만 — '이적 후 첫 골'·'…에서 이적한 OOO 영입' 은 나감이 아니다 */
+const LEAVE_TRANSFER = /이적(으로|하며|을\s*하며)/;
 
 function isName(w: string | undefined): w is string {
   return Boolean(w && NAME.test(w) && !STOP.has(w));
@@ -50,8 +52,9 @@ function nameBefore(ws: string[], i: number): { name: string; staff: boolean } |
  */
 export function parseRosterNews(title: string): RosterEvent | null {
   const ws = words(title);
-  // 나감 — '동행 마무리' 등이 있으면 나감. '이적'만 있으면 영입 글('…에서 이적한 OOO 영입')이 아닐 때만
-  if (LEAVE.test(title) || (/이적/.test(title) && !/영입|입단/.test(title))) {
+  // 나감 — '동행 마무리' 등이 있으면 나감. 들어옴 낱말(영입·입단)이 없을 때만 '이적으로'·'이적하며'도 나감
+  const joinWord = /영입|입단/.test(title);
+  if (LEAVE.test(title) || (!joinWord && LEAVE_TRANSFER.test(title))) {
     const lead = /^\s*([가-힣]{2,4})\s*(선수|감독|수석코치|코치)?\s*,/.exec(title);
     if (lead && isName(lead[1])) return { kind: "leave", name: lead[1], staff: Boolean(lead[2] && lead[2] !== "선수") };
     const k = ws.findIndex((w) => w.startsWith("동행"));
@@ -119,8 +122,13 @@ export function rosterAlerts(input: { news: NewsLite[]; players: PlayerLite[]; s
       out.push({ level: "warn", title: `선수 추가 필요: ${e.name}`, detail: `${from} 소식이 있는데 선수 명단에 없습니다.`, href: "/admin/players/new", action: "선수 추가" });
     else if (e.kind === "join" && active.length === 0)
       out.push({ level: "check", title: `활동 선수로 바꾸기: ${e.name}`, detail: `${from} 소식이 있는데 '비활동' 선수입니다.`, href: `/admin/players/${same[0].id}`, action: "선수 정보" });
-    if (e.kind === "leave" && active.length > 0)
-      out.push({ level: "warn", title: `선수단에서 빼기 필요: ${e.name}`, detail: `${from} 소식이 있는데 아직 '활동' 선수입니다. 선수 정보에서 '활동'을 끄면 선수단에서 빠집니다.`, href: `/admin/players/${active[0].id}`, action: "선수 정보" });
+    if (e.kind === "leave" && active.length > 0) {
+      if (same.length === 1)
+        out.push({ level: "warn", title: `선수단에서 빼기 필요: ${e.name}`, detail: `${from} 소식이 있는데 아직 '활동' 선수입니다. 선수 정보에서 '활동'을 끄면 선수단에서 빠집니다.`, href: `/admin/players/${active[0].id}`, action: "선수 정보" });
+      // 동명이인(BR-025): 이름만으로는 누가 떠났는지 모른다 — 한 명이라도 이미 비활동이면 처리된 것으로 보고, 모두 활동이면 직접 확인을 부탁한다
+      else if (active.length === same.length)
+        out.push({ level: "check", title: `선수단 확인 필요: ${e.name}`, detail: `${from} 소식이 있는데 같은 이름 선수가 ${same.length}명입니다. 떠난 선수의 '활동'을 꺼 주세요.`, href: "/admin/players", action: "선수 명단" });
+    }
   }
   return out;
 }
@@ -139,7 +147,10 @@ export function numberAlerts(players: PlayerLite[]): AdminAlert[] {
 }
 
 export type SiteGaps = {
+  /** 상태 '예정' 경기 수 — 공개 경기 일정 페이지와 같은 기준(BR-003) */
   upcomingMatches: number;
+  /** 상태는 '예정'인데 경기 시간이 지난 경기 수 — 결과 입력 필요 */
+  pastScheduled: number;
   venueTransit: boolean;
   venueParking: boolean;
   contactEmail: boolean;
@@ -156,6 +167,8 @@ export function siteGapAlerts(g: SiteGaps): AdminAlert[] {
     out.push({ level: "check", title: `오시는 길 '${missing.join("/")}' 안내가 '준비 중'으로 보입니다`, href: "/admin/club", action: "구단정보" });
   const contact = [!g.contactEmail && "이메일", !g.contactPhone && "전화"].filter(Boolean);
   if (contact.length) out.push({ level: "check", title: `문의 ${contact.join("/")}이(가) 비어 '준비 중'으로 보입니다`, href: "/admin/club", action: "구단정보" });
+  if (g.pastScheduled > 0)
+    out.push({ level: "check", title: `결과 입력이 필요한 경기 ${g.pastScheduled}개`, detail: "경기 시간이 지났는데 아직 '예정' 상태입니다.", href: "/admin/matches", action: "경기" });
   if (g.upcomingMatches === 0)
     out.push({ level: "info", title: "예정된 경기가 없습니다", detail: "경기 일정 페이지에 '발표 후 업데이트' 안내가 보입니다.", href: "/admin/matches/new", action: "경기 추가" });
   // 등번호 없는 선수는 알리지 않는다 — 시즌 번호 확정 전까지 일부러 비워 둔다 (BR-025)

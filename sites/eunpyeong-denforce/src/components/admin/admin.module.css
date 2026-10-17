@@ -230,6 +230,8 @@
 
 /* ── 패널·표 ──────────────────────────── */
 .panel {
+  /* 안에 놓인 저장 버튼 줄(.formActions)이 같은 바탕색을 쓰게 */
+  --form-surface: var(--c-bg);
   background: var(--c-bg);
   border: 1px solid var(--c-line);
   border-radius: var(--radius-m);
@@ -549,14 +551,26 @@
   padding-top: 8px;
 }
 
-/* 관리자 폼 저장 버튼 줄 — 스크롤해도 화면 아래에 붙는다 (D-048). 짧은 폼에서는 제자리 */
+/* 관리자 폼 저장 버튼 줄 — 스크롤해도 화면 아래에 붙는다 (D-048). 짧은 폼에서는 제자리.
+   바탕은 놓인 곳과 같게: 흰 패널·로그인 상자 안에서는 흰색, 회색 화면 바로 위에서는 회색 */
 .formActions {
   position: sticky;
   bottom: 0;
   z-index: 5;
   padding: 12px 0;
   border-top: 1px solid var(--c-line);
-  background: var(--c-bg);
+  background: var(--form-surface, var(--c-bg-soft));
+}
+
+/* 키보드로 칸을 옮길 때 붙어 있는 저장 줄·휴대폰 맨 위 띠 밑으로 칸이 숨지 않게 */
+:global(html):has(.formActions) {
+  scroll-padding-bottom: 80px;
+}
+
+@media (max-width: 860px) {
+  :global(html):has(.side) {
+    scroll-padding-top: 80px;
+  }
 }
 
 .dangerZone {
@@ -576,6 +590,7 @@
 }
 
 .loginBox {
+  --form-surface: var(--c-bg);
   width: 100%;
   max-width: 380px;
   padding: 32px 28px;

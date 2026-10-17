@@ -64,7 +64,7 @@ async function Dashboard() {
     return count ?? 0;
   };
 
-  const [players, staff, news, settings, upcoming, recentNews, recentPostings, newsTotal, postingsShown, sponsors, matches] = await Promise.all([
+  const [players, staff, news, settings, upcoming, scheduled, recentNews, recentPostings, newsTotal, postingsShown, sponsors, matches] = await Promise.all([
     supabase.from("players").select("id, name, number, is_active, photo_url"),
     supabase.from("staff").select("id, name, role"),
     supabase.from("news_posts").select("title, date, category, published"),
@@ -76,6 +76,8 @@ async function Dashboard() {
       .gte("kickoff", now.toISOString())
       .order("kickoff")
       .limit(3),
+    // 알림용 — 공개 경기 일정과 같은 기준(상태 '예정', BR-003). 시간이 지난 '예정' 경기는 결과 입력 알림
+    supabase.from("matches").select("kickoff").eq("status", "scheduled"),
     supabase.from("news_posts").select("id, title, category, date, published").order("created_at", { ascending: false }).limit(5),
     supabase.from("postings").select("id, title, platform, posted_on, published").order("created_at", { ascending: false }).limit(5),
     count("news_posts"),
@@ -88,14 +90,16 @@ async function Dashboard() {
   const activePlayers = playerRows.filter((p) => p.is_active);
   const lite = playerRows.map((p) => ({ id: p.id, name: p.name, number: p.number, isActive: p.is_active, hasPhoto: Boolean(p.photo_url) }));
   // 하나라도 못 읽으면 잘못된 알림(예: '명단에 없음')을 띄우지 않게 그 알림은 건너뛰고 안내한다
-  const failed = [players, staff, news, settings, upcoming].some((r) => r.error);
+  const failed = [players, staff, news, settings, upcoming, scheduled].some((r) => r.error);
+  const scheduledRows = scheduled.data ?? [];
   const alerts: AdminAlert[] = failed
     ? []
     : sortAlerts([
         ...rosterAlerts({ news: news.data ?? [], players: lite, staff: staff.data ?? [], today: kstToday(now) }),
         ...numberAlerts(lite),
         ...siteGapAlerts({
-          upcomingMatches: upcoming.data?.length ?? 0,
+          upcomingMatches: scheduledRows.length,
+          pastScheduled: scheduledRows.filter((m) => new Date(m.kickoff) < now).length,
           venueTransit: Boolean(settings.data?.venue_transit),
           venueParking: Boolean(settings.data?.venue_parking),
           contactEmail: Boolean(settings.data?.contact_email),
@@ -104,6 +108,8 @@ async function Dashboard() {
           activeWithoutPhoto: activePlayers.filter((p) => !p.photo_url).length,
         }),
       ]);
+
+  const pending = alerts.filter((a) => a.level !== "info").length;
 
   const stats = [
     { href: "/admin/players", label: "활동 선수", value: activePlayers.length },
@@ -121,7 +127,7 @@ async function Dashboard() {
           <h2 className={styles.panelTitle} id="todo-title">
             할 일 / 알림
           </h2>
-          {!failed && <span className={local.count}>{alerts.filter((a) => a.level !== "info").length}건 확인 필요</span>}
+          {pending > 0 && <span className={local.count}>{pending}건 확인 필요</span>}
         </div>
         {failed ? (
           <p className={styles.formMessage} role="alert">

@@ -1,6 +1,7 @@
 // 홈페이지 내용 → 화면 조각별 값 묶음 (D-046). 클라이언트 컴포넌트에는 필요한 값만 넘긴다.
 import type { ClubSettings } from "@/types";
 import type { SiteContent } from "./fields";
+import type { TokenKinds } from "./markup";
 import { yearOf } from "./values";
 
 /** 헤더 — 구단 이름·영문 이름, 메뉴 맨 오른쪽 바깥 링크 */
@@ -34,6 +35,9 @@ export const FOOTER_TOKENS = [
   { name: "문의메일", desc: "구단정보의 문의 이메일 (누르면 메일 쓰기)" },
   { name: "문의전화", desc: "구단정보의 문의 전화" },
 ] as const;
+
+/** 값 전체를 메일 링크/전화번호로 보여 줄 값 이름 — 저장된 주소를 그대로 쓴다 (글자 모양으로 다시 찾지 않음) */
+export const FOOTER_TOKEN_KINDS: TokenKinds = { 문의메일: "email", 문의전화: "phone" };
 
 /** 푸터 값 이름 → 실제 값 (비어 있으면 null — 그 칸은 숨겨진다) */
 export function footerTokens(

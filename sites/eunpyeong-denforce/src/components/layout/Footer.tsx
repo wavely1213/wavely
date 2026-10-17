@@ -4,7 +4,7 @@ import { NAV } from "@/config/site";
 import { snsLinks } from "@/lib/club";
 import { renderMarkup, renderPlain } from "@/lib/content/markup";
 import { isExternalLink } from "@/lib/content/values";
-import { footerTokens } from "@/lib/content/views";
+import { FOOTER_TOKEN_KINDS, footerTokens } from "@/lib/content/views";
 import { getClubSettings, getContentList, getSiteContent, getStaff } from "@/lib/repo";
 import { staffNameByRole } from "@/lib/staff";
 import styles from "./Footer.module.css";
@@ -16,8 +16,8 @@ export async function Footer() {
   const name = content["site.name"];
   const tokens = footerTokens(content, settings, staffNameByRole(staff, "단장"));
   // 이름표(밝은 굵은 글씨)와 값(회색)을 나눠 한 줄에 여러 정보가 붙어 보이지 않게 — 묶음 사이는 기호 없이 간격만 (소유자 지시)
-  const lines = renderMarkup(content["footer.lines"], tokens);
-  const legal = renderMarkup(content["footer.legal"], tokens)[0] ?? [];
+  const lines = renderMarkup(content["footer.lines"], tokens, FOOTER_TOKEN_KINDS);
+  const legal = renderMarkup(content["footer.legal"], tokens, FOOTER_TOKEN_KINDS)[0] ?? [];
   const copyright = renderPlain(content["footer.copyright"], tokens);
   const markup = { group: styles.group, label: styles.label, nowrap: styles.nowrap };
   return (

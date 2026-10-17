@@ -7,8 +7,8 @@ import { MarkupGroups } from "@/components/ui/MarkupGroups";
 import { parseMarkup, renderMarkup, serializeMarkup, type MarkupGroup } from "@/lib/content/markup";
 import local from "./content.module.css";
 
-/** 편집기에 보여 줄 값 이름 — value 는 지금 저장된 실제 값 (미리보기용) */
-export type TokenInfo = { name: string; desc: string; value: string | null };
+/** 편집기에 보여 줄 값 이름 — value 는 지금 저장된 실제 값 (미리보기용), kind 는 메일 링크/전화번호로 보일 값 */
+export type TokenInfo = { name: string; desc: string; value: string | null; kind?: "email" | "phone" };
 
 const EMPTY: MarkupGroup = { label: "", value: "" };
 
@@ -97,7 +97,11 @@ export function MarkupEditor({
     });
 
   const serialized = serializeMarkup(lines);
-  const preview = renderMarkup(serialized, Object.fromEntries(tokens.map((t) => [t.name, t.value])));
+  const preview = renderMarkup(
+    serialized,
+    Object.fromEntries(tokens.map((t) => [t.name, t.value])),
+    Object.fromEntries(tokens.flatMap((t) => (t.kind ? [[t.name, t.kind]] : []))),
+  );
 
   return (
     <div className={styles.field} role="group" aria-labelledby={`l-${name}`}>
