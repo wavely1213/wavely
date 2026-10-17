@@ -28,9 +28,9 @@
 <!-- 최신 항목을 위에 추가. 심각도 '높음'은 발견 즉시 소유자에게 별도 보고 -->
 
 ## I-038 | 2026-10-16 | (로컬 next start) 관리자 저장(updateTag) 뒤 주소에 값이 들어가는 페이지가 500
-- **상태**: 확인 중
+- **상태**: 열림 (낮음 — 로컬 전용). 2026-10-17 Vercel 미리보기 배포에서 같은 순서(관리자 저장 → /news/notice·/team/players/no-10)로 확인: 200 그대로, 재현 안 됨. 운영(Vercel)은 영향 없음.
 - **내용**: 로컬에서 `next build && next start` 로 띄운 서버에서, 관리자 화면 저장(updateTag — 예: 구단정보 링크 미리보기 저장 = club 태그)을 하면 그 뒤로 /news/notice·/team/players/[번호]·/match/standings/[시즌] 처럼 [값]이 들어가는 페이지가 "uncached or runtime data during prerendering"(NEXT_STATIC_GEN_BAILOUT)으로 500 이 된다. D-046 이전 커밋(6a65451)을 따로 빌드해도 똑같이 재현 — 이번 변경 때문이 아니다. 운영(Vercel)은 최근 7일 런타임 오류 0건.
-- **확인할 것**: Vercel 미리보기 배포에서 같은 순서(저장 → 해당 페이지)로 재현되는지. 재현되면 해당 페이지의 params 읽기를 Suspense 안으로 옮기는 등 고친다.
+- **영향**: 로컬에서 `next start` 로 관리자 저장 테스트를 한 뒤 [값] 페이지를 볼 때만. 서버를 다시 띄우면 돌아온다. 자체 서버(Vercel 아님)로 옮기게 되면 그때 고친다(해당 페이지의 params 읽기를 Suspense 안으로 등).
 
 ## I-037 | 2026-10-16 | /club/emblem#uniform 주소로 열면 화면이 뜬 직후 잠깐 엠블럼 탭이 보였다가 유니폼 탭으로 바뀐다
 - **상태**: 열림 (낮음)
