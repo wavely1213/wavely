@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { clubJsonLd, jsonLdString, sitemapEntries, STATIC_PATHS } from "../src/lib/seo.ts";
 
-test("sitemapEntries: 고정 페이지 + 글·선수·지난 시즌, 날짜를 아는 글만 lastModified", () => {
+test("sitemapEntries: 고정 페이지 + 글/선수/지난 시즌, 날짜를 아는 글만 lastModified", () => {
   const list = sitemapEntries("https://eunpyeong-fs.com/", {
     news: [
       { category: "news", id: "a", date: "2026-10-06" },
@@ -21,7 +21,7 @@ test("sitemapEntries: 고정 페이지 + 글·선수·지난 시즌, 날짜를 �
   assert.ok(list.every((e) => !e.url.includes("/admin")));
 });
 
-test("clubJsonLd: SportsTeam, 다른 이름·SNS, 주소 없으면 address 생략", () => {
+test("clubJsonLd: SportsTeam, 다른 이름/SNS, 주소 없으면 address 생략", () => {
   const base = { name: "서울은평 덴포스", alternateNames: ["서울은평FS"], url: "https://eunpyeong-fs.com", logo: "https://eunpyeong-fs.com/brand/emblem.png", foundingDate: "2012-11-17", venueName: "은평다목적체육관" };
   const ld = clubJsonLd({ ...base, venueAddress: "서울시 은평구 진관1로 52", sameAs: ["https://www.instagram.com/eunpyeong_denforce"] });
   assert.equal(ld["@type"], "SportsTeam");

@@ -27,7 +27,7 @@ export const CONTENT_FIELDS = {
     kind: "text",
     max: 30,
     default: SITE.name,
-    hint: "헤더·푸터·메인 큰 제목·브라우저 탭 제목·경기 일정표의 우리 팀 이름 등 사이트 전체",
+    hint: "헤더/푸터/메인 큰 제목/브라우저 탭 제목/경기 일정표의 우리 팀 이름 등 사이트 전체",
   },
   "site.nameEn": {
     label: "영문 이름",
@@ -62,7 +62,7 @@ export const CONTENT_FIELDS = {
     kind: "lines",
     max: 500,
     default: SITE.alternateNames.join("\n"),
-    hint: "한 줄에 하나 — 예전 팀 이름·띄어쓰기가 다른 이름. 화면에는 보이지 않고 검색엔진에 알려 줍니다",
+    hint: "한 줄에 하나 — 예전 팀 이름/띄어쓰기가 다른 이름. 화면에는 보이지 않고 검색엔진에 알려 줍니다",
   },
   "nav.external.label": {
     label: "메뉴 맨 오른쪽 바로가기 이름",
@@ -84,16 +84,16 @@ export const CONTENT_FIELDS = {
     label: "메인 사진",
     kind: "image",
     default: "/photos/hero-dreamleague-2019.webp",
-    hint: "맨 위 큰 사진 — 가로로 긴 사진(1920×1080 이상 권장), JPG·PNG·WEBP 5MB 이하. 글씨가 왼쪽 아래에 얹힙니다",
+    hint: "맨 위 큰 사진 — 가로로 긴 사진(1920×1080 이상 권장), JPG/PNG/WEBP 4MB 이하. 글씨가 왼쪽 아래에 얹힙니다",
   },
   "home.hero.imageAlt": {
     label: "메인 사진 설명",
     kind: "text",
     max: 100,
     default: "서울은평 선수단 단체 사진",
-    hint: "화면에는 안 보이고 화면 읽기 프로그램·검색엔진이 읽습니다",
+    hint: "화면에는 안 보이고 화면 읽기 프로그램/검색엔진이 읽습니다",
   },
-  "home.hero.eyebrow": { label: "큰 제목 위 작은 글씨", kind: "text", max: 60, default: `SINCE ${SITE.founded} · FK LEAGUE` },
+  "home.hero.eyebrow": { label: "큰 제목 위 작은 글씨", kind: "text", max: 60, default: `SINCE ${SITE.founded} / FK LEAGUE` },
   "home.hero.slogan": {
     label: "슬로건",
     kind: "text",

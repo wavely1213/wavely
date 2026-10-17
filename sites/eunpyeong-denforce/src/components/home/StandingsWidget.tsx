@@ -42,7 +42,7 @@ export function StandingsWidget({ rows, title }: { rows: StandingRow[]; title: s
           ))}
         </tbody>
       </table>
-      {beforeKickoff && <p className={styles.note}>개막 전 · 팀명 가나다순</p>}
+      {beforeKickoff && <p className={styles.note}>개막 전 / 팀명 가나다순</p>}
     </section>
   );
 }

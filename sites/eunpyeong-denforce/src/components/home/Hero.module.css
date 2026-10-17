@@ -29,6 +29,11 @@
   padding-bottom: 48px;
 }
 
+/* 글 칸 — 구단 이름·슬로건이 길어져도 다음 홈경기 카드를 밀어내지 않게 줄어들 수 있다 (D-046) */
+.copy {
+  min-width: 0;
+}
+
 .eyebrow {
   font-size: 14px;
   font-weight: 700;

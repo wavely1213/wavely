@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: PageProps<"/team/players/[slu
   if (!player) return { title: "선수" };
   // 링크 미리보기 = 선수 사진 (없으면 사이트 이미지) + 포지션·등번호 — D-038
   const clubName = (await getSiteContent())["site.name"];
-  const description = `${clubName} ${POSITION_LABEL[player.position]}${player.number != null ? ` · 등번호 ${player.number}` : ""}`;
+  const description = `${clubName} ${POSITION_LABEL[player.position]}${player.number != null ? ` / 등번호 ${player.number}` : ""}`;
   return {
     title: player.name,
     description,
@@ -69,7 +69,7 @@ export default async function PlayerPage({ params }: PageProps<"/team/players/[s
             </ul>
             {isLiveData() && (
               <p className={`${styles.note} ${styles.source}`}>
-                출전·득점: {LEAGUE.statsSeason} 기록 · 자료: {LEAGUE.source}
+                출전/득점: {LEAGUE.statsSeason} 기록 / 자료: {LEAGUE.source}
               </p>
             )}
           </div>

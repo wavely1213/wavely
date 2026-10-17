@@ -34,7 +34,7 @@ function readMatch(f: FormReader) {
     const iso = kstToIso(date, time);
     const back = iso ? isoToKst(iso) : null;
     if (!iso || !back || back.date !== date || back.time !== time) {
-      f.errors.kickoff_date = "올바른 날짜·시간이 아닙니다.";
+      f.errors.kickoff_date = "올바른 날짜/시간이 아닙니다.";
     } else {
       kickoff = iso;
     }

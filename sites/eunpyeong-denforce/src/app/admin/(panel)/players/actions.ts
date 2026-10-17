@@ -23,7 +23,7 @@ function readPlayer(f: FormReader) {
   const typedSlug = f.optText("slug", {
     label: "주소",
     pattern: SLUG,
-    patternHint: "주소는 영문 소문자·숫자와 하이픈(-)만 쓸 수 있습니다. 예: no-7, kim-minsu",
+    patternHint: "주소는 영문 소문자/숫자와 하이픈(-)만 쓸 수 있습니다. 예: no-7, kim-minsu",
   });
 
   // 주소를 비우면 등번호로 만든다 (no-<번호>). 등번호도 없으면 직접 입력해야 한다.

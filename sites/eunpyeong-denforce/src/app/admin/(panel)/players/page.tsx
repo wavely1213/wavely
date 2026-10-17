@@ -28,7 +28,7 @@ export default function PlayersAdminPage() {
     <>
       <PageTitle
         title="선수"
-        description="활동 중인 선수만 홈페이지 선수 페이지·메인 선수단에 포지션·등번호 순으로 보입니다."
+        description="활동 중인 선수만 홈페이지 선수 페이지/메인 선수단에 포지션/등번호 순으로 보입니다."
       >
         <Link href="/admin/players/new" className={styles.button}>
           + 선수 추가
@@ -65,7 +65,7 @@ async function PlayerList() {
             <th>도움</th>
             <th>상태</th>
             <th>
-              <span className="sr-only">수정·삭제</span>
+              <span className="sr-only">수정/삭제</span>
             </th>
           </tr>
         </thead>
@@ -106,7 +106,7 @@ async function PlayerList() {
                     action={deletePlayer.bind(null, p.id)}
                     label="삭제"
                     small
-                    confirmText={`${p.number != null ? `No.${p.number} ` : ""}${p.name} 선수를 명단에서 삭제할까요?\n기록·사진도 함께 지워지고 되돌릴 수 없습니다.\n(잠시 빼 두려면 수정 화면에서 '활동 중'을 끄면 홈페이지에서만 숨겨집니다)`}
+                    confirmText={`${p.number != null ? `No.${p.number} ` : ""}${p.name} 선수를 명단에서 삭제할까요?\n기록/사진도 함께 지워지고 되돌릴 수 없습니다.\n(잠시 빼 두려면 수정 화면에서 '활동 중'을 끄면 홈페이지에서만 숨겨집니다)`}
                   />
                 </div>
               </td>

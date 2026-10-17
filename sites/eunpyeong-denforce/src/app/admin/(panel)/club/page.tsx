@@ -21,7 +21,7 @@ export default function ClubAdminPage() {
     <>
       <PageTitle
         title="구단정보"
-        description="구단소개·오시는 길·문의 페이지와 하단 푸터에 보이는 정보, 구단소개의 배출 풋살 국가대표, 링크 미리보기, 연혁 페이지에 보이는 연혁을 관리합니다."
+        description="구단소개/오시는 길/문의 페이지와 하단 푸터에 보이는 정보, 구단소개의 배출 풋살 국가대표, 링크 미리보기, 연혁 페이지에 보이는 연혁을 관리합니다."
       />
       <Suspense fallback={<AdminLoading />}>
         <ClubPanels />
@@ -75,10 +75,10 @@ async function ClubPanels() {
       </section>
 
       <section className={styles.panel}>
-        <h2 className={styles.panelTitle}>링크 미리보기 (카카오톡·SNS)</h2>
+        <h2 className={styles.panelTitle}>링크 미리보기 (카카오톡/SNS)</h2>
         <p className={local.note}>
-          주소를 카카오톡·문자·SNS에 보낼 때 뜨는 이미지·제목·설명입니다. 홈페이지 주소와 관리자 주소를 따로 정하고,
-          비워 두면 기본값이 쓰입니다. 구단소식 글·선수 페이지 주소는 그 글·선수의 사진과 제목으로 뜹니다. 바꾼 뒤에도
+          주소를 카카오톡/문자/SNS에 보낼 때 뜨는 이미지/제목/설명입니다. 홈페이지 주소와 관리자 주소를 따로 정하고,
+          비워 두면 기본값이 쓰입니다. 구단소식 글/선수 페이지 주소는 그 글/선수의 사진과 제목으로 뜹니다. 바꾼 뒤에도
           카카오톡에 예전 미리보기가 보이면{" "}
           <a href={KAKAO_DEBUGGER} target="_blank" rel="noreferrer">
             카카오 공유 디버거

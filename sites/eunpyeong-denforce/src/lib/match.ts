@@ -13,7 +13,7 @@ export function groupByCompetition(matches: Match[]) {
 
 /** "2025-26 FK1리그 · 1R" — 라운드가 없으면 대회명만 */
 export function matchLabel(m: Pick<Match, "competition" | "round">) {
-  return m.round ? `${m.competition} · ${m.round}` : m.competition;
+  return m.round ? `${m.competition} / ${m.round}` : m.competition;
 }
 
 /**

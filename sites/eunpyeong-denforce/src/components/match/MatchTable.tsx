@@ -52,7 +52,7 @@ function MatchTableRow({ match, ourName }: { match: Match; ourName: string }) {
         {date}{" "}
         <span className={styles.time}>
           {time}
-          {match.round && <span className={styles.mobileRound}> · {match.round}</span>}
+          {match.round && <span className={styles.mobileRound}> / {match.round}</span>}
         </span>
       </td>
       <td>

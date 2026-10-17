@@ -6,7 +6,7 @@ import styles from "@/styles/prose.module.css";
 
 export const metadata: Metadata = { title: "문의" };
 
-const TOPICS = ["스폰서십·제휴", "입단·테스트", "아카데미·유소년", "언론·취재", "기타"];
+const TOPICS = ["스폰서십/제휴", "입단/테스트", "아카데미/유소년", "언론/취재", "기타"];
 
 export default async function ContactPage() {
   const settings = await getClubSettings();

@@ -8,7 +8,7 @@ const n = (id: string, title: string, thumb = true, featured = false): NewsPost 
   id, category: "news", title, date: "2026-10-01", thumbnail: thumb ? `/${id}.jpg` : null, images: [], summary: "", body: [], videoUrl: null, featured,
 });
 
-test("isDeparture: 이적·작별 소식", () => {
+test("isDeparture: 이적/작별 소식", () => {
   assert.equal(isDeparture(n("a", "박영완, 이적으로 서울은평 덴포스와 동행 마무리")), true);
   assert.equal(isDeparture(n("a", "서울은평 덴포스, 장성호 감독과 동행 마무리")), true);
   assert.equal(isDeparture(n("a", "서울은평 덴포스, '든든한 수문장' 골레이로 정대연 영입")), false);

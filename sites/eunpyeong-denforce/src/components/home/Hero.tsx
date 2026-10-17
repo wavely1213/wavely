@@ -38,7 +38,7 @@ function NextHome({ match }: { match: Match }) {
       <strong className={styles.nextTeams}>vs {match.opponent}</strong>
       <span className={styles.nextMeta}>
         {date} {time}
-        {match.venue && ` · ${match.venue}`}
+        {match.venue && ` / ${match.venue}`}
       </span>
     </Link>
   );

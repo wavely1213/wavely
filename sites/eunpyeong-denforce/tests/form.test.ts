@@ -16,7 +16,7 @@ test("text: 필수 값이 비면 오류, 공백은 잘라낸다", () => {
   assert.equal(r.errors.empty, "제목을(를) 입력해 주세요.");
 });
 
-test("text: 최대 길이·패턴 검사", () => {
+test("text: 최대 길이/패턴 검사", () => {
   const r = new FormReader(fd({ a: "abcdef", slug: "No 10" }));
   r.text("a", { label: "A", max: 5 });
   r.text("slug", { label: "주소", pattern: /^[a-z0-9-]+$/ });
@@ -30,7 +30,7 @@ test("optText: 비면 null, 오류 없음", () => {
   assert.equal(r.hasErrors, false);
 });
 
-test("int: 숫자 형식·범위·필수", () => {
+test("int: 숫자 형식/범위/필수", () => {
   const r = new FormReader(fd({ ok: "7", bad: "7.5", low: "-1", empty: "" }));
   assert.equal(r.int("ok", { label: "번호", min: 0, max: 99 }), 7);
   r.int("bad", { label: "번호" });
@@ -42,7 +42,7 @@ test("int: 숫자 형식·범위·필수", () => {
   assert.ok(r.errors.empty.includes("입력"));
 });
 
-test("bool·choice", () => {
+test("bool/choice", () => {
   const r = new FormReader(fd({ on: "on", tier: "official", wrong: "gold" }));
   assert.equal(r.bool("on"), true);
   assert.equal(r.bool("missing"), false);
@@ -51,7 +51,7 @@ test("bool·choice", () => {
   assert.ok(r.errors.wrong);
 });
 
-test("optUrl·optDate", () => {
+test("optUrl/optDate", () => {
   const r = new FormReader(fd({ u1: "https://a.kr", u2: "javascript:alert(1)", d1: "2026-10-15", d2: "2026-13-40", d3: "15/10/2026" }));
   assert.equal(r.optUrl("u1", "링크"), "https://a.kr");
   r.optUrl("u2", "링크");
@@ -62,7 +62,7 @@ test("optUrl·optDate", () => {
   assert.equal(r.errors.u1, undefined);
 });
 
-test("state: 오류와 제출값(비밀번호·파일 제외)을 돌려준다", () => {
+test("state: 오류와 제출값(비밀번호/파일 제외)을 돌려준다", () => {
   const f = fd({ name: "x", password: "secret" });
   f.append("logo", new File(["x"], "a.png", { type: "image/png" }));
   const r = new FormReader(f);
@@ -88,7 +88,7 @@ test("dbErrorMessage: 내부 정보 없이 사용자 문구", () => {
   assert.ok(!dbErrorMessage({ code: "XX000", message: "secret internals" }).includes("secret"));
 });
 
-test("isCalendarDate: 없는 날짜·0000년 거부 (Date.parse 넘김 방지)", async () => {
+test("isCalendarDate: 없는 날짜/0000년 거부 (Date.parse 넘김 방지)", async () => {
   const { isCalendarDate } = await import("../src/lib/admin/form.ts");
   assert.equal(isCalendarDate("2024-02-29"), true);
   assert.equal(isCalendarDate("2023-02-29"), false);
@@ -99,7 +99,7 @@ test("isCalendarDate: 없는 날짜·0000년 거부 (Date.parse 넘김 방지)",
   assert.equal(kstToIso("2026-10-24", "24:00"), null);
 });
 
-test("files·values: 같은 이름 여러 개, 빈 파일 칸은 뺀다", () => {
+test("files/values: 같은 이름 여러 개, 빈 파일 칸은 뺀다", () => {
   const f = new FormData();
   f.append("images", new File(["a"], "a.jpg", { type: "image/jpeg" }));
   f.append("images", new File([], "", { type: "application/octet-stream" })); // 아무것도 안 고른 칸
@@ -113,7 +113,7 @@ test("files·values: 같은 이름 여러 개, 빈 파일 칸은 뺀다", () => 
   assert.deepEqual(r.values("none"), []);
 });
 
-test("date: 필수 YYYY-MM-DD, 형식·달력 오류를 구분", () => {
+test("date: 필수 YYYY-MM-DD, 형식/달력 오류를 구분", () => {
   const r = new FormReader(fd({ ok: "2026-04-08", bad: "2026/04/08", feb: "2026-02-30", empty: "" }));
   assert.equal(r.date("ok", "날짜"), "2026-04-08");
   r.date("bad", "날짜");

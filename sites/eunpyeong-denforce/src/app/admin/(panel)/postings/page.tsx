@@ -28,7 +28,7 @@ export default function PostingsAdminPage({ searchParams }: { searchParams: Sear
     <>
       <PageTitle
         title="포스팅"
-        description="구단 이름으로 올라온 바깥 글(블로그·카페·기사·유튜브) 모음입니다. 공개한 글만 구단소식 > 포스팅에 날짜 순으로 보이고, 누르면 원문으로 갑니다."
+        description="구단 이름으로 올라온 바깥 글(블로그/카페/기사/유튜브) 모음입니다. 공개한 글만 구단소식 > 포스팅에 날짜 순으로 보이고, 누르면 원문으로 갑니다."
       >
         <Link href="/admin/postings/new" className={styles.button}>
           + 포스팅 추가

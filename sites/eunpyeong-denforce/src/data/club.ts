@@ -31,7 +31,7 @@ export const HISTORY: HistoryItem[] = [
   { id: "h3", year: "2021-22", text: "FK리그 (1부, 슈퍼리그) 3위" },
   { id: "h4", year: "2021", text: "FK컵 3위" },
   { id: "h5", year: "2020-21", text: "FK리그 (1부, 슈퍼리그) 준우승" },
-  { id: "h6", year: "2020", text: "FK컵 3위 · 팀명 '서울은평 나인티플러스 FC'로 변경" },
+  { id: "h6", year: "2020", text: "FK컵 3위 / 팀명 '서울은평 나인티플러스 FC'로 변경" },
   { id: "h7", year: "2018-19", text: "FK리그 (2부, 드림리그) 우승 — 1부 승격" },
   { id: "h8", year: "2018", text: "FK컵 3위" },
   { id: "h9", year: "2017-18", text: "FK리그 (2부, 드림리그) 준우승" },
@@ -74,14 +74,14 @@ export const KIT = {
   season: "2026-27",
   images: [
     { src: "/photos/kit-2627-home.webp", alt: "2026-27 홈 유니폼 (로열블루)", caption: "홈" },
-    { src: "/photos/kit-2627-away.webp", alt: "2026-27 어웨이 유니폼 (화이트·블루 스트라이프)", caption: "어웨이" },
+    { src: "/photos/kit-2627-away.webp", alt: "2026-27 어웨이 유니폼 (화이트/블루 스트라이프)", caption: "어웨이" },
   ],
 } as const;
 
 /** 엠블럼 설명 문단 — **…** 는 굵게 (lib/emphasis). 사실만: 엠블럼에 실제로 들어 있는 요소·창단 연도·색 (D-045) */
 export const EMBLEM_TEXT = [
   "서울은평 덴포스의 엠블럼은 **페넌트 형태** 안에 **'SEOUL EUNPYEONG FUTSAL TEAM'** 문구와 은평(Eunpyeong)의 머리글자 **'E'**, 그리고 **풋살공**을 담았습니다.",
-  "하단의 **'SINCE 2012'**는 구단이 창단한 해를 뜻하며, 엠블럼은 **로열블루·골드·블랙·화이트** 네 가지 색으로 이루어져 있습니다.",
+  "하단의 **'SINCE 2012'**는 구단이 창단한 해를 뜻하며, 엠블럼은 **로열블루/골드/블랙/화이트** 네 가지 색으로 이루어져 있습니다.",
 ];
 
 /**
@@ -97,7 +97,7 @@ export const TEAM_COLORS = [
 
 /** 엠블럼 내려받기 — 원본 벡터(.ai)를 위 팀 색상으로 바꿔 만든 파일 (public/brand/downloads) */
 export const EMBLEM_DOWNLOADS = [
-  { format: "PNG", note: "투명 배경 · 2000px", href: "/brand/downloads/seoul-eunpyeong-denforce-emblem.png" },
-  { format: "SVG", note: "벡터 · 웹용", href: "/brand/downloads/seoul-eunpyeong-denforce-emblem.svg" },
-  { format: "PDF", note: "벡터 · 인쇄용", href: "/brand/downloads/seoul-eunpyeong-denforce-emblem.pdf" },
+  { format: "PNG", note: "투명 배경 / 2000px", href: "/brand/downloads/seoul-eunpyeong-denforce-emblem.png" },
+  { format: "SVG", note: "벡터 / 웹용", href: "/brand/downloads/seoul-eunpyeong-denforce-emblem.svg" },
+  { format: "PDF", note: "벡터 / 인쇄용", href: "/brand/downloads/seoul-eunpyeong-denforce-emblem.pdf" },
 ];

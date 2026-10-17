@@ -51,7 +51,7 @@ function readNews(f: FormReader) {
 /** 구단영상 주소 (선택) — 유튜브·인스타그램만, 글 상세에서 재생 (D-035) */
 function readVideoUrl(f: FormReader): string | null {
   const v = f.optText("video_url", { label: "영상 주소", max: 300 });
-  if (v && !parseVideoUrl(v)) f.reject("video_url", "유튜브(watch·shorts·youtu.be) 또는 인스타그램(게시물·릴스) https 주소만 넣을 수 있습니다.");
+  if (v && !parseVideoUrl(v)) f.reject("video_url", "유튜브(watch/shorts/youtu.be) 또는 인스타그램(게시물/릴스) https 주소만 넣을 수 있습니다.");
   return v;
 }
 

@@ -8,7 +8,7 @@ import { sectionOfList } from "@/lib/content/sections";
 import { createContentItem } from "../../../actions";
 import { ContentItemForm } from "../../../ContentItemForm";
 
-export const metadata: Metadata = { title: "홈페이지 내용 · 추가" };
+export const metadata: Metadata = { title: "홈페이지 내용 / 추가" };
 
 type Params = Promise<{ list: string }>;
 
@@ -32,7 +32,7 @@ async function Body({ params }: { params: Params }) {
   const section = sectionOfList(list);
   return (
     <>
-      <PageTitle title={`${def.label} 추가`} back={{ href: `/admin/content/${section?.id ?? ""}`, label: `홈페이지 내용 · ${section?.label ?? ""}` }} />
+      <PageTitle title={`${def.label} 추가`} back={{ href: `/admin/content/${section?.id ?? ""}`, label: `홈페이지 내용 / ${section?.label ?? ""}` }} />
       <ContentItemForm action={createContentItem.bind(null, list)} def={def} />
     </>
   );

@@ -16,7 +16,7 @@ test("groupByCompetition: 연속된 같은 대회끼리 묶고 순서 유지", (
 });
 
 test("matchLabel: 라운드가 없으면 구분점 없이 대회명만", () => {
-  assert.equal(matchLabel(m("1", "2025-26 FK1리그", "1R")), "2025-26 FK1리그 · 1R");
+  assert.equal(matchLabel(m("1", "2025-26 FK1리그", "1R")), "2025-26 FK1리그 / 1R");
   assert.equal(matchLabel(m("1", "2026 FK CUP")), "2026 FK CUP");
 });
 

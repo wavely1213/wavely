@@ -38,7 +38,7 @@ export function PlayerForm({
         name="slug"
         label="주소"
         placeholder="no-7"
-        hint="홈페이지 주소에 쓰입니다 (/team/players/주소). 영문 소문자·숫자·하이픈(-)만, 비우면 등번호로 no-번호"
+        hint="홈페이지 주소에 쓰입니다 (/team/players/주소). 영문 소문자/숫자/하이픈(-)만, 비우면 등번호로 no-번호"
         defaultValue={initial?.slug}
       />
       <Row>

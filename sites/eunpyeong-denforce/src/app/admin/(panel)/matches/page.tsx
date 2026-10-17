@@ -15,7 +15,7 @@ export default function MatchesAdminPage() {
     <>
       <PageTitle
         title="경기"
-        description="경기일정·경기결과·메인 페이지에 보입니다. 상태를 '종료'로 바꾸고 스코어를 넣으면 경기결과로 옮겨집니다."
+        description="경기일정/경기결과/메인 페이지에 보입니다. 상태를 '종료'로 바꾸고 스코어를 넣으면 경기결과로 옮겨집니다."
       >
         <Link href="/admin/matches/new" className={styles.button}>
           + 경기 추가

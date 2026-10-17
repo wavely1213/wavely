@@ -30,8 +30,11 @@ export function HeroTitle({
 
     const fit = () => {
       lead.style.fontSize = ""; // CSS 기본(0.7625em)에서 다시 잰다
+      // 구단 이름이 길어 두 줄이 되면 이름 칸 폭(= 글 칸 폭)에 맞춘다. 슬로건은 상자 대신 글자 폭을 잰다
       const target = nameEl.getBoundingClientRect().width;
-      const width = lead.getBoundingClientRect().width;
+      const range = document.createRange();
+      range.selectNodeContents(lead);
+      const width = range.getBoundingClientRect().width;
       const titleSize = parseFloat(getComputedStyle(title).fontSize);
       const leadSize = parseFloat(getComputedStyle(lead).fontSize);
       if (!target || !width || !titleSize || !leadSize) return;

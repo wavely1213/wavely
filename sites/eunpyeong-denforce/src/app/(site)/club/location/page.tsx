@@ -13,7 +13,7 @@ export default async function LocationPage() {
       <PageHeader title="오시는 길" current="/club/location" />
       <div className={`container ${styles.body}`}>
         <section>
-          <h2 className={styles.h2}>홈구장 · {content["site.homeVenue"]}</h2>
+          <h2 className={styles.h2}>홈구장 / {content["site.homeVenue"]}</h2>
           <VenueMap address={settings.venueAddress} />
         </section>
         <ul className={styles.list}>

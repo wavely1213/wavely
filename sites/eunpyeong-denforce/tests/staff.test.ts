@@ -3,9 +3,9 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { isCoachingRole, splitStaff, staffNameByRole } from "../src/lib/staff.ts";
 
-test("isCoachingRole: 감독·코치가 들어간 직책만 코칭스태프", () => {
-  for (const r of ["감독", "수석코치", "코치", "코치·선수관리담당자", "골키퍼 코치"]) assert.equal(isCoachingRole(r), true, r);
-  for (const r of ["단장", "부단장", "사무국장·팀매니저", "미디어"]) assert.equal(isCoachingRole(r), false, r);
+test("isCoachingRole: 감독/코치가 들어간 직책만 코칭스태프", () => {
+  for (const r of ["감독", "수석코치", "코치", "코치/선수관리담당자", "골키퍼 코치"]) assert.equal(isCoachingRole(r), true, r);
+  for (const r of ["단장", "부단장", "사무국장/팀매니저", "미디어"]) assert.equal(isCoachingRole(r), false, r);
 });
 
 test("splitStaff: 순서 유지", () => {

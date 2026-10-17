@@ -24,7 +24,7 @@ function restoreHint(f: FieldView): string | null {
 }
 
 function Field({ f }: { f: FieldView }) {
-  const hint = [f.def.hint, restoreHint(f)].filter(Boolean).join(" · ") || undefined;
+  const hint = [f.def.hint, restoreHint(f)].filter(Boolean).join(" / ") || undefined;
   const label = f.customized ? `${f.def.label} (바꿈)` : f.def.label;
   switch (f.def.kind) {
     case "image":

@@ -13,7 +13,7 @@ test("toWebMercator: 은평다목적체육관 좌표 (네이버 지도 길찾기
   assert.ok(Math.abs(origin.x) < 1e-6 && Math.abs(origin.y) < 1e-6);
 });
 
-test("naverPlaceUrl / naverDirectionsUrl: 장소 번호·도착지 이름이 들어간다", () => {
+test("naverPlaceUrl / naverDirectionsUrl: 장소 번호/도착지 이름이 들어간다", () => {
   assert.equal(naverPlaceUrl(venue), "https://map.naver.com/p/entry/place/35069965");
   const url = naverDirectionsUrl(venue);
   assert.match(url, /^https:\/\/map\.naver\.com\/p\/directions\/-\/14129235\.\d{7},4527460\.\d{7},/);

@@ -25,13 +25,13 @@ test("previewImage: 올린 이미지가 있으면 그 주소 + 대체 텍스트,
   assert.deepEqual(previewImage("admin", ` ${CUSTOM} `, "서울은평 덴포스"), { url: CUSTOM, alt: "서울은평 덴포스 관리자" });
 });
 
-test("previewMeta: 공통 항목(사이트 이름·언어·이미지) + 비운 제목·설명은 넣지 않음", () => {
+test("previewMeta: 공통 항목(사이트 이름/언어/이미지) + 비운 제목/설명은 넣지 않음", () => {
   const m = previewMeta({ siteName: "서울은평 덴포스", image: DEFAULT_PREVIEW.site, title: "  ", description: null });
   assert.deepEqual(m.openGraph, { type: "website", siteName: "서울은평 덴포스", locale: "ko_KR", images: [DEFAULT_PREVIEW.site] });
   assert.deepEqual(m.twitter, { card: "summary_large_image", images: [DEFAULT_PREVIEW.site] });
 });
 
-test("previewMeta: 제목·설명이 있으면 openGraph·twitter 둘 다, 글은 article + 날짜(YYYY-MM-DD 만)", () => {
+test("previewMeta: 제목/설명이 있으면 openGraph/twitter 둘 다, 글은 article + 날짜(YYYY-MM-DD 만)", () => {
   const image = { url: CUSTOM, alt: "글" };
   const m = previewMeta({ siteName: "서울은평 덴포스", image, title: " 제목 ", description: "요약", type: "article", publishedTime: "2026-10-13" });
   assert.deepEqual(m.openGraph, { type: "article", siteName: "서울은평 덴포스", locale: "ko_KR", title: "제목", description: "요약", images: [image], publishedTime: "2026-10-13" });

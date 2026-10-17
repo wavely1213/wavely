@@ -20,7 +20,7 @@ type Params = Promise<{ section: string }>;
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const section = findSection((await params).section);
-  return { title: section ? `홈페이지 내용 · ${section.label}` : "홈페이지 내용" };
+  return { title: section ? `홈페이지 내용 / ${section.label}` : "홈페이지 내용" };
 }
 
 export function generateStaticParams() {
@@ -65,7 +65,7 @@ async function SectionBody({ params }: { params: Params }) {
 
   return (
     <>
-      <PageTitle title={`홈페이지 내용 · ${section.label}`} description={section.description} />
+      <PageTitle title={`홈페이지 내용 / ${section.label}`} description={section.description} />
       <SectionTabs current={section.id} />
 
       <section className={styles.panel}>

@@ -22,7 +22,7 @@ test("emphasisParts: 짝이 안 맞거나 빈 ** 는 글자 그대로", () => {
   assert.deepEqual(emphasisParts("빈 **** 표시"), [{ text: "빈 **** 표시", strong: false }]);
 });
 
-test("hexToRgb: #RRGGBB 만, 대소문자·앞뒤 공백 허용", () => {
+test("hexToRgb: #RRGGBB 만, 대소문자/앞뒤 공백 허용", () => {
   assert.deepEqual(hexToRgb("#2B4FA2"), [43, 79, 162]);
   assert.deepEqual(hexToRgb(" #ffffff "), [255, 255, 255]);
   for (const bad of ["2B4FA2", "#FFF", "#GGGGGG", ""]) assert.equal(hexToRgb(bad), null, bad);

@@ -74,7 +74,7 @@ async function Dashboard() {
                 <li key={m.id} style={{ padding: "6px 0" }}>
                   <Link href={`/admin/matches/${m.id}`}>
                     {date} {time}
-                    {m.round && ` · ${m.round}`} · {m.is_home ? "홈" : "원정"} vs {m.opponent}
+                    {m.round && ` / ${m.round}`} / {m.is_home ? "홈" : "원정"} vs {m.opponent}
                   </Link>
                 </li>
               );

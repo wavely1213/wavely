@@ -36,13 +36,13 @@ export function NewsForm({
         label="영상 주소"
         type="url"
         maxLength={300}
-        hint="구단영상: 유튜브·인스타그램(릴스) 주소를 넣으면 글 상세에서 바로 재생됩니다. 목록 카드 사진은 썸네일을 올려 주세요."
+        hint="구단영상: 유튜브/인스타그램(릴스) 주소를 넣으면 글 상세에서 바로 재생됩니다. 목록 카드 사진은 썸네일을 올려 주세요."
         defaultValue={initial?.video_url}
       />
       <ImageField
         name="thumbnail"
         label="썸네일"
-        hint="목록 카드에 쓰는 사진. 비워 두면 아래 첫 번째 사진을 씁니다. JPG·PNG·WEBP·GIF"
+        hint="목록 카드에 쓰는 사진. 비워 두면 아래 첫 번째 사진을 씁니다. JPG/PNG/WEBP/GIF"
         currentUrl={initial?.thumbnail_url}
       />
       <ImagesField

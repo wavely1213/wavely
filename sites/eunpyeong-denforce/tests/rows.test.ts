@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { splitParagraphs, toAlumnus, toClubSettings, toMatch, toNewsPost, toPlayer, toPosting } from "../src/lib/data/rows.ts";
 
-test("splitParagraphs: 빈 줄 기준, 공백 줄·앞뒤 공백 정리", () => {
+test("splitParagraphs: 빈 줄 기준, 공백 줄/앞뒤 공백 정리", () => {
   assert.deepEqual(splitParagraphs("첫 문단\n이어짐\n\n  둘째 문단  \n \n\n셋째"), ["첫 문단\n이어짐", "둘째 문단", "셋째"]);
   assert.deepEqual(splitParagraphs(""), []);
 });
@@ -15,7 +15,7 @@ test("toMatch: 종료 경기만 스코어, 예정은 null", () => {
   assert.equal(toMatch({ ...base, status: "finished", score_us: null, score_them: 1 }).score, null);
 });
 
-test("toPlayer: 통계 묶음·사진 필드명 변환", () => {
+test("toPlayer: 통계 묶음/사진 필드명 변환", () => {
   const p = toPlayer({ id: "u", slug: "no-10", number: 10, name: "선수", position: "ALA", photo_url: "x.webp", birth: null, height_cm: 175, apps: 3, goals: 2, assists: 1, is_active: true });
   assert.equal(p.photo, "x.webp");
   assert.equal(p.heightCm, 175);
@@ -44,7 +44,7 @@ test("toClubSettings: intro 문단 분리", () => {
   assert.deepEqual(c.intro, ["가", "나"]);
 });
 
-test("toPosting: 날짜·썸네일 필드명 변환 (공개 열만 — 요약 없음)", () => {
+test("toPosting: 날짜/썸네일 필드명 변환 (공개 열만 — 요약 없음)", () => {
   const r = toPosting({ id: "p", kind: "fan", platform: "naver_blog", title: "t", author: "a", url: "https://x", thumbnail_url: null, posted_on: "2026-04-08" });
   assert.equal(r.date, "2026-04-08");
   assert.equal(r.thumbnail, null);

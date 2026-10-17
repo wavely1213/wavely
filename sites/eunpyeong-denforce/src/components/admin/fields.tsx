@@ -139,7 +139,7 @@ export function ImageField({
   const error = useFieldError(base.name);
   const previewUrl = currentUrl || defaultUrl;
   return (
-    <FieldShell {...base} hint={base.hint ?? "JPG·PNG·WEBP·GIF, 5MB 이하"}>
+    <FieldShell {...base} hint={base.hint ?? "JPG/PNG/WEBP/GIF, 5MB 이하"}>
       {previewUrl && (
         // 관리자 미리보기는 원본 그대로 보여준다 (최적화 불필요)
         // eslint-disable-next-line @next/next/no-img-element

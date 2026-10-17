@@ -11,13 +11,15 @@ export type ContentTab = { id: string; label: string; panel: ReactNode };
 type NavigationLike = EventTarget;
 function subscribe(onChange: () => void) {
   const nav = (window as Window & { navigation?: NavigationLike }).navigation;
+  // Next 는 주소를 useInsertionEffect 안에서 바꾸고, 그 안에서는 React 업데이트를 걸 수 없어 한 박자 늦춘다
+  const deferred = () => queueMicrotask(onChange);
   window.addEventListener("hashchange", onChange);
   window.addEventListener("popstate", onChange);
-  nav?.addEventListener("currententrychange", onChange);
+  nav?.addEventListener("currententrychange", deferred);
   return () => {
     window.removeEventListener("hashchange", onChange);
     window.removeEventListener("popstate", onChange);
-    nav?.removeEventListener("currententrychange", onChange);
+    nav?.removeEventListener("currententrychange", deferred);
   };
 }
 // '%' 가 깨진 주소(#%, 잘린 #%EC%9C 등)에서 decodeURIComponent 가 던지면 페이지 전체가 오류 화면이 되므로 원문으로

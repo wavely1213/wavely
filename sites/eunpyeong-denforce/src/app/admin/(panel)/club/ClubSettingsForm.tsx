@@ -29,7 +29,7 @@ export function ClubSettingsForm({
           type="email"
           maxLength={254}
           placeholder="name@example.com"
-          hint="문의 페이지·푸터에 보입니다"
+          hint="문의 페이지/푸터에 보입니다"
           defaultValue={initial?.contact_email}
         />
         <TextField
@@ -37,7 +37,7 @@ export function ClubSettingsForm({
           label="문의 전화"
           type="tel"
           maxLength={30}
-          hint="문의 페이지·푸터에 보입니다"
+          hint="문의 페이지/푸터에 보입니다"
           defaultValue={initial?.contact_phone}
         />
       </Row>
@@ -45,7 +45,7 @@ export function ClubSettingsForm({
         name="contact_address"
         label="사무국 주소"
         maxLength={120}
-        hint="문의 페이지·푸터에 보입니다 (비우면 표시하지 않음)"
+        hint="문의 페이지/푸터에 보입니다 (비우면 표시하지 않음)"
         defaultValue={initial?.contact_address}
       />
       <Row>
@@ -75,14 +75,14 @@ export function ClubSettingsForm({
         name="venue_transit"
         label="대중교통 안내"
         rows={3}
-        hint="오시는 길 페이지에 보입니다 · 300자 이하"
+        hint="오시는 길 페이지에 보입니다 / 300자 이하"
         defaultValue={initial?.venue_transit}
       />
       <TextArea
         name="venue_parking"
         label="주차 안내"
         rows={3}
-        hint="오시는 길 페이지에 보입니다 · 300자 이하"
+        hint="오시는 길 페이지에 보입니다 / 300자 이하"
         defaultValue={initial?.venue_parking}
       />
     </AdminForm>

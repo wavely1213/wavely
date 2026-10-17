@@ -37,6 +37,11 @@
   display: inline-block;
 }
 
+/* '단장' 과 '문의' 사이 — 점 없이 간격만 (소유자 지시, 줄이 바뀌면 줄 끝 여백이라 안 보인다) */
+.group:not(:last-child) {
+  margin-right: 14px;
+}
+
 .nowrap {
   white-space: nowrap;
 }

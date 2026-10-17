@@ -21,8 +21,8 @@ export default async function StandingsPage() {
           {isLiveData() && <h2 className={styles.h2}>{LEAGUE.currentCompetition} 순위</h2>}
           {rows.length > 0 ? <StandingsTable rows={rows} /> : <Placeholder label="순위 정보가 없습니다." />}
           <p className={`${styles.note} ${styles.source}`}>
-            {preseason && "개막 전 · 팀명 가나다순 · "}순위 기준: 승점 → 득실차 → 다득점
-            {isLiveData() && ` · 자료: ${LEAGUE.source}`}
+            {preseason && "개막 전 / 팀명 가나다순 / "}순위 기준: 승점 → 득실차 → 다득점
+            {isLiveData() && ` / 자료: ${LEAGUE.source}`}
           </p>
         </section>
 
@@ -34,7 +34,7 @@ export default async function StandingsPage() {
                 <li key={l.slug}>
                   <Link href={`/match/standings/${l.slug}`}>{l.season}</Link>
                   <span>
-                    {l.us ? `최종 ${l.us.rank}위 · ${l.us.win}승 ${l.us.draw}무 ${l.us.loss}패` : "최종 순위"}
+                    {l.us ? `최종 ${l.us.rank}위 / ${l.us.win}승 ${l.us.draw}무 ${l.us.loss}패` : "최종 순위"}
                   </span>
                 </li>
               ))}

@@ -30,7 +30,7 @@ export const SITE_DESCRIPTION = "대한민국 풋살 프로팀, FK리그 서울�
 export function adminPreviewText(siteName: string) {
   return {
     title: `${siteName} 관리자`,
-    description: `${siteName} 홈페이지 관리자 — 구단소식·경기·선수단·스폰서 관리`,
+    description: `${siteName} 홈페이지 관리자 — 구단소식/경기/선수단/스폰서 관리`,
   };
 }
 
@@ -43,7 +43,7 @@ export const NAV: NavItem[] = [
     children: [
       { label: "구단소개", href: "/club" },
       { label: "연혁", href: "/club/history" },
-      { label: "엠블럼·유니폼", href: "/club/emblem" },
+      { label: "엠블럼/유니폼", href: "/club/emblem" },
       { label: "오시는 길", href: "/club/location" },
     ],
   },

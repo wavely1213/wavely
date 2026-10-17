@@ -8,7 +8,7 @@ import { MAX_UPLOAD_BATCH_BYTES } from "@/lib/admin/image-list";
 import { DEFAULT_PREVIEW } from "@/lib/og";
 import local from "./club.module.css";
 
-const IMAGE_HINT = "JPG·PNG, 1200×630 권장 (가운데에 중요한 내용 — 카카오톡은 양옆을 조금 자를 수 있음), 두 장 합계 4MB 이하";
+const IMAGE_HINT = "JPG/PNG, 1200×630 권장 (가운데에 중요한 내용 — 카카오톡은 양옆을 조금 자를 수 있음), 두 장 합계 4MB 이하";
 
 export type PreviewSettingsValues = {
   og_image_url: string | null;
@@ -42,7 +42,7 @@ export function PreviewSettingsForm({
       <ImageField
         name="og_image"
         label="이미지"
-        hint={`${IMAGE_HINT} · 구단소식 글·선수 페이지는 그 사진이 대신 뜹니다`}
+        hint={`${IMAGE_HINT} / 구단소식 글/선수 페이지는 그 사진이 대신 뜹니다`}
         accept="image/jpeg,image/png"
         currentUrl={initial.og_image_url}
         defaultUrl={DEFAULT_PREVIEW.site.url}
@@ -52,7 +52,7 @@ export function PreviewSettingsForm({
         label="제목"
         maxLength={60}
         placeholder={siteName}
-        hint="60자 이하 · 비우면 기본 문구(흐린 글씨)"
+        hint="60자 이하 / 비우면 기본 문구(흐린 글씨)"
         defaultValue={initial.og_title}
       />
       <TextField
@@ -60,7 +60,7 @@ export function PreviewSettingsForm({
         label="설명"
         maxLength={200}
         placeholder={siteDescription}
-        hint="200자 이하 · 비우면 기본 문구(흐린 글씨)"
+        hint="200자 이하 / 비우면 기본 문구(흐린 글씨)"
         defaultValue={initial.og_description}
       />
 
@@ -78,7 +78,7 @@ export function PreviewSettingsForm({
         label="제목"
         maxLength={60}
         placeholder={adminText.title}
-        hint="60자 이하 · 비우면 기본 문구(흐린 글씨)"
+        hint="60자 이하 / 비우면 기본 문구(흐린 글씨)"
         defaultValue={initial.admin_og_title}
       />
       <TextField
@@ -86,7 +86,7 @@ export function PreviewSettingsForm({
         label="설명"
         maxLength={200}
         placeholder={adminText.description}
-        hint="200자 이하 · 비우면 기본 문구(흐린 글씨)"
+        hint="200자 이하 / 비우면 기본 문구(흐린 글씨)"
         defaultValue={initial.admin_og_description}
       />
     </AdminForm>

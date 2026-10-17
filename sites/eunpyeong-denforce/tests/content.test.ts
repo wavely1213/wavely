@@ -9,14 +9,14 @@ import { contentLines, isExternalLink, normalizeValue, readItem, resolveContent,
 const KEYS = Object.keys(CONTENT_FIELDS) as ContentKey[];
 const def = (k: ContentKey): FieldDef => CONTENT_FIELDS[k];
 
-test("기본값은 모두 자기 규칙을 통과한다 (비어 있지 않고 글자 수·형식이 맞음)", () => {
+test("기본값은 모두 자기 규칙을 통과한다 (비어 있지 않고 글자 수/형식이 맞음)", () => {
   for (const k of KEYS) {
     const n = normalizeValue(def(k), def(k).default);
     assert.ok(n.ok && n.value === def(k).default, k);
   }
 });
 
-test("모든 값·목록이 관리자 구역 중 정확히 한 곳에 나온다 (빠짐·중복 없음)", () => {
+test("모든 값/목록이 관리자 구역 중 정확히 한 곳에 나온다 (빠짐/중복 없음)", () => {
   const keys = CONTENT_SECTIONS.flatMap((s) => s.groups.flatMap((g) => [...g.keys]));
   assert.deepEqual([...keys].sort(), [...KEYS].sort());
   const lists = CONTENT_SECTIONS.flatMap((s) => [...s.lists]);
@@ -40,7 +40,7 @@ test("storedValue: 비우거나 기본값과 같으면 null(행 삭제), 바꾼 
   assert.deepEqual(storedValue(def("site.name"), "새 이름"), { ok: true, value: "새 이름" });
 });
 
-test("normalizeValue: 글자 수·날짜·주소 검사, 한 줄 칸의 줄바꿈은 공백", () => {
+test("normalizeValue: 글자 수/날짜/주소 검사, 한 줄 칸의 줄바꿈은 공백", () => {
   assert.equal(normalizeValue(def("site.name"), "가".repeat(31)).ok, false);
   assert.deepEqual(normalizeValue(def("site.name"), "서울은평\n덴포스"), { ok: true, value: "서울은평 덴포스" });
   assert.equal(normalizeValue(def("site.foundedDate"), "2012/11/17").ok, false);
@@ -49,17 +49,18 @@ test("normalizeValue: 글자 수·날짜·주소 검사, 한 줄 칸의 줄바�
   assert.equal(normalizeValue(def("nav.external.href"), "javascript:alert(1)").ok, false);
   assert.equal(normalizeValue(def("nav.external.href"), "https://denforce.co.kr").ok, true);
   for (const offsite of ["//evil.example", "/\\evil.example"]) assert.equal(normalizeValue(def("nav.external.href"), offsite).ok, false, offsite);
-  assert.equal(normalizeValue(def("home.hero.image"), "http://x.com/a.jpg").ok, false); // 사진은 https 또는 사이트 안
+  assert.equal(normalizeValue(def("home.hero.image"), "//x.com/a.jpg").ok, false); // 사진은 http(s) 또는 사이트 안
+  assert.equal(normalizeValue(def("home.hero.image"), "javascript:alert(1)").ok, false);
   assert.equal(normalizeValue(def("home.hero.image"), "/photos/a.webp").ok, true);
 });
 
-test("lines: 빈 줄·앞뒤 공백을 빼고 한 줄에 하나", () => {
+test("lines: 빈 줄/앞뒤 공백을 빼고 한 줄에 하나", () => {
   assert.deepEqual(normalizeValue(def("site.alternateNames"), " 가 \r\n\n 나 \n"), { ok: true, value: "가\n나" });
   assert.deepEqual(contentLines("가\n\n 나 "), ["가", "나"]);
   assert.equal(yearOf("2012-11-17"), "2012");
 });
 
-test("readItem: 필수·글자 수·주소 검사, 쓰지 않는 칸은 빈 값", () => {
+test("readItem: 필수/글자 수/주소 검사, 쓰지 않는 칸은 빈 값", () => {
   const ql: ListDef = CONTENT_LISTS["home.quicklinks"];
   assert.deepEqual(readItem(ql, { title: " 경기일정 ", body: "", link: "/match/schedule" }), {
     values: { title: "경기일정", body: "", link: "/match/schedule" },

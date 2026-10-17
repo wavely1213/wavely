@@ -27,7 +27,7 @@ export function MatchCard({ match, label, ourName }: { match: Match; label: stri
         {matchLabel(match)}
         <br />
         {date} {time}
-        {match.venue && ` · ${match.venue}`}
+        {match.venue && ` / ${match.venue}`}
       </p>
     </Link>
   );

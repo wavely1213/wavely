@@ -45,7 +45,7 @@ async function StaffList() {
             <th>직책</th>
             <th>이름</th>
             <th>
-              <span className="sr-only">수정·삭제</span>
+              <span className="sr-only">수정/삭제</span>
             </th>
           </tr>
         </thead>

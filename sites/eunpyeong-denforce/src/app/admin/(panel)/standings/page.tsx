@@ -16,7 +16,7 @@ export default function StandingsAdminPage() {
     <>
       <PageTitle
         title="리그순위"
-        description={`시즌별로 공개 리그순위와 같은 순서(승점 → 득실차 → 다득점)로 보입니다. 지금 시즌(${LEAGUE.currentCompetition}) 표가 공개 리그순위에, 나머지는 '지난 리그'에 보입니다. 경기 수·승점(승3·무1)은 자동 계산됩니다.`}
+        description={`시즌별로 공개 리그순위와 같은 순서(승점 → 득실차 → 다득점)로 보입니다. 지금 시즌(${LEAGUE.currentCompetition}) 표가 공개 리그순위에, 나머지는 '지난 리그'에 보입니다. 경기 수/승점(승3/무1)은 자동 계산됩니다.`}
       >
         <Link href="/admin/standings/new" className={styles.button}>
           + 팀 추가

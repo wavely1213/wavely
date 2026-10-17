@@ -9,7 +9,7 @@ export default function PrivacyPage() {
     <>
       <PageHeader title="개인정보처리방침" current="/privacy" />
       <div className="container">
-        <Placeholder label="개인정보처리방침은 회원·문의 기능 도입 시 작성합니다." />
+        <Placeholder label="개인정보처리방침은 회원/문의 기능 도입 시 작성합니다." />
       </div>
     </>
   );

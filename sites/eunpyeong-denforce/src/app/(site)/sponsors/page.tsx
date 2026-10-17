@@ -16,7 +16,7 @@ export default async function SponsorsPage() {
         <SponsorStrip sponsors={sponsors} />
         <section className={styles.card}>
           <h3>스폰서십 문의</h3>
-          <p>FK리그 중계·유니폼·SNS를 통한 브랜드 노출과 지역 사회공헌 프로그램을 함께할 파트너를 찾습니다.</p>
+          <p>FK리그 중계/유니폼/SNS를 통한 브랜드 노출과 지역 사회공헌 프로그램을 함께할 파트너를 찾습니다.</p>
           <p style={{ marginTop: 16 }}>
             <Link href="/contact" className={styles.button}>
               문의하기

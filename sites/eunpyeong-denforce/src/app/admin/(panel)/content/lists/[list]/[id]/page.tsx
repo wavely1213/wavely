@@ -11,7 +11,7 @@ import type { ContentItemRow } from "@/lib/data/rows";
 import { deleteContentItem, updateContentItem } from "../../../actions";
 import { ContentItemForm } from "../../../ContentItemForm";
 
-export const metadata: Metadata = { title: "홈페이지 내용 · 수정" };
+export const metadata: Metadata = { title: "홈페이지 내용 / 수정" };
 
 type Params = Promise<{ list: string; id: string }>;
 
@@ -39,7 +39,7 @@ async function Body({ params }: { params: Params }) {
   const section = sectionOfList(list);
   return (
     <>
-      <PageTitle title={`${def.label} 수정`} back={{ href: `/admin/content/${section?.id ?? ""}`, label: `홈페이지 내용 · ${section?.label ?? ""}` }} />
+      <PageTitle title={`${def.label} 수정`} back={{ href: `/admin/content/${section?.id ?? ""}`, label: `홈페이지 내용 / ${section?.label ?? ""}` }} />
       <ContentItemForm action={updateContentItem.bind(null, list, id)} def={def} initial={data} />
       <div className={styles.dangerZone}>
         <DeleteButton action={deleteContentItem.bind(null, list, id)} label="이 항목 삭제" />

@@ -21,7 +21,7 @@ export async function Footer() {
           {/* 라벨(밝은 굵은 글씨)과 값(회색)을 나눠 한 줄에 여러 정보가 붙어 보이지 않게 한다 */}
           <p>
             <span className={styles.label}>창단</span>
-            {yearOf(content["site.foundedDate"])} · <span className={styles.label}>홈구장</span>
+            {yearOf(content["site.foundedDate"])} / <span className={styles.label}>홈구장</span>
             {content["site.homeVenue"]}
           </p>
           {settings.contactAddress && (
@@ -37,7 +37,6 @@ export async function Footer() {
                 <span className={styles.group}>
                   <span className={styles.label}>단장</span>
                   {director}
-                  {hasContact && " · "}
                 </span>
               )}
               {director && hasContact && " "}

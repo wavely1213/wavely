@@ -34,7 +34,7 @@ export function StandingForm({
         <TextField name="goals_for" label="득점" type="number" required defaultValue={initial?.goals_for ?? 0} />
         <TextField name="goals_against" label="실점" type="number" required defaultValue={initial?.goals_against ?? 0} />
       </Row>
-      <p className={styles.hint}>경기 수·승점(승3·무1)은 자동 계산됩니다.</p>
+      <p className={styles.hint}>경기 수/승점(승3/무1)은 자동 계산됩니다.</p>
       <CheckboxField name="is_us" label="우리 팀 (순위표에서 강조)" defaultChecked={initial?.is_us} />
     </AdminForm>
   );

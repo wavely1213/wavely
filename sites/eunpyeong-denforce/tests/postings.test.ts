@@ -27,14 +27,14 @@ test("byPostedDesc: 최근 먼저, 같은 날이면 제목 가나다순", () => 
   assert.deepEqual([...list].sort(byPostedDesc).map((x) => x.id), ["c", "b", "a", "d", "e"]);
 });
 
-test("filterPostings: 분류·출처 (null = 전체)", () => {
+test("filterPostings: 분류/출처 (null = 전체)", () => {
   assert.equal(filterPostings(list, { kind: null, platform: null }).length, 5);
   assert.deepEqual(filterPostings(list, { kind: "fan", platform: null }).map((x) => x.id), ["c", "d", "e"]);
   assert.deepEqual(filterPostings(list, { kind: "fan", platform: "naver_blog" }).map((x) => x.id), ["c", "e"]);
   assert.deepEqual(filterPostings(list, { kind: "club", platform: "naver_blog" }), []);
 });
 
-test("filterPostings·platformCounts: '전체'에는 FK리그(연맹 영상)를 넣지 않고 FK리그 탭에서만", () => {
+test("filterPostings/platformCounts: '전체'에는 FK리그(연맹 영상)를 넣지 않고 FK리그 탭에서만", () => {
   const withLeague = [...list, p("f", "league", "youtube", "2026-02-01"), p("g", "league", "youtube", "2026-02-02")];
   assert.deepEqual(filterPostings(withLeague, { kind: null, platform: "youtube" }).map((x) => x.id), ["a"]);
   assert.equal(filterPostings(withLeague, { kind: null, platform: null }).length, 5);
@@ -43,7 +43,7 @@ test("filterPostings·platformCounts: '전체'에는 FK리그(연맹 영상)를 
   assert.deepEqual(platformCounts(withLeague, "league"), [{ platform: "youtube", count: 2 }]);
 });
 
-test("countByKind: 전체·분류별 개수", () => {
+test("countByKind: 전체/분류별 개수", () => {
   assert.deepEqual(countByKind(list), { all: 5, club: 1, news: 1, fan: 3, league: 0 });
   assert.deepEqual(countByKind([]), { all: 0, club: 0, news: 0, fan: 0, league: 0 });
   // FK리그는 '전체'에 세지 않는다

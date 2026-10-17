@@ -41,7 +41,7 @@ export default async function PastLeaguePage({ params }: PageProps<"/match/stand
           <h2 className={styles.h2}>{league.season} 최종 순위</h2>
           <StandingsTable rows={league.rows} />
           <p className={`${styles.note} ${styles.source}`}>
-            순위 기준: 승점 → 득실차 → 다득점{isLiveData() && ` · 자료: ${LEAGUE.source}`}
+            순위 기준: 승점 → 득실차 → 다득점{isLiveData() && ` / 자료: ${LEAGUE.source}`}
           </p>
         </section>
 

@@ -1,6 +1,7 @@
 .list {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  /* 칸 수는 카드 수에 맞춘다 (QuickLinks --cols, 최대 5) */
+  grid-template-columns: repeat(var(--cols, 5), minmax(0, 1fr));
   border-top: 2px solid var(--c-black);
 }
 
@@ -38,7 +39,8 @@
   color: var(--c-blue);
 }
 
-.list li + li .item {
+/* 같은 줄 두 번째 카드부터 */
+.divided {
   padding-left: 20px;
   border-left: 1px solid var(--c-line);
 }
@@ -53,7 +55,7 @@
     grid-template-columns: 1fr;
   }
 
-  .list li + li .item {
+  .divided {
     padding-left: 4px;
     border-left: 0;
   }

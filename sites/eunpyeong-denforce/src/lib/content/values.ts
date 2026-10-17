@@ -6,8 +6,8 @@ import type { ColumnDef, ListColumn, ListDef } from "./lists";
 
 /** 사이트 안 주소(/…) 또는 http(s):// 주소. '//host'·'/\\host' 는 바깥 사이트로 가므로 사이트 안 주소로 받지 않는다 */
 const LINK = /^(\/(?![/\\])\S*|https?:\/\/\S+)$/;
-/** 사진: 사이트 안 파일(/…) 또는 https:// (업로드한 사진) */
-const IMAGE = /^(\/(?![/\\])\S*|https:\/\/\S+)$/;
+/** 사진: 사이트 안 파일(/…) 또는 업로드한 사진 주소 (로컬 Supabase 는 http — next.config 가 허용한다) */
+const IMAGE = /^(\/(?![/\\])\S*|https?:\/\/\S+)$/;
 
 export function isLink(v: string): boolean {
   return LINK.test(v);
