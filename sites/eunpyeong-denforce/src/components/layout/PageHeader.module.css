@@ -1,0 +1,51 @@
+.wrap {
+  margin-bottom: 40px;
+  border-bottom: 1px solid var(--c-line);
+}
+
+.head {
+  padding-top: 56px;
+  padding-bottom: 28px;
+}
+
+.section {
+  display: inline-block;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--c-text-sub);
+  border-bottom: 2px solid var(--c-yellow);
+}
+
+.title {
+  font-size: clamp(32px, 5vw, 48px);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+.tabList {
+  display: flex;
+  gap: 28px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tab {
+  flex: none;
+  padding: 12px 0 14px;
+  font-weight: 700;
+  color: var(--c-text-sub);
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+}
+
+.tab:hover {
+  color: var(--c-text);
+}
+
+.tabActive {
+  color: var(--c-blue);
+  border-bottom-color: var(--c-blue);
+}

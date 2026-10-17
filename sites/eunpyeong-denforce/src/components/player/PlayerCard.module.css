@@ -1,0 +1,96 @@
+.grid {
+  display: grid;
+  /* PC 한 줄 5명 고정 (인원이 적은 포지션도 카드 크기 동일) */
+  grid-template-columns: repeat(5, 1fr);
+  gap: 28px 16px;
+}
+
+@media (max-width: 960px) {
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.photo {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  margin-bottom: 12px;
+  border-radius: var(--radius-m);
+  overflow: hidden;
+  background: var(--c-bg-soft);
+}
+
+.photo img {
+  object-fit: cover;
+}
+
+.info {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.number {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--c-blue);
+}
+
+.name {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.card:hover .name {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* 사진이 없는 스태프 카드 — 선수 프로필 사진과 같은 파란 톤 */
+.brand {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, var(--c-blue) 0%, var(--c-blue-hover) 100%);
+}
+
+/* 링크가 아닌 카드(코칭스태프)는 hover 밑줄 없음 */
+.plain:hover .name {
+  text-decoration: none;
+}
+
+.position {
+  font-size: 13px;
+  color: var(--c-text-sub);
+}
+
+@media (max-width: 720px) {
+  .scroll {
+    display: flex;
+    gap: 12px;
+    margin: 0 calc(var(--gutter) * -1);
+    padding: 0 var(--gutter);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding: 0 var(--gutter);
+    scrollbar-width: none;
+  }
+
+  .scroll .card {
+    flex: 0 0 42%;
+    scroll-snap-align: start;
+  }
+
+  .grid:not(.scroll) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px 12px;
+  }
+}

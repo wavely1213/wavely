@@ -1,0 +1,51 @@
+/*
+ * 디자인 토큰 — 색·간격·라운드는 여기서만 정의한다. 컴포넌트에서 hex 하드코딩 금지.
+ * 컬러 체계 (D-005): 블루 = 메인, 블랙 = 톤(어두운 면·글자), 옐로 = 포인트(서브).
+ * 블루는 유니폼 로열블루, 옐로는 제안서 포인트 라인에서 추출.
+ */
+:root {
+  /* 메인 — 버튼·링크·활성 상태·스코어 */
+  --c-blue: #1a349a;
+  --c-blue-hover: #142a7e;
+  --c-blue-tint: #eef1fa;
+
+  /* 톤 — 헤더 메뉴·히어로·푸터·본문 글자 */
+  --c-black: #0e0f12;
+  --c-black-soft: #1c1e24;
+
+  /* 포인트 — 작은 강조 마크에만 (면적 최소) */
+  --c-yellow: #ffc000;
+
+  --c-bg: #ffffff;
+  --c-bg-soft: #f5f6f8;
+  --c-text: #0e0f12;
+  --c-text-sub: #6b7080;
+  --c-line: #e6e8ec;
+  --c-on-dark: #ffffff;
+  --c-on-dark-sub: rgba(255, 255, 255, 0.64);
+
+  /* 경기 결과 — 승은 초록(소유자 지정), 표의 무·패는 옅은 바탕(tint) */
+  --c-win: #17a34a;
+  --c-draw: #8a8f9c;
+  --c-draw-tint: #eef0f3;
+  --c-loss: #d63b3b;
+  --c-loss-tint: #fdeded;
+
+  --font: var(--font-kfa), "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
+
+  --radius-s: 6px;
+  --radius-m: 10px;
+
+  --container: 1200px;
+  --gutter: 20px;
+  --header-h: 68px;
+  --section-gap: 72px;
+}
+
+@media (max-width: 720px) {
+  :root {
+    --gutter: 16px;
+    --header-h: 56px;
+    --section-gap: 48px;
+  }
+}

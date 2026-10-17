@@ -1,0 +1,110 @@
+.band {
+  padding: 28px 0;
+  border-bottom: 1px solid var(--c-line);
+  background: var(--c-bg);
+}
+
+/* 양 끝을 흐리게 — 띠가 화면 밖에서 들어오고 나가는 느낌 */
+.viewport {
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, var(--c-black) 6%, var(--c-black) 94%, transparent);
+}
+
+.track {
+  display: flex;
+  align-items: center;
+  width: max-content;
+  animation: marquee var(--marquee-duration, 48s) linear infinite;
+}
+
+.band:hover .track {
+  animation-play-state: paused;
+}
+
+.item {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 64px;
+  padding: 0 40px;
+}
+
+/* 같은 상자(160×64) 안에 맞춘다 — 가로로 긴 로고는 폭, 네모난 로고는 높이 기준이라 눈대중 크기가 비슷해진다 */
+.logo {
+  width: auto;
+  height: auto;
+  max-width: 160px;
+  max-height: 64px;
+}
+
+.name {
+  font-size: 20px;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--c-text);
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* 멈춘 목록 — 실제(복제 아닌) 칸만 가운데 정렬로, 좁으면 여러 줄.
+   ① 키보드로 링크에 들어오면: 흐르던 자리에 따라 링크가 화면 밖이거나 끝에 걸쳐 초점이 안 보일 수 있어서.
+      :focus-visible 이라 마우스로 누른 뒤에는 그대로 흐른다
+   ② 움직임 줄이기 설정이면 처음부터 */
+.band:has(:focus-visible) .viewport {
+  mask-image: none;
+}
+
+.band:has(:focus-visible) .track {
+  flex-wrap: wrap;
+  justify-content: center;
+  width: auto;
+  row-gap: 12px;
+  animation: none;
+}
+
+.band:has(:focus-visible) .item[aria-hidden="true"] {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .viewport {
+    mask-image: none;
+  }
+
+  .track {
+    flex-wrap: wrap;
+    justify-content: center;
+    width: auto;
+    row-gap: 12px;
+    animation: none;
+  }
+
+  .item[aria-hidden="true"] {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .band {
+    padding: 20px 0;
+  }
+
+  .item {
+    height: 48px;
+    padding: 0 26px;
+  }
+
+  .logo {
+    max-width: 120px;
+    max-height: 48px;
+  }
+
+  .name {
+    font-size: 17px;
+  }
+}

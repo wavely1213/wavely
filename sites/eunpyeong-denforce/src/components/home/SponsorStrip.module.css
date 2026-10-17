@@ -1,0 +1,34 @@
+.list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 112px;
+  padding: 16px;
+  background: var(--c-bg-soft);
+  border-radius: var(--radius-m);
+}
+
+.tier {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--c-text-sub);
+}
+
+.name {
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.logo {
+  height: 48px;
+  width: auto;
+  object-fit: contain;
+}
