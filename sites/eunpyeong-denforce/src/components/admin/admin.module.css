@@ -3,7 +3,8 @@
 /* ── 셸 ───────────────────────────────── */
 .shell {
   display: grid;
-  grid-template-columns: 220px 1fr;
+  /* minmax(0, …): 칸이 안의 내용(가로로 긴 메뉴·표) 폭만큼 늘어나지 않게 — 늘어나면 휴대폰에서 화면 밖으로 넘친다 */
+  grid-template-columns: 220px minmax(0, 1fr);
   min-height: 100vh;
   background: var(--c-bg-soft);
 }
@@ -97,10 +98,11 @@
 
 @media (max-width: 860px) {
   .shell {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .side {
+    min-width: 0;
     position: static;
     height: auto;
     gap: 12px;
@@ -181,6 +183,8 @@
 }
 
 .tableWrap {
+  /* position: 표 안의 화면 읽기 전용 글자(.sr-only, 절대 위치)가 이 상자 밖으로 나가 휴대폰 화면을 넓히지 않게 */
+  position: relative;
   overflow-x: auto;
   background: var(--c-bg);
   border: 1px solid var(--c-line);

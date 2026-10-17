@@ -73,6 +73,12 @@
   color: var(--c-blue);
 }
 
+/* 값 칸 — 긴 주소(인스타그램 등)는 줄을 바꿔 휴대폰 화면 밖으로 넘치지 않게 */
+.list li > :last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 /* 항목 이름이 긴 목록(프런트 직책 등) — 값 열을 한 줄로 맞춘다 */
 .listWide li > :first-child {
   min-width: 150px;
