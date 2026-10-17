@@ -47,6 +47,6 @@ from (values
   ('선수단', '선수/코칭스태프', '/team/players', 20),
   ('오시는 길', '은평다목적체육관', '/club/location', 30),
   ('스폰서', '함께하는 파트너', '/sponsors', 40),
-  ('문의', '제휴/후원/입단', '/contact', 50)
+  ('문의', '제휴/후원', '/contact', 50)
 ) as v(title, body, link, sort_order)
 where not exists (select 1 from public.content_items where list = 'home.quicklinks');

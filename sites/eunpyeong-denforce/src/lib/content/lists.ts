@@ -43,7 +43,7 @@ export const CONTENT_LISTS = {
       { title: "선수단", body: "선수/코칭스태프", link: "/team/players" },
       { title: "오시는 길", body: "은평다목적체육관", link: "/club/location" },
       { title: "스폰서", body: "함께하는 파트너", link: "/sponsors" },
-      { title: "문의", body: "제휴/후원/입단", link: "/contact" },
+      { title: "문의", body: "제휴/후원", link: "/contact" },
     ],
     max: 12,
   },
