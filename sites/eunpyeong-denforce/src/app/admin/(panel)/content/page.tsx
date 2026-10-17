@@ -17,7 +17,8 @@ const OTHER_MENUS = [
   { href: "/admin/players", label: "선수", desc: "선수 명단/사진/기록" },
   { href: "/admin/staff", label: "코칭스태프", desc: "코칭스태프/프런트, 푸터 '단장'" },
   { href: "/admin/sponsors", label: "스폰서", desc: "스폰서 로고/주소 (메인 스폰서 띠 포함)" },
-  { href: "/admin/club", label: "구단정보", desc: "구단소개 글/연락처/SNS/오시는 길/링크 미리보기/연혁/배출 국가대표" },
+  { href: "/admin/club", label: "구단정보", desc: "구단소개 글/연락처/SNS/오시는 길/연혁/배출 국가대표" },
+  { href: "/admin/settings", label: "설정", desc: "링크 미리보기 (카카오톡/SNS로 주소를 보낼 때 뜨는 이미지/제목/설명)" },
 ];
 
 export default function ContentHubPage() {
@@ -30,7 +31,7 @@ export default function ContentHubPage() {
       <SectionTabs current="" />
 
       <section className={styles.panel}>
-        <h2 className={styles.panelTitle}>구역</h2>
+        <h2 className={styles.panelTitle}>페이지별 내용</h2>
         <div className={local.cards}>
           {CONTENT_SECTIONS.map((s) => (
             <Link key={s.id} href={`/admin/content/${s.id}`} className={local.card}>

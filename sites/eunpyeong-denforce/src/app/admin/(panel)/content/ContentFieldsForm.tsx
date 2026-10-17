@@ -6,6 +6,7 @@ import type { ActionState } from "@/lib/admin/form";
 import { MAX_UPLOAD_BATCH_BYTES } from "@/lib/admin/image-list";
 import type { FieldDef } from "@/lib/content/fields";
 import local from "./content.module.css";
+import { MarkupEditor, type TokenInfo } from "./MarkupEditor";
 
 export type FieldView = {
   key: string;
@@ -23,9 +24,23 @@ function restoreHint(f: FieldView): string | null {
   return short ? `비우고 저장하면 처음 값 '${f.def.default}'(으)로 돌아갑니다` : "비우고 저장하면 처음 값으로 돌아갑니다";
 }
 
-function Field({ f }: { f: FieldView }) {
+function Field({ f, tokens }: { f: FieldView; tokens: TokenInfo[] }) {
   const hint = [f.def.hint, restoreHint(f)].filter(Boolean).join(" / ") || undefined;
   const label = f.customized ? `${f.def.label} (바꿈)` : f.def.label;
+  if (f.def.editor) {
+    // 처음 값 글('**창단** {창단연도} …')은 길어서 직접 보여 주지 않는다 — 전부 지우고 저장하면 처음 값으로
+    const markupHint = [f.def.hint, f.customized && "칸을 모두 지우고 저장하면 처음 값으로 돌아갑니다"].filter(Boolean).join(" / ");
+    return (
+      <MarkupEditor
+        name={f.key}
+        label={label}
+        hint={markupHint || undefined}
+        defaultValue={f.value}
+        multiline={f.def.editor === "markup"}
+        tokens={tokens}
+      />
+    );
+  }
   switch (f.def.kind) {
     case "image":
       return (
@@ -52,9 +67,12 @@ function Field({ f }: { f: FieldView }) {
 export function ContentFieldsForm({
   action,
   groups,
+  tokens = [],
 }: {
   action: (prev: ActionState, fd: FormData) => Promise<ActionState>;
   groups: Array<{ title: string; fields: FieldView[] }>;
+  /** 푸터 글 편집기의 값 이름 (D-048) */
+  tokens?: TokenInfo[];
 }) {
   return (
     <AdminForm action={action} maxUploadBytes={MAX_UPLOAD_BATCH_BYTES}>
@@ -62,7 +80,7 @@ export function ContentFieldsForm({
         <fieldset key={g.title} className={local.group}>
           <legend className={local.groupTitle}>{g.title}</legend>
           {g.fields.map((f) => (
-            <Field key={f.key} f={f} />
+            <Field key={f.key} f={f} tokens={tokens} />
           ))}
         </fieldset>
       ))}

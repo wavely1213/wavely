@@ -17,8 +17,22 @@
   flex-direction: column;
   gap: 24px;
   padding: 24px 16px;
+  /* 메뉴가 화면보다 길면(낮은 노트북 화면) 사이드바 안에서 스크롤 */
+  overflow-y: auto;
   background: var(--c-black);
   color: var(--c-on-dark);
+}
+
+/* 메뉴 + 계정 영역 (휴대폰에서는 '메뉴' 버튼으로 열고 닫는다, D-048) */
+.sideBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.menuButton {
+  display: none;
 }
 
 .brand {
@@ -41,7 +55,21 @@
 .nav {
   display: flex;
   flex-direction: column;
+  gap: 14px;
+}
+
+/* 메뉴 묶음 — 작은 회색 제목 아래 링크들 */
+.navGroup {
+  display: flex;
+  flex-direction: column;
   gap: 2px;
+}
+
+.navGroupLabel {
+  padding: 0 10px 2px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--c-on-dark-sub);
 }
 
 .navLink {
@@ -101,22 +129,56 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
+  /* 휴대폰: 맨 위 띠(구단 이름 | 메뉴 버튼) — 스크롤해도 위에 붙어 있다 */
   .side {
+    z-index: 20;
     min-width: 0;
-    position: static;
     height: auto;
-    gap: 12px;
-    padding: 14px var(--gutter);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0 12px;
+    padding: 12px var(--gutter);
+    overflow: visible;
   }
 
+  .menuButton {
+    display: inline-flex;
+    align-items: center;
+    min-height: 38px;
+    padding: 0 14px;
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    border-radius: var(--radius-s);
+    background: none;
+    color: var(--c-on-dark);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .sideBody {
+    display: none;
+    grid-column: 1 / -1;
+    gap: 14px;
+  }
+
+  /* 펼친 메뉴 — 화면보다 길면 메뉴 안에서 스크롤 */
+  .sideBodyOpen {
+    display: flex;
+    max-height: calc(100dvh - 64px);
+    padding-top: 14px;
+    overflow-y: auto;
+  }
+
+  /* 묶음을 두 칸씩 */
   .nav {
-    flex-direction: row;
-    overflow-x: auto;
-    scrollbar-width: none;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 12px;
   }
 
   .navLink {
-    flex: none;
     font-size: 14px;
   }
 
@@ -124,6 +186,8 @@
     flex-direction: row;
     flex-wrap: wrap;
     gap: 4px 16px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
   }
 
   .main {
@@ -483,6 +547,16 @@
   flex-wrap: wrap;
   align-items: center;
   padding-top: 8px;
+}
+
+/* 관리자 폼 저장 버튼 줄 — 스크롤해도 화면 아래에 붙는다 (D-048). 짧은 폼에서는 제자리 */
+.formActions {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  padding: 12px 0;
+  border-top: 1px solid var(--c-line);
+  background: var(--c-bg);
 }
 
 .dangerZone {

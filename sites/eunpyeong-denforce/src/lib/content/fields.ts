@@ -18,7 +18,12 @@ export type FieldDef = {
   max?: number;
   /** 어디에 보이는지 등 관리자 안내 */
   hint?: string;
+  /** 입력 화면 — markup: '**이름표** 값' 줄 편집기(여러 줄), markupLine: 한 줄 (D-048) */
+  editor?: "markup" | "markupLine";
 };
+
+/** 푸터 정보 줄 기본값 — 그동안 Footer.tsx 에 박혀 있던 배치 그대로 (D-044·D-047) */
+export const FOOTER_LINES_DEFAULT = ["**창단** {창단연도} **홈구장** {홈구장}", "**사무국** {사무국주소}", "**단장** {단장} **문의** {문의메일} / {문의전화}"].join("\n");
 
 export const CONTENT_FIELDS = {
   // ── 기본 정보 ──
@@ -77,6 +82,31 @@ export const CONTENT_FIELDS = {
     max: 300,
     default: NAV_EXTERNAL.href,
     hint: "https:// 로 시작하는 주소",
+  },
+
+  // ── 푸터 (D-048) — {값 이름}은 화면에서 실제 값으로 바뀐다 (src/lib/content/markup.ts) ──
+  "footer.lines": {
+    label: "푸터 정보 줄",
+    kind: "lines",
+    editor: "markup",
+    max: 2000,
+    default: FOOTER_LINES_DEFAULT,
+    hint: "푸터 구단 이름 아래 줄들. 값이 비어 있는 칸(예: 사무국 주소 없음)은 자동으로 숨겨집니다",
+  },
+  "footer.legal": {
+    label: "맨 아래 오른쪽 정보",
+    kind: "text",
+    editor: "markupLine",
+    max: 200,
+    default: "**대표** {대표}",
+    hint: "맨 아래 줄 오른쪽, 아래 '맨 아래 링크' 앞",
+  },
+  "footer.copyright": {
+    label: "저작권 문구",
+    kind: "text",
+    max: 100,
+    default: "© {구단이름}. All rights reserved.",
+    hint: "맨 아래 줄 왼쪽. {구단이름}은 구단 이름으로 바뀝니다",
   },
 
   // ── 메인 ──

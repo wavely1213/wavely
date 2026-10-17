@@ -1,4 +1,4 @@
-/* 구단정보 화면 — 연혁 패널 머리(제목 + 추가 버튼), 링크 미리보기 안내. 버튼·표 모양은 admin.module.css */
+/* 구단정보 화면 — 연혁 패널 머리(제목 + 추가 버튼). 버튼·표 모양은 admin.module.css */
 .panelHead {
   display: flex;
   align-items: center;
@@ -10,31 +10,4 @@
 
 .panelHead h2 {
   margin-bottom: 0;
-}
-
-/* 링크 미리보기 패널 안내 문단 (D-037) */
-.note {
-  margin-bottom: 16px;
-  font-size: 14px;
-  color: var(--c-text-sub);
-}
-
-.note a {
-  color: var(--c-blue);
-  text-decoration: underline;
-}
-
-/* 링크 미리보기 폼 안 묶음 제목 (홈페이지 주소 / 관리자 주소) */
-.subTitle {
-  margin-top: 8px;
-  padding-top: 16px;
-  border-top: 1px solid var(--c-line);
-  font-size: 15px;
-  font-weight: 700;
-}
-
-.subTitle:first-child {
-  margin-top: 0;
-  padding-top: 0;
-  border-top: 0;
 }

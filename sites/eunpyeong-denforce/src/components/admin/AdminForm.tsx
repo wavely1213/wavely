@@ -71,7 +71,8 @@ export function AdminForm({
           </p>
         )}
         {children}
-        <div className={styles.actions}>
+        {/* 저장 버튼 줄은 긴 폼에서도 화면 아래에 붙어 있다 (D-048) */}
+        <div className={`${styles.actions} ${styles.formActions}`}>
           <button type="submit" className={styles.button} disabled={pending}>
             {pending ? "저장 중…" : submitLabel}
           </button>

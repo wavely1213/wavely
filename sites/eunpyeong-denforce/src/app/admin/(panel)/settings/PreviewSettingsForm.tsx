@@ -6,7 +6,7 @@ import { adminPreviewText } from "@/config/site";
 import type { ActionState } from "@/lib/admin/form";
 import { MAX_UPLOAD_BATCH_BYTES } from "@/lib/admin/image-list";
 import { DEFAULT_PREVIEW } from "@/lib/og";
-import local from "./club.module.css";
+import local from "./settings.module.css";
 
 const IMAGE_HINT = "JPG/PNG, 1200×630 권장 (가운데에 중요한 내용 — 카카오톡은 양옆을 조금 자를 수 있음), 두 장 합계 4MB 이하";
 

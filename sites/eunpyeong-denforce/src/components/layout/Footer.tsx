@@ -1,61 +1,35 @@
 import Link from "next/link";
+import { MarkupGroups } from "@/components/ui/MarkupGroups";
 import { NAV } from "@/config/site";
 import { snsLinks } from "@/lib/club";
-import { yearOf } from "@/lib/content/values";
-import { getClubSettings, getSiteContent, getStaff } from "@/lib/repo";
+import { renderMarkup, renderPlain } from "@/lib/content/markup";
+import { isExternalLink } from "@/lib/content/values";
+import { footerTokens } from "@/lib/content/views";
+import { getClubSettings, getContentList, getSiteContent, getStaff } from "@/lib/repo";
 import { staffNameByRole } from "@/lib/staff";
 import styles from "./Footer.module.css";
 
 export async function Footer() {
-  // 구단 이름·창단·홈구장·대표는 관리자 › 홈페이지 내용 › 기본 정보 (D-046)
-  const [settings, staff, content] = await Promise.all([getClubSettings(), getStaff(), getSiteContent()]);
+  // 푸터 글은 관리자 › 홈페이지 내용 › 공통(헤더/푸터)에서 고친다 (D-048).
+  // {단장}은 관리자 '코칭스태프'(직책 '단장'), {문의메일}·{문의전화}·{사무국주소}는 관리자 '구단정보'의 값
+  const [settings, staff, content, links] = await Promise.all([getClubSettings(), getStaff(), getSiteContent(), getContentList("footer.links")]);
   const name = content["site.name"];
-  // 단장 이름은 관리자 '스태프'(직책 '단장'), 문의 메일·전화는 관리자 '구단정보'에서 고친다
-  const director = staffNameByRole(staff, "단장");
-  const hasContact = Boolean(settings.contactEmail || settings.contactPhone);
+  const tokens = footerTokens(content, settings, staffNameByRole(staff, "단장"));
+  // 이름표(밝은 굵은 글씨)와 값(회색)을 나눠 한 줄에 여러 정보가 붙어 보이지 않게 — 묶음 사이는 기호 없이 간격만 (소유자 지시)
+  const lines = renderMarkup(content["footer.lines"], tokens);
+  const legal = renderMarkup(content["footer.legal"], tokens)[0] ?? [];
+  const copyright = renderPlain(content["footer.copyright"], tokens);
+  const markup = { group: styles.group, label: styles.label, nowrap: styles.nowrap };
   return (
     <footer className={styles.footer}>
       <div className={`container ${styles.inner}`}>
         <div className={styles.about}>
           <strong className={styles.name}>{name}</strong>
-          {/* 라벨(밝은 굵은 글씨)과 값(회색)을 나눠 한 줄에 여러 정보가 붙어 보이지 않게 한다 */}
-          {/* 라벨이 칸을 나누므로 구분 기호 없이 간격만 (단장/문의 줄과 같음, 소유자 지시) */}
-          <p>
-            <span className={styles.group}>
-              <span className={styles.label}>창단</span>
-              {yearOf(content["site.foundedDate"])}
-            </span>{" "}
-            <span className={styles.group}>
-              <span className={styles.label}>홈구장</span>
-              {content["site.homeVenue"]}
-            </span>
-          </p>
-          {settings.contactAddress && (
-            <p>
-              <span className={styles.label}>사무국</span>
-              {settings.contactAddress}
+          {lines.map((line, i) => (
+            <p key={i}>
+              <MarkupGroups groups={line} classes={markup} />
             </p>
-          )}
-          {(director || hasContact) && (
-            <p>
-              {/* 좁은 화면에서는 '단장'·'문의' 묶음째 줄을 바꾸고, 전화번호는 하이픈에서 끊기지 않게 */}
-              {director && (
-                <span className={styles.group}>
-                  <span className={styles.label}>단장</span>
-                  {director}
-                </span>
-              )}
-              {director && hasContact && " "}
-              {hasContact && (
-                <span className={styles.group}>
-                  <span className={styles.label}>문의</span>
-                  {settings.contactEmail && <a href={`mailto:${settings.contactEmail}`}>{settings.contactEmail}</a>}
-                  {settings.contactEmail && settings.contactPhone && " / "}
-                  {settings.contactPhone && <span className={styles.nowrap}>{settings.contactPhone}</span>}
-                </span>
-              )}
-            </p>
-          )}
+          ))}
           <ul className={styles.sns}>
             {snsLinks(settings).map((s) => (
               <li key={s.label}>
@@ -76,15 +50,24 @@ export async function Footer() {
         </nav>
       </div>
       <div className={`container ${styles.copy}`}>
-        <span>
-          © {name}. All rights reserved.
-        </span>
+        <span>{copyright}</span>
         <span className={styles.legal}>
-          <span>
-            <span className={styles.label}>대표</span>
-            {content["site.representative"]}
-          </span>
-          <Link href="/privacy">개인정보처리방침</Link>
+          {legal.length > 0 && (
+            <span>
+              <MarkupGroups groups={legal} classes={markup} />
+            </span>
+          )}
+          {links.map((l) =>
+            isExternalLink(l.link) ? (
+              <a key={l.id} href={l.link} target="_blank" rel="noreferrer">
+                {l.title}
+              </a>
+            ) : (
+              <Link key={l.id} href={l.link}>
+                {l.title}
+              </Link>
+            ),
+          )}
           {/* 관리자 대시보드로 가는 작은 버튼 — 로그인 전이면 로그인 화면으로 간다. 방문자마다 미리 받지 않게 prefetch 끔 */}
           <Link href="/admin" prefetch={false} rel="nofollow" className={styles.admin}>
             관리자

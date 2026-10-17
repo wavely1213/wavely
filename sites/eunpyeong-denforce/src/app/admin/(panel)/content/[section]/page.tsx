@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import Link from "@/components/admin/AdminLink";
 import { AdminLoading, PageTitle } from "@/components/admin/PageTitle";
@@ -7,11 +7,15 @@ import styles from "@/components/admin/admin.module.css";
 import { requireAdminPage } from "@/lib/admin/auth";
 import { CONTENT_FIELDS, type FieldDef } from "@/lib/content/fields";
 import { CONTENT_LISTS, type ListDef, type ListKey } from "@/lib/content/lists";
-import { CONTENT_SECTIONS, findSection, type ContentSection } from "@/lib/content/sections";
+import { CONTENT_SECTIONS, findSection, LEGACY_SECTION_IDS, type ContentSection } from "@/lib/content/sections";
 import { resolveContent } from "@/lib/content/values";
+import { FOOTER_TOKENS, footerTokens } from "@/lib/content/views";
 import { contentMap, type ContentItemRow, type SiteContentRow } from "@/lib/data/rows";
+import { getClubSettings, getStaff } from "@/lib/repo";
+import { staffNameByRole } from "@/lib/staff";
 import { saveContentSection } from "../actions";
 import { ContentFieldsForm } from "../ContentFieldsForm";
+import type { TokenInfo } from "../MarkupEditor";
 import local from "../content.module.css";
 import { SectionTabs } from "../SectionTabs";
 
@@ -36,7 +40,9 @@ export default function ContentSectionPage({ params }: { params: Params }) {
 }
 
 async function SectionBody({ params }: { params: Params }) {
-  const section = findSection((await params).section);
+  const id = (await params).section;
+  if (Object.hasOwn(LEGACY_SECTION_IDS, id)) redirect(`/admin/content/${LEGACY_SECTION_IDS[id]}`);
+  const section = findSection(id);
   if (!section) notFound();
   const { supabase } = await requireAdminPage();
 
@@ -63,20 +69,28 @@ async function SectionBody({ params }: { params: Params }) {
     }),
   }));
 
+  // 푸터 글 편집기 — 값 이름의 지금 값 (미리보기용, 저장된 값 기준)
+  const tokens = groups.some((g) => g.fields.some((f) => f.def.editor)) ? await footerTokenInfo(shown) : [];
+
   return (
     <>
       <PageTitle title={`홈페이지 내용 / ${section.label}`} description={section.description} />
       <SectionTabs current={section.id} />
 
       <section className={styles.panel}>
-        <h2 className={styles.panelTitle}>{section.label}</h2>
+        <div className={local.panelHead}>
+          <h2 className={styles.panelTitle}>{section.label}</h2>
+          <Link href={section.view} target="_blank" className={local.viewLink}>
+            이 페이지 보기 ↗
+          </Link>
+        </div>
         {content.error ? (
           // 불러오기 실패 시 기본값이 채워진 폼을 보여 주면 저장 때 바꾼 값을 지울 수 있으므로 폼을 숨긴다
           <p className={styles.formMessage} role="alert">
             내용을 불러오지 못했습니다. 새로고침해 주세요.
           </p>
         ) : (
-          <ContentFieldsForm action={saveContentSection.bind(null, section.id)} groups={groups} />
+          <ContentFieldsForm action={saveContentSection.bind(null, section.id)} groups={groups} tokens={tokens} />
         )}
       </section>
 
@@ -87,6 +101,12 @@ async function SectionBody({ params }: { params: Params }) {
       <RelatedPanel section={section} />
     </>
   );
+}
+
+async function footerTokenInfo(shown: ReturnType<typeof resolveContent>): Promise<TokenInfo[]> {
+  const [settings, staff] = await Promise.all([getClubSettings(), getStaff()]);
+  const values = footerTokens(shown, settings, staffNameByRole(staff, "단장"));
+  return FOOTER_TOKENS.map((t) => ({ name: t.name, desc: t.desc, value: values[t.name] ?? null }));
 }
 
 /** 목록 표 — 이름을 누르면 수정 */

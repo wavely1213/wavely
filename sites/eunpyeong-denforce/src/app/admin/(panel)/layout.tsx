@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import Link from "@/components/admin/AdminLink";
-import { AdminNav, AdminNavLinks } from "@/components/admin/AdminNav";
+import { AdminMenu, AdminNav, AdminNavLinks } from "@/components/admin/AdminNav";
 import styles from "@/components/admin/admin.module.css";
 import { SITE } from "@/config/site";
 import { requireAdminPage } from "@/lib/admin/auth";
@@ -12,35 +12,40 @@ export default function PanelLayout({ children }: LayoutProps<"/admin">) {
   return (
     <div className={styles.shell}>
       <aside className={styles.side}>
-        <Link href="/admin" className={styles.brand}>
-          <Suspense fallback={<strong>{SITE.name}</strong>}>
-            <BrandName />
-          </Suspense>
-          <span>ADMIN</span>
-        </Link>
-        <Suspense fallback={<AdminNavLinks pathname="" />}>
-          <AdminNav />
-        </Suspense>
-        <div className={styles.sideFoot}>
-          <Suspense fallback={null}>
-            <SignedInAs />
-          </Suspense>
-          <Link href="/" target="_blank">
-            홈페이지 보기 ↗
+        <div className={styles.sideTop}>
+          <Link href="/admin" className={styles.brand}>
+            <Suspense fallback={<strong>{SITE.name}</strong>}>
+              <BrandName />
+            </Suspense>
+            <span>ADMIN</span>
           </Link>
-          <form action={signOut}>
-            <button type="submit" className={styles.linkButton}>
-              로그아웃
-            </button>
-          </form>
         </div>
+        {/* 휴대폰에서는 '메뉴' 버튼으로 연다 (D-048) */}
+        <AdminMenu>
+          <Suspense fallback={<AdminNavLinks pathname="" />}>
+            <AdminNav />
+          </Suspense>
+          <div className={styles.sideFoot}>
+            <Suspense fallback={null}>
+              <SignedInAs />
+            </Suspense>
+            <Link href="/" target="_blank">
+              홈페이지 보기 ↗
+            </Link>
+            <form action={signOut}>
+              <button type="submit" className={styles.linkButton}>
+                로그아웃
+              </button>
+            </form>
+          </div>
+        </AdminMenu>
       </aside>
       <main className={styles.main}>{children}</main>
     </div>
   );
 }
 
-/** 구단 이름 — 관리자 › 홈페이지 내용 › 기본 정보 (D-046) */
+/** 구단 이름 — 관리자 › 홈페이지 내용 › 공통 (D-046) */
 async function BrandName() {
   return <strong>{(await getSiteContent())["site.name"]}</strong>;
 }

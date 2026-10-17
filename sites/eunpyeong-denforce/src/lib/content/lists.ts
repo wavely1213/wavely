@@ -47,6 +47,21 @@ export const CONTENT_LISTS = {
     ],
     max: 12,
   },
+  "footer.links": {
+    label: "푸터 맨 아래 링크",
+    description: "푸터 맨 아래 줄 오른쪽 링크입니다 ('관리자' 버튼은 항상 맨 끝에 있습니다). 하나도 없으면 링크 없이 보입니다.",
+    columns: {
+      title: { label: "이름", max: 20, required: true },
+      link: {
+        label: "주소",
+        max: 300,
+        required: true,
+        hint: "사이트 안 페이지는 /로 시작 (예: /privacy), 바깥 사이트는 https:// 로 시작 — 바깥 사이트는 새 창",
+      },
+    },
+    defaults: [{ title: "개인정보처리방침", link: "/privacy" }],
+    max: 6,
+  },
 } as const satisfies Record<string, ListDef>;
 
 export type ListKey = keyof typeof CONTENT_LISTS;

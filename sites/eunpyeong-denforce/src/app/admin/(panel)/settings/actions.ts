@@ -6,7 +6,7 @@ import { NOT_ADMIN_MESSAGE, requireAdminAction } from "@/lib/admin/auth";
 import { dbErrorMessage, FormReader, submittedValues, type ActionState } from "@/lib/admin/form";
 import { PREVIEW_IMAGE_ACCEPT, removeImages, resolveImage } from "@/lib/admin/storage";
 
-// 링크 미리보기(club_settings.og_* · admin_og_*) 서버 액션 (D-037·D-038)
+// 링크 미리보기(club_settings.og_* · admin_og_*) 서버 액션 (D-037·D-038) — 관리자 › 설정 (D-048)
 // 순서: 권한 → 글 검증 → 현재 이미지(DB) → 이미지 업로드 → DB 저장 → 바뀐 옛 이미지 삭제 → updateTag. 같은 화면에 머문다.
 // 구단정보 글 폼과 따로 저장한다 — 서로의 칸을 덮지 않게 (각자 자기 칸만 보낸다).
 

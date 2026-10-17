@@ -7,6 +7,8 @@ export type ContentSection = {
   id: string;
   label: string;
   description: string;
+  /** '이 페이지 보기 ↗' — 홈페이지에서 이 내용이 보이는 곳 */
+  view: string;
   groups: ReadonlyArray<{ title: string; keys: readonly ContentKey[] }>;
   lists: readonly ListKey[];
   /** 같은 화면의 다른 내용을 고치는 관리 메뉴 */
@@ -15,24 +17,28 @@ export type ContentSection = {
 
 export const CONTENT_SECTIONS = [
   {
-    id: "basic",
-    label: "기본 정보",
-    description: "구단 이름/창단일/대표/홈구장처럼 사이트 여러 곳에 함께 쓰이는 정보와 검색엔진용 설명입니다.",
+    id: "common",
+    label: "공통 (헤더/푸터)",
+    description: "모든 페이지 맨 위 헤더와 맨 아래 푸터, 구단 이름/창단일처럼 사이트 여러 곳에 함께 쓰이는 정보, 검색엔진용 설명입니다.",
+    view: "/",
     groups: [
       { title: "구단", keys: ["site.name", "site.nameEn", "site.foundedDate", "site.representative", "site.homeVenue"] },
+      { title: "헤더 스토어 버튼", keys: ["nav.external.label", "nav.external.href"] },
+      { title: "푸터", keys: ["footer.lines", "footer.legal", "footer.copyright"] },
       { title: "검색엔진", keys: ["site.description", "site.alternateNames"] },
-      { title: "상단 스토어 버튼", keys: ["nav.external.label", "nav.external.href"] },
     ],
-    lists: [],
+    lists: ["footer.links"],
     related: [
-      { href: "/admin/club", label: "문의 메일/전화/사무국 주소/SNS/구장 주소/링크 미리보기 (구단정보)" },
-      { href: "/admin/staff", label: "푸터 '단장' 이름 (코칭스태프 › 직책 '단장')" },
+      { href: "/admin/club", label: "문의 메일/전화/사무국 주소/SNS 주소 (구단정보)" },
+      { href: "/admin/staff", label: "푸터 {단장} 이름 (코칭스태프 › 직책 '단장')" },
+      { href: "/admin/settings", label: "링크 미리보기 이미지/제목/설명 (설정)" },
     ],
   },
   {
     id: "home",
     label: "메인",
     description: "메인 페이지 맨 위 큰 사진/슬로건과 섹션 제목, 맨 아래 바로가기 카드입니다.",
+    view: "/",
     groups: [
       { title: "맨 위 큰 사진", keys: ["home.hero.image", "home.hero.imageAlt", "home.hero.eyebrow", "home.hero.slogan"] },
       {
@@ -52,6 +58,9 @@ export const CONTENT_SECTIONS = [
 ] as const satisfies ReadonlyArray<ContentSection>;
 
 export type SectionId = (typeof CONTENT_SECTIONS)[number]["id"];
+
+/** 예전 구역 주소 → 지금 구역 (기본 정보 → 공통, D-048) */
+export const LEGACY_SECTION_IDS: Readonly<Record<string, SectionId>> = { basic: "common" };
 
 export function findSection(id: string): ContentSection | undefined {
   return CONTENT_SECTIONS.find((s) => s.id === id);
