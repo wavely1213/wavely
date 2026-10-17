@@ -55,6 +55,35 @@ export const CONTENT_SECTIONS = [
       { href: "/admin/players", label: "선수단 (선수)" },
     ],
   },
+  {
+    id: "club",
+    label: "구단소개",
+    description: "구단소개 페이지의 사진과 섹션 제목, '팀 조직'/'지역 활동' 카드입니다.",
+    view: "/club",
+    groups: [
+      { title: "사진", keys: ["club.photo", "club.photoAlt"] },
+      { title: "섹션 제목", keys: ["club.section.organization", "club.section.alumni", "club.section.community"] },
+    ],
+    lists: ["club.organization", "club.community"],
+    related: [{ href: "/admin/club", label: "소개 글/배출 풋살 국가대표 명단 (구단정보)" }],
+  },
+  {
+    id: "emblem",
+    label: "엠블럼/유니폼",
+    description: "엠블럼/유니폼 페이지의 엠블럼 설명, 팀 색상(Main Color), 유니폼 시즌과 사진입니다. 엠블럼 그림과 내려받기 파일은 사이트 파일이라 여기서 바꾸지 않습니다.",
+    view: "/club/emblem",
+    groups: [
+      { title: "엠블럼", keys: ["emblem.text"] },
+      { title: "유니폼", keys: ["kit.season"] },
+    ],
+    lists: ["emblem.colors", "kit.images"],
+    related: [
+      {
+        href: "/admin/news",
+        label: "유니폼 탭 '유니폼 공개 소식 보기' 버튼 — 제목에 'KIT 공개' 또는 '유니폼 공개'가 들어간 가장 최근 구단뉴스로 이어집니다 (구단소식)",
+      },
+    ],
+  },
 ] as const satisfies ReadonlyArray<ContentSection>;
 
 export type SectionId = (typeof CONTENT_SECTIONS)[number]["id"];

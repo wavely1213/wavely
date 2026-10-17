@@ -136,6 +136,43 @@ export const CONTENT_FIELDS = {
   "home.section.standings": { label: "리그 순위 칸 제목", kind: "text", max: 20, default: "리그 순위" },
   "home.section.players": { label: "선수단 섹션 제목", kind: "text", max: 20, default: "선수단" },
   "home.section.quicklinks": { label: "바로가기 섹션 제목", kind: "text", max: 20, default: "바로가기" },
+
+  // ── 구단소개 (관리자 개편 2단계) — 기본값은 그동안 club/page.tsx 에 박혀 있던 값 그대로 ──
+  "club.photo": {
+    label: "구단소개 사진",
+    kind: "image",
+    default: "/photos/superleague-2021-runnerup.webp",
+    hint: "소개 글 오른쪽(휴대폰은 글 아래) 사진 — 가로 사진 권장 (4:3 칸에 맞춰 잘립니다), JPG/PNG/WEBP 4MB 이하",
+  },
+  "club.photoAlt": {
+    label: "구단소개 사진 설명",
+    kind: "text",
+    max: 100,
+    default: "2020-21 슈퍼리그 준우승 기념 사진",
+    hint: "화면에는 안 보이고 화면 읽기 프로그램/검색엔진이 읽습니다",
+  },
+  "club.section.organization": { label: "팀 조직 섹션 제목", kind: "text", max: 20, default: "팀 조직" },
+  "club.section.alumni": { label: "배출 국가대표 섹션 제목", kind: "text", max: 20, default: "배출 풋살 국가대표" },
+  "club.section.community": { label: "지역 활동 섹션 제목", kind: "text", max: 20, default: "지역 활동" },
+
+  // ── 엠블럼/유니폼 (관리자 개편 2단계) — 사실만: 엠블럼에 실제로 들어 있는 요소·창단 연도·색 (D-045) ──
+  "emblem.text": {
+    label: "엠블럼 설명",
+    kind: "multiline",
+    max: 2000,
+    default: [
+      "서울은평 덴포스의 엠블럼은 **페넌트 형태** 안에 **'SEOUL EUNPYEONG FUTSAL TEAM'** 문구와 은평(Eunpyeong)의 머리글자 **'E'**, 그리고 **풋살공**을 담았습니다.",
+      "하단의 **'SINCE 2012'**는 구단이 창단한 해를 뜻하며, 엠블럼은 **로열블루/골드/블랙/화이트** 네 가지 색으로 이루어져 있습니다.",
+    ].join("\n\n"),
+    hint: "엠블럼 탭 아래 설명. 문단은 빈 줄로 나누고, **별표 두 개로 감싼 글**은 굵게 보입니다",
+  },
+  "kit.season": {
+    label: "유니폼 시즌",
+    kind: "text",
+    max: 20,
+    default: "2026-27",
+    hint: "유니폼 탭 제목 '○○ 시즌 유니폼'의 앞부분 (예: 2026-27)",
+  },
 } as const satisfies Record<string, FieldDef>;
 
 export type ContentKey = keyof typeof CONTENT_FIELDS;

@@ -160,7 +160,12 @@ function ListPanel({ list, rows, failed }: { list: ListKey; rows: ContentItemRow
                       </Link>
                     </td>
                   )}
-                  {cols.body && <td className={styles.wrap}>{r.body}</td>}
+                  {cols.body && (
+                    <td className={styles.wrap}>
+                      {cols.body.format === "hex" && <span className={local.swatch} style={{ background: r.body }} aria-hidden="true" />}
+                      {cols.body.format === "lines" ? r.body.split("\n").join(" / ") : r.body}
+                    </td>
+                  )}
                   {cols.link && <td className={styles.wrap}>{r.link}</td>}
                 </tr>
               ))}

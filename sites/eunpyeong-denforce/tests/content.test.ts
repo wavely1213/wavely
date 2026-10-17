@@ -4,7 +4,7 @@ import { test } from "node:test";
 import { CONTENT_FIELDS, type ContentKey, type FieldDef } from "../src/lib/content/fields.ts";
 import { CONTENT_LISTS, type ListDef } from "../src/lib/content/lists.ts";
 import { CONTENT_SECTIONS } from "../src/lib/content/sections.ts";
-import { contentLines, isExternalLink, normalizeValue, readItem, resolveContent, storedValue, yearOf } from "../src/lib/content/values.ts";
+import { contentCards, contentLines, isExternalLink, normalizeHex, normalizeValue, readItem, resolveContent, storedValue, yearOf } from "../src/lib/content/values.ts";
 
 const KEYS = Object.keys(CONTENT_FIELDS) as ContentKey[];
 const def = (k: ContentKey): FieldDef => CONTENT_FIELDS[k];
@@ -88,4 +88,32 @@ test("목록 기본값은 모두 자기 규칙을 통과하고 최대 개수 안
 test("isExternalLink: http(s) 만 바깥 사이트", () => {
   assert.equal(isExternalLink("https://denforce.co.kr"), true);
   assert.equal(isExternalLink("/sponsors"), false);
+});
+
+test("readItem format lines: 카드 항목은 빈 줄/앞뒤 공백을 빼고 한 줄에 하나", () => {
+  const org: ListDef = CONTENT_LISTS["club.organization"];
+  assert.deepEqual(readItem(org, { title: " 유소년 ", body: " U-18 \r\n\n  U-15\n " }).values, { title: "유소년", body: "U-18\nU-15", link: "" });
+  assert.ok(readItem(org, { title: "유소년", body: " \n \n" }).errors.body); // 항목 필수
+  assert.ok(readItem(org, { title: "", body: "a" }).errors.title);
+});
+
+test("readItem format hex: 색 코드는 '#RRGGBB' 대문자로 맞추고 틀리면 오류", () => {
+  const colors: ListDef = CONTENT_LISTS["emblem.colors"];
+  assert.equal(readItem(colors, { title: "로열블루", body: " 2b4fa2 " }).values.body, "#2B4FA2");
+  assert.equal(readItem(colors, { title: "로열블루", body: "#2b4fa2" }).values.body, "#2B4FA2");
+  for (const bad of ["#2B4FA", "#GGGGGG", "blue", "#2B4FA2;x"]) assert.ok(readItem(colors, { title: "a", body: bad }).errors.body, bad);
+  assert.equal(normalizeHex("fff"), null);
+  assert.equal(normalizeHex("#ffffff"), "#FFFFFF");
+});
+
+test("contentCards: 항목을 줄로 나누고, 이름이나 항목이 없는 카드는 뺀다", () => {
+  const item = (id: string, title: string, body: string) => ({ id, list: "club.organization", title, body, link: "", image: null, sortOrder: 0 });
+  assert.deepEqual(contentCards([item("1", "유소년", "U-18\n\n U-15 "), item("2", " ", "x"), item("3", "빈 카드", " \n")]), [
+    { id: "1", title: "유소년", items: ["U-18", "U-15"] },
+  ]);
+});
+
+test("유니폼 사진 기본값은 사이트 안 사진 주소, 팀 색상 기본값은 '#RRGGBB'", () => {
+  for (const d of CONTENT_LISTS["kit.images"].defaults) assert.ok(d.image.startsWith("/photos/"), d.image);
+  for (const d of CONTENT_LISTS["emblem.colors"].defaults) assert.equal(normalizeHex(d.body), d.body);
 });

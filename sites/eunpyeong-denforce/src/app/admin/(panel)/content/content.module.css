@@ -293,3 +293,14 @@
 .viewLink:hover {
   text-decoration: underline;
 }
+
+/* 색 코드 칸 옆 작은 색 견본 (팀 색상 목록) */
+.swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: 6px;
+  vertical-align: -2px;
+  border: 1px solid var(--c-line);
+  border-radius: 3px;
+}

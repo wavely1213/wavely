@@ -2,12 +2,21 @@
 // 상대 경로·.ts 확장자 — npm test(node)가 별칭(@/) 없이 바로 읽게
 import { isCalendarDate } from "../admin/form.ts";
 import { CONTENT_FIELDS, type ContentKey, type FieldDef, type SiteContent } from "./fields.ts";
-import type { ColumnDef, ListColumn, ListDef } from "./lists";
+import type { ColumnDef, ContentItem, ListColumn, ListDef } from "./lists";
 
 /** 사이트 안 주소(/…) 또는 http(s):// 주소. '//host'·'/\\host' 는 바깥 사이트로 가므로 사이트 안 주소로 받지 않는다 */
 const LINK = /^(\/(?![/\\])\S*|https?:\/\/\S+)$/;
 /** 사진: 사이트 안 파일(/…) 또는 업로드한 사진 주소 (로컬 Supabase 는 http — next.config 가 허용한다) */
 const IMAGE = /^(\/(?![/\\])\S*|https?:\/\/\S+)$/;
+
+/** 색 코드 '#RRGGBB' (대문자) */
+const HEX = /^#[0-9A-F]{6}$/;
+
+/** '2b4fa2'·'#2b4fa2' → '#2B4FA2'. 형식이 틀리면 null */
+export function normalizeHex(v: string): string | null {
+  const m = /^#?([0-9a-f]{6})$/i.exec(v.trim());
+  return m ? `#${m[1].toUpperCase()}` : null;
+}
 
 export function isLink(v: string): boolean {
   return LINK.test(v);
@@ -82,6 +91,14 @@ export function contentLines(v: string): string[] {
     .filter(Boolean);
 }
 
+/** 카드 목록(팀 조직·지역 활동) → 카드 이름 + 항목들. 이름이나 항목이 없는 카드는 뺀다 */
+export function contentCards(items: readonly ContentItem[]): Array<{ id: string; title: string; items: string[] }> {
+  return items.flatMap((i) => {
+    const lines = contentLines(i.body);
+    return i.title.trim() && lines.length > 0 ? [{ id: i.id, title: i.title.trim(), items: lines }] : [];
+  });
+}
+
 /** YYYY-MM-DD → YYYY */
 export function yearOf(date: string): string {
   return date.slice(0, 4);
@@ -98,12 +115,15 @@ export function readItem(def: ListDef, raw: Partial<ItemInput>): { values: ItemI
     if (!c) continue;
     let v = (raw[col] ?? "").replace(/\r\n?/g, "\n");
     v = c.multiline ? v.trim() : v.replace(/\s*\n\s*/g, " ").trim();
+    if (c.format === "lines") v = contentLines(v).join("\n");
+    if (c.format === "hex") v = normalizeHex(v) ?? v;
     values[col] = v;
     if (!v) {
       if (c.required) errors[col] = `${c.label}을(를) 입력해 주세요.`;
       continue;
     }
     if (c.max && v.length > c.max) errors[col] = `${c.label}은(는) ${c.max}자 이하로 입력해 주세요.`;
+    else if (c.format === "hex" && !HEX.test(v)) errors[col] = `${c.label}은(는) # 뒤에 여섯 자리(0-9, A-F)로 입력해 주세요 (예: #2B4FA2).`;
     else if (col === "link" && !LINK.test(v)) errors[col] = `${c.label}은(는) /로 시작하는 사이트 안 주소나 https:// 주소로 입력해 주세요.`;
   }
   return { values, errors };

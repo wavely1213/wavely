@@ -51,12 +51,12 @@ proxy.ts (/admin/*) ─→ 세션 쿠키 갱신만 (권한 판단 X)
 | 모듈 | 위치 | 역할 |
 |---|---|---|
 | 사이트 설정·메뉴 | /src/config/site.ts | 엠블럼 경로·NAV·공식 주소 (고정값). 구단 이름·창단일 등은 '홈페이지 내용'의 기본값 출처(SITE) — 화면은 getSiteContent() 를 쓴다. 연락처·SNS·주소는 DB(club_settings) |
-| 홈페이지 내용(총괄 관리자) | /src/lib/content/(fields·lists·sections·values·views·markup).ts, app/admin/(panel)/content, getSiteContent()·getContentList() | 화면 곳곳 문구·사진(site_content, 바꾼 값만 저장)·목록(content_items) — 키·기본값·검사는 코드 목록이 정한다 (D-046). 푸터 정보 줄은 '**이름표** 값' + {값 이름} 글(markup.ts, 편집기 MarkupEditor, D-048) |
+| 홈페이지 내용(총괄 관리자) | /src/lib/content/(fields·lists·sections·values·views·markup).ts, app/admin/(panel)/content, getSiteContent()·getContentList() | 화면 곳곳 문구·사진(site_content, 바꾼 값만 저장)·목록(content_items) — 키·기본값·검사는 코드 목록이 정한다 (D-046). 푸터 정보 줄은 '**이름표** 값' + {값 이름} 글(markup.ts, 편집기 MarkupEditor, D-048). 탭: 공통·메인·구단소개·엠블럼/유니폼(D-049) — 목록 칸 형식 lines(한 줄에 하나)·hex(색 코드) |
 | 관리자 대시보드 알림 | /src/lib/admin/alerts.ts, app/admin/(panel)/page.tsx, /src/config/admin-pages.ts | 구단뉴스 영입/이적 제목 ↔ 선수·스태프 명단, 등번호 겹침, '준비 중' 빈 곳 — 순수 함수 (D-048) |
 | 관리자 메뉴 | /src/config/admin-nav.ts | 관리자 사이드바 묶음·순서(ADMIN_NAV_GROUPS), 휴대폰 메뉴 버튼은 AdminNav.tsx 의 AdminMenu (D-048) |
 | 지도 설정 | /src/config/map.ts | 홈구장 네이버 장소(번호·좌표), 네이버 지도 키(NEXT_PUBLIC_NAVER_MAP_KEY_ID) — D-026 |
 | 검색 등록 | /src/lib/seo.ts, /src/app/robots.ts, /src/app/sitemap.ts | 사이트맵 목록·구단 JSON-LD(순수 함수) — D-027. 소유 확인 값은 config/site.ts SEARCH_VERIFICATION |
-| 페이지 안 탭·엠블럼 | /src/components/ui/ContentTabs.tsx, app/(site)/club/emblem (EmblemPanel·UniformPanel), /src/lib/emphasis.ts·color.ts, /public/brand/downloads | 한 페이지 안 탭(#id 로 열기), 엠블럼 모눈 패널·팀 색상·파일 내려받기, `**굵게**` 표시 (D-045) |
+| 페이지 안 탭·엠블럼 | /src/components/ui/ContentTabs.tsx, app/(site)/club/emblem (EmblemPanel·UniformPanel), /src/lib/emphasis.ts·color.ts, /public/brand/downloads | 한 페이지 안 탭(#id 로 열기), 엠블럼 모눈 패널·팀 색상·파일 내려받기, `**굵게**` 표시 (D-045). 설명·색·유니폼은 홈페이지 내용 값/목록(D-049) |
 | 상단 띠·사이트맵 | /src/components/layout/TopBar.tsx, /src/components/ui/SnsIcon.tsx, app/(site)/sitemap | 헤더 위 SNS·사이트맵 띠(PC), 모바일 메뉴 안 같은 링크, 전체 메뉴 페이지 (D-042) |
 | 링크 미리보기 | /src/lib/og.ts(순수), /src/lib/og-metadata.ts(관리자 설정 읽기), layout·홈·구단소식 상세·선수 상세 generateMetadata | 관리자가 정한 이미지·제목·설명(club_settings) 또는 기본 public/og/site.jpg·admin.jpg, 글·선수는 그 사진 (D-037·D-038) |
 | 리그 표기·출처 | /src/config/league.ts | 순위표 시즌 제목, 기록 기준 시즌, 다음 시즌, 새 경기 대회 기본값, 자료 출처 (D-011) |
