@@ -1,5 +1,5 @@
-import Image from "next/image";
 import { EmblemFallback } from "@/components/ui/EmblemFallback";
+import { FitImage } from "@/components/ui/FitImage";
 import { POSTING_KIND_LABEL, POSTING_PLATFORM_LABEL } from "@/data/postings";
 import { formatPostDate } from "@/lib/format";
 import { isPreshrunkThumbnail } from "@/lib/postings";
@@ -12,13 +12,13 @@ export function PostingCard({ posting }: { posting: Posting }) {
     <a href={posting.url} target="_blank" rel="noopener noreferrer" className={styles.card}>
       <div className={styles.thumb}>
         {posting.thumbnail ? (
-          // 일괄 적재한 사진은 이미 640×480 이라 Vercel 이미지 최적화(무료 한도)를 거치지 않고 Storage 에서 바로 받는다 (D-022)
-          <Image
+          // 일괄 적재한 사진은 이미 640×480 이라 Vercel 이미지 최적화(무료 한도)를 거치지 않고 Storage 에서 바로 받는다 (D-022).
+          // 세로 사진(릴스 표지 등)은 잘리지 않게 전체를 보인다
+          <FitImage
             src={posting.thumbnail}
-            alt=""
-            fill
             sizes="(max-width: 560px) 100vw, (max-width: 960px) 50vw, 300px"
             unoptimized={isPreshrunkThumbnail(posting.thumbnail)}
+            className={styles.media}
           />
         ) : (
           <EmblemFallback />

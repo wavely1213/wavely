@@ -24,12 +24,11 @@
   background: var(--c-bg-soft);
 }
 
-.thumb img {
-  object-fit: cover;
+.media {
   transition: transform 0.3s ease;
 }
 
-.card:hover .thumb img {
+.card:hover .media {
   transform: scale(1.04);
 }
 

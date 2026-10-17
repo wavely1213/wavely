@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { FitImage } from "@/components/ui/FitImage";
 import { NEWS_CATEGORY_LABEL } from "@/data/news";
 import { formatPostDate } from "@/lib/format";
 import type { NewsPost } from "@/types";
@@ -67,9 +67,8 @@ export function NewsBanner({ posts }: { posts: NewsPost[] }) {
             >
               <Link href={newsHref(p)} className={styles.link} tabIndex={i === index ? undefined : -1}>
                 <div className={styles.media}>
-                  {p.thumbnail && (
-                    <Image src={p.thumbnail} alt="" fill sizes="(max-width: 900px) 100vw, 720px" priority={i === 0} className={styles.image} />
-                  )}
+                  {/* 세로 포스터도 머리·제목이 잘리지 않게 전체를 보인다 */}
+                  {p.thumbnail && <FitImage src={p.thumbnail} sizes="(max-width: 900px) 100vw, 720px" priority={i === 0} />}
                 </div>
                 <div className={styles.text}>
                   <span className={styles.category}>{NEWS_CATEGORY_LABEL[p.category]}</span>

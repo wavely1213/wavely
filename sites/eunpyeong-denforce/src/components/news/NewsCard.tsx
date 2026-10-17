@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 import { EmblemFallback } from "@/components/ui/EmblemFallback";
+import { FitImage } from "@/components/ui/FitImage";
 import { NEWS_CATEGORY_LABEL } from "@/data/news";
 import { formatPostDate } from "@/lib/format";
 import type { NewsPost } from "@/types";
@@ -15,7 +15,8 @@ export function NewsCard({ post }: { post: NewsPost }) {
     <Link href={newsHref(post)} className={styles.card}>
       <div className={styles.thumb}>
         {post.thumbnail ? (
-          <Image src={post.thumbnail} alt="" fill sizes="(max-width: 720px) 80vw, 300px" />
+          // 세로 포스터도 잘리지 않게 (제목 글자·머리) — 가로 사진은 꽉 채운다
+          <FitImage src={post.thumbnail} sizes="(max-width: 720px) 80vw, 300px" className={styles.media} />
         ) : (
           <EmblemFallback />
         )}

@@ -33,10 +33,6 @@
   background: var(--c-black-soft);
 }
 
-.image {
-  object-fit: cover;
-}
-
 .text {
   display: flex;
   flex-direction: column;

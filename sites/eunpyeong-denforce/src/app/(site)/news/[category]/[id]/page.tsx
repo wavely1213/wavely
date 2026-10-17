@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { NewsGallery } from "@/components/news/NewsGallery";
 import { VideoEmbed } from "@/components/news/VideoEmbed";
+import { FitImage } from "@/components/ui/FitImage";
 import { LinkifiedText } from "@/components/ui/LinkifiedText";
 import { NEWS_CATEGORY_LABEL } from "@/data/news";
 import { formatPostDate } from "@/lib/format";
@@ -66,7 +66,7 @@ export default async function NewsPostPage({ params }: PageProps<"/news/[categor
           post.thumbnail &&
           !post.videoUrl && (
             <div className={styles.figure}>
-              <Image src={post.thumbnail} alt="" fill sizes="(max-width: 1200px) 100vw, 1200px" />
+              <FitImage src={post.thumbnail} sizes="(max-width: 1200px) 100vw, 1200px" />
             </div>
           )
         )}
