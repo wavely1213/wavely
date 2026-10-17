@@ -65,14 +65,14 @@ export const CONTENT_FIELDS = {
     hint: "한 줄에 하나 — 예전 팀 이름/띄어쓰기가 다른 이름. 화면에는 보이지 않고 검색엔진에 알려 줍니다",
   },
   "nav.external.label": {
-    label: "메뉴 맨 오른쪽 바로가기 이름",
+    label: "상단 스토어 버튼 이름",
     kind: "text",
     max: 20,
     default: NAV_EXTERNAL.label,
-    hint: "새 창으로 열리는 바깥 사이트 링크 (사이트맵 페이지에도)",
+    hint: "맨 위 띠 오른쪽(모바일은 메뉴 안) 쇼핑백 아이콘 버튼 — 새 창으로 열립니다 (사이트맵 페이지에도)",
   },
   "nav.external.href": {
-    label: "메뉴 맨 오른쪽 바로가기 주소",
+    label: "상단 스토어 버튼 주소",
     kind: "link",
     max: 300,
     default: NAV_EXTERNAL.href,

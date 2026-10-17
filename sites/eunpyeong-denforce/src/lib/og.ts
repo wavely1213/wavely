@@ -11,7 +11,7 @@ export type PreviewImage = { url: string; alt: string; width?: number; height?: 
  * 카카오톡은 미리보기 이미지를 이미지 주소 기준으로 오래 저장해 두므로, 주소가 바뀌어야 새 이미지를 쓴다.
  * (관리자가 올린 이미지는 올릴 때마다 새 파일 이름이라 따로 필요 없다)
  */
-export const DEFAULT_PREVIEW_VERSION = "20261016";
+export const DEFAULT_PREVIEW_VERSION = "20261017";
 
 /** 기본 이미지 — 사이트: 홈 히어로 구성(D-025·D-036), 관리자: 엠블럼 + '관리자'(사이트와 구분) */
 export const DEFAULT_PREVIEW: Record<PreviewKind, Required<PreviewImage>> = {

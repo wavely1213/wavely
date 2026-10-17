@@ -43,10 +43,10 @@ create policy "content_items: 관리자 삭제" on public.content_items for dele
 insert into public.content_items (list, title, body, link, sort_order)
 select 'home.quicklinks', v.title, v.body, v.link, v.sort_order
 from (values
-  ('경기일정', '시즌 일정·장소', '/match/schedule', 10),
-  ('선수단', '선수·코칭스태프', '/team/players', 20),
+  ('경기일정', '시즌 일정/장소', '/match/schedule', 10),
+  ('선수단', '선수/코칭스태프', '/team/players', 20),
   ('오시는 길', '은평다목적체육관', '/club/location', 30),
   ('스폰서', '함께하는 파트너', '/sponsors', 40),
-  ('문의', '제휴·후원·입단', '/contact', 50)
+  ('문의', '제휴/후원/입단', '/contact', 50)
 ) as v(title, body, link, sort_order)
 where not exists (select 1 from public.content_items where list = 'home.quicklinks');

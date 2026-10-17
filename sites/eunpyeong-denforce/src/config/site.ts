@@ -88,8 +88,12 @@ export const SEARCH_VERIFICATION: { naver: string | null } = {
   naver: "dd57673238c6ec36c8ddfd4e49d4d6a003c0c538",
 };
 
-/** 메뉴 맨 오른쪽 외부 링크 — 네이밍 스폰서 덴포스 스포츠 공식 홈페이지, 새 창 (D-019). 하위 탭·사이트맵에는 넣지 않는다 */
-export const NAV_EXTERNAL = { label: "덴포스스포츠", href: "https://denforce.co.kr" } as const;
+/**
+ * 상단 'MD스토어' 바깥 링크 — 네이밍 스폰서 덴포스 공식 홈페이지(유니폼 판매), 새 창.
+ * 메뉴 맨 오른쪽 글자 링크(D-019)였다가 상단 띠의 아이콘 버튼으로 옮김 (D-047). 하위 탭에는 넣지 않는다.
+ * 이름·주소는 관리자 › 홈페이지 내용 › 기본 정보에서 바꾼다 — 여기 값은 기본값.
+ */
+export const NAV_EXTERNAL = { label: "MD스토어", href: "https://denforce.co.kr" } as const;
 
 /** 현재 경로가 속한 1차 메뉴 (하위 탭 표시용) */
 export function findSection(pathname: string): NavItem | undefined {

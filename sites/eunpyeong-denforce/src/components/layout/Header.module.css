@@ -78,11 +78,6 @@
 }
 
 /* 외부 링크 표시 (새 창) */
-.external {
-  margin-left: 3px;
-  font-size: 0.8em;
-}
-
 .sub {
   display: none;
   position: absolute;
@@ -226,5 +221,23 @@
 
   .mobileSitemap:hover {
     color: var(--c-on-dark);
+  }
+
+  .mobileLinks {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  /* MD스토어 — 상단 띠와 같은 노란 테두리 버튼 (D-047) */
+  .mobileStore {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 14px;
+    border: 1px solid var(--c-yellow);
+    border-radius: 999px;
+    color: var(--c-yellow);
   }
 }

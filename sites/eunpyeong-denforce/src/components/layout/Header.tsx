@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { SnsIcon } from "@/components/ui/SnsIcon";
+import { StoreIcon } from "@/components/ui/StoreIcon";
 import { NAV, SITE } from "@/config/site";
 import type { SnsLink } from "@/lib/club";
 import type { HeaderContent } from "@/lib/content/views";
@@ -69,21 +70,6 @@ export function Header({ pathname, sns, content }: { pathname: string; sns: SnsL
                 </li>
               );
             })}
-            <li className={styles.menuItem}>
-              <a
-                href={content.externalHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.menuLink}
-                onClick={() => setOpen(false)}
-              >
-                {content.externalLabel}
-                <span className={styles.external} aria-hidden="true">
-                  ↗
-                </span>
-                <span className="sr-only">(새 창)</span>
-              </a>
-            </li>
           </ul>
           <div className={styles.mobileExtra}>
             <ul className={styles.mobileSns} aria-label="공식 SNS">
@@ -96,9 +82,22 @@ export function Header({ pathname, sns, content }: { pathname: string; sns: SnsL
                 </li>
               ))}
             </ul>
-            <Link href="/sitemap" className={styles.mobileSitemap} onClick={() => setOpen(false)}>
-              사이트맵
-            </Link>
+            <div className={styles.mobileLinks}>
+              <a
+                href={content.externalHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.mobileStore}
+                onClick={() => setOpen(false)}
+              >
+                <StoreIcon size={16} />
+                {content.externalLabel}
+                <span className="sr-only">(새 창)</span>
+              </a>
+              <Link href="/sitemap" className={styles.mobileSitemap} onClick={() => setOpen(false)}>
+                사이트맵
+              </Link>
+            </div>
           </div>
         </nav>
       </div>

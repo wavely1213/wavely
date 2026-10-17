@@ -21,7 +21,7 @@ export const CONTENT_SECTIONS = [
     groups: [
       { title: "구단", keys: ["site.name", "site.nameEn", "site.foundedDate", "site.representative", "site.homeVenue"] },
       { title: "검색엔진", keys: ["site.description", "site.alternateNames"] },
-      { title: "메뉴 바깥 링크", keys: ["nav.external.label", "nav.external.href"] },
+      { title: "상단 스토어 버튼", keys: ["nav.external.label", "nav.external.href"] },
     ],
     lists: [],
     related: [

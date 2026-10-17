@@ -14,7 +14,7 @@ export default async function SiteLayout({ children }: LayoutProps<"/">) {
   const header = headerContent(content);
   return (
     <>
-      <TopBar sns={sns} />
+      <TopBar sns={sns} store={{ label: header.externalLabel, href: header.externalHref }} />
       {/* 경로를 빌드 때 모르는 페이지에서도 헤더가 prerender 되도록 Suspense 로 감싼다 */}
       <Suspense fallback={<Header pathname="" sns={sns} content={header} />}>
         <HeaderWithPath sns={sns} content={header} />

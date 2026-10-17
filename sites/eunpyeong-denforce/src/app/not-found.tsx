@@ -13,7 +13,7 @@ export default async function NotFound() {
   const sns = snsLinks(settings);
   return (
     <>
-      <TopBar sns={sns} />
+      <TopBar sns={sns} store={{ label: content["nav.external.label"], href: content["nav.external.href"] }} />
       <Header pathname="" sns={sns} content={headerContent(content)} />
       <main>
         <div className={`container ${styles.center}`}>
