@@ -29,7 +29,16 @@ export function ContentItemForm({
           <TextField name="body" label={body.label} required={body.required} maxLength={body.max} hint={body.hint} defaultValue={initial?.body} />
         ))}
       {link && <TextField name="link" label={link.label} required={link.required} maxLength={link.max} hint={link.hint} defaultValue={initial?.link} />}
-      {image && <ImageField name="image" label={image.label} required={image.required} hint={image.hint} currentUrl={initial?.image_url} />}
+      {image && (
+        <ImageField
+          name="image"
+          label={image.label}
+          required={image.required}
+          hint={image.hint}
+          currentUrl={initial?.image_url}
+          removable={!image.required}
+        />
+      )}
       <Row>
         <TextField
           name="sort_order"
