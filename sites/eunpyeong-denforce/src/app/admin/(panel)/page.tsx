@@ -14,34 +14,13 @@ import local from "./dashboard.module.css";
 
 export const metadata: Metadata = { title: "대시보드" };
 
-/** 자주 쓰는 작업 — 첫 화면 맨 위 */
-const QUICK_ACTIONS = [
-  { href: "/admin/news/new", label: "+ 소식 쓰기" },
-  { href: "/admin/matches/new", label: "+ 경기 추가" },
-  { href: "/admin/players/new", label: "+ 선수 추가" },
-  { href: "/admin/postings/new", label: "+ 포스팅 추가" },
-];
-
 const LEVEL_LABEL: Record<AlertLevel, string> = { warn: "꼭 확인", check: "확인", info: "참고" };
 
 export default function DashboardPage() {
   return (
     <>
-      <PageTitle title="대시보드" description="할 일과 최근 내용을 한눈에 봅니다. 저장한 내용은 홈페이지에 바로 반영됩니다 (늦어도 1분 이내).">
-        <Link href="/" target="_blank" className={styles.buttonGhost}>
-          홈페이지 보기 ↗
-        </Link>
-      </PageTitle>
-      <nav className={local.quick} aria-label="빠른 작업">
-        {QUICK_ACTIONS.map((a) => (
-          <Link key={a.href} href={a.href} className={styles.button}>
-            {a.label}
-          </Link>
-        ))}
-        <Link href="/admin/content" className={styles.buttonGhost}>
-          홈페이지 내용 고치기
-        </Link>
-      </nav>
+      {/* 새 글 쓰기 같은 빠른 작업 버튼은 두지 않는다 — 각 메뉴의 목록에서 '추가' (소유자 판단) */}
+      <PageTitle title="대시보드" description="저장한 내용은 홈페이지에 바로 반영됩니다 (늦어도 1분 이내)." />
       <Suspense fallback={<AdminLoading />}>
         <Dashboard />
       </Suspense>
@@ -138,23 +117,23 @@ async function Dashboard() {
         ) : (
           <ul className={local.alerts}>
             {alerts.map((a, i) => (
-              <li key={i} className={local.alert}>
-                <span className={`${local.level} ${local[a.level]}`}>{LEVEL_LABEL[a.level]}</span>
-                <div className={local.alertText}>
-                  <strong>{a.title}</strong>
-                  {a.detail && <span>{a.detail}</span>}
-                </div>
-                <Link href={a.href} className={local.alertAction} target={a.href.startsWith("/admin") ? undefined : "_blank"}>
-                  {a.action} →
+              <li key={i}>
+                {/* 알림 한 줄 전체가 바로가기 — 휴대폰에서는 바로가기 이름을 숨기고 화살표만 */}
+                <Link href={a.href} className={local.alert} target={a.href.startsWith("/admin") ? undefined : "_blank"}>
+                  <span className={`${local.level} ${local[a.level]}`}>{LEVEL_LABEL[a.level]}</span>
+                  <span className={local.alertText}>
+                    <strong>{a.title}</strong>
+                    {a.detail && <span>{a.detail}</span>}
+                  </span>
+                  <span className={local.alertAction}>
+                    <span className={local.actionLabel}>{a.action} </span>→
+                  </span>
                 </Link>
               </li>
             ))}
           </ul>
         )}
-        <p className={local.note}>
-          선수/스태프 알림은 최근 6개월 구단소식(구단뉴스)의 영입/이적 제목과 명단을 비교해 만듭니다. 인스타그램에만 올라온 소식은
-          구단소식에 글로 올려야 알림에 잡힙니다.
-        </p>
+        <p className={local.note}>선수/스태프 알림은 최근 6개월 구단뉴스의 영입/이적 글 기준입니다.</p>
       </section>
 
       <div className={local.grid}>

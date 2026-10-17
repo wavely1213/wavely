@@ -1,12 +1,5 @@
 /* 관리자 대시보드 (D-048) — 할 일/알림 + 다음 경기·최근 글·숫자 + 페이지별 고치는 곳. 패널·버튼·표는 admin.module.css */
 
-.quick {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 20px;
-}
-
 .panelHead {
   display: flex;
   align-items: baseline;
@@ -54,18 +47,25 @@
   flex-direction: column;
 }
 
+.alerts li + li {
+  border-top: 1px solid var(--c-line);
+}
+
+/* 알림 한 줄 = 바로가기 링크: 이름표 | 글 | 바로가기 */
 .alert {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
   padding: 12px 0;
-  border-top: 1px solid var(--c-line);
 }
 
-.alert:first-child {
-  border-top: 0;
+.alerts li:first-child .alert {
   padding-top: 0;
+}
+
+.alert:hover strong {
+  color: var(--c-blue);
 }
 
 .level {
@@ -117,7 +117,7 @@
   white-space: nowrap;
 }
 
-.alertAction:hover {
+.alert:hover .alertAction {
   text-decoration: underline;
 }
 
@@ -213,14 +213,25 @@
 }
 
 @media (max-width: 560px) {
-  /* 휴대폰: 알림 이름표 위, 글, 바로가기 아래 */
+  /* 휴대폰: 이름표 | 글 | 화살표 한 줄 — 바로가기 이름은 숨기고 줄 전체를 누른다 */
   .alert {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 6px;
+    align-items: start;
+    gap: 10px;
+    padding: 10px 0;
   }
 
   .level {
-    justify-self: start;
+    min-width: 0;
+    padding: 2px 6px;
+    font-size: 11px;
+  }
+
+  .alertText strong {
+    font-size: 14px;
+  }
+
+  .actionLabel {
+    display: none;
   }
 
   .stats {
