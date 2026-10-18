@@ -82,7 +82,8 @@ export default async function PlayerPage({ params }: PageProps<"/team/players/[s
               ))}
             </ul>
             {joined && join ? (
-              <p>
+              // 기록 출처 문구와 같은 자리·간격
+              <p className={styles.source}>
                 <Link href={`/news/${join.post.category}/${join.post.id}`} className={styles.button}>
                   영입 소식 보기
                 </Link>
