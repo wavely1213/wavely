@@ -59,6 +59,9 @@ proxy.ts (/admin/*) ─→ 세션 쿠키 갱신만 (권한 판단 X)
 | 페이지 안 탭·엠블럼 | /src/components/ui/ContentTabs.tsx, app/(site)/club/emblem (EmblemPanel·UniformPanel), /src/lib/emphasis.ts·color.ts, /public/brand/downloads | 한 페이지 안 탭(#id 로 열기), 엠블럼 모눈 패널·팀 색상·파일 내려받기, `**굵게**` 표시 (D-045). 설명·색·유니폼은 홈페이지 내용 값/목록(D-049) |
 | 상단 띠·사이트맵 | /src/components/layout/TopBar.tsx, /src/components/ui/SnsIcon.tsx, app/(site)/sitemap | 헤더 위 SNS·사이트맵 띠(PC), 모바일 메뉴 안 같은 링크, 전체 메뉴 페이지 (D-042) |
 | 링크 미리보기 | /src/lib/og.ts(순수), /src/lib/og-metadata.ts(관리자 설정 읽기), layout·홈·구단소식 상세·선수 상세 generateMetadata | 관리자가 정한 이미지·제목·설명(club_settings) 또는 기본 public/og/site.jpg·admin.jpg, 글·선수는 그 사진 (D-037·D-038) |
+| 페이지 검색 설명 | /src/lib/page-descriptions.ts(순수), /src/lib/page-meta.ts(관리자 값 읽기) | 페이지마다 다른 meta description — 링크 미리보기 설명도 같은 값 (D-053) |
+| 선수 상세 | /src/lib/player-profile.ts, app/(site)/team/players/[slug] | 프로필 칸(빈 칸 숨김), 기록 시즌 뒤 영입 선수 '시즌 합류'(구단뉴스 제목), 검색 설명 — 순수 함수 (D-053) |
+| 연락처·스폰서 도우미 | /src/lib/contact.ts, /src/lib/sponsors.ts | 전화 걸기/메일 쓰기 주소, SNS 짧은 이름, 문의 분야 기본값, 스폰서 격자 폭·리그 참가 줄 (D-053) |
 | 리그 표기·출처 | /src/config/league.ts | 순위표 시즌 제목, 기록 기준 시즌, 다음 시즌, 새 경기 대회 기본값, 자료 출처 (D-011) |
 | 레이아웃 | /src/components/layout | Header(모바일 메뉴), Footer(연락처·SNS), PageHeader(섹션 탭) |
 | 메인 섹션 | /src/components/home | Hero, SponsorMarquee(히어로 아래 스폰서 띠, D-029), HomeColumns(본문 + 오른쪽 위젯 칸)·StandingsWidget(리그 순위, D-034), NewsTabs, PlayersPreview, QuickLinks, SponsorStrip(스폰서 페이지 격자) |
