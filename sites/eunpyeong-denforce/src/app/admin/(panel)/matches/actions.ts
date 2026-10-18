@@ -45,7 +45,12 @@ function readMatch(f: FormReader) {
   const score_us = finished ? f.int("score_us", { label: "우리 득점", min: 0, max: 99, required: true }) : null;
   const score_them = finished ? f.int("score_them", { label: "상대 득점", min: 0, max: 99, required: true }) : null;
 
-  return { competition, round, kickoff, venue, is_home, opponent, status, score_us, score_them };
+  // 경기결과 화면의 영상 버튼·득점자 줄 (DB check: https 500자, 득점자 300자). 득점자도 스코어처럼 종료 경기만 저장한다
+  const highlight_url = f.optHttpsUrl("highlight_url", "하이라이트 영상");
+  const replay_url = f.optHttpsUrl("replay_url", "다시보기 영상");
+  const scorers = finished ? f.optText("scorers", { label: "득점자", max: 300 }) : null;
+
+  return { competition, round, kickoff, venue, is_home, opponent, status, score_us, score_them, highlight_url, replay_url, scorers };
 }
 
 export async function createMatch(_prev: ActionState, fd: FormData): Promise<ActionState> {

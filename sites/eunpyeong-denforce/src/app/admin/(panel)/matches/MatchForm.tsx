@@ -71,6 +71,35 @@ export function MatchForm({
           defaultValue={initial?.score_them}
         />
       </Row>
+      {/* 경기결과 화면: 영상 버튼(새 창)·득점자 줄. 비워 두면 보이지 않는다 */}
+      <Row>
+        <TextField
+          name="highlight_url"
+          label="하이라이트 영상"
+          type="url"
+          maxLength={500}
+          placeholder="https://"
+          hint="경기결과의 '하이라이트' 버튼 (유튜브 등 https 주소)"
+          defaultValue={initial?.highlight_url}
+        />
+        <TextField
+          name="replay_url"
+          label="다시보기 영상"
+          type="url"
+          maxLength={500}
+          placeholder="https://"
+          hint="경기결과의 '다시보기' 버튼 (경기 전체/생중계 영상)"
+          defaultValue={initial?.replay_url}
+        />
+      </Row>
+      <TextField
+        name="scorers"
+        label="득점자"
+        maxLength={300}
+        placeholder="예: 원해연 2, 김민성"
+        hint="우리 팀만, 쉼표로 구분. 상태가 '종료'일 때만 저장됩니다"
+        defaultValue={initial?.scorers}
+      />
     </AdminForm>
   );
 }

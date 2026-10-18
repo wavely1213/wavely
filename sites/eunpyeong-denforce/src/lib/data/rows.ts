@@ -47,6 +47,9 @@ export type MatchRow = {
   status: "scheduled" | "finished";
   score_us: number | null;
   score_them: number | null;
+  highlight_url: string | null;
+  replay_url: string | null;
+  scorers: string | null;
 };
 
 export type StandingDbRow = {
@@ -159,6 +162,10 @@ export const toMatch = (r: MatchRow): Match => ({
     r.status === "finished" && r.score_us !== null && r.score_them !== null
       ? { us: r.score_us, them: r.score_them }
       : null,
+  // 마이그레이션(20261018100000) 전 DB 에는 열이 없다
+  highlightUrl: r.highlight_url ?? null,
+  replayUrl: r.replay_url ?? null,
+  scorers: r.scorers ?? null,
 });
 
 export const toStanding = (r: StandingDbRow): StandingRow => ({
