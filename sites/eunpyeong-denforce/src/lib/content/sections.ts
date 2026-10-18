@@ -84,6 +84,18 @@ export const CONTENT_SECTIONS = [
       },
     ],
   },
+  {
+    id: "privacy",
+    label: "개인정보처리방침",
+    description: "푸터 맨 아래 '개인정보처리방침' 링크로 열리는 페이지 본문입니다. 처음 값 그대로면 홈페이지에는 '준비 중' 상자로 보입니다.",
+    view: "/privacy",
+    groups: [{ title: "본문", keys: ["privacy.body"] }],
+    lists: [],
+    related: [
+      { href: "/admin/club", label: "문의 메일/전화 (구단정보)" },
+      { href: "/admin/content/common", label: "푸터 맨 아래 링크 (공통)" },
+    ],
+  },
 ] as const satisfies ReadonlyArray<ContentSection>;
 
 export type SectionId = (typeof CONTENT_SECTIONS)[number]["id"];

@@ -20,7 +20,12 @@ export type FieldDef = {
   hint?: string;
   /** 입력 화면 — markup: '**이름표** 값' 줄 편집기(여러 줄), markupLine: 한 줄 (D-048) */
   editor?: "markup" | "markupLine";
+  /** 여러 줄 입력 칸 높이 (줄 수) — 긴 문서용 */
+  rows?: number;
 };
+
+/** 개인정보처리방침 기본값 — 이 글 그대로면 페이지는 '준비 중' 상자로 보인다 (관리자 개편 4단계) */
+export const PRIVACY_PLACEHOLDER = "개인정보처리방침은 회원/문의 기능 도입 시 작성합니다.";
 
 /** 푸터 정보 줄 기본값 — 그동안 Footer.tsx 에 박혀 있던 배치 그대로 (D-044·D-047) */
 export const FOOTER_LINES_DEFAULT = ["**창단** {창단연도} **홈구장** {홈구장}", "**사무국** {사무국주소}", "**단장** {단장} **문의** {문의메일} / {문의전화}"].join("\n");
@@ -166,6 +171,16 @@ export const CONTENT_FIELDS = {
     ].join("\n\n"),
     hint: "엠블럼 탭 아래 설명. 문단은 빈 줄로 나누고, **별표 두 개로 감싼 글**은 굵게 보입니다",
   },
+  // ── 개인정보처리방침 (관리자 개편 4단계) — 글 규칙: '## 소제목', '- 목록', 빈 줄 = 문단 (lib/content/document.ts) ──
+  "privacy.body": {
+    label: "개인정보처리방침 본문",
+    kind: "multiline",
+    max: 20000,
+    rows: 24,
+    default: PRIVACY_PLACEHOLDER,
+    hint: "'## 1. 제목'처럼 ## 로 시작하는 줄은 소제목, '- '로 시작하는 줄은 목록, 빈 줄은 문단 나눔입니다. 칸을 비우고 저장하면 다시 '준비 중'으로 보입니다",
+  },
+
   "kit.season": {
     label: "유니폼 시즌",
     kind: "text",

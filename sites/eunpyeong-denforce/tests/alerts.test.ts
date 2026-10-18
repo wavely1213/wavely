@@ -114,9 +114,10 @@ test("numberAlerts: 활동 선수끼리만, 동명이인은 알리지 않음", (
 });
 
 test("siteGapAlerts / sortAlerts", () => {
-  const base = { upcomingMatches: 1, pastScheduled: 0, venueTransit: true, venueParking: true, contactEmail: true, contactPhone: true, draftNews: 0, activeWithoutPhoto: 0 };
-  // 개인정보처리방침 안내는 4단계 전까지 늘 나온다
-  assert.deepEqual(siteGapAlerts(base).map((a) => a.href), ["/privacy"]);
+  const base = { upcomingMatches: 1, pastScheduled: 0, venueTransit: true, venueParking: true, contactEmail: true, contactPhone: true, draftNews: 0, activeWithoutPhoto: 0, privacyWritten: true };
+  assert.deepEqual(siteGapAlerts(base), []);
+  // 개인정보처리방침 본문을 아직 안 썼으면 안내
+  assert.deepEqual(siteGapAlerts({ ...base, privacyWritten: false }).map((a) => a.href), ["/admin/content/privacy"]);
   const all = siteGapAlerts({ ...base, upcomingMatches: 0, venueTransit: false, venueParking: false, contactPhone: false, draftNews: 2, activeWithoutPhoto: 3 });
   assert.ok(all.some((a) => a.title.includes("'대중교통/주차'")));
   assert.ok(all.some((a) => a.title.includes("문의 전화")));

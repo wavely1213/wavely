@@ -43,7 +43,7 @@ async function Dashboard() {
     return count ?? 0;
   };
 
-  const [players, staff, news, settings, upcoming, scheduled, recentNews, recentPostings, newsTotal, postingsShown, sponsors, matches] = await Promise.all([
+  const [players, staff, news, settings, upcoming, scheduled, recentNews, recentPostings, newsTotal, postingsShown, sponsors, matches, privacy] = await Promise.all([
     supabase.from("players").select("id, name, number, is_active, photo_url"),
     supabase.from("staff").select("id, name, role"),
     supabase.from("news_posts").select("title, date, category, published"),
@@ -63,13 +63,15 @@ async function Dashboard() {
     count("postings", { column: "published", value: true }),
     count("sponsors"),
     count("matches"),
+    // 개인정보처리방침 — 바꾼 값만 저장되므로 행이 있으면 본문을 쓴 것 (행이 없으면 '준비 중')
+    supabase.from("site_content").select("key").eq("key", "privacy.body").maybeSingle(),
   ]);
 
   const playerRows = players.data ?? [];
   const activePlayers = playerRows.filter((p) => p.is_active);
   const lite = playerRows.map((p) => ({ id: p.id, name: p.name, number: p.number, isActive: p.is_active, hasPhoto: Boolean(p.photo_url) }));
   // 하나라도 못 읽으면 잘못된 알림(예: '명단에 없음')을 띄우지 않게 그 알림은 건너뛰고 안내한다
-  const failed = [players, staff, news, settings, upcoming, scheduled].some((r) => r.error);
+  const failed = [players, staff, news, settings, upcoming, scheduled, privacy].some((r) => r.error);
   const scheduledRows = scheduled.data ?? [];
   const alerts: AdminAlert[] = failed
     ? []
@@ -85,6 +87,7 @@ async function Dashboard() {
           contactPhone: Boolean(settings.data?.contact_phone),
           draftNews: (news.data ?? []).filter((n) => !n.published).length,
           activeWithoutPhoto: activePlayers.filter((p) => !p.photo_url).length,
+          privacyWritten: Boolean(privacy.data),
         }),
       ]);
 

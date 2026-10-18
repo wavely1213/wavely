@@ -17,5 +17,5 @@ export const ADMIN_PAGE_MAP: readonly AdminPageMap[] = [
   { label: "포스팅", view: "/news/posting", edit: { href: "/admin/postings", label: "포스팅" } },
   { label: "스폰서", view: "/sponsors", edit: { href: "/admin/sponsors", label: "스폰서" } },
   { label: "문의", view: "/contact", edit: { href: "/admin/club", label: "구단정보 (연락처)" } },
-  { label: "개인정보처리방침", view: "/privacy", later: "4단계" },
+  { label: "개인정보처리방침", view: "/privacy", edit: { href: "/admin/content/privacy", label: "홈페이지 내용 › 개인정보처리방침" } },
 ];

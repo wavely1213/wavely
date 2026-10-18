@@ -157,6 +157,8 @@ export type SiteGaps = {
   contactPhone: boolean;
   draftNews: number;
   activeWithoutPhoto: number;
+  /** 개인정보처리방침 본문을 관리자에서 저장했는지 (아니면 '준비 중'으로 보인다) */
+  privacyWritten: boolean;
 };
 
 /** 홈페이지에 비어 보이는 곳 ('준비 중' 등) */
@@ -175,7 +177,14 @@ export function siteGapAlerts(g: SiteGaps): AdminAlert[] {
   if (g.activeWithoutPhoto > 0)
     out.push({ level: "info", title: `사진이 없는 활동 선수 ${g.activeWithoutPhoto}명`, detail: "사진이 없으면 엠블럼과 등번호 카드로 보입니다.", href: "/admin/players", action: "선수 명단" });
   if (g.draftNews > 0) out.push({ level: "info", title: `비공개 소식 ${g.draftNews}개`, detail: "홈페이지에 보이지 않는 글입니다.", href: "/admin/news", action: "구단소식" });
-  out.push({ level: "info", title: "개인정보처리방침이 '준비 중'입니다", detail: "관리자 개편 4단계에서 여기서 쓸 수 있게 합니다.", href: "/privacy", action: "페이지 보기" });
+  if (!g.privacyWritten)
+    out.push({
+      level: "info",
+      title: "개인정보처리방침이 '준비 중'입니다",
+      detail: "홈페이지 내용 › 개인정보처리방침에서 본문을 쓰면 바로 보입니다.",
+      href: "/admin/content/privacy",
+      action: "본문 쓰기",
+    });
   return out;
 }
 

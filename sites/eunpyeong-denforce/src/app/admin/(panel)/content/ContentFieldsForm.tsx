@@ -55,7 +55,7 @@ function Field({ f, tokens }: { f: FieldView; tokens: TokenInfo[] }) {
       );
     case "multiline":
     case "lines":
-      return <TextArea name={f.key} label={label} hint={hint} rows={f.def.kind === "lines" ? 6 : 5} defaultValue={f.value} />;
+      return <TextArea name={f.key} label={label} hint={hint} rows={f.def.rows ?? (f.def.kind === "lines" ? 6 : 5)} defaultValue={f.value} />;
     case "date":
       return <TextField name={f.key} label={label} hint={hint} type="date" defaultValue={f.value} />;
     default:
