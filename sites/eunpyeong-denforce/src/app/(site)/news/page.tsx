@@ -5,8 +5,11 @@ import { toNewsCardPost } from "@/components/news/NewsCard";
 import { NewsMoreGrid } from "@/components/news/NewsMoreGrid";
 import { pickBanner } from "@/lib/news";
 import { getNews } from "@/lib/repo";
+import { pageMetadata } from "@/lib/page-meta";
 
-export const metadata: Metadata = { title: "구단소식" };
+export function generateMetadata(): Promise<Metadata> {
+  return pageMetadata("구단소식", "/news");
+}
 
 export default async function NewsPage() {
   const posts = await getNews();

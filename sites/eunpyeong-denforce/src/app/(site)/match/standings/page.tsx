@@ -6,8 +6,11 @@ import { Placeholder } from "@/components/ui/Placeholder";
 import { LEAGUE } from "@/config/league";
 import { getPastLeagues, getStandings, isLiveData } from "@/lib/repo";
 import styles from "@/styles/prose.module.css";
+import { pageMetadata } from "@/lib/page-meta";
 
-export const metadata: Metadata = { title: "리그순위" };
+export function generateMetadata(): Promise<Metadata> {
+  return pageMetadata("리그순위", "/match/standings");
+}
 
 /** 지금 시즌 순위 + 지난 리그 목록 (BR-016) */
 export default async function StandingsPage() {

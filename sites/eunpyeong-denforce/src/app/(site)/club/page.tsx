@@ -4,8 +4,11 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { contentCards } from "@/lib/content/values";
 import { getClubSettings, getContentList, getNationalTeamAlumni, getSiteContent } from "@/lib/repo";
 import styles from "@/styles/prose.module.css";
+import { pageMetadata } from "@/lib/page-meta";
 
-export const metadata: Metadata = { title: "구단소개" };
+export function generateMetadata(): Promise<Metadata> {
+  return pageMetadata("구단소개", "/club");
+}
 
 /** 괄호 묶음('(2017 ~ 현재)', '(유소년 / 성인)')은 한 줄에 — 괄호 안에서 줄이 바뀌지 않게 */
 function KeepParens({ text }: { text: string }) {

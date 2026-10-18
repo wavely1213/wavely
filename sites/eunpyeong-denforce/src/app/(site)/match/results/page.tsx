@@ -5,8 +5,11 @@ import { Placeholder } from "@/components/ui/Placeholder";
 import { LEAGUE } from "@/config/league";
 import { getFinishedMatches, isLiveData } from "@/lib/repo";
 import styles from "@/styles/prose.module.css";
+import { pageMetadata } from "@/lib/page-meta";
 
-export const metadata: Metadata = { title: "경기결과" };
+export function generateMetadata(): Promise<Metadata> {
+  return pageMetadata("경기결과", "/match/results");
+}
 
 export default async function ResultsPage() {
   const matches = await getFinishedMatches();

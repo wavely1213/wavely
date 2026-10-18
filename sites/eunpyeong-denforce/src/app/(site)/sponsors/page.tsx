@@ -8,8 +8,11 @@ import { getClubSettings, getSponsors } from "@/lib/repo";
 import { leagueEntryLine } from "@/lib/sponsors";
 import styles from "@/styles/prose.module.css";
 import local from "./sponsors.module.css";
+import { pageMetadata } from "@/lib/page-meta";
 
-export const metadata: Metadata = { title: "스폰서" };
+export function generateMetadata(): Promise<Metadata> {
+  return pageMetadata("스폰서", "/sponsors");
+}
 
 export default async function SponsorsPage() {
   const [sponsors, settings] = await Promise.all([getSponsors(), getClubSettings()]);

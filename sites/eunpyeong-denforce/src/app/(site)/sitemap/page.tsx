@@ -4,8 +4,11 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { NAV } from "@/config/site";
 import { getSiteContent } from "@/lib/repo";
 import styles from "./sitemap.module.css";
+import { pageMetadata } from "@/lib/page-meta";
 
-export const metadata: Metadata = { title: "사이트맵", description: "서울은평 덴포스 홈페이지 전체 메뉴" };
+export function generateMetadata(): Promise<Metadata> {
+  return pageMetadata("사이트맵", "/sitemap");
+}
 
 /** 전체 메뉴를 한 화면에 (D-042) — 메뉴 구성은 config/site.ts NAV 그대로 */
 export default async function SitemapPage() {

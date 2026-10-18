@@ -4,8 +4,11 @@ import { StaffGrid } from "@/components/player/StaffCard";
 import { getStaff } from "@/lib/repo";
 import { splitStaff } from "@/lib/staff";
 import styles from "@/styles/prose.module.css";
+import { pageMetadata } from "@/lib/page-meta";
 
-export const metadata: Metadata = { title: "코칭스태프" };
+export function generateMetadata(): Promise<Metadata> {
+  return pageMetadata("코칭스태프", "/team/staff");
+}
 
 // 코칭스태프(감독·코치)는 사진 카드, 프런트(단장·사무국 등)는 직책·이름 목록
 export default async function StaffPage() {

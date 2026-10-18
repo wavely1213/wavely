@@ -5,8 +5,11 @@ import { kitLinks } from "@/lib/news";
 import { getNews } from "@/lib/repo";
 import { EmblemPanel } from "./EmblemPanel";
 import { UniformPanel } from "./UniformPanel";
+import { pageMetadata } from "@/lib/page-meta";
 
-export const metadata: Metadata = { title: "엠블럼/유니폼" };
+export function generateMetadata(): Promise<Metadata> {
+  return pageMetadata("엠블럼/유니폼", "/club/emblem");
+}
 
 /** 엠블럼·유니폼 — 페이지 안 탭 '엠블럼 | 유니폼' (강원FC 엠블럼 페이지 방식, D-045). /club/emblem#uniform 은 유니폼 탭으로 열린다 */
 export default async function EmblemPage() {

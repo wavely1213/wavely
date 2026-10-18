@@ -8,19 +8,37 @@ import { LEAGUE } from "@/config/league";
 import { POSITION_LABEL } from "@/data/people";
 import { sitePreviewMeta } from "@/lib/og-metadata";
 import { nonEmptyParams } from "@/lib/params";
-import { getPlayer, getPlayers, getSiteContent, isLiveData } from "@/lib/repo";
+import { findPlayerJoin, playerDescription, profileRows } from "@/lib/player-profile";
+import { getNews, getPlayer, getPlayers, getSiteContent, isLiveData } from "@/lib/repo";
 import styles from "@/styles/prose.module.css";
+import type { Player } from "@/types";
 
 export async function generateStaticParams() {
   return nonEmptyParams((await getPlayers()).map((p) => ({ slug: p.slug })), { slug: "none" });
 }
 
+/** 기록 시즌 뒤에 영입된 선수면 그 영입 소식 (구단뉴스 제목으로 찾는다) */
+async function joinOf(player: Player) {
+  const [players, posts] = await Promise.all([getPlayers(), getNews("news")]);
+  return findPlayerJoin({
+    name: player.name,
+    sameNameCount: players.filter((p) => p.name === player.name).length,
+    posts,
+    statsSeason: LEAGUE.statsSeason,
+  });
+}
+
 export async function generateMetadata({ params }: PageProps<"/team/players/[slug]">): Promise<Metadata> {
   const player = await getPlayer((await params).slug);
   if (!player) return { title: "선수" };
-  // 링크 미리보기 = 선수 사진 (없으면 사이트 이미지) + 포지션·등번호 — D-038
-  const clubName = (await getSiteContent())["site.name"];
-  const description = `${clubName} ${POSITION_LABEL[player.position]}${player.number != null ? ` / 등번호 ${player.number}` : ""}`;
+  // 링크 미리보기 = 선수 사진 (없으면 사이트 이미지) + 포지션·기록(또는 합류 시즌) — D-038
+  const description = playerDescription({
+    player,
+    positionLabel: POSITION_LABEL[player.position],
+    clubName: (await getSiteContent())["site.name"],
+    statsSeason: LEAGUE.statsSeason,
+    join: await joinOf(player),
+  });
   return {
     title: player.name,
     description,
@@ -32,16 +50,10 @@ export default async function PlayerPage({ params }: PageProps<"/team/players/[s
   const player = await getPlayer((await params).slug);
   if (!player) notFound();
 
-  const profile: Array<[string, string]> = [
-    ["등번호", player.number?.toString() ?? "-"],
-    ["포지션", `${POSITION_LABEL[player.position]} (${player.position})`],
-    ["생년월일", player.birth ?? "-"],
-    ["신장", player.heightCm ? `${player.heightCm}cm` : "-"],
-    ["출전", `${player.stats.apps}경기`],
-    ["득점", `${player.stats.goals}골`],
-    // 도움은 연맹이 공개하지 않아 기록이 있을 때만 보여준다
-    ...(player.stats.assists > 0 ? [["도움", `${player.stats.assists}개`] as [string, string]] : []),
-  ];
+  const join = await joinOf(player);
+  const profile = profileRows(player, POSITION_LABEL[player.position], join);
+  // 합류 선수는 출전/득점 칸이 없으니 기록 출처 문구 대신 영입 소식 바로가기
+  const joined = profile.some(([k]) => k === "합류");
 
   return (
     <>
@@ -69,10 +81,18 @@ export default async function PlayerPage({ params }: PageProps<"/team/players/[s
                 </li>
               ))}
             </ul>
-            {isLiveData() && (
-              <p className={`${styles.note} ${styles.source}`}>
-                출전/득점: {LEAGUE.statsSeason} 기록 / 자료: {LEAGUE.source}
+            {joined && join ? (
+              <p>
+                <Link href={`/news/${join.post.category}/${join.post.id}`} className={styles.button}>
+                  영입 소식 보기
+                </Link>
               </p>
+            ) : (
+              isLiveData() && (
+                <p className={`${styles.note} ${styles.source}`}>
+                  출전/득점: {LEAGUE.statsSeason} 기록 / 자료: {LEAGUE.source}
+                </p>
+              )
             )}
           </div>
         </div>

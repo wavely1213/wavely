@@ -5,8 +5,11 @@ import { CONTACT_TOPICS, mailDraftHref, snsHandle, telHref, topicSubject } from 
 import { getClubSettings } from "@/lib/repo";
 import styles from "@/styles/prose.module.css";
 import local from "./contact.module.css";
+import { pageMetadata } from "@/lib/page-meta";
 
-export const metadata: Metadata = { title: "문의" };
+export function generateMetadata(): Promise<Metadata> {
+  return pageMetadata("문의", "/contact");
+}
 
 export default async function ContactPage() {
   const settings = await getClubSettings();

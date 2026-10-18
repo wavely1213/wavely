@@ -8,8 +8,11 @@ import { LEAGUE } from "@/config/league";
 import { scheduleEmptyLinks } from "@/lib/match";
 import { getClubSettings, getUpcomingMatches } from "@/lib/repo";
 import styles from "./schedule.module.css";
+import { pageMetadata } from "@/lib/page-meta";
 
-export const metadata: Metadata = { title: "경기일정" };
+export function generateMetadata(): Promise<Metadata> {
+  return pageMetadata("경기일정", "/match/schedule");
+}
 
 export default async function SchedulePage() {
   const matches = await getUpcomingMatches();

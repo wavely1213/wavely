@@ -5,6 +5,8 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { MatchTable } from "@/components/match/MatchTable";
 import { StandingsTable } from "@/components/match/StandingsTable";
 import { LEAGUE } from "@/config/league";
+import { pastLeagueDescription } from "@/lib/page-descriptions";
+import { descriptionInput } from "@/lib/page-meta";
 import { nonEmptyParams } from "@/lib/params";
 import { getPastLeague, getPastLeagues, getSeasonResults, isLiveData } from "@/lib/repo";
 import styles from "@/styles/prose.module.css";
@@ -25,7 +27,9 @@ async function load(params: PageProps<"/match/standings/[season]">["params"]) {
 
 export async function generateMetadata({ params }: PageProps<"/match/standings/[season]">): Promise<Metadata> {
   const league = await load(params);
-  return { title: league ? `${league.season} 최종 순위` : "리그순위" };
+  if (!league) return { title: "리그순위" };
+  const { club } = await descriptionInput();
+  return { title: `${league.season} 최종 순위`, description: pastLeagueDescription(club, league.season) };
 }
 
 export default async function PastLeaguePage({ params }: PageProps<"/match/standings/[season]">) {

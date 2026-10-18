@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { getHistory } from "@/lib/repo";
 import styles from "@/styles/prose.module.css";
+import { pageMetadata } from "@/lib/page-meta";
 
-export const metadata: Metadata = { title: "연혁" };
+export function generateMetadata(): Promise<Metadata> {
+  return pageMetadata("연혁", "/club/history");
+}
 
 export default async function HistoryPage() {
   const history = await getHistory();

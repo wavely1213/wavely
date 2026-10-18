@@ -4,8 +4,11 @@ import { PlayerGrid } from "@/components/player/PlayerCard";
 import { POSITION_LABEL } from "@/data/people";
 import { getPlayersByPosition } from "@/lib/repo";
 import styles from "@/styles/prose.module.css";
+import { pageMetadata } from "@/lib/page-meta";
 
-export const metadata: Metadata = { title: "선수" };
+export function generateMetadata(): Promise<Metadata> {
+  return pageMetadata("선수", "/team/players");
+}
 
 export default async function PlayersPage() {
   const groups = await getPlayersByPosition();

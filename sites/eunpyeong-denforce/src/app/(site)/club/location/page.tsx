@@ -3,8 +3,11 @@ import { VenueMap } from "@/components/club/VenueMap";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { getClubSettings, getSiteContent } from "@/lib/repo";
 import styles from "@/styles/prose.module.css";
+import { pageMetadata } from "@/lib/page-meta";
 
-export const metadata: Metadata = { title: "오시는 길" };
+export function generateMetadata(): Promise<Metadata> {
+  return pageMetadata("오시는 길", "/club/location");
+}
 
 export default async function LocationPage() {
   const [settings, content] = await Promise.all([getClubSettings(), getSiteContent()]);
