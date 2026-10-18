@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { NewsGrid } from "@/components/news/NewsCard";
+import { toNewsCardPost } from "@/components/news/NewsCard";
+import { NewsMoreGrid } from "@/components/news/NewsMoreGrid";
 import { Placeholder } from "@/components/ui/Placeholder";
 import { NEWS_CATEGORY_LABEL } from "@/data/news";
 import { NEWS_CATEGORIES, toNewsCategory } from "@/lib/params";
@@ -25,7 +26,7 @@ export default async function NewsCategoryPage({ params }: PageProps<"/news/[cat
     <>
       <PageHeader title={NEWS_CATEGORY_LABEL[category]} current={`/news/${category}`} />
       <div className="container">
-        {posts.length > 0 ? <NewsGrid posts={posts} /> : <Placeholder label="게시물이 없습니다." />}
+        {posts.length > 0 ? <NewsMoreGrid posts={posts.map(toNewsCardPost)} /> : <Placeholder label="게시물이 없습니다." />}
       </div>
     </>
   );

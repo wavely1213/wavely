@@ -1,0 +1,35 @@
+.wrap {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border: 1px solid var(--c-line);
+  border-radius: 999px;
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.button:hover {
+  border-color: var(--c-black);
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--c-blue);
+  outline-offset: 2px;
+}
+
+/* 알림 칸은 비어 있어도 늘 둔다 — 숨겼다 보이면 화면 읽기 프로그램이 읽지 않는 경우가 있다 */
+.message {
+  font-size: 13px;
+  color: var(--c-blue);
+}

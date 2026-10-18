@@ -2,17 +2,21 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { newsHref } from "@/components/news/NewsCard";
 import { NewsGallery } from "@/components/news/NewsGallery";
+import { ShareButton } from "@/components/news/ShareButton";
 import { VideoEmbed } from "@/components/news/VideoEmbed";
 import { FitImage } from "@/components/ui/FitImage";
 import { LinkifiedText } from "@/components/ui/LinkifiedText";
 import { NEWS_CATEGORY_LABEL } from "@/data/news";
 import { formatPostDate } from "@/lib/format";
+import { adjacentPosts } from "@/lib/news";
 import { articleImage } from "@/lib/og";
 import { sitePreviewMeta } from "@/lib/og-metadata";
 import { nonEmptyParams, toNewsCategory } from "@/lib/params";
 import { getNews, getNewsPost } from "@/lib/repo";
 import styles from "@/styles/prose.module.css";
+import article from "./article.module.css";
 
 export async function generateStaticParams() {
   return nonEmptyParams(
@@ -48,14 +52,20 @@ export async function generateMetadata({ params }: PageProps<"/news/[category]/[
 export default async function NewsPostPage({ params }: PageProps<"/news/[category]/[id]">) {
   const post = await load(params);
   if (!post) notFound();
+  // 같은 분류 안에서 목록 순서(최근 글 먼저) 기준 — 이전 글 = 더 오래된 글, 다음 글 = 더 새 글
+  const { older, newer } = adjacentPosts(await getNews(post.category), post.id);
 
   return (
     <>
-      <PageHeader title={NEWS_CATEGORY_LABEL[post.category]} current={`/news/${post.category}`} />
+      {/* 이 페이지의 큰 제목은 글 제목(h1) — 분류 이름은 작게, 분류 탭은 그대로 */}
+      <PageHeader title={NEWS_CATEGORY_LABEL[post.category]} current={`/news/${post.category}`} compact />
       <article className={`container ${styles.body}`}>
         <header>
-          <h2 className={styles.h2}>{post.title}</h2>
-          <p className={styles.note}>{formatPostDate(post.date)}</p>
+          <h1 className={styles.pageTitle}>{post.title}</h1>
+          <div className={article.meta}>
+            {post.date && <p className={styles.note}>{formatPostDate(post.date)}</p>}
+            <ShareButton title={post.title} />
+          </div>
         </header>
         {/* 구단영상은 영상을 맨 위에서 재생, 사진은 그 아래 (D-035) */}
         {post.videoUrl && <VideoEmbed url={post.videoUrl} title={post.title} />}
@@ -77,11 +87,35 @@ export default async function NewsPostPage({ params }: PageProps<"/news/[categor
             </p>
           ))}
         </div>
-        <p>
-          <Link href={`/news/${post.category}`} className={styles.button}>
-            목록
-          </Link>
-        </p>
+        <footer className={article.foot}>
+          {(older || newer) && (
+            <nav aria-label="이전 글 / 다음 글">
+              <ul className={article.pager}>
+                {older && (
+                  <li>
+                    <Link href={newsHref(older)} className={article.pagerLink}>
+                      <span className={article.pagerLabel}>이전 글</span>
+                      <span className={article.pagerTitle}>{older.title}</span>
+                    </Link>
+                  </li>
+                )}
+                {newer && (
+                  <li>
+                    <Link href={newsHref(newer)} className={article.pagerLink}>
+                      <span className={article.pagerLabel}>다음 글</span>
+                      <span className={article.pagerTitle}>{newer.title}</span>
+                    </Link>
+                  </li>
+                )}
+              </ul>
+            </nav>
+          )}
+          <p>
+            <Link href={`/news/${post.category}`} className={styles.button}>
+              목록
+            </Link>
+          </p>
+        </footer>
       </article>
     </>
   );

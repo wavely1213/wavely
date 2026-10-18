@@ -1,8 +1,21 @@
-// 구단소식 도우미 — 메인 배너 고르기(D-035), 엠블럼·유니폼 페이지 바로가기 (순수 함수, 테스트: news.test.ts)
+// 구단소식 도우미 — 메인 배너 고르기(D-035), 이전/다음 글, 엠블럼·유니폼 페이지 바로가기 (순수 함수, 테스트: news.test.ts)
 import type { NewsPost } from "@/types";
 
 /** 메인 배너 최대 장수 */
 export const BANNER_MAX = 5;
+
+/** 구단소식 목록 처음에 보이는 글 수 — '더 보기'를 누를 때마다 이만큼 더 */
+export const NEWS_PAGE_SIZE = 12;
+
+/**
+ * 글 상세 아래 '이전 글 / 다음 글'. posts 는 같은 분류 글, 최근 글 먼저(목록 순서).
+ * 이전 글 = 바로 전에 올라온 글(목록에서 한 칸 아래), 다음 글 = 바로 뒤에 올라온 글(한 칸 위). 없으면 undefined
+ */
+export function adjacentPosts<T extends { id: string }>(posts: T[], id: string): { older?: T; newer?: T } {
+  const i = posts.findIndex((p) => p.id === id);
+  if (i < 0) return {};
+  return { older: posts[i + 1], newer: i > 0 ? posts[i - 1] : undefined };
+}
 
 /** 이적·작별 소식 — 메인 배너에서 뺀다 (소유자 지시 "누가 나갔다라는 이적 내용은 제외") */
 const DEPARTURE = /이적으로|동행 마무리|작별|GOOD ?LUCK|THANK ?YOU/i;

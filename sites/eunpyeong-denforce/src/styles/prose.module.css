@@ -33,6 +33,16 @@
   margin-bottom: 18px;
 }
 
+/* 상세 페이지(글/선수)의 큰 제목 — 위 메뉴 이름(PageHeader compact)보다 크게 */
+.pageTitle {
+  font-size: clamp(26px, 3.2vw, 36px);
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  overflow-wrap: break-word;
+  margin-bottom: 16px;
+}
+
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));

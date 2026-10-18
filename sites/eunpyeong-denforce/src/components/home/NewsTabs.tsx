@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { NewsGrid } from "@/components/news/NewsCard";
+import { ScrollRow } from "@/components/ui/ScrollRow";
 import { NEWS_CATEGORY_LABEL } from "@/data/news";
 import type { NewsCategory, NewsPost } from "@/types";
 import styles from "./Tabs.module.css";
@@ -14,7 +15,7 @@ export function NewsTabs({ posts, limit = 4, columns = 4 }: { posts: NewsPost[];
 
   return (
     <>
-      <div className={styles.tabs} role="tablist">
+      <ScrollRow className={styles.tabs} role="tablist" activeKey={tab}>
         {TABS.map((t) => (
           <button
             key={t}
@@ -27,7 +28,7 @@ export function NewsTabs({ posts, limit = 4, columns = 4 }: { posts: NewsPost[];
             {t === "all" ? "전체" : NEWS_CATEGORY_LABEL[t]}
           </button>
         ))}
-      </div>
+      </ScrollRow>
       {visible.length > 0 ? <NewsGrid posts={visible} columns={columns} scroll /> : <p className={styles.empty}>게시물이 없습니다.</p>}
     </>
   );

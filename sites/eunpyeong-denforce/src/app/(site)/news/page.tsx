@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { NewsBanner } from "@/components/news/NewsBanner";
-import { NewsGrid } from "@/components/news/NewsCard";
+import { toNewsCardPost } from "@/components/news/NewsCard";
+import { NewsMoreGrid } from "@/components/news/NewsMoreGrid";
 import { pickBanner } from "@/lib/news";
 import { getNews } from "@/lib/repo";
 
@@ -18,7 +19,8 @@ export default async function NewsPage() {
       <div className="container">
         {/* 맨 위 메인 소식 슬라이드 — 관리자 '메인 배너' 고정 글, 없으면 최근 소식(이적·작별 제외) (D-035) */}
         <NewsBanner posts={banner} />
-        <NewsGrid posts={posts.filter((p) => !inBanner.has(p.id))} />
+        {/* 처음 12개, '더 보기'로 12개씩 더 */}
+        <NewsMoreGrid posts={posts.filter((p) => !inBanner.has(p.id)).map(toNewsCardPost)} />
       </div>
     </>
   );

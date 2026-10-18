@@ -45,7 +45,8 @@ export default async function PlayerPage({ params }: PageProps<"/team/players/[s
 
   return (
     <>
-      <PageHeader title="선수" current="/team/players" />
+      {/* 이 페이지의 큰 제목은 선수 이름(h1) — 메뉴 이름 '선수'는 작게 */}
+      <PageHeader title="선수" current="/team/players" compact />
       <div className={`container ${styles.body}`}>
         <div className={styles.split}>
           <div className={styles.figure} style={{ aspectRatio: "3 / 4", maxWidth: 360 }}>
@@ -56,10 +57,10 @@ export default async function PlayerPage({ params }: PageProps<"/team/players/[s
             )}
           </div>
           <div>
-            <h2 className={styles.h2}>
+            <h1 className={styles.pageTitle}>
               {player.number != null && `No.${player.number} `}
               {player.name}
-            </h2>
+            </h1>
             <ul className={styles.list}>
               {profile.map(([k, v]) => (
                 <li key={k}>
