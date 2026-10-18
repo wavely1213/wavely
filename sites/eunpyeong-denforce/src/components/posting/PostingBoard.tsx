@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { MoreButton } from "@/components/ui/MoreButton";
 import { POSTING_KIND_LABEL, POSTING_PLATFORM_LABEL } from "@/data/postings";
 import { countByKind, filterPostings, platformCounts, POSTING_KINDS, POSTINGS_PAGE_SIZE } from "@/lib/postings";
 import type { Posting, PostingKind, PostingPlatform } from "@/types";
@@ -72,11 +73,7 @@ export function PostingBoard({ postings }: { postings: Posting[] }) {
       )}
 
       {list.length > shown.length && (
-        <div className={styles.more}>
-          <button type="button" className={styles.moreButton} onClick={() => setLimit((n) => n + POSTINGS_PAGE_SIZE)}>
-            더 보기 <span className={styles.count}>{list.length - shown.length}</span>
-          </button>
-        </div>
+        <MoreButton remaining={list.length - shown.length} onClick={() => setLimit((n) => n + POSTINGS_PAGE_SIZE)} />
       )}
     </>
   );

@@ -81,30 +81,6 @@
   color: var(--c-text-sub);
 }
 
-.more {
-  display: flex;
-  justify-content: center;
-  margin-top: 44px;
-}
-
-.moreButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 36px;
-  border: 1px solid var(--c-line);
-  border-radius: 999px;
-  background: var(--c-bg);
-  color: var(--c-text);
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.moreButton:hover {
-  border-color: var(--c-black);
-}
-
 @media (max-width: 960px) {
   .grid {
     grid-template-columns: repeat(2, 1fr);

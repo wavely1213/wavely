@@ -1,0 +1,35 @@
+/* 목록 아래 '더 보기' (포스팅 목록에서 옮겨 와 구단소식 목록과 같이 쓴다) */
+.more {
+  display: flex;
+  justify-content: center;
+  margin-top: 44px;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 36px;
+  border: 1px solid var(--c-line);
+  border-radius: 999px;
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.button:hover {
+  border-color: var(--c-black);
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--c-blue);
+  outline-offset: 2px;
+}
+
+.count {
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.7;
+}

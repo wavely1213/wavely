@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { PlayerGrid } from "@/components/player/PlayerCard";
+import { ScrollRow } from "@/components/ui/ScrollRow";
 import { POSITION_LABEL } from "@/data/people";
 import type { Player, Position } from "@/types";
 import styles from "./Tabs.module.css";
@@ -12,7 +13,7 @@ export function PlayersPreview({ groups }: { groups: Array<[Position, Player[]]>
 
   return (
     <>
-      <div className={styles.tabs} role="tablist">
+      <ScrollRow className={styles.tabs} role="tablist" activeKey={pos}>
         {groups.map(([p]) => (
           <button
             key={p}
@@ -25,7 +26,7 @@ export function PlayersPreview({ groups }: { groups: Array<[Position, Player[]]>
             {POSITION_LABEL[p]}
           </button>
         ))}
-      </div>
+      </ScrollRow>
       <PlayerGrid players={players} scroll />
     </>
   );

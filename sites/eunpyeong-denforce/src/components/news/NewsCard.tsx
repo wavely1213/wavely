@@ -6,11 +6,18 @@ import { formatPostDate } from "@/lib/format";
 import type { NewsPost } from "@/types";
 import styles from "./NewsCard.module.css";
 
-export function newsHref(post: NewsPost) {
+/** 목록 카드에 쓰는 칸만 — 클라이언트 목록(더 보기)으로 넘길 때 본문까지 보내지 않게 */
+export type NewsCardPost = Pick<NewsPost, "id" | "category" | "title" | "date" | "thumbnail" | "videoUrl">;
+
+export function toNewsCardPost({ id, category, title, date, thumbnail, videoUrl }: NewsPost): NewsCardPost {
+  return { id, category, title, date, thumbnail, videoUrl };
+}
+
+export function newsHref(post: Pick<NewsPost, "id" | "category">) {
   return `/news/${post.category}/${post.id}`;
 }
 
-export function NewsCard({ post }: { post: NewsPost }) {
+export function NewsCard({ post }: { post: NewsCardPost }) {
   return (
     <Link href={newsHref(post)} className={styles.card}>
       <div className={styles.thumb}>
@@ -39,7 +46,7 @@ export function NewsCard({ post }: { post: NewsPost }) {
 }
 
 /** scroll: 모바일에서 한 줄 가로 스와이프 (메인용) */
-export function NewsGrid({ posts, scroll = false, columns = 4 }: { posts: NewsPost[]; scroll?: boolean; columns?: 3 | 4 }) {
+export function NewsGrid({ posts, scroll = false, columns = 4 }: { posts: NewsCardPost[]; scroll?: boolean; columns?: 3 | 4 }) {
   return (
     <div className={`${styles.grid} ${columns === 3 ? styles.cols3 : ""} ${scroll ? styles.scroll : ""}`}>
       {posts.map((p) => (
