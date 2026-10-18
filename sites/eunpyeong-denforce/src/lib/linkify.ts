@@ -43,6 +43,10 @@ export function ownSiteLink(href: string, value: string, siteUrl: string): { pat
   }
   const bare = (host: string) => host.replace(/^www\./, "");
   if (!/^https?:$/.test(url.protocol) || bare(url.hostname) !== bare(site.hostname)) return null;
+  // 이럴 때는 바깥 링크(원래 글자 그대로, 새 창)로 둔다:
+  // - 주소에 한글 등이 붙어 있으면 ('…/club/location에서') — 경로가 %EC.. 로 바뀌어 이름이 깨지고 조사가 사라진다
+  // - 경로가 '//' 로 시작하면 ('eunpyeong-fs.com//다른사이트') — 같은 창 링크가 다른 사이트 주소가 된다
+  if (/[^\x00-\x7F]/.test(value) || /^\/[/\\]/.test(url.pathname)) return null;
   // 끝 '/' 는 떼고 비교 ("/team/players/no-7/" = "/team/players/no-7")
   const pathname = url.pathname.replace(/(.)\/+$/, "$1");
   const path = `${pathname}${url.search}${url.hash}`;

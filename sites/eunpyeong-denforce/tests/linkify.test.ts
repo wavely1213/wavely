@@ -58,3 +58,12 @@ test("ownSiteLink: 바깥 주소/비슷한 다른 도메인은 null (새 창 링
   assert.equal(own("https://my-eunpyeong-fs.com/news"), null);
   assert.equal(ownSiteLink("not a url", "not a url", SITE_URL), null);
 });
+
+test("ownSiteLink: 주소에 한글이 붙었거나 경로가 '//' 로 시작하면 null (원래 글자, 새 창 — 이름 깨짐/다른 사이트로 가는 것 막기)", () => {
+  assert.equal(own("자세한 내용은 eunpyeong-fs.com/club/location에서 확인"), null);
+  assert.equal(own("https://eunpyeong-fs.com/team/players/no-7에서 확인"), null);
+  assert.equal(own("https://eunpyeong-fs.com//evil.example/x"), null);
+  assert.equal(own("eunpyeong-fs.com/\\evil.example"), null);
+  // 한글 없이 띄어 쓴 주소는 그대로 우리 주소
+  assert.deepEqual(own("자세한 내용은 eunpyeong-fs.com/club/location 에서 확인"), { path: "/club/location", label: "/club/location" });
+});
