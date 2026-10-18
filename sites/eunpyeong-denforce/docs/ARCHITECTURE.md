@@ -64,7 +64,8 @@ proxy.ts (/admin/*) ─→ 세션 쿠키 갱신만 (권한 판단 X)
 | 메인 섹션 | /src/components/home | Hero, SponsorMarquee(히어로 아래 스폰서 띠, D-029), HomeColumns(본문 + 오른쪽 위젯 칸)·StandingsWidget(리그 순위, D-034), NewsTabs, PlayersPreview, QuickLinks, SponsorStrip(스폰서 페이지 격자) |
 | 도메인 UI | /src/components/{club,match,news,player,posting} | VenueMap·NaverMap(오시는 길 지도, 네이버 지도 스크립트는 키가 있을 때만), MatchRow(목록), MatchCard(메인), NewsCard, PlayerCard, PostingBoard(분류 탭·출처 칩·더 보기, 클라이언트)·PostingCard |
 | 포스팅 도우미 | /src/lib/postings.ts | 정렬(최근 먼저)·분류/출처 필터·개수 (순수 함수, D-022) |
-| 공용 UI | /src/components/ui | Section, Placeholder, EmblemFallback(사진 없을 때) |
+| 공용 UI | /src/components/ui | Section, Placeholder, EmblemFallback(사진 없을 때), FitImage(세로 사진도 잘리지 않는 미리보기 — D-050), DocumentBody(관리자가 쓴 긴 문서 — D-051) |
+| 없는 주소 화면 | /src/app/not-found.tsx, /src/app/(site)/not-found.tsx, /src/components/layout/NotFoundBody.tsx | 맞는 주소가 없을 때(루트, 띠/헤더/푸터 직접) / 사이트 페이지 안 notFound()(본문만) (D-050) |
 | 관리자 UI | /src/components/admin | AdminForm(useActionState + 필드 오류·입력값 유지), fields, DeleteButton, PageTitle, AdminNav |
 | 공개 데이터 접근 | /src/lib/repo.ts | 모든 공개 조회 함수 (캐시 태그: lib/cache-tags.ts) |
 | 데이터 소스 | /src/lib/data | source.ts(계약), db-source.ts, static-source.ts, rows.ts(DB↔도메인 변환) |
