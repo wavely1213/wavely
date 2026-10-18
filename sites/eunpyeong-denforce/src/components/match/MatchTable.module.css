@@ -86,6 +86,58 @@
   display: none;
 }
 
+/* 경기결과: 대진 아래 득점자 줄 + 영상 버튼 (details). 표 칸의 nowrap 을 풀어 긴 득점자 줄은 접는다 */
+.details {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 12px;
+  margin-top: 8px;
+  font-size: 13px;
+  white-space: normal;
+}
+
+.scorers {
+  color: var(--c-text-sub);
+  overflow-wrap: anywhere;
+}
+
+.scorersLabel {
+  font-weight: 700;
+  color: var(--c-blue);
+}
+
+.videos {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.video {
+  display: inline-block;
+  padding: 4px 10px;
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-s);
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.video:hover {
+  border-color: var(--c-blue);
+  color: var(--c-blue);
+}
+
+.video:focus-visible {
+  outline: 2px solid var(--c-blue);
+  outline-offset: 2px;
+}
+
 /* 모바일: 가로 스크롤 없이 일정·대진·결과 3칸 */
 @media (max-width: 720px) {
   .table {
@@ -152,5 +204,23 @@
 
   .vs {
     display: none;
+  }
+
+  /* 대진 칸이 왼쪽 정렬이라 득점자/영상 줄도 왼쪽부터. 버튼 두 개가 좁은 칸(390px 기준 약 150px)에 한 줄로 */
+  .details,
+  .videos {
+    justify-content: flex-start;
+  }
+
+  .details {
+    gap: 4px 8px;
+    margin-top: 6px;
+    font-size: 12px;
+    text-align: left;
+  }
+
+  .video {
+    padding: 4px 8px;
+    font-size: 12px;
   }
 }

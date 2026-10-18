@@ -12,3 +12,10 @@
   text-align: center;
   text-wrap: balance;
 }
+
+/* 문구 아래에 바로가기가 있을 때 — 위아래로 쌓는다 */
+.stack {
+  flex-direction: column;
+  gap: 16px;
+  padding: 28px 16px;
+}

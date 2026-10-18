@@ -70,5 +70,8 @@ await admin.from("sponsors").delete().eq("id", s.data.id);
 // 5) 제약: 종료 경기 스코어 필수
 const bad = await admin.from("matches").insert({ competition: "c", kickoff: "2026-01-01T00:00:00Z", opponent: "o", status: "finished" });
 check("종료 경기 스코어 없으면 DB 가 거부", bad.error?.code === "23514");
+// 6) 제약: 경기 영상 주소는 https 만 (20261018100000)
+const badVideo = await admin.from("matches").insert({ competition: "c", kickoff: "2026-01-01T00:00:00Z", opponent: "o", highlight_url: "http://example.com/v" });
+check("경기 영상 주소가 https 가 아니면 DB 가 거부", badVideo.error?.code === "23514");
 console.log(fail ? `\n${fail} FAILED` : "\nALL PASS");
 process.exit(fail ? 1 : 0);

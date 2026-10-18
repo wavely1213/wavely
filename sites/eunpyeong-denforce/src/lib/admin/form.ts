@@ -97,6 +97,11 @@ export class FormReader {
     return this.optText(name, { label, max: 500, pattern: /^https?:\/\/\S+$/, patternHint: `${label}은(는) http:// 또는 https:// 로 시작해야 합니다.` });
   }
 
+  /** https 주소만 (선택) — DB check 가 https 만 받는 칸 (예: 경기 영상) */
+  optHttpsUrl(name: string, label: string, max = 500): string | null {
+    return this.optText(name, { label, max, pattern: /^https:\/\/\S+$/, patternHint: `${label}은(는) https:// 로 시작해야 합니다.` });
+  }
+
   /** YYYY-MM-DD (선택) */
   optDate(name: string, label: string): string | null {
     const v = this.optText(name, { label, pattern: /^\d{4}-\d{2}-\d{2}$/, patternHint: `${label}은(는) YYYY-MM-DD 형식으로 입력해 주세요.` });

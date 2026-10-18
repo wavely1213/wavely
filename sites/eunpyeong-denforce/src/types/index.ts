@@ -33,6 +33,11 @@ export type Match = {
   opponent: string;
   status: MatchStatus;
   score: { us: number; them: number } | null;
+  /** 하이라이트·경기 전체 다시보기 영상 (https). 경기결과에서 새 창 버튼 */
+  highlightUrl: string | null;
+  replayUrl: string | null;
+  /** 우리 팀 득점자 한 줄, 관리자 입력 그대로 (예: "원해연 2, 김민성") */
+  scorers: string | null;
 };
 
 export type StandingRow = {

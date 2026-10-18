@@ -2,11 +2,12 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { formatKickoffFull } from "../src/lib/format.ts";
-import { groupByCompetition, homeMatchItems, matchLabel } from "../src/lib/match.ts";
+import { groupByCompetition, hasMatchDetails, homeMatchItems, matchLabel, matchVideoLinks, scheduleEmptyLinks } from "../src/lib/match.ts";
 import type { Match } from "../src/types/index.ts";
 
 const m = (id: string, competition: string, round = ""): Match => ({
   id, competition, round, kickoff: "2026-01-01T00:00:00+09:00", venue: "", isHome: true, opponent: "A", status: "finished", score: { us: 1, them: 0 },
+  highlightUrl: null, replayUrl: null, scorers: null,
 });
 
 test("groupByCompetition: 연속된 같은 대회끼리 묶고 순서 유지", () => {
@@ -35,4 +36,41 @@ test("homeMatchItems: 지난 1 + 다음 1 / 지난 경기 없으면 예정 2 / �
   assert.deepEqual(ids(homeMatchItems(f, [])), ["f1:지난 경기", "f2:지난 경기"]);
   assert.deepEqual(homeMatchItems([], []), []);
   assert.deepEqual(ids(homeMatchItems(f, u, 3)), ["f1:지난 경기", "u1:다음 경기", "u2:예정"]);
+});
+
+test("hasMatchDetails: 종료 경기이고 득점자나 영상이 있을 때만", () => {
+  assert.equal(hasMatchDetails(m("1", "A")), false);
+  assert.equal(hasMatchDetails({ ...m("1", "A"), scorers: "원해연 2, 김민성" }), true);
+  assert.equal(hasMatchDetails({ ...m("1", "A"), replayUrl: "https://youtu.be/r" }), true);
+  assert.equal(hasMatchDetails({ ...m("1", "A"), replayUrl: "http://a.kr/v" }), false);
+  // 예정 경기는 주소가 있어도 결과 줄을 만들지 않는다
+  assert.equal(hasMatchDetails({ ...m("1", "A"), status: "scheduled", score: null, highlightUrl: "https://youtu.be/h" }), false);
+});
+
+test("matchVideoLinks: 하이라이트 → 다시보기 순, 주소 있는 것만, 화면 읽기 이름은 버튼 글자 + 경기 (홈팀 먼저)", () => {
+  const base = { ...m("1", "2025-26 FK1리그", "1R"), kickoff: "2025-11-15T15:00:00+09:00", opponent: "강원FS" };
+  assert.deepEqual(matchVideoLinks(base, "서울은평 덴포스"), []);
+  const both = matchVideoLinks({ ...base, highlightUrl: "https://youtu.be/h", replayUrl: "https://youtu.be/r" }, "서울은평 덴포스");
+  assert.deepEqual(both.map((v) => [v.kind, v.label, v.url]), [
+    ["highlight", "하이라이트", "https://youtu.be/h"],
+    ["replay", "다시보기", "https://youtu.be/r"],
+  ]);
+  assert.equal(both[0].ariaLabel, "하이라이트 영상 - 2025-11-15 (토) 서울은평 덴포스 vs 강원FS (새 창)");
+  // 원정 경기는 상대가 먼저 (BR-002)
+  const away = matchVideoLinks({ ...base, isHome: false, replayUrl: "https://youtu.be/r" }, "서울은평 덴포스");
+  assert.deepEqual(away.map((v) => v.kind), ["replay"]);
+  assert.equal(away[0].ariaLabel, "다시보기 영상 - 2025-11-15 (토) 강원FS vs 서울은평 덴포스 (새 창)");
+  // 화면 글에는 중간점을 쓰지 않는다 (BR-024)
+  assert.ok(both.every((v) => !v.ariaLabel.includes("·")));
+  // https 가 아닌 주소는 버튼을 만들지 않는다
+  assert.deepEqual(matchVideoLinks({ ...base, highlightUrl: "javascript:alert(1)", replayUrl: "http://a.kr/v" }, "서울은평 덴포스"), []);
+});
+
+test("scheduleEmptyLinks: 리그순위 / 지난 경기 결과 / 인스타그램(주소가 있을 때만, 새 창)", () => {
+  assert.deepEqual(scheduleEmptyLinks("https://www.instagram.com/eunpyeong_denforce"), [
+    { label: "리그순위", href: "/match/standings", external: false },
+    { label: "지난 경기 결과", href: "/match/results", external: false },
+    { label: "일정 발표 소식 받기", href: "https://www.instagram.com/eunpyeong_denforce", external: true },
+  ]);
+  assert.deepEqual(scheduleEmptyLinks(null).map((l) => l.label), ["리그순위", "지난 경기 결과"]);
 });

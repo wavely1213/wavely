@@ -6,11 +6,11 @@ const COMP = "FK리그 2026-27";
 const HOME = "은평다목적체육관";
 
 export const MATCHES: Match[] = [
-  { id: "r1", competition: COMP, round: "1R", kickoff: "2026-10-03T15:00:00+09:00", venue: HOME, isHome: true, opponent: "상대팀 A", status: "finished", score: { us: 4, them: 2 } },
-  { id: "r2", competition: COMP, round: "2R", kickoff: "2026-10-10T17:00:00+09:00", venue: "원정 경기장", isHome: false, opponent: "상대팀 B", status: "finished", score: { us: 2, them: 2 } },
-  { id: "r3", competition: COMP, round: "3R", kickoff: "2026-10-24T15:00:00+09:00", venue: HOME, isHome: true, opponent: "상대팀 C", status: "scheduled", score: null },
-  { id: "r4", competition: COMP, round: "4R", kickoff: "2026-10-31T17:00:00+09:00", venue: "원정 경기장", isHome: false, opponent: "상대팀 D", status: "scheduled", score: null },
-  { id: "r5", competition: COMP, round: "5R", kickoff: "2026-11-07T15:00:00+09:00", venue: HOME, isHome: true, opponent: "상대팀 E", status: "scheduled", score: null },
+  { id: "r1", competition: COMP, round: "1R", kickoff: "2026-10-03T15:00:00+09:00", venue: HOME, isHome: true, opponent: "상대팀 A", status: "finished", score: { us: 4, them: 2 }, highlightUrl: null, replayUrl: null, scorers: null },
+  { id: "r2", competition: COMP, round: "2R", kickoff: "2026-10-10T17:00:00+09:00", venue: "원정 경기장", isHome: false, opponent: "상대팀 B", status: "finished", score: { us: 2, them: 2 }, highlightUrl: null, replayUrl: null, scorers: null },
+  { id: "r3", competition: COMP, round: "3R", kickoff: "2026-10-24T15:00:00+09:00", venue: HOME, isHome: true, opponent: "상대팀 C", status: "scheduled", score: null, highlightUrl: null, replayUrl: null, scorers: null },
+  { id: "r4", competition: COMP, round: "4R", kickoff: "2026-10-31T17:00:00+09:00", venue: "원정 경기장", isHome: false, opponent: "상대팀 D", status: "scheduled", score: null, highlightUrl: null, replayUrl: null, scorers: null },
+  { id: "r5", competition: COMP, round: "5R", kickoff: "2026-11-07T15:00:00+09:00", venue: HOME, isHome: true, opponent: "상대팀 E", status: "scheduled", score: null, highlightUrl: null, replayUrl: null, scorers: null },
 ];
 
 export const STANDINGS: StandingRow[] = [

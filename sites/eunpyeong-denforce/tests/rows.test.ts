@@ -9,10 +9,22 @@ test("splitParagraphs: 빈 줄 기준, 공백 줄/앞뒤 공백 정리", () => {
 });
 
 test("toMatch: 종료 경기만 스코어, 예정은 null", () => {
-  const base = { id: "1", competition: "FK", round: "1R", kickoff: "2026-10-03T06:00:00+00:00", venue: "v", is_home: true, opponent: "A" };
+  const base = { id: "1", competition: "FK", round: "1R", kickoff: "2026-10-03T06:00:00+00:00", venue: "v", is_home: true, opponent: "A", highlight_url: null, replay_url: null, scorers: null };
   assert.deepEqual(toMatch({ ...base, status: "finished", score_us: 4, score_them: 2 }).score, { us: 4, them: 2 });
   assert.equal(toMatch({ ...base, status: "scheduled", score_us: null, score_them: null }).score, null);
   assert.equal(toMatch({ ...base, status: "finished", score_us: null, score_them: 1 }).score, null);
+});
+
+test("toMatch: 영상 주소/득점자 필드명 변환, 마이그레이션 전 DB(열 없음)는 null", () => {
+  const base = { id: "1", competition: "FK", round: "1R", kickoff: "2026-10-03T06:00:00+00:00", venue: "v", is_home: true, opponent: "A", status: "finished" as const, score_us: 2, score_them: 5 };
+  const m = toMatch({ ...base, highlight_url: "https://youtu.be/h", replay_url: "https://youtu.be/r", scorers: "원해연, 김영록" });
+  assert.equal(m.highlightUrl, "https://youtu.be/h");
+  assert.equal(m.replayUrl, "https://youtu.be/r");
+  assert.equal(m.scorers, "원해연, 김영록");
+  const old = toMatch(base as Parameters<typeof toMatch>[0]);
+  assert.equal(old.highlightUrl, null);
+  assert.equal(old.replayUrl, null);
+  assert.equal(old.scorers, null);
 });
 
 test("toPlayer: 통계 묶음/사진 필드명 변환", () => {

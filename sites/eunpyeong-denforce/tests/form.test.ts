@@ -62,6 +62,21 @@ test("optUrl/optDate", () => {
   assert.equal(r.errors.u1, undefined);
 });
 
+test("optHttpsUrl: https 만 (http·공백 포함·500자 초과 거부), 비면 null", () => {
+  const long = `https://youtu.be/${"a".repeat(490)}`;
+  const r = new FormReader(fd({ ok: "  https://www.youtube.com/watch?v=ZcRT9Wob-TQ ", http: "http://a.kr", space: "https://a.kr/x y", long, empty: "" }));
+  assert.equal(r.optHttpsUrl("ok", "하이라이트 영상"), "https://www.youtube.com/watch?v=ZcRT9Wob-TQ");
+  r.optHttpsUrl("http", "다시보기 영상");
+  r.optHttpsUrl("space", "다시보기 영상");
+  r.optHttpsUrl("long", "다시보기 영상");
+  assert.equal(r.optHttpsUrl("empty", "다시보기 영상"), null);
+  assert.equal(r.errors.ok, undefined);
+  assert.equal(r.errors.http, "다시보기 영상은(는) https:// 로 시작해야 합니다.");
+  assert.ok(r.errors.space);
+  assert.ok(r.errors.long.includes("500자 이하"));
+  assert.equal(r.errors.empty, undefined);
+});
+
 test("state: 오류와 제출값(비밀번호/파일 제외)을 돌려준다", () => {
   const f = fd({ name: "x", password: "secret" });
   f.append("logo", new File(["x"], "a.png", { type: "image/png" }));

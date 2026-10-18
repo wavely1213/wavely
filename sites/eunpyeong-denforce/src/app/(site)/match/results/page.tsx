@@ -16,7 +16,7 @@ export default async function ResultsPage() {
       <div className="container">
         {matches.length > 0 ? (
           <>
-            <MatchTable matches={matches} />
+            <MatchTable matches={matches} details />
             {isLiveData() && <p className={`${styles.note} ${styles.source}`}>자료: {LEAGUE.source}</p>}
           </>
         ) : (
