@@ -9,7 +9,7 @@ import { PostingCard } from "./PostingCard";
 import styles from "./PostingBoard.module.css";
 
 /** 포스팅 목록 — 왼쪽 분류 탭(전체·구단·뉴스·팬·FK리그, 전체에는 FK리그 제외) + 오른쪽 출처 칩 + 카드 격자, '더 보기'로 늘린다 */
-export function PostingBoard({ postings }: { postings: Posting[] }) {
+export function PostingBoard({ postings, emptyText }: { postings: Posting[]; emptyText: string }) {
   const [kind, setKind] = useState<PostingKind | null>(null);
   const [platform, setPlatform] = useState<PostingPlatform | null>(null);
   const [limit, setLimit] = useState(POSTINGS_PAGE_SIZE);
@@ -69,7 +69,7 @@ export function PostingBoard({ postings }: { postings: Posting[] }) {
           ))}
         </div>
       ) : (
-        <p className={styles.empty}>아직 모은 글이 없습니다.</p>
+        <p className={styles.empty}>{emptyText}</p>
       )}
 
       {list.length > shown.length && (

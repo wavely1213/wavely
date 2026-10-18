@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { pageMetadata } from "@/lib/page-meta";
 import { getHistory } from "@/lib/repo";
 import styles from "@/styles/prose.module.css";
-import { pageMetadata } from "@/lib/page-meta";
 
 export function generateMetadata(): Promise<Metadata> {
   return pageMetadata("연혁", "/club/history");

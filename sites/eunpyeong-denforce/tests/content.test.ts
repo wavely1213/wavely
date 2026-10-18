@@ -1,6 +1,7 @@
 // 홈페이지 내용(총괄 관리자) 단위 테스트 — 실행: npm test
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { LEAGUE } from "../src/config/league.ts";
 import { CONTENT_FIELDS, type ContentKey, type FieldDef } from "../src/lib/content/fields.ts";
 import { CONTENT_LISTS, type ListDef } from "../src/lib/content/lists.ts";
 import { CONTENT_SECTIONS } from "../src/lib/content/sections.ts";
@@ -116,4 +117,32 @@ test("contentCards: 항목을 줄로 나누고, 이름이나 항목이 없는 �
 test("유니폼 사진 기본값은 사이트 안 사진 주소, 팀 색상 기본값은 '#RRGGBB'", () => {
   for (const d of CONTENT_LISTS["kit.images"].defaults) assert.ok(d.image.startsWith("/photos/"), d.image);
   for (const d of CONTENT_LISTS["emblem.colors"].defaults) assert.equal(normalizeHex(d.body), d.body);
+});
+
+test("관리자 개편 3단계: 기본값은 그동안 페이지에 박혀 있던 글 그대로, 중간점 없음 (D-047)", () => {
+  const c = resolveContent({});
+  assert.equal(c["staff.section.coaching"], "코칭스태프");
+  assert.equal(c["staff.section.front"], "프런트");
+  assert.equal(c["schedule.empty"], `${LEAGUE.nextSeason} 시즌 일정은 ${LEAGUE.source} 발표 후 업데이트됩니다.`);
+  assert.equal(c["results.empty"], "종료된 경기가 없습니다.");
+  assert.equal(c["standings.basis"], "순위 기준: 승점 → 득실차 → 다득점");
+  assert.equal(c["standings.empty"], "순위 정보가 없습니다.");
+  assert.equal(c["standings.section.past"], "지난 리그");
+  assert.equal(c["news.empty"], "게시물이 없습니다.");
+  assert.equal(c["posting.empty"], "아직 모은 글이 없습니다.");
+  assert.equal(c["sponsors.box.title"], "스폰서십 문의");
+  assert.deepEqual(contentLines(c["sponsors.box.facts"]), ["FK리그 경기는 한국풋살연맹 유튜브로 생중계"]);
+  assert.equal(c["sponsors.box.button"], "문의하기");
+  assert.equal(c["contact.section.topics"], "문의 분야");
+  assert.deepEqual(contentLines(c["contact.topics"]), ["스폰서십/제휴", "아카데미/유소년", "언론/취재", "기타"]);
+  for (const k of KEYS) assert.ok(!def(k).default.includes("·"), k);
+});
+
+test("관리자 개편 3단계 구역: 선수단/경기/소식/스폰서/문의가 차례로 있고 '이 페이지 보기'는 사이트 안 주소", () => {
+  const ids = CONTENT_SECTIONS.map((s) => s.id);
+  assert.deepEqual(ids, ["common", "home", "club", "emblem", "team", "match", "news", "sponsors", "contact", "privacy"]);
+  for (const s of CONTENT_SECTIONS) {
+    assert.ok(s.view.startsWith("/") && !s.view.startsWith("//"), s.id);
+    for (const r of s.related) assert.ok(r.href.startsWith("/admin"), `${s.id} ${r.href}`);
+  }
 });

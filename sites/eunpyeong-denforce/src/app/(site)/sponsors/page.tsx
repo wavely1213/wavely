@@ -4,20 +4,21 @@ import { SponsorStrip } from "@/components/home/SponsorStrip";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { LEAGUE } from "@/config/league";
 import { SPONSOR_TOPIC, mailDraftHref, snsHandle, topicSubject } from "@/lib/contact";
-import { getClubSettings, getSponsors } from "@/lib/repo";
+import { pageMetadata } from "@/lib/page-meta";
+import { contentLines } from "@/lib/content/values";
+import { getClubSettings, getSiteContent, getSponsors } from "@/lib/repo";
 import { leagueEntryLine } from "@/lib/sponsors";
 import styles from "@/styles/prose.module.css";
 import local from "./sponsors.module.css";
-import { pageMetadata } from "@/lib/page-meta";
 
 export function generateMetadata(): Promise<Metadata> {
   return pageMetadata("스폰서", "/sponsors");
 }
 
 export default async function SponsorsPage() {
-  const [sponsors, settings] = await Promise.all([getSponsors(), getClubSettings()]);
-  // 확인된 사실만 (BR-004): 리그 참가는 지금 시즌 대회명, 생중계는 포스팅 FK리그 탭의 한국풋살연맹 유튜브 [LIVE] 영상들.
-  // 팔로워 수 등 숫자는 넣지 않는다
+  const [sponsors, settings, content] = await Promise.all([getSponsors(), getClubSettings(), getSiteContent()]);
+  // 확인된 사실만 (BR-004): 리그 참가는 지금 시즌 대회명(자동), 가운데 줄은 관리자 › 홈페이지 내용 › 스폰서
+  // (기본값 생중계 줄 = 포스팅 FK리그 탭의 한국풋살연맹 유튜브 [LIVE] 영상들). 팔로워 수 등 숫자는 넣지 않는다
   const league = leagueEntryLine(LEAGUE.currentCompetition);
   const instagram = settings.instagramUrl;
   return (
@@ -26,11 +27,13 @@ export default async function SponsorsPage() {
       <div className={`container ${styles.body}`}>
         <SponsorStrip sponsors={sponsors} />
         <section className={styles.card}>
-          <h3>스폰서십 문의</h3>
-          <p>FK리그 중계/유니폼/SNS를 통한 브랜드 노출과 지역 사회공헌 프로그램을 함께할 파트너를 찾습니다.</p>
+          <h3>{content["sponsors.box.title"]}</h3>
+          <p>{content["sponsors.box.body"]}</p>
           <ul className={local.facts}>
             {league && <li>{league}</li>}
-            <li>FK리그 경기는 한국풋살연맹 유튜브로 생중계</li>
+            {[...new Set(contentLines(content["sponsors.box.facts"]))].map((line) => (
+              <li key={line}>{line}</li>
+            ))}
             {instagram && (
               <li>
                 구단 공식 인스타그램 운영{" "}
@@ -45,11 +48,11 @@ export default async function SponsorsPage() {
             {/* 문의 메일이 있으면 제목이 채워진 메일 쓰기 창, 없으면 문의 페이지로 */}
             {settings.contactEmail ? (
               <a href={mailDraftHref(settings.contactEmail, topicSubject(SPONSOR_TOPIC))} className={styles.button}>
-                문의하기
+                {content["sponsors.box.button"]}
               </a>
             ) : (
               <Link href="/contact" className={styles.button}>
-                문의하기
+                {content["sponsors.box.button"]}
               </Link>
             )}
           </p>

@@ -4,18 +4,17 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { MatchTable } from "@/components/match/MatchTable";
 import { Placeholder } from "@/components/ui/Placeholder";
 import { SnsIcon } from "@/components/ui/SnsIcon";
-import { LEAGUE } from "@/config/league";
 import { scheduleEmptyLinks } from "@/lib/match";
-import { getClubSettings, getUpcomingMatches } from "@/lib/repo";
-import styles from "./schedule.module.css";
 import { pageMetadata } from "@/lib/page-meta";
+import { getClubSettings, getSiteContent, getUpcomingMatches } from "@/lib/repo";
+import styles from "./schedule.module.css";
 
 export function generateMetadata(): Promise<Metadata> {
   return pageMetadata("경기일정", "/match/schedule");
 }
 
 export default async function SchedulePage() {
-  const matches = await getUpcomingMatches();
+  const [matches, content] = await Promise.all([getUpcomingMatches(), getSiteContent()]);
   return (
     <>
       <PageHeader title="경기일정" current="/match/schedule" />
@@ -23,7 +22,7 @@ export default async function SchedulePage() {
         {matches.length > 0 ? (
           <MatchTable matches={matches} />
         ) : (
-          <Placeholder label={`${LEAGUE.nextSeason} 시즌 일정은 ${LEAGUE.source} 발표 후 업데이트됩니다.`}>
+          <Placeholder label={content["schedule.empty"]}>
             <EmptyLinks />
           </Placeholder>
         )}

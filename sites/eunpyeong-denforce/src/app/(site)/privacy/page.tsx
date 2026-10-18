@@ -3,8 +3,8 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { DocumentBody } from "@/components/ui/DocumentBody";
 import { Placeholder } from "@/components/ui/Placeholder";
 import { PRIVACY_PLACEHOLDER } from "@/lib/content/fields";
-import { getSiteContent } from "@/lib/repo";
 import { pageMetadata } from "@/lib/page-meta";
+import { getSiteContent } from "@/lib/repo";
 
 export function generateMetadata(): Promise<Metadata> {
   return pageMetadata("개인정보처리방침", "/privacy");

@@ -2,7 +2,9 @@
 // 기본값은 그동안 코드에 박혀 있던 값 그대로 — 행이 없거나 칸을 비우면 기본값이 보인다.
 // 키를 바꾸거나 지우면 저장돼 있던 값이 더는 쓰이지 않는다 (키는 바꾸지 말고 새로 만든다).
 // 상대 경로·.ts 확장자 — npm test(node)가 별칭(@/) 없이 바로 읽게
+import { LEAGUE } from "../../config/league.ts";
 import { NAV_EXTERNAL, SITE, SITE_DESCRIPTION } from "../../config/site.ts";
+import { CONTACT_TOPICS as CONTACT_TOPICS_DEFAULT } from "../contact.ts";
 
 /**
  * text: 한 줄 · multiline: 여러 줄(문단은 빈 줄) · lines: 한 줄에 하나씩(목록) · date: YYYY-MM-DD
@@ -187,6 +189,82 @@ export const CONTENT_FIELDS = {
     max: 20,
     default: "2026-27",
     hint: "유니폼 탭 제목 '○○ 시즌 유니폼'의 앞부분 (예: 2026-27)",
+  },
+
+  // ── 선수단/경기/소식/스폰서/문의 (관리자 개편 3단계) — 기본값은 그동안 각 페이지에 박혀 있던 글 그대로 ──
+  "staff.section.coaching": { label: "코칭스태프 섹션 제목", kind: "text", max: 20, default: "코칭스태프" },
+  "staff.section.front": { label: "프런트 섹션 제목", kind: "text", max: 20, default: "프런트" },
+  "schedule.empty": {
+    label: "경기 일정이 없을 때 안내",
+    kind: "text",
+    max: 80,
+    default: `${LEAGUE.nextSeason} 시즌 일정은 ${LEAGUE.source} 발표 후 업데이트됩니다.`,
+    hint: "예정 경기가 하나도 없을 때 경기일정 페이지 가운데 상자에 보이는 글",
+  },
+  "results.empty": {
+    label: "경기 결과가 없을 때 안내",
+    kind: "text",
+    max: 80,
+    default: "종료된 경기가 없습니다.",
+    hint: "끝난 경기가 하나도 없을 때 경기결과 페이지에 보이는 글",
+  },
+  "standings.basis": {
+    label: "순위표 아래 순위 기준",
+    kind: "text",
+    max: 80,
+    default: "순위 기준: 승점 → 득실차 → 다득점",
+    hint: "리그순위 표 아래 작은 글. 개막 전 안내('개막 전 / 팀명 가나다순')와 자료 출처는 자동으로 앞뒤에 붙습니다",
+  },
+  "standings.empty": {
+    label: "순위가 없을 때 안내",
+    kind: "text",
+    max: 80,
+    default: "순위 정보가 없습니다.",
+    hint: "지금 시즌 순위표에 팀이 하나도 없을 때 보이는 글",
+  },
+  "standings.section.past": { label: "지난 리그 섹션 제목", kind: "text", max: 20, default: "지난 리그" },
+  "news.empty": {
+    label: "구단소식 글이 없을 때 안내",
+    kind: "text",
+    max: 80,
+    default: "게시물이 없습니다.",
+    hint: "공지사항/구단뉴스/구단사진/구단영상 중 글이 하나도 없는 분류에 보이는 글",
+  },
+  "posting.empty": {
+    label: "포스팅이 없을 때 안내",
+    kind: "text",
+    max: 80,
+    default: "아직 모은 글이 없습니다.",
+    hint: "포스팅 페이지에서 고른 분류/출처에 글이 하나도 없을 때 보이는 글",
+  },
+  "sponsors.box.title": { label: "스폰서십 상자 제목", kind: "text", max: 30, default: "스폰서십 문의" },
+  "sponsors.box.body": {
+    label: "스폰서십 상자 소개 글",
+    kind: "text",
+    max: 200,
+    default: "FK리그 중계/유니폼/SNS를 통한 브랜드 노출과 지역 사회공헌 프로그램을 함께할 파트너를 찾습니다.",
+  },
+  "sponsors.box.facts": {
+    label: "스폰서십 상자 안내 줄",
+    kind: "lines",
+    max: 500,
+    default: "FK리그 경기는 한국풋살연맹 유튜브로 생중계",
+    hint: "한 줄에 하나 — 확인된 사실만 적어 주세요. 맨 위 리그 참가 줄(지금 시즌 대회)과 맨 아래 구단 인스타그램 줄은 자동으로 붙습니다",
+  },
+  "sponsors.box.button": {
+    label: "스폰서십 상자 버튼 이름",
+    kind: "text",
+    max: 20,
+    default: "문의하기",
+    hint: "누르면 '[스폰서십/제휴]' 제목으로 메일 쓰기 창이 열립니다 (문의 메일이 없으면 문의 페이지로)",
+  },
+  "contact.section.topics": { label: "문의 분야 섹션 제목", kind: "text", max: 20, default: "문의 분야" },
+  "contact.topics": {
+    label: "문의 분야",
+    kind: "lines",
+    max: 300,
+    default: CONTACT_TOPICS_DEFAULT.join("\n"),
+    hint: "한 줄에 하나 — 카드를 누르면 '[분야]' 제목으로 메일 쓰기 창이 열립니다. 입단/테스트 문의는 받지 않기로 해 넣지 않았습니다",
   },
 } as const satisfies Record<string, FieldDef>;
 

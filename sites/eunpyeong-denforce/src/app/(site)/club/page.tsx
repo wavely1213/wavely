@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { contentCards } from "@/lib/content/values";
+import { pageMetadata } from "@/lib/page-meta";
 import { getClubSettings, getContentList, getNationalTeamAlumni, getSiteContent } from "@/lib/repo";
 import styles from "@/styles/prose.module.css";
-import { pageMetadata } from "@/lib/page-meta";
 
 export function generateMetadata(): Promise<Metadata> {
   return pageMetadata("구단소개", "/club");

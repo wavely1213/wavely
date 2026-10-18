@@ -1,18 +1,21 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { snsLinks } from "@/lib/club";
-import { CONTACT_TOPICS, mailDraftHref, snsHandle, telHref, topicSubject } from "@/lib/contact";
-import { getClubSettings } from "@/lib/repo";
+import { mailDraftHref, snsHandle, telHref, topicSubject } from "@/lib/contact";
+import { contentLines } from "@/lib/content/values";
+import { pageMetadata } from "@/lib/page-meta";
+import { getClubSettings, getSiteContent } from "@/lib/repo";
 import styles from "@/styles/prose.module.css";
 import local from "./contact.module.css";
-import { pageMetadata } from "@/lib/page-meta";
 
 export function generateMetadata(): Promise<Metadata> {
   return pageMetadata("문의", "/contact");
 }
 
 export default async function ContactPage() {
-  const settings = await getClubSettings();
+  const [settings, content] = await Promise.all([getClubSettings(), getSiteContent()]);
+  // 문의 분야 — 관리자 › 홈페이지 내용 › 문의 (한 줄에 하나, 같은 줄은 한 번만)
+  const topics = [...new Set(contentLines(content["contact.topics"]))];
   const email = settings.contactEmail;
   const phone = settings.contactPhone;
   const tel = phone ? telHref(phone) : null;
@@ -47,9 +50,9 @@ export default async function ContactPage() {
           ))}
         </ul>
         <section>
-          <h2 className={styles.h2}>문의 분야</h2>
+          <h2 className={styles.h2}>{content["contact.section.topics"]}</h2>
           <div className={styles.cards}>
-            {CONTACT_TOPICS.map((t) =>
+            {topics.map((t) =>
               // 문의 메일이 있으면 카드를 누를 때 제목이 채워진 메일 쓰기 창이 열린다
               email ? (
                 <a key={t} href={mailDraftHref(email, topicSubject(t))} className={`${styles.card} ${local.topic}`}>

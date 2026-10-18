@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { VenueMap } from "@/components/club/VenueMap";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { pageMetadata } from "@/lib/page-meta";
 import { getClubSettings, getSiteContent } from "@/lib/repo";
 import styles from "@/styles/prose.module.css";
-import { pageMetadata } from "@/lib/page-meta";
 
 export function generateMetadata(): Promise<Metadata> {
   return pageMetadata("오시는 길", "/club/location");

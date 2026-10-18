@@ -26,7 +26,7 @@ export function mailDraftHref(email: string, subject: string): string {
 /** 스폰서 페이지 '문의하기'가 쓰는 문의 분야 */
 export const SPONSOR_TOPIC = "스폰서십/제휴";
 
-/** 문의 페이지 문의 분야 — 입단/테스트는 받지 않는다 (BR-026, 2026-10-17 소유자 지시) */
+/** 문의 페이지 문의 분야 기본값 (관리자 › 홈페이지 내용 › 문의에서 바꾼다) — 입단/테스트는 받지 않는다 (BR-026, 2026-10-17 소유자 지시) */
 export const CONTACT_TOPICS: readonly string[] = [SPONSOR_TOPIC, "아카데미/유소년", "언론/취재", "기타"];
 
 /** 문의 메일 제목 머리 — '[스폰서십/제휴]' */

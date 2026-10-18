@@ -4,8 +4,8 @@ import { NewsBanner } from "@/components/news/NewsBanner";
 import { toNewsCardPost } from "@/components/news/NewsCard";
 import { NewsMoreGrid } from "@/components/news/NewsMoreGrid";
 import { pickBanner } from "@/lib/news";
-import { getNews } from "@/lib/repo";
 import { pageMetadata } from "@/lib/page-meta";
+import { getNews } from "@/lib/repo";
 
 export function generateMetadata(): Promise<Metadata> {
   return pageMetadata("구단소식", "/news");

@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ContentTabs } from "@/components/ui/ContentTabs";
 import { kitLinks } from "@/lib/news";
+import { pageMetadata } from "@/lib/page-meta";
 import { getNews } from "@/lib/repo";
 import { EmblemPanel } from "./EmblemPanel";
 import { UniformPanel } from "./UniformPanel";
-import { pageMetadata } from "@/lib/page-meta";
 
 export function generateMetadata(): Promise<Metadata> {
   return pageMetadata("엠블럼/유니폼", "/club/emblem");

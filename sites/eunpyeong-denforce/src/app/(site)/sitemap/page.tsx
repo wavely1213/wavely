@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { NAV } from "@/config/site";
+import { pageMetadata } from "@/lib/page-meta";
 import { getSiteContent } from "@/lib/repo";
 import styles from "./sitemap.module.css";
-import { pageMetadata } from "@/lib/page-meta";
 
 export function generateMetadata(): Promise<Metadata> {
   return pageMetadata("사이트맵", "/sitemap");

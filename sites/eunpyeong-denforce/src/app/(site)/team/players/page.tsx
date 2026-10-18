@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PlayerGrid } from "@/components/player/PlayerCard";
 import { POSITION_LABEL } from "@/data/people";
+import { pageMetadata } from "@/lib/page-meta";
 import { getPlayersByPosition } from "@/lib/repo";
 import styles from "@/styles/prose.module.css";
-import { pageMetadata } from "@/lib/page-meta";
 
 export function generateMetadata(): Promise<Metadata> {
   return pageMetadata("선수", "/team/players");
