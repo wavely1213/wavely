@@ -7,6 +7,19 @@ import styles from "@/styles/prose.module.css";
 
 export const metadata: Metadata = { title: "구단소개" };
 
+/** 괄호 묶음('(2017 ~ 현재)', '(유소년 / 성인)')은 한 줄에 — 괄호 안에서 줄이 바뀌지 않게 */
+function KeepParens({ text }: { text: string }) {
+  return text.split(/(\([^()]*\))/).map((part, i) =>
+    i % 2 === 1 ? (
+      <span key={i} className={styles.nowrap}>
+        {part}
+      </span>
+    ) : (
+      part
+    ),
+  );
+}
+
 /** 카드 묶음 (팀 조직·지역 활동) — 카드가 하나도 없으면 섹션째 숨긴다 */
 function CardSection({ title, cards }: { title: string; cards: ReturnType<typeof contentCards> }) {
   if (cards.length === 0) return null;
@@ -19,7 +32,9 @@ function CardSection({ title, cards }: { title: string; cards: ReturnType<typeof
             <h3>{c.title}</h3>
             <ul>
               {c.items.map((i, n) => (
-                <li key={n}>{i}</li>
+                <li key={n}>
+                  <KeepParens text={i} />
+                </li>
               ))}
             </ul>
           </div>

@@ -33,9 +33,10 @@
   margin-bottom: 18px;
 }
 
+/* auto-fit: 카드가 칸 수보다 적으면(예: 3개) 빈 칸을 남기지 않고 넓게 채운다 — 긴 항목이 덜 접힌다 */
 .cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 16px;
 }
 
@@ -53,6 +54,14 @@
 .card li {
   padding: 3px 0;
   color: var(--c-text-sub);
+  /* 한글 낱말 중간(예: '축구&풋살')에서 줄이 바뀌지 않게, 마지막 줄에 한 낱말만 남지 않게 */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+.nowrap {
+  white-space: nowrap;
 }
 
 .list {
