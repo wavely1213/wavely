@@ -38,14 +38,14 @@
 
   --container: 1200px;
   --gutter: 20px;
-  --header-h: 68px;
+  --header-h: 80px;
   --section-gap: 72px;
 }
 
 @media (max-width: 720px) {
   :root {
     --gutter: 16px;
-    --header-h: 56px;
+    --header-h: 60px;
     --section-gap: 48px;
   }
 }

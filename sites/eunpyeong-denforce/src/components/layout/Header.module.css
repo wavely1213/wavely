@@ -17,8 +17,14 @@
 .brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   min-width: 0;
+}
+
+/* 구단 엠블럼 — PC 40px 너비, 휴대폰은 아래에서 줄인다 (소유자: "구단 로고랑 이름도 뭔가 작아보이고") */
+.mark {
+  width: 40px;
+  height: auto;
 }
 
 .brandText {
@@ -29,14 +35,14 @@
 }
 
 .brandText small {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
   color: var(--c-on-dark-sub);
 }
 
 .brandText strong {
-  font-size: 19px;
+  font-size: 24px;
   font-weight: 700;
   letter-spacing: -0.01em;
 }
@@ -118,6 +124,18 @@
 }
 
 @media (max-width: 960px) {
+  .mark {
+    width: 32px;
+  }
+
+  .brandText small {
+    font-size: 10px;
+  }
+
+  .brandText strong {
+    font-size: 20px;
+  }
+
   .toggle {
     display: flex;
     flex-direction: column;
