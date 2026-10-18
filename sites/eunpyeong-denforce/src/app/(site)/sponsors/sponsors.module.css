@@ -1,0 +1,23 @@
+/* 스폰서십 문의 상자의 확인된 사실 목록 — 줄 머리 '- ' (BR-024). 글자 색/줄 간격은 prose .card li 그대로 */
+.facts {
+  margin-top: 12px;
+  padding-left: 14px;
+}
+
+.facts li {
+  position: relative;
+}
+
+/* 글머리표는 왼쪽 여백에 걸어 두어 긴 줄이 꺾여도 글 시작이 맞는다 */
+.facts li::before {
+  content: "-";
+  position: absolute;
+  right: calc(100% + 6px);
+}
+
+.facts a {
+  color: var(--c-blue);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+}

@@ -1,0 +1,22 @@
+/* 문의 분야 카드 — 누르면 제목이 채워진 메일 쓰기 창 (카드 모양은 prose .card 그대로, 누를 수 있다는 것만 표시) */
+.topic {
+  display: block;
+  transition: border-color 0.15s ease;
+}
+
+.topic h3 {
+  transition: color 0.15s ease;
+}
+
+.topic:hover {
+  border-color: var(--c-blue);
+}
+
+.topic:hover h3 {
+  color: var(--c-blue);
+}
+
+.topic:focus-visible {
+  outline: 2px solid var(--c-blue);
+  outline-offset: 2px;
+}
