@@ -73,11 +73,15 @@ insert into public.news_posts (category, title, date, thumbnail_url, summary, bo
   ('photo', 'U-15 유소년팀 창단', '', '/photos/u15.webp',
    '아카데미 산하 U-15 유소년팀이 창단했습니다.', '서울은평 U-15 유소년팀 창단식 사진입니다.');
 
--- 스폰서 순서는 소유자 지시 (D-029). 로고는 관리자 화면에서 올린다 (운영 로고: Storage media/sponsors/)
+-- 스폰서 — src/data/sponsors.ts 정적 목록과 같은 순서/등급 (덴포스스포츠 외 등급은 소유자 미지정이라 후원사).
+-- 로고는 관리자 화면에서 올린다 (운영 로고: Storage media/sponsors/)
 insert into public.sponsors (name, tier, sort_order) values
   ('은평구', 'partner', 1),
   ('은평구체육회', 'partner', 2),
   ('은평풋살연맹', 'partner', 3),
   ('덴포스스포츠', 'naming', 4),
-  ('풋살사관학교', 'partner', 5),
-  ('꽁병지TV', 'partner', 6);
+  ('스매싱스포츠', 'partner', 5),
+  ('스카로', 'partner', 6),
+  ('엑스트라조스', 'partner', 7),
+  ('풋살사관학교', 'partner', 8),
+  ('꽁병지TV', 'partner', 9);

@@ -1,28 +1,27 @@
 import Image from "next/image";
-import { SPONSOR_TIER_LABEL } from "@/data/sponsors";
-import { wideColumns } from "@/lib/sponsors";
-import type { Sponsor } from "@/types";
+import type { Sponsor, SponsorTier } from "@/types";
 import styles from "./SponsorStrip.module.css";
 
+/** 등급별 로고 요청 크기 — 높이는 SponsorStrip.module.css 의 등급별 로고 높이와 같게, 너비는 가로로 긴 로고 기준 */
+const LOGO_SIZE: Record<SponsorTier, { width: number; height: number }> = {
+  naming: { width: 360, height: 96 },
+  official: { width: 288, height: 76 },
+  sub: { width: 240, height: 64 },
+  partner: { width: 196, height: 52 },
+};
+
 /**
- * /sponsors 스폰서 카드 격자 — 소유자가 정한 순서 그대로 (D-029).
- * 네이밍 스폰서는 두 칸 폭(줄 끝에 빈칸이 생기는 칸 수에서는 한 칸)에 로고를 크게, 로고 아래 작은 글씨로 이름.
+ * /sponsors 한 등급의 스폰서 카드 격자 — 받은 순서(관리자 표시 순서) 그대로.
+ * 높은 등급일수록 로고가 크다. 네이밍 스폰서는 한 곳이면 한 줄 전체. 로고 아래 작은 글씨로 이름.
  */
-export function SponsorStrip({ sponsors }: { sponsors: Sponsor[] }) {
-  const wide = wideColumns(sponsors.map((s) => s.tier));
+export function SponsorStrip({ tier, sponsors }: { tier: SponsorTier; sponsors: Sponsor[] }) {
+  const size = LOGO_SIZE[tier];
   return (
-    <ul className={styles.list}>
-      {sponsors.map((s, i) => {
-        const isNaming = s.tier === "naming";
+    <ul className={styles.list} data-tier={tier}>
+      {sponsors.map((s) => {
         const content = s.logo ? (
           <>
-            <Image
-              src={s.logo}
-              alt={s.name}
-              width={isNaming ? 320 : 240}
-              height={isNaming ? 88 : 64}
-              className={styles.logo}
-            />
+            <Image src={s.logo} alt={s.name} width={size.width} height={size.height} className={styles.logo} />
             {/* 이름은 로고 대체 글(alt)과 같아 스크린리더에는 한 번만 */}
             <span className={styles.caption} aria-hidden="true">
               {s.name}
@@ -32,12 +31,7 @@ export function SponsorStrip({ sponsors }: { sponsors: Sponsor[] }) {
           <span className={styles.name}>{s.name}</span>
         );
         return (
-          <li
-            key={s.id}
-            className={`${styles.item} ${isNaming ? styles.naming : ""}`}
-            data-wide={wide[i].join(" ") || undefined}
-          >
-            <span className={styles.tier}>{SPONSOR_TIER_LABEL[s.tier]}</span>
+          <li key={s.id} className={styles.item}>
             {s.url ? (
               <a href={s.url} target="_blank" rel="noreferrer" className={styles.body}>
                 {content}

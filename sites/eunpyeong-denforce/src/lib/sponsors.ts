@@ -1,5 +1,6 @@
 // 스폰서 도우미 — 메인 스폰서 띠(한 줄 자동 흐름, D-029)와 /sponsors 페이지. 순수 함수만 (테스트: sponsors.test.ts)
 import type { SponsorTier } from "@/types";
+import { SPONSOR_TIER_ORDER } from "../data/sponsors.ts";
 
 /** 띠 절반(한 바퀴)에 들어갈 최소 칸 수 — 가장 좁은 칸(정사각 로고 64 + 여백 80 = 144px)으로도 4K(3840px) 화면을 덮어 끝이 비지 않게 */
 export const MARQUEE_MIN_ITEMS = 28;
@@ -19,30 +20,19 @@ export function marqueeLoop<T>(items: readonly T[], minItems = MARQUEE_MIN_ITEMS
   return { cells, seconds: half.length * MARQUEE_SECONDS_PER_ITEM };
 }
 
-// ── /sponsors 페이지 ─────────────────────────
+// ── 등급 순서 (/sponsors 등급별 묶음, 메인 띠) ─────────────────────────
 
 /**
- * /sponsors 격자가 될 수 있는 칸 수 중 2칸 이상 (휴대폰 1칸 ~ PC 5칸).
- * SponsorStrip.module.css 의 칸 수별 @container 구간(칸 최소 220px, 간격 12px)과 같아야 한다.
+ * 등급별 묶음 — 높은 등급부터(SPONSOR_TIER_ORDER), 스폰서가 있는 등급만.
+ * 같은 등급 안에서는 받은 순서(DB sort_order) 그대로.
  */
-export const SPONSOR_GRID_COLUMNS: readonly number[] = [2, 3, 4, 5];
+export function groupSponsorsByTier<T extends { tier: SponsorTier }>(items: readonly T[]): Array<{ tier: SponsorTier; items: T[] }> {
+  return SPONSOR_TIER_ORDER.map((tier) => ({ tier, items: items.filter((s) => s.tier === tier) })).filter((g) => g.items.length > 0);
+}
 
-/**
- * 네이밍 스폰서 칸을 두 칸 폭으로 넓힐 격자 칸 수 — 스폰서마다 목록으로 (예: [[], [], [], [3, 5], [], []]).
- * 순서는 소유자가 정한 그대로 둔다: 줄 끝에 한 칸만 남은 자리라 넓히면 그 줄에 빈칸이 생기는 칸 수에서는 넓히지 않는다.
- * 1칸(휴대폰)은 모든 칸이 한 줄 전체라 넓힐 필요가 없다.
- */
-export function wideColumns(tiers: readonly SponsorTier[], columnCounts: readonly number[] = SPONSOR_GRID_COLUMNS): number[][] {
-  const out = tiers.map(() => [] as number[]);
-  for (const columns of columnCounts) {
-    let at = 0; // 지금 줄에서 다음 칸이 들어갈 자리 (0부터)
-    tiers.forEach((tier, i) => {
-      const wide = tier === "naming" && at + 2 <= columns;
-      if (wide) out[i].push(columns);
-      at = (at + (wide ? 2 : 1)) % columns;
-    });
-  }
-  return out;
+/** 등급 순서로 한 줄 — 같은 등급 안에서는 받은 순서 그대로 (메인 스폰서 띠) */
+export function sortByTier<T extends { tier: SponsorTier }>(items: readonly T[]): T[] {
+  return groupSponsorsByTier(items).flatMap((g) => g.items);
 }
 
 /**

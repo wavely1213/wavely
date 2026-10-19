@@ -87,7 +87,7 @@ export type Posting = {
   date: string; // YYYY-MM-DD
 };
 
-export type SponsorTier = "naming" | "official" | "partner";
+export type SponsorTier = "naming" | "official" | "sub" | "partner";
 
 export type Sponsor = {
   id: string;

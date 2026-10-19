@@ -2,21 +2,19 @@
 
 import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
+import { SPONSOR_TIER_ORDER } from "@/data/sponsors";
 import { TAGS } from "@/lib/cache-tags";
 import { NOT_ADMIN_MESSAGE, requireAdminAction } from "@/lib/admin/auth";
 import { dbErrorMessage, FormReader, submittedValues, type ActionState } from "@/lib/admin/form";
 import { removeImage, resolveImage } from "@/lib/admin/storage";
-import type { SponsorTier } from "@/types";
 
 // 스폰서 관리 서버 액션 — 모든 액션이 직접 관리자 권한을 확인한다 (페이지 검사에 기대지 않음).
 // 순서: 권한 → 입력 검증 → 이미지 업로드 → DB 저장 → updateTag → redirect
 
-const TIERS: readonly SponsorTier[] = ["naming", "official", "partner"];
-
 function readSponsor(f: FormReader) {
   return {
     name: f.text("name", { label: "이름", max: 60 }),
-    tier: f.choice("tier", TIERS, "등급"),
+    tier: f.choice("tier", SPONSOR_TIER_ORDER, "등급"), // DB 제약 sponsors_tier_check 와 같은 4등급
     url: f.optUrl("url", "링크"),
     sort_order: f.int("sort_order", { label: "표시 순서", min: 0, max: 9999, required: true }),
   };

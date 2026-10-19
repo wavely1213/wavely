@@ -28,7 +28,7 @@ export function SponsorForm({
           label="표시 순서"
           type="number"
           required
-          hint="작은 숫자가 먼저 보입니다"
+          hint="같은 등급 안에서 작은 숫자가 먼저 보입니다"
           defaultValue={initial?.sort_order ?? 0}
         />
       </Row>

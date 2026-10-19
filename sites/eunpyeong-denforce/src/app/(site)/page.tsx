@@ -27,6 +27,7 @@ import {
 import { homeMatchItems } from "@/lib/match";
 import { sitePreviewMeta } from "@/lib/og-metadata";
 import { clubJsonLd, jsonLdString } from "@/lib/seo";
+import { sortByTier } from "@/lib/sponsors";
 
 /** 홈페이지 주소 미리보기 제목·설명 — 관리자 화면에서 정한 문구, 비우면 사이트 이름·설명 (D-038) */
 export async function generateMetadata(): Promise<Metadata> {
@@ -68,7 +69,7 @@ export default async function HomePage() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(jsonLd) }} />
       <Hero nextHome={nextHome} content={heroContent(c)} />
-      {sponsors.length > 0 && <SponsorMarquee sponsors={sponsors} />}
+      {sponsors.length > 0 && <SponsorMarquee sponsors={sortByTier(sponsors)} />}
 
       <HomeColumns
         main={

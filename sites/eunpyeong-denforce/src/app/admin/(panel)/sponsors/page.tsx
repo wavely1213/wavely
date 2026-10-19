@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "스폰서" };
 export default function SponsorsAdminPage() {
   return (
     <>
-      <PageTitle title="스폰서" description="홈페이지 메인/스폰서 페이지에 표시 순서대로 보입니다.">
+      <PageTitle title="스폰서" description="홈페이지 메인/스폰서 페이지에 등급 순서대로, 같은 등급 안에서는 표시 순서대로 보입니다.">
         <Link href="/admin/sponsors/new" className={styles.button}>
           + 스폰서 추가
         </Link>
