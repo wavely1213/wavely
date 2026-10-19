@@ -48,14 +48,16 @@
 
 ## 4. 관리자 계정 만들기
 1. **Authentication → Users → Add user → Create new user**
-   - 이메일·비밀번호 입력, **Auto Confirm User** 체크
-2. **SQL Editor** 에서 허용 목록에 추가 (이메일은 소문자로):
-   ```sql
-   insert into public.admins (email) values ('관리자이메일@example.com');
-   ```
-3. 관리자를 빼려면: `delete from public.admins where email = '...';`
+   - 이메일·비밀번호 입력, **Auto Confirm User** 체크 (또는 Send invitation 으로 본인이 비밀번호를 정하게)
+2. 허용 목록 + 등급 (D-057):
+   - 최고 관리자가 있으면: 관리자 화면 **설정 › 관리자 계정 › + 계정 추가** 에서 이메일과 등급(최고 관리자/관리자/미디어), 미디어 권한을 고른다. 등급 변경/삭제도 여기서.
+   - 처음 한 명(최고 관리자)은 **SQL Editor** 에서 (이메일은 소문자로):
+     ```sql
+     insert into public.admins (email, role) values ('관리자이메일@example.com', 'owner');
+     ```
+3. 관리 화면에서 빼면 바로 못 들어온다. 로그인 계정(Auth 사용자)은 따로 남으므로 필요하면 Authentication → Users 에서 지운다.
 
-> 권한 판단은 `public.is_admin()` 한 곳: 로그인 + 이메일 인증 완료 + `admins` 목록에 있음. 셋 중 하나라도 아니면 읽기만 가능하다.
+> 권한 판단은 DB 함수: `public.admin_role()`(로그인 + 이메일 인증 완료 + `admins` 목록의 등급) 위에 `is_admin()`(최고 관리자/관리자), `is_owner()`, `is_media()`, `is_staff()`(셋 다), `media_can(권한)`. 등급이 없으면 읽기만 가능하다.
 
 ## 5. 홈페이지에 연결 (Vercel 환경변수)
 **Project Settings → API Keys** 에서 두 값을 복사한다.

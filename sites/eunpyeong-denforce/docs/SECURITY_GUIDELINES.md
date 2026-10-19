@@ -24,7 +24,7 @@
 ## 3. 인증·인가
 
 - 인증 방식: Supabase Auth 이메일+비밀번호, 세션 쿠키(@supabase/ssr). 공개 가입 끔. `src/proxy.ts` 가 /admin 요청마다 세션 갱신
-- 인가: `public.is_admin()` (로그인 + 이메일 인증 + `admins` 허용 목록) 한 곳에서 판단. RLS 정책과 앱(`requireAdminPage`/`requireAdminAction`)이 같은 함수를 쓴다
+- 인가: `public.admin_role()` (로그인 + 이메일 인증 + `admins` 허용 목록의 등급) 한 곳에서 판단 — `is_admin()`(최고 관리자/관리자), `is_owner()`, `is_media()`, `is_staff()`, `media_can()` 이 그 위에 있다 (D-057). RLS 정책·트리거가 실제로 막고, 앱(`requireAdminPage(roles)`/`requireAdminAction(roles)`, 기본 최고 관리자/관리자)은 같은 등급으로 화면과 입력 칸을 고른다. 새 관리자 페이지/액션은 등급을 넘기지 않으면 미디어가 들어오지 못한다
 - **모든 서버 액션은 첫 줄에서 `requireAdminAction()`** — 페이지·레이아웃 검사에 기대지 않는다 (서버 액션은 직접 POST 로 호출 가능)
 - 수정·삭제의 현재 값(이미지 URL 등)은 클라이언트가 아니라 DB 에서 다시 읽는다
 - 비밀번호를 직접 다룬다면 bcrypt/argon2 해싱 (직접 구현 금지, 검증된 라이브러리 사용).
@@ -33,7 +33,7 @@
 
 ## 4. 개인정보 (커뮤니티 서비스 핵심)
 
-- 수집하는 개인정보 목록: 관리자 계정 이메일(Supabase Auth)뿐. 수정 기록 `updated_by` 에 관리자 이메일. 방문자 개인정보 수집 없음
+- 수집하는 개인정보 목록: 관리자 계정 이메일(Supabase Auth)뿐. 수정 기록 `updated_by`, 구단소식/포스팅 `created_by` 에 관리자 이메일 — 공개 API 로 읽히는 문제는 KNOWN_ISSUES I-042. 방문자 개인정보 수집 없음
 - 개인정보는 **로그·에러 메시지·분석 이벤트에 남기지 않는다.**
 - 회원 탈퇴 시 처리 방침: 해당 없음 (회원 기능 없음). 관리자 제외 시 `admins` 에서 삭제 + Auth 사용자 삭제
 - 법적 요구사항(개인정보처리방침 등)의 판단·결정은 소유자 몫이다. AI는 관련 작업 시 사실 확인이 필요한 지점을 짚어주기만 한다.

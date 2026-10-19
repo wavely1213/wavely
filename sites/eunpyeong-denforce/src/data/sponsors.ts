@@ -12,15 +12,16 @@ export const SPONSOR_TIER_LABEL: Record<SponsorTier, string> = {
   partner: "후원사",
 };
 
-// 같은 등급 안에서는 이 순서대로 (운영 DB sort_order 와 같은 순서). 덴포스스포츠 외 등급은 소유자 미지정이라 후원사
+// 같은 등급 안에서는 이 순서대로 (운영 DB sort_order 와 같은 순서). 등급은 2026-10-19 운영 DB 기준 — 소유자가 관리자에서 정리 중
 export const SPONSORS: Sponsor[] = [
-  { id: "sp1", name: "은평구", tier: "partner", logo: null, url: null },
-  { id: "sp2", name: "은평구체육회", tier: "partner", logo: null, url: null },
-  { id: "sp3", name: "은평풋살연맹", tier: "partner", logo: null, url: null },
+  { id: "sp1", name: "은평구", tier: "official", logo: null, url: null },
+  { id: "sp2", name: "은평구체육회", tier: "official", logo: null, url: null },
+  { id: "sp3", name: "은평풋살연맹", tier: "official", logo: null, url: null },
   { id: "sp4", name: "덴포스스포츠", tier: "naming", logo: null, url: null },
   { id: "sp5", name: "스매싱스포츠", tier: "partner", logo: null, url: null },
   { id: "sp6", name: "스카로", tier: "partner", logo: null, url: null },
   { id: "sp7", name: "엑스트라조스", tier: "partner", logo: null, url: null },
   { id: "sp8", name: "풋살사관학교", tier: "partner", logo: null, url: null },
   { id: "sp9", name: "꽁병지TV", tier: "partner", logo: null, url: null },
+  { id: "sp10", name: "토탈스포츠컴퍼니", tier: "partner", logo: null, url: null },
 ];

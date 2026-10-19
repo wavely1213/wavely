@@ -89,7 +89,7 @@ test("sortByTier: 메인 띠 순서 = 등급 순서, 같은 등급 안은 받은
   assert.deepEqual(MIXED.map((s) => s.id), before);
 });
 
-test("sortByTier: 정적 목록이면 네이밍 스폰서(덴포스스포츠)가 맨 앞, 나머지 후원사는 원래 순서", () => {
+test("sortByTier: 정적 목록이면 네이밍(덴포스스포츠) → 메인(은평 3곳) → 후원사, 같은 등급은 원래 순서", () => {
   assert.deepEqual(sortByTier(SPONSORS).map((s) => s.name), [
     "덴포스스포츠",
     "은평구",
@@ -100,6 +100,7 @@ test("sortByTier: 정적 목록이면 네이밍 스폰서(덴포스스포츠)가
     "엑스트라조스",
     "풋살사관학교",
     "꽁병지TV",
+    "토탈스포츠컴퍼니",
   ]);
 });
 

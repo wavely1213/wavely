@@ -53,7 +53,8 @@ proxy.ts (/admin/*) ─→ 세션 쿠키 갱신만 (권한 판단 X)
 | 사이트 설정·메뉴 | /src/config/site.ts | 엠블럼 경로·NAV·공식 주소 (고정값). 구단 이름·창단일 등은 '홈페이지 내용'의 기본값 출처(SITE) — 화면은 getSiteContent() 를 쓴다. 연락처·SNS·주소는 DB(club_settings) |
 | 홈페이지 내용(총괄 관리자) | /src/lib/content/(fields·lists·sections·values·views·markup).ts, app/admin/(panel)/content, getSiteContent()·getContentList() | 화면 곳곳 문구·사진(site_content, 바꾼 값만 저장)·목록(content_items) — 키·기본값·검사는 코드 목록이 정한다 (D-046). 푸터 정보 줄은 '**이름표** 값' + {값 이름} 글(markup.ts, 편집기 MarkupEditor, D-048). 탭: 공통·메인·구단소개·엠블럼/유니폼(D-049) — 목록 칸 형식 lines(한 줄에 하나)·hex(색 코드) |
 | 관리자 대시보드 알림 | /src/lib/admin/alerts.ts, app/admin/(panel)/page.tsx, /src/config/admin-pages.ts | 구단뉴스 영입/이적 제목 ↔ 선수·스태프 명단, 등번호 겹침, '준비 중' 빈 곳 — 순수 함수 (D-048) |
-| 관리자 메뉴 | /src/config/admin-nav.ts | 관리자 사이드바 묶음·순서(ADMIN_NAV_GROUPS), 휴대폰 메뉴 버튼은 AdminNav.tsx 의 AdminMenu (D-048) |
+| 관리자 메뉴 | /src/config/admin-nav.ts | 관리자 사이드바 묶음·순서(ADMIN_NAV_GROUPS), 등급별 메뉴(navGroupsFor)·첫 화면(homeFor), 휴대폰 메뉴 버튼은 AdminNav.tsx 의 AdminMenu (D-048, D-057) |
+| 관리자 등급 | /src/lib/admin/roles.ts(순수), auth.ts, review.ts, accounts.ts(순수), app/admin/(panel)/accounts | 최고 관리자/관리자/미디어, 미디어 글 권한(allowedFlags·canEditPost), 검토 대기(isPendingReview), 관리자 계정 화면 — 실제로 막는 것은 DB(RLS/트리거) (D-057) |
 | 지도 설정 | /src/config/map.ts | 홈구장 네이버 장소(번호·좌표), 네이버 지도 키(NEXT_PUBLIC_NAVER_MAP_KEY_ID) — D-026 |
 | 검색 등록 | /src/lib/seo.ts, /src/app/robots.ts, /src/app/sitemap.ts | 사이트맵 목록·구단 JSON-LD(순수 함수) — D-027. 소유 확인 값은 config/site.ts SEARCH_VERIFICATION |
 | 페이지 안 탭·엠블럼 | /src/components/ui/ContentTabs.tsx, app/(site)/club/emblem (EmblemPanel·UniformPanel), /src/lib/emphasis.ts·color.ts, /public/brand/downloads | 한 페이지 안 탭(#id 로 열기), 엠블럼 모눈 패널·팀 색상·파일 내려받기, `**굵게**` 표시 (D-045). 설명·색·유니폼은 홈페이지 내용 값/목록(D-049) |
@@ -72,7 +73,7 @@ proxy.ts (/admin/*) ─→ 세션 쿠키 갱신만 (권한 판단 X)
 | 관리자 UI | /src/components/admin | AdminForm(useActionState + 필드 오류·입력값 유지), fields, DeleteButton, PageTitle, AdminNav |
 | 공개 데이터 접근 | /src/lib/repo.ts | 모든 공개 조회 함수 (캐시 태그: lib/cache-tags.ts) |
 | 데이터 소스 | /src/lib/data | source.ts(계약), db-source.ts, static-source.ts, rows.ts(DB↔도메인 변환) |
-| 관리자 DAL | /src/lib/admin | auth.ts, form.ts, storage.ts |
+| 관리자 DAL | /src/lib/admin | auth.ts(등급), roles.ts, form.ts, storage.ts |
 | 경기 표시 도우미 | /src/lib/match.ts | 대회별 묶기, 대회·라운드 라벨 (BR-011) |
 | 세션 갱신 | /src/proxy.ts | /admin 요청의 Supabase 쿠키 갱신 |
 | 디자인 토큰 | /src/styles/tokens.css | 색·간격·라운드. hex 하드코딩은 여기만 |
