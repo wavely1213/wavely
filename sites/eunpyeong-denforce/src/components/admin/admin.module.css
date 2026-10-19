@@ -336,6 +336,12 @@
   color: var(--c-blue);
 }
 
+/* 미디어 계정이 올려 최고 관리자 검토를 기다리는 글 (D-057) */
+.badgeYellow {
+  background: var(--c-yellow);
+  color: var(--c-black);
+}
+
 .empty {
   padding: 40px 16px;
   text-align: center;
@@ -488,6 +494,27 @@
   outline: 2px solid var(--c-blue);
   outline-offset: -1px;
   border-color: var(--c-blue);
+}
+
+/* 함께 보이고 숨는 칸 묶음 (관리자 계정 › 등급 + 미디어 권한) */
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* 고칠 수 없는 칸의 값 (FixedField) */
+.fixedValue {
+  padding: 10px 12px;
+  font-size: 15px;
+  color: var(--c-text-sub);
+  background: var(--c-bg-soft);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-s);
 }
 
 .textarea {

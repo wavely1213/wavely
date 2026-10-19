@@ -27,6 +27,28 @@ function FieldShell({ name, label, hint, required, children }: Base & { children
   );
 }
 
+/** 이 계정이 고칠 수 없는 칸 — 값과 이유만 보여 주고 보내지 않는다 (미디어 계정 권한, D-057) */
+export function FixedField({ label, value, hint }: { label: string; value: string; hint?: string }) {
+  return (
+    <div className={styles.field}>
+      <span className={styles.label}>{label}</span>
+      <span className={styles.fixedValue}>{value}</span>
+      {hint && <span className={styles.hint}>{hint}</span>}
+    </div>
+  );
+}
+
+/** '직접 공개' 권한이 없는 계정 — 저장하면 검토 대기로 남는다는 안내 */
+export function ReviewNote({ published }: { published: boolean }) {
+  return (
+    <p className={styles.hint}>
+      {published
+        ? "공개된 글입니다. 공개 여부는 최고 관리자가 정합니다."
+        : "저장하면 '검토 대기'(비공개)로 저장됩니다. 최고 관리자가 확인한 뒤 홈페이지에 공개합니다."}
+    </p>
+  );
+}
+
 export function Row({ children }: { children: ReactNode }) {
   return <div className={styles.row}>{children}</div>;
 }

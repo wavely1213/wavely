@@ -7,8 +7,10 @@ import { ADMIN_PAGE_MAP } from "@/config/admin-pages";
 import { PRIVACY_PAGE_ENABLED } from "@/config/site";
 import { NEWS_CATEGORY_LABEL } from "@/data/news";
 import { POSTING_PLATFORM_LABEL } from "@/data/postings";
-import { numberAlerts, rosterAlerts, siteGapAlerts, sortAlerts, type AdminAlert, type AlertLevel } from "@/lib/admin/alerts";
+import { numberAlerts, reviewAlerts, rosterAlerts, siteGapAlerts, sortAlerts, type AdminAlert, type AlertLevel } from "@/lib/admin/alerts";
 import { requireAdminPage } from "@/lib/admin/auth";
+import { mediaEmails } from "@/lib/admin/review";
+import { isPendingReview } from "@/lib/admin/roles";
 import { formatKickoff, formatPostDate } from "@/lib/format";
 import type { NewsCategory, PostingPlatform } from "@/types";
 import local from "./dashboard.module.css";
@@ -35,7 +37,8 @@ function kstToday(now: Date): string {
 }
 
 async function Dashboard() {
-  const { supabase } = await requireAdminPage();
+  const ctx = await requireAdminPage();
+  const { supabase } = ctx;
   const now = new Date();
   const count = async (table: string, filter?: { column: string; value: boolean }) => {
     let q = supabase.from(table).select("*", { count: "exact", head: true });
@@ -44,10 +47,10 @@ async function Dashboard() {
     return count ?? 0;
   };
 
-  const [players, staff, news, settings, upcoming, scheduled, recentNews, recentPostings, newsTotal, postingsShown, sponsors, matches, privacy] = await Promise.all([
+  const [players, staff, news, settings, upcoming, scheduled, recentNews, recentPostings, newsTotal, postingsShown, sponsors, matches, privacy, draftPostings, media] = await Promise.all([
     supabase.from("players").select("id, name, number, is_active, photo_url"),
     supabase.from("staff").select("id, name, role"),
-    supabase.from("news_posts").select("title, date, category, published"),
+    supabase.from("news_posts").select("title, date, category, published, created_by"),
     supabase.from("club_settings").select("venue_transit, venue_parking, contact_email, contact_phone").eq("id", 1).maybeSingle(),
     supabase
       .from("matches")
@@ -66,18 +69,24 @@ async function Dashboard() {
     count("matches"),
     // 개인정보처리방침 — 바꾼 값만 저장되므로 행이 있으면 본문을 쓴 것 (행이 없으면 '준비 중')
     supabase.from("site_content").select("key").eq("key", "privacy.body").maybeSingle(),
+    // 검토 대기 (D-057) — 미디어 계정이 올린 비공개 글
+    supabase.from("postings").select("published, created_by").eq("published", false),
+    mediaEmails(ctx),
   ]);
 
   const playerRows = players.data ?? [];
   const activePlayers = playerRows.filter((p) => p.is_active);
   const lite = playerRows.map((p) => ({ id: p.id, name: p.name, number: p.number, isActive: p.is_active, hasPhoto: Boolean(p.photo_url) }));
   // 하나라도 못 읽으면 잘못된 알림(예: '명단에 없음')을 띄우지 않게 그 알림은 건너뛰고 안내한다
-  const failed = [players, staff, news, settings, upcoming, scheduled, privacy].some((r) => r.error);
+  const failed = [players, staff, news, settings, upcoming, scheduled, privacy, draftPostings].some((r) => r.error);
+  const newsRows = news.data ?? [];
+  const pendingNews = newsRows.filter((n) => isPendingReview(n, media)).length;
   const scheduledRows = scheduled.data ?? [];
   const alerts: AdminAlert[] = failed
     ? []
     : sortAlerts([
-        ...rosterAlerts({ news: news.data ?? [], players: lite, staff: staff.data ?? [], today: kstToday(now) }),
+        ...reviewAlerts({ news: pendingNews, postings: (draftPostings.data ?? []).filter((p) => isPendingReview(p, media)).length }),
+        ...rosterAlerts({ news: newsRows, players: lite, staff: staff.data ?? [], today: kstToday(now) }),
         ...numberAlerts(lite),
         ...siteGapAlerts({
           upcomingMatches: scheduledRows.length,
@@ -86,7 +95,8 @@ async function Dashboard() {
           venueParking: Boolean(settings.data?.venue_parking),
           contactEmail: Boolean(settings.data?.contact_email),
           contactPhone: Boolean(settings.data?.contact_phone),
-          draftNews: (news.data ?? []).filter((n) => !n.published).length,
+          // 검토 대기 글은 위 알림으로 따로 알린다
+          draftNews: newsRows.filter((n) => !n.published).length - pendingNews,
           activeWithoutPhoto: activePlayers.filter((p) => !p.photo_url).length,
           // 개인정보처리방침 페이지를 꺼 두면 '준비 중' 알림도 띄우지 않는다 (D-055)
           privacyWritten: !PRIVACY_PAGE_ENABLED || Boolean(privacy.data),
