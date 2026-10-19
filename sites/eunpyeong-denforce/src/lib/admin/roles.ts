@@ -52,27 +52,49 @@ export function postPermsFor(role: AdminRole, row: Record<MediaPermColumn, boole
   };
 }
 
-/** 이 글을 고치거나 지울 수 있는지 — 공개된 글은 '공개된 글 고치기' 권한이 있어야 한다 */
-export function canEditPost(perms: PostPerms, published: boolean): boolean {
-  return !published || perms.editPublished;
+/** 글을 고치려는 사람 — 등급/이메일/글 권한 (AdminContext 와 같은 모양) */
+export type PostEditor = { role: AdminRole; email: string; perms: PostPerms };
+/** 고칠지 판단에 쓰는 글 정보 — created_by: DB 가 저장할 때 넣는 올린 사람 이메일 (이전 글은 null) */
+export type PostOwnerInfo = { published: boolean; created_by: string | null };
+
+export const NOT_OWN_POST_MESSAGE = "다른 계정이 올린 글은 고칠 수 없습니다.";
+export const PUBLISHED_LOCKED_MESSAGE = "공개된 글은 고칠 수 없습니다. 최고 관리자에게 요청해 주세요.";
+
+/**
+ * 이 글을 고치거나 지울 수 없는 이유 (고칠 수 있으면 null) — DB 정책과 같은 규칙.
+ * 미디어 계정은 자기가 올린 글만, 공개된 글은 '공개된 글 고치기' 권한이 있어야 한다 (D-057).
+ */
+export function editBlockReason(editor: PostEditor, post: PostOwnerInfo): string | null {
+  if (editor.role !== "media") return null;
+  if (!isOwnPost(editor.email, post.created_by)) return NOT_OWN_POST_MESSAGE;
+  if (post.published && !editor.perms.editPublished) return PUBLISHED_LOCKED_MESSAGE;
+  return null;
 }
 
-export const PUBLISHED_LOCKED_MESSAGE = "공개된 글은 고칠 수 없습니다. 최고 관리자에게 요청해 주세요.";
+function isOwnPost(email: string, createdBy: string | null): boolean {
+  return createdBy !== null && createdBy.toLowerCase() === email.toLowerCase();
+}
 
 export type PostFlags = { published: boolean; featured: boolean };
 
 /**
- * 권한이 없는 칸은 지금 값(새 글은 꺼짐)으로 되돌린다 — DB 트리거(news_media_rules/postings_media_rules)와 같은 규칙.
- * 화면에서 숨긴 칸이 '꺼짐'으로 넘어와 이미 켜진 값을 끄거나, 권한 밖 값을 보내 저장이 거절되지 않게.
+ * 저장할 공개/배너 값 — 권한이 없는 칸은 새 글이면 꺼짐, 고칠 때는 아예 보내지 않아 DB 의 지금 값이 그대로 남는다
+ * (DB 트리거 news_media_rules/postings_media_rules 와 같은 규칙). 화면에서 숨긴 칸이 '꺼짐'으로 넘어와 켜진 값을 끄거나,
+ * 저장하는 사이 최고 관리자가 바꾼 값을 되돌리지 않게.
  */
-export function allowedFlags(perms: PostPerms, wanted: PostFlags, current: PostFlags | null): PostFlags {
-  return {
-    published: perms.publish ? wanted.published : (current?.published ?? false),
-    featured: perms.feature ? wanted.featured : (current?.featured ?? false),
-  };
+export function flagValues(perms: PostPerms, wanted: PostFlags, isNew: boolean): Partial<PostFlags> {
+  const out: Partial<PostFlags> = {};
+  if (perms.publish) out.published = wanted.published;
+  else if (isNew) out.published = false;
+  if (perms.feature) out.featured = wanted.featured;
+  else if (isNew) out.featured = false;
+  return out;
 }
 
-/** 검토 대기 — 미디어 계정이 올렸고 아직 공개하지 않은 글 (created_by: DB 가 저장할 때 넣는 올린 사람 이메일) */
-export function isPendingReview(post: { published: boolean; created_by: string | null }, mediaEmails: ReadonlySet<string>): boolean {
-  return !post.published && post.created_by !== null && mediaEmails.has(post.created_by.toLowerCase());
+/**
+ * 검토 대기 — 아직 공개하지 않은 글 가운데 최고 관리자/관리자가 아닌 계정(미디어, 지운 미디어 계정 포함)이 올린 글.
+ * adminEmails: 최고 관리자/관리자 이메일 (미디어 계정 화면에서는 빈 목록 — 미디어는 자기 글만 보인다)
+ */
+export function isPendingReview(post: PostOwnerInfo, adminEmails: ReadonlySet<string>): boolean {
+  return !post.published && post.created_by !== null && !adminEmails.has(post.created_by.toLowerCase());
 }

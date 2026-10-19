@@ -69,7 +69,8 @@ export function NewsForm({
         <CheckboxField name="featured" label="구단소식 맨 위 메인 배너에 고정 (고정한 글이 없으면 최근 소식이 자동으로 나옵니다)" defaultChecked={initial?.featured ?? false} />
       )}
       {perms.publish ? (
-        <CheckboxField name="published" label="홈페이지에 공개" defaultChecked={initial?.published ?? true} />
+        // 새 글은 공개된 뒤에도 고칠 수 있는 계정만 '공개'로 시작 — 미디어가 저장하자마자 잠기지 않게
+        <CheckboxField name="published" label="홈페이지에 공개" defaultChecked={initial?.published ?? perms.editPublished} />
       ) : (
         <ReviewNote published={initial?.published ?? false} />
       )}

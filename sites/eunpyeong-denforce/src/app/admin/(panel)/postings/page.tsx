@@ -6,7 +6,7 @@ import { PublishBadge } from "@/components/admin/PublishBadge";
 import styles from "@/components/admin/admin.module.css";
 import { POSTING_KIND_LABEL, POSTING_PLATFORM_LABEL } from "@/data/postings";
 import { requireAdminPage } from "@/lib/admin/auth";
-import { mediaEmails } from "@/lib/admin/review";
+import { adminEmails } from "@/lib/admin/review";
 import { isPendingReview, STAFF_ROLES } from "@/lib/admin/roles";
 import type { PostingRow } from "@/lib/data/rows";
 import { formatPostDate } from "@/lib/format";
@@ -53,9 +53,9 @@ async function PostingList({ searchParams }: { searchParams: SearchParams }) {
 
   let query = supabase.from("postings").select("id, kind, platform, title, author, url, thumbnail_url, posted_on, published, created_by");
   if (kind) query = query.eq("kind", kind);
-  const [{ data, error }, media] = await Promise.all([
+  const [{ data, error }, admins] = await Promise.all([
     query.order("posted_on", { ascending: false }).order("title").returns<ListRow[]>(),
-    mediaEmails(ctx),
+    adminEmails(ctx),
   ]);
   const rows = data ?? [];
 
@@ -118,7 +118,7 @@ async function PostingList({ searchParams }: { searchParams: SearchParams }) {
                   <td className={styles.wrap}>{p.author || "-"}</td>
                   <td>{formatPostDate(p.posted_on)}</td>
                   <td>
-                    <PublishBadge published={p.published} pending={isPendingReview(p, media)} />
+                    <PublishBadge published={p.published} pending={isPendingReview(p, admins)} />
                   </td>
                 </tr>
               ))}

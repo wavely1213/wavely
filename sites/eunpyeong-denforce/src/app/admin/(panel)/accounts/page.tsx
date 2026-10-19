@@ -83,8 +83,8 @@ function LoginHelp() {
       </ul>
       <p className={styles.hint} style={{ marginTop: 12 }}>
         여기 목록은 &apos;관리자 화면에 들어와도 되는 이메일&apos;입니다. 비밀번호가 있는 로그인 계정은 Supabase 대시보드 › Authentication › Users ›
-        Add user 에서 같은 이메일로 만듭니다 (&apos;Auto Confirm User&apos; 체크, 또는 Send invitation 으로 본인이 비밀번호를 정하게). 로그인 칸이
-        &apos;로그인 계정 없음&apos;이면 아직 만들지 않은 것입니다.
+        Add user › Create new user 에서 같은 이메일과 비밀번호로 만듭니다 (&apos;Auto Confirm User&apos; 체크). 로그인 칸이 &apos;로그인 계정
+        없음&apos;이면 아직 만들지 않은 것입니다.
       </p>
     </section>
   );

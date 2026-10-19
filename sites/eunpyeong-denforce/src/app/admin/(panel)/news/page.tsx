@@ -6,7 +6,7 @@ import { PublishBadge } from "@/components/admin/PublishBadge";
 import styles from "@/components/admin/admin.module.css";
 import { NEWS_CATEGORY_LABEL } from "@/data/news";
 import { requireAdminPage } from "@/lib/admin/auth";
-import { mediaEmails } from "@/lib/admin/review";
+import { adminEmails } from "@/lib/admin/review";
 import { isPendingReview, STAFF_ROLES } from "@/lib/admin/roles";
 import type { NewsRow } from "@/lib/data/rows";
 import { formatPostDate } from "@/lib/format";
@@ -50,9 +50,9 @@ async function NewsList({ searchParams }: { searchParams: SearchParams }) {
 
   let query = supabase.from("news_posts").select("id, category, title, date, thumbnail_url, images, published, created_at, created_by");
   if (category) query = query.eq("category", category);
-  const [{ data, error }, media] = await Promise.all([
+  const [{ data, error }, admins] = await Promise.all([
     query.order("date", { ascending: false }).order("created_at", { ascending: false }).returns<ListRow[]>(),
-    mediaEmails(ctx),
+    adminEmails(ctx),
   ]);
   const rows = data ?? [];
 
@@ -114,7 +114,7 @@ async function NewsList({ searchParams }: { searchParams: SearchParams }) {
                     <td>{NEWS_CATEGORY_LABEL[n.category]}</td>
                     <td>{n.date ? formatPostDate(n.date) : "-"}</td>
                     <td>
-                      <PublishBadge published={n.published} pending={isPendingReview(n, media)} />
+                      <PublishBadge published={n.published} pending={isPendingReview(n, admins)} />
                     </td>
                   </tr>
                 );

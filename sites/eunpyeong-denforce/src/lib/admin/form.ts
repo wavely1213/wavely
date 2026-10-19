@@ -185,6 +185,8 @@ export function dbErrorMessage(error: { code?: string; message?: string } | null
   if (!error) return "저장하지 못했습니다.";
   if (error.code === "23505") return "이미 같은 값이 있습니다. (중복)";
   if (error.code === "23514") return "입력값이 허용 범위를 벗어났습니다.";
+  // 미디어 계정 규칙(DB 트리거)이 거절한 경우는 그 이유를 그대로 (D-057)
+  if (error.code === "42501" && error.message?.startsWith("미디어 계정")) return error.message;
   if (error.code === "42501") return "권한이 없습니다. 관리자 계정으로 다시 로그인해 주세요.";
   return "저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
 }

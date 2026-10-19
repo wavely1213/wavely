@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Link from "@/components/admin/AdminLink";
-import { PageTitle } from "@/components/admin/PageTitle";
+import { AdminLoading, PageTitle } from "@/components/admin/PageTitle";
 import styles from "@/components/admin/admin.module.css";
+import { requireAdminPage } from "@/lib/admin/auth";
 import { visibleSections } from "@/lib/content/sections";
 import local from "./content.module.css";
 import { SectionTabs } from "./SectionTabs";
@@ -28,6 +30,18 @@ export default function ContentHubPage() {
         title="홈페이지 내용"
         description="화면 곳곳의 문구/사진/카드를 고칩니다. 칸을 비우고 저장하면 처음 값으로 돌아가고, 저장하면 홈페이지에 바로 반영됩니다."
       />
+      <Suspense fallback={<AdminLoading />}>
+        <Hub />
+      </Suspense>
+    </>
+  );
+}
+
+/** 최고 관리자/관리자만 (D-057) — 다른 관리자 페이지처럼 본문에서 권한을 확인한다 */
+async function Hub() {
+  await requireAdminPage();
+  return (
+    <>
       <SectionTabs current="" />
 
       <section className={styles.panel}>

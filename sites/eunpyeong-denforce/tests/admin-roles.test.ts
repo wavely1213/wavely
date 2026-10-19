@@ -4,14 +4,17 @@ import { test } from "node:test";
 import { ADMIN_NAV_GROUPS, homeFor, navGroupsFor } from "../src/config/admin-nav.ts";
 import { formatKstDateTime, loginStatus, mediaPermSummary, normalizeEmail, selfChangeError } from "../src/lib/admin/accounts.ts";
 import { reviewAlerts } from "../src/lib/admin/alerts.ts";
+import { dbErrorMessage } from "../src/lib/admin/form.ts";
 import {
   ADMIN_ROLES,
   ALL_POST_PERMS,
-  allowedFlags,
-  canEditPost,
+  editBlockReason,
+  flagValues,
   isAdminRole,
   isPendingReview,
+  NOT_OWN_POST_MESSAGE,
   postPermsFor,
+  PUBLISHED_LOCKED_MESSAGE,
   type PostPerms,
 } from "../src/lib/admin/roles.ts";
 
@@ -49,30 +52,46 @@ test("isAdminRole / postPermsFor: 미디어만 계정별 권한", () => {
   assert.deepEqual(postPermsFor("media", { ...perms0, can_set_date: true }), { ...NO_PERMS, setDate: true });
 });
 
-test("canEditPost: 공개된 글은 '공개된 글 고치기' 권한이 있어야", () => {
-  assert.ok(canEditPost(NO_PERMS, false));
-  assert.ok(!canEditPost(NO_PERMS, true));
-  assert.ok(canEditPost({ ...NO_PERMS, editPublished: true }, true));
-  assert.ok(canEditPost(ALL_POST_PERMS, true));
+test("editBlockReason: 미디어는 자기 글만, 공개된 글은 '공개된 글 고치기' 권한이 있어야 — DB 정책과 같은 규칙", () => {
+  const media = { role: "media" as const, email: "Admin@Eunpyeong-fs.com", perms: NO_PERMS };
+  const own = (published: boolean) => ({ published, created_by: "admin@eunpyeong-fs.com" });
+  assert.equal(editBlockReason(media, own(false)), null);
+  assert.equal(editBlockReason(media, own(true)), PUBLISHED_LOCKED_MESSAGE);
+  assert.equal(editBlockReason({ ...media, perms: { ...NO_PERMS, editPublished: true } }, own(true)), null);
+  // 남의 글(최고 관리자 초안, 예전 글)은 비공개여도 못 고친다
+  assert.equal(editBlockReason(media, { published: false, created_by: "wavely1213@naver.com" }), NOT_OWN_POST_MESSAGE);
+  assert.equal(editBlockReason(media, { published: false, created_by: null }), NOT_OWN_POST_MESSAGE);
+  // 최고 관리자/관리자는 모두 고친다
+  for (const role of ["owner", "admin"] as const) {
+    assert.equal(editBlockReason({ role, email: "x@y.z", perms: ALL_POST_PERMS }, { published: true, created_by: null }), null);
+  }
 });
 
-test("allowedFlags: 권한 없는 칸은 지금 값(새 글은 꺼짐) — DB 트리거와 같은 규칙", () => {
+test("flagValues: 권한 없는 칸은 새 글이면 꺼짐, 고칠 때는 보내지 않음 (DB 의 지금 값 유지)", () => {
   const on = { published: true, featured: true };
   const off = { published: false, featured: false };
-  assert.deepEqual(allowedFlags(ALL_POST_PERMS, on, null), on);
-  assert.deepEqual(allowedFlags(ALL_POST_PERMS, off, on), off);
-  // 미디어 (권한 없음): 새 글은 비공개/고정 안 함, 고칠 때는 지금 값 그대로 (숨긴 칸이 '꺼짐'으로 넘어와도)
-  assert.deepEqual(allowedFlags(NO_PERMS, on, null), off);
-  assert.deepEqual(allowedFlags(NO_PERMS, off, { published: false, featured: true }), { published: false, featured: true });
-  assert.deepEqual(allowedFlags({ ...NO_PERMS, publish: true }, on, off), { published: true, featured: false });
+  assert.deepEqual(flagValues(ALL_POST_PERMS, on, true), on);
+  assert.deepEqual(flagValues(ALL_POST_PERMS, off, false), off);
+  assert.deepEqual(flagValues(NO_PERMS, on, true), off);
+  assert.deepEqual(flagValues(NO_PERMS, off, false), {});
+  assert.deepEqual(flagValues({ ...NO_PERMS, publish: true }, on, false), { published: true });
+  assert.deepEqual(flagValues({ ...NO_PERMS, feature: true }, on, true), { published: false, featured: true });
 });
 
-test("isPendingReview: 미디어 계정이 올린 비공개 글만 (대소문자 무시)", () => {
-  const media = new Set(["admin@eunpyeong-fs.com"]);
-  assert.ok(isPendingReview({ published: false, created_by: "Admin@Eunpyeong-fs.com" }, media));
-  assert.ok(!isPendingReview({ published: true, created_by: "admin@eunpyeong-fs.com" }, media));
-  assert.ok(!isPendingReview({ published: false, created_by: "owner@example.com" }, media));
-  assert.ok(!isPendingReview({ published: false, created_by: null }, media));
+test("isPendingReview: 최고 관리자/관리자가 아닌 계정이 올린 비공개 글 (지운 미디어 계정 포함, 대소문자 무시)", () => {
+  const admins = new Set(["wavely1213@naver.com", "futbol1209@gmail.com"]);
+  assert.ok(isPendingReview({ published: false, created_by: "Admin@Eunpyeong-fs.com" }, admins));
+  assert.ok(isPendingReview({ published: false, created_by: "removed-media@example.com" }, admins));
+  assert.ok(!isPendingReview({ published: true, created_by: "admin@eunpyeong-fs.com" }, admins));
+  assert.ok(!isPendingReview({ published: false, created_by: "Wavely1213@naver.com" }, admins));
+  assert.ok(!isPendingReview({ published: false, created_by: null }, admins));
+  // 미디어 계정 화면: 관리자 목록 없이도 자기 비공개 글은 검토 대기
+  assert.ok(isPendingReview({ published: false, created_by: "admin@eunpyeong-fs.com" }, new Set()));
+});
+
+test("dbErrorMessage: 미디어 규칙 거절은 이유 그대로, 그 밖의 권한 오류는 다시 로그인 안내", () => {
+  assert.equal(dbErrorMessage({ code: "42501", message: "미디어 계정은 글을 공개할 수 없습니다 (검토 후 공개)" }), "미디어 계정은 글을 공개할 수 없습니다 (검토 후 공개)");
+  assert.match(dbErrorMessage({ code: "42501", message: "permission denied for table players" }), /다시 로그인/);
 });
 
 test("reviewAlerts: 검토 대기 구단소식/포스팅", () => {

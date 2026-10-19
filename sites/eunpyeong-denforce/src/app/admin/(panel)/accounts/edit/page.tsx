@@ -31,7 +31,8 @@ async function Editor({ searchParams }: { searchParams: SearchParams }) {
   const raw = (await searchParams).email;
   if (typeof raw !== "string") notFound();
   const email = normalizeEmail(raw);
-  const { data } = await supabase.rpc("admin_accounts");
+  const { data, error } = await supabase.rpc("admin_accounts");
+  if (error) return <p className={`${styles.panel} ${styles.empty}`}>계정을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p>;
   const account = ((data ?? []) as AdminAccountRow[]).find((a) => a.email === email);
   if (!account) notFound();
   const isMe = selfChangeError(email, me, "delete") !== null;

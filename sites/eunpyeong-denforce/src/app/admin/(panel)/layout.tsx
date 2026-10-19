@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { Suspense } from "react";
 import Link from "@/components/admin/AdminLink";
 import { AdminMenu, AdminNav } from "@/components/admin/AdminNav";
@@ -53,6 +54,8 @@ async function BrandName() {
 }
 
 async function RoleNav() {
+  // 요청마다 계정을 확인한다 — 미리 만든 화면에 메뉴가 들어가지 않게 (DB 없이 빌드할 때도)
+  await connection();
   const { role } = await requireAdminPage(STAFF_ROLES);
   return <AdminNav role={role} />;
 }
