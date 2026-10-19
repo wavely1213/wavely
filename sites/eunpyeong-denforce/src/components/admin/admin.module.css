@@ -55,21 +55,27 @@
 .nav {
   display: flex;
   flex-direction: column;
-  gap: 14px;
 }
 
-/* 메뉴 묶음 — 작은 회색 제목 아래 링크들 */
+/* 메뉴 묶음 — 노란 작은 제목 아래 링크들, 묶음 사이는 가는 선 (소유자 "구분이 잘 안됨" → 노란 제목 + 구분선) */
 .navGroup {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
+.navGroup + .navGroup {
+  margin-top: 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--c-line-on-dark);
+}
+
 .navGroupLabel {
-  padding: 0 10px 2px;
+  padding: 0 10px 4px;
   font-size: 12px;
   font-weight: 700;
-  color: var(--c-on-dark-sub);
+  letter-spacing: 0.04em;
+  color: var(--c-yellow);
 }
 
 .navLink {
@@ -171,11 +177,22 @@
     overflow-y: auto;
   }
 
-  /* 묶음을 두 칸씩 */
+  /* 묶음을 두 칸씩 — 구분선은 둘째 줄부터 (같은 줄 두 묶음은 높이를 맞춰 선이 나란히) */
   .nav {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px 12px;
+    gap: 12px;
+  }
+
+  .navGroup + .navGroup {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .navGroup:nth-child(n + 3) {
+    padding-top: 12px;
+    border-top: 1px solid var(--c-line-on-dark);
   }
 
   .navLink {
@@ -187,7 +204,7 @@
     flex-wrap: wrap;
     gap: 4px 16px;
     padding-top: 12px;
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    border-top: 1px solid var(--c-line-on-dark);
   }
 
   .main {
