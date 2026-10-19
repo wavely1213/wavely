@@ -6,7 +6,7 @@ import { PublishBadge } from "@/components/admin/PublishBadge";
 import styles from "@/components/admin/admin.module.css";
 import { NEWS_CATEGORY_LABEL } from "@/data/news";
 import { requireAdminPage } from "@/lib/admin/auth";
-import { adminEmails } from "@/lib/admin/review";
+import { adminUserIds } from "@/lib/admin/review";
 import { isPendingReview, STAFF_ROLES } from "@/lib/admin/roles";
 import type { NewsRow } from "@/lib/data/rows";
 import { formatPostDate } from "@/lib/format";
@@ -52,7 +52,7 @@ async function NewsList({ searchParams }: { searchParams: SearchParams }) {
   if (category) query = query.eq("category", category);
   const [{ data, error }, admins] = await Promise.all([
     query.order("date", { ascending: false }).order("created_at", { ascending: false }).returns<ListRow[]>(),
-    adminEmails(ctx),
+    adminUserIds(ctx),
   ]);
   const rows = data ?? [];
 

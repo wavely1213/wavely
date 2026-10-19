@@ -12,6 +12,8 @@ import { FULL_ADMIN_ROLES, isAdminRole, postPermsFor, type AdminRole, type Media
 export type AdminContext = {
   supabase: Awaited<ReturnType<typeof createSessionClient>>;
   email: string;
+  /** 로그인 계정 ID — 글의 created_by(올린 사람)와 비교한다 (I-042) */
+  userId: string;
   role: AdminRole;
   /** 글 권한 — 미디어 계정만 계정별로 다르다 */
   perms: PostPerms;
@@ -27,7 +29,7 @@ async function resolveAdmin(): Promise<AdminContext | null> {
   if (error || !data.user?.email) return null;
   const { data: profile, error: rpcError } = await supabase.rpc("my_admin_profile").maybeSingle<ProfileRow>();
   if (rpcError || !profile || !isAdminRole(profile.role)) return null;
-  return { supabase, email: data.user.email, role: profile.role, perms: postPermsFor(profile.role, profile) };
+  return { supabase, email: data.user.email, userId: data.user.id, role: profile.role, perms: postPermsFor(profile.role, profile) };
 }
 
 /**

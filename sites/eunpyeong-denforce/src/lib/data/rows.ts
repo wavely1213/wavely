@@ -79,7 +79,7 @@ export type NewsRow = {
   featured: boolean;
   published: boolean;
   created_at: string;
-  /** 올린 사람 이메일 — 검토 대기 표시용 (D-057). 이전 글은 null */
+  /** 올린 사람 로그인 계정 ID — 검토 대기/미디어 자기 글 (D-057, I-042). 이전 글은 null */
   created_by: string | null;
 };
 
@@ -95,7 +95,7 @@ export type PostingRow = {
   posted_on: string;
   published: boolean;
   created_at: string;
-  /** 올린 사람 이메일 — 검토 대기 표시용 (D-057). 이전 글은 null */
+  /** 올린 사람 로그인 계정 ID — 검토 대기/미디어 자기 글 (D-057, I-042). 이전 글은 null */
   created_by: string | null;
 };
 

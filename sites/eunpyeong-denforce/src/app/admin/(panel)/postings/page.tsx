@@ -6,7 +6,7 @@ import { PublishBadge } from "@/components/admin/PublishBadge";
 import styles from "@/components/admin/admin.module.css";
 import { POSTING_KIND_LABEL, POSTING_PLATFORM_LABEL } from "@/data/postings";
 import { requireAdminPage } from "@/lib/admin/auth";
-import { adminEmails } from "@/lib/admin/review";
+import { adminUserIds } from "@/lib/admin/review";
 import { isPendingReview, STAFF_ROLES } from "@/lib/admin/roles";
 import type { PostingRow } from "@/lib/data/rows";
 import { formatPostDate } from "@/lib/format";
@@ -55,7 +55,7 @@ async function PostingList({ searchParams }: { searchParams: SearchParams }) {
   if (kind) query = query.eq("kind", kind);
   const [{ data, error }, admins] = await Promise.all([
     query.order("posted_on", { ascending: false }).order("title").returns<ListRow[]>(),
-    adminEmails(ctx),
+    adminUserIds(ctx),
   ]);
   const rows = data ?? [];
 

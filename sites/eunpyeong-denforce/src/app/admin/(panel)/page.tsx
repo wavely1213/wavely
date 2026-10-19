@@ -9,7 +9,7 @@ import { NEWS_CATEGORY_LABEL } from "@/data/news";
 import { POSTING_PLATFORM_LABEL } from "@/data/postings";
 import { numberAlerts, reviewAlerts, rosterAlerts, siteGapAlerts, sortAlerts, type AdminAlert, type AlertLevel } from "@/lib/admin/alerts";
 import { requireAdminPage } from "@/lib/admin/auth";
-import { adminEmails } from "@/lib/admin/review";
+import { adminUserIds } from "@/lib/admin/review";
 import { isPendingReview } from "@/lib/admin/roles";
 import { formatKickoff, formatPostDate } from "@/lib/format";
 import type { NewsCategory, PostingPlatform } from "@/types";
@@ -71,7 +71,7 @@ async function Dashboard() {
     supabase.from("site_content").select("key").eq("key", "privacy.body").maybeSingle(),
     // 검토 대기 (D-057) — 미디어 계정이 올린 비공개 글
     supabase.from("postings").select("published, created_by").eq("published", false),
-    adminEmails(ctx),
+    adminUserIds(ctx),
   ]);
 
   const playerRows = players.data ?? [];

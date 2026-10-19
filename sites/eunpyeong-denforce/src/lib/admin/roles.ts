@@ -52,9 +52,9 @@ export function postPermsFor(role: AdminRole, row: Record<MediaPermColumn, boole
   };
 }
 
-/** 글을 고치려는 사람 — 등급/이메일/글 권한 (AdminContext 와 같은 모양) */
-export type PostEditor = { role: AdminRole; email: string; perms: PostPerms };
-/** 고칠지 판단에 쓰는 글 정보 — created_by: DB 가 저장할 때 넣는 올린 사람 이메일 (이전 글은 null) */
+/** 글을 고치려는 사람 — 등급/로그인 계정 ID/글 권한 (AdminContext 와 같은 모양) */
+export type PostEditor = { role: AdminRole; userId: string; perms: PostPerms };
+/** 고칠지 판단에 쓰는 글 정보 — created_by: DB 가 저장할 때 넣는 올린 사람의 로그인 계정 ID (이전 글은 null, I-042) */
 export type PostOwnerInfo = { published: boolean; created_by: string | null };
 
 export const NOT_OWN_POST_MESSAGE = "다른 계정이 올린 글은 고칠 수 없습니다.";
@@ -66,13 +66,9 @@ export const PUBLISHED_LOCKED_MESSAGE = "공개된 글은 고칠 수 없습니�
  */
 export function editBlockReason(editor: PostEditor, post: PostOwnerInfo): string | null {
   if (editor.role !== "media") return null;
-  if (!isOwnPost(editor.email, post.created_by)) return NOT_OWN_POST_MESSAGE;
+  if (post.created_by === null || post.created_by !== editor.userId) return NOT_OWN_POST_MESSAGE;
   if (post.published && !editor.perms.editPublished) return PUBLISHED_LOCKED_MESSAGE;
   return null;
-}
-
-function isOwnPost(email: string, createdBy: string | null): boolean {
-  return createdBy !== null && createdBy.toLowerCase() === email.toLowerCase();
 }
 
 export type PostFlags = { published: boolean; featured: boolean };
@@ -93,8 +89,8 @@ export function flagValues(perms: PostPerms, wanted: PostFlags, isNew: boolean):
 
 /**
  * 검토 대기 — 아직 공개하지 않은 글 가운데 최고 관리자/관리자가 아닌 계정(미디어, 지운 미디어 계정 포함)이 올린 글.
- * adminEmails: 최고 관리자/관리자 이메일 (미디어 계정 화면에서는 빈 목록 — 미디어는 자기 글만 보인다)
+ * adminIds: 최고 관리자/관리자 로그인 계정 ID (미디어 계정 화면에서는 빈 목록 — 미디어는 자기 글만 보인다)
  */
-export function isPendingReview(post: PostOwnerInfo, adminEmails: ReadonlySet<string>): boolean {
-  return !post.published && post.created_by !== null && !adminEmails.has(post.created_by.toLowerCase());
+export function isPendingReview(post: PostOwnerInfo, adminIds: ReadonlySet<string>): boolean {
+  return !post.published && post.created_by !== null && !adminIds.has(post.created_by);
 }
