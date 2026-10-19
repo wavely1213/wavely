@@ -5,11 +5,13 @@ import { redirect } from "next/navigation";
 import { TAGS } from "@/lib/cache-tags";
 import { NOT_ADMIN_MESSAGE, requireAdminAction } from "@/lib/admin/auth";
 import { dbErrorMessage, FormReader, submittedValues, type ActionState } from "@/lib/admin/form";
+import { allowedFlags, canEditPost, PUBLISHED_LOCKED_MESSAGE, STAFF_ROLES, type PostPerms } from "@/lib/admin/roles";
 import { removeImage, resolveImage } from "@/lib/admin/storage";
 import { POSTING_KINDS, POSTING_PLATFORMS } from "@/lib/postings";
 
 // 포스팅(바깥 글 모음) 관리 서버 액션 — 모든 액션이 직접 관리자 권한을 확인한다 (D-022).
 // 순서: 권한 → 입력 검증 → 이미지 업로드 → DB 저장 → updateTag → redirect
+// 미디어 계정도 쓴다 (D-057) — '직접 공개' 권한이 없으면 공개 칸은 지금 값으로 두고, DB 트리거가 한 번 더 막는다.
 
 // 브라우저는 textarea 줄바꿈을 CRLF 로 보낸다 — 글자 수 검사·저장을 화면과 맞추려고 LF 로 바꾼다 (구단소식과 같음)
 function postingReader(fd: FormData): FormReader {
@@ -31,12 +33,18 @@ function readPosting(f: FormReader) {
   };
 }
 
+/** '직접 공개' 권한이 없으면 공개 여부는 지금 값(새 글은 비공개)으로 */
+function limitPosting(values: ReturnType<typeof readPosting>, perms: PostPerms, current: { published: boolean } | null) {
+  const flags = allowedFlags(perms, { published: values.published, featured: false }, current && { published: current.published, featured: false });
+  return { ...values, published: flags.published };
+}
+
 export async function createPosting(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  const ctx = await requireAdminAction();
+  const ctx = await requireAdminAction(STAFF_ROLES);
   if (!ctx) return { message: NOT_ADMIN_MESSAGE };
 
   const f = postingReader(fd);
-  const values = readPosting(f);
+  const values = limitPosting(readPosting(f), ctx.perms, null);
   if (f.hasErrors) return f.state();
 
   const thumbnail_url = await resolveImage(ctx, f, "thumbnail", "postings", null);
@@ -53,15 +61,16 @@ export async function createPosting(_prev: ActionState, fd: FormData): Promise<A
 }
 
 export async function updatePosting(id: string, _prev: ActionState, fd: FormData): Promise<ActionState> {
-  const ctx = await requireAdminAction();
+  const ctx = await requireAdminAction(STAFF_ROLES);
   if (!ctx) return { message: NOT_ADMIN_MESSAGE };
 
   // 현재 값은 클라이언트가 아니라 DB 에서 다시 읽는다
-  const { data: current } = await ctx.supabase.from("postings").select("thumbnail_url").eq("id", id).maybeSingle();
+  const { data: current } = await ctx.supabase.from("postings").select("thumbnail_url, published").eq("id", id).maybeSingle();
   if (!current) return { message: "이미 삭제된 글입니다." };
+  if (!canEditPost(ctx.perms, current.published)) return { message: PUBLISHED_LOCKED_MESSAGE };
 
   const f = postingReader(fd);
-  const values = readPosting(f);
+  const values = limitPosting(readPosting(f), ctx.perms, current);
   if (f.hasErrors) return f.state();
 
   const thumbnail_url = await resolveImage(ctx, f, "thumbnail", "postings", current.thumbnail_url);
@@ -79,8 +88,11 @@ export async function updatePosting(id: string, _prev: ActionState, fd: FormData
 }
 
 export async function deletePosting(id: string): Promise<void> {
-  const ctx = await requireAdminAction();
+  const ctx = await requireAdminAction(STAFF_ROLES);
   if (!ctx) redirect("/admin/login");
+  // 공개된 글은 권한이 있어야 지운다 (DB 정책도 같은 규칙 — 여기서는 사진을 지우기 전에 멈춘다)
+  const { data: current } = await ctx.supabase.from("postings").select("published").eq("id", id).maybeSingle();
+  if (current && !canEditPost(ctx.perms, current.published)) redirect(`/admin/postings/${id}`);
 
   const { data } = await ctx.supabase.from("postings").delete().eq("id", id).select("thumbnail_url").maybeSingle();
   await removeImage(ctx, data?.thumbnail_url);

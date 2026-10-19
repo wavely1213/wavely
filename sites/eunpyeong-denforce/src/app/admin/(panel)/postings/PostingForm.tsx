@@ -1,20 +1,24 @@
 "use client";
 
 import { AdminForm } from "@/components/admin/AdminForm";
-import { CheckboxField, ImageField, Row, SelectField, TextArea, TextField } from "@/components/admin/fields";
+import { CheckboxField, ImageField, ReviewNote, Row, SelectField, TextArea, TextField } from "@/components/admin/fields";
 import { POSTING_KIND_LABEL, POSTING_PLATFORM_LABEL } from "@/data/postings";
 import type { ActionState } from "@/lib/admin/form";
+import type { PostPerms } from "@/lib/admin/roles";
 import type { PostingRow } from "@/lib/data/rows";
 
 const KIND_OPTIONS = Object.entries(POSTING_KIND_LABEL).map(([value, label]) => ({ value, label }));
 const PLATFORM_OPTIONS = Object.entries(POSTING_PLATFORM_LABEL).map(([value, label]) => ({ value, label }));
 
+/** perms: 이 계정의 글 권한 — '직접 공개' 권한이 없으면 공개 칸 대신 검토 안내 (미디어 계정, D-057) */
 export function PostingForm({
   action,
   initial,
+  perms,
 }: {
   action: (prev: ActionState, fd: FormData) => Promise<ActionState>;
   initial?: PostingRow;
+  perms: PostPerms;
 }) {
   return (
     <AdminForm action={action}>
@@ -36,7 +40,11 @@ export function PostingForm({
       </Row>
       <TextArea name="excerpt" label="요약" rows={3} hint="300자 이하 / 목록에는 보이지 않고 관리용" defaultValue={initial?.excerpt} />
       <ImageField name="thumbnail" label="대표 사진" hint="JPG/PNG/WEBP/GIF, 5MB 이하 / 없으면 엠블럼 배경으로 보입니다" currentUrl={initial?.thumbnail_url} />
-      <CheckboxField name="published" label="홈페이지에 공개" defaultChecked={initial?.published ?? true} />
+      {perms.publish ? (
+        <CheckboxField name="published" label="홈페이지에 공개" defaultChecked={initial?.published ?? true} />
+      ) : (
+        <ReviewNote published={initial?.published ?? false} />
+      )}
     </AdminForm>
   );
 }

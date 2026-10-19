@@ -35,14 +35,14 @@ test("toPlayer: 통계 묶음/사진 필드명 변환", () => {
 });
 
 test("toNewsPost: 본문 문단 분리", () => {
-  const n = toNewsPost({ id: "n", category: "notice", title: "t", date: "2026", thumbnail_url: null, images: [], summary: "", body: "a\n\nb", video_url: null, featured: false, published: true, created_at: "" });
+  const n = toNewsPost({ id: "n", category: "notice", title: "t", date: "2026", thumbnail_url: null, images: [], summary: "", body: "a\n\nb", video_url: null, featured: false, published: true, created_at: "", created_by: null });
   assert.deepEqual(n.body, ["a", "b"]);
   assert.equal(n.thumbnail, null);
   assert.deepEqual(n.images, []);
 });
 
 test("toNewsPost: 썸네일이 없으면 첫 사진을 목록 카드에 쓴다 (BR-015)", () => {
-  const base = { id: "n", category: "news" as const, title: "t", date: "2026", summary: "", body: "", video_url: null, featured: false, published: true, created_at: "" };
+  const base = { id: "n", category: "news" as const, title: "t", date: "2026", summary: "", body: "", video_url: null, featured: false, published: true, created_at: "", created_by: null };
   assert.equal(toNewsPost({ ...base, thumbnail_url: null, images: ["p1", "p2"] }).thumbnail, "p1");
   assert.equal(toNewsPost({ ...base, thumbnail_url: "t1", images: ["p1"] }).thumbnail, "t1");
   // 마이그레이션 전 DB (images 열 없음)

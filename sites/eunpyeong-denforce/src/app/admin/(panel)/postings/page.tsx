@@ -2,9 +2,12 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "@/components/admin/AdminLink";
 import { AdminLoading, PageTitle } from "@/components/admin/PageTitle";
+import { PublishBadge } from "@/components/admin/PublishBadge";
 import styles from "@/components/admin/admin.module.css";
 import { POSTING_KIND_LABEL, POSTING_PLATFORM_LABEL } from "@/data/postings";
 import { requireAdminPage } from "@/lib/admin/auth";
+import { mediaEmails } from "@/lib/admin/review";
+import { isPendingReview, STAFF_ROLES } from "@/lib/admin/roles";
 import type { PostingRow } from "@/lib/data/rows";
 import { formatPostDate } from "@/lib/format";
 import { POSTING_KINDS } from "@/lib/postings";
@@ -16,7 +19,7 @@ export const metadata: Metadata = { title: "포스팅" };
 // 라우트 타입(.next/types)이 빌드 때 생성되므로 searchParams 타입은 직접 적는다 (PageProps 와 호환)
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
-type ListRow = Pick<PostingRow, "id" | "kind" | "platform" | "title" | "author" | "url" | "thumbnail_url" | "posted_on" | "published">;
+type ListRow = Pick<PostingRow, "id" | "kind" | "platform" | "title" | "author" | "url" | "thumbnail_url" | "posted_on" | "published" | "created_by">;
 
 const TABS: Array<{ value: PostingKind | null; label: string }> = [
   { value: null, label: "전체" },
@@ -42,17 +45,18 @@ export default function PostingsAdminPage({ searchParams }: { searchParams: Sear
 }
 
 async function PostingList({ searchParams }: { searchParams: SearchParams }) {
-  const { supabase } = await requireAdminPage();
+  const ctx = await requireAdminPage(STAFF_ROLES);
+  const { supabase } = ctx;
   const raw = (await searchParams).kind;
   // 잘못된 값·여러 값은 전체로 본다
   const kind = typeof raw === "string" && (POSTING_KINDS as readonly string[]).includes(raw) ? (raw as PostingKind) : null;
 
-  let query = supabase.from("postings").select("id, kind, platform, title, author, url, thumbnail_url, posted_on, published");
+  let query = supabase.from("postings").select("id, kind, platform, title, author, url, thumbnail_url, posted_on, published, created_by");
   if (kind) query = query.eq("kind", kind);
-  const { data, error } = await query
-    .order("posted_on", { ascending: false })
-    .order("title")
-    .returns<ListRow[]>();
+  const [{ data, error }, media] = await Promise.all([
+    query.order("posted_on", { ascending: false }).order("title").returns<ListRow[]>(),
+    mediaEmails(ctx),
+  ]);
   const rows = data ?? [];
 
   return (
@@ -114,11 +118,7 @@ async function PostingList({ searchParams }: { searchParams: SearchParams }) {
                   <td className={styles.wrap}>{p.author || "-"}</td>
                   <td>{formatPostDate(p.posted_on)}</td>
                   <td>
-                    {p.published ? (
-                      <span className={`${styles.badge} ${styles.badgeBlue}`}>공개</span>
-                    ) : (
-                      <span className={styles.badge}>비공개</span>
-                    )}
+                    <PublishBadge published={p.published} pending={isPendingReview(p, media)} />
                   </td>
                 </tr>
               ))}

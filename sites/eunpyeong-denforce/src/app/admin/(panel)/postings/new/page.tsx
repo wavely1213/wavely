@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AdminLoading, PageTitle } from "@/components/admin/PageTitle";
 import { requireAdminPage } from "@/lib/admin/auth";
+import { STAFF_ROLES } from "@/lib/admin/roles";
 import { createPosting } from "../actions";
 import { PostingForm } from "../PostingForm";
 
@@ -19,6 +20,6 @@ export default function NewPostingPage() {
 }
 
 async function Guarded() {
-  await requireAdminPage();
-  return <PostingForm action={createPosting} />;
+  const { perms } = await requireAdminPage(STAFF_ROLES);
+  return <PostingForm action={createPosting} perms={perms} />;
 }
