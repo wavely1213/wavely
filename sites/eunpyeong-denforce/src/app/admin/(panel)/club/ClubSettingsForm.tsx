@@ -74,15 +74,15 @@ export function ClubSettingsForm({
       <TextArea
         name="venue_transit"
         label="대중교통 안내"
-        rows={3}
-        hint="오시는 길 페이지에 보입니다 / 300자 이하"
+        rows={4}
+        hint="오시는 길 페이지에 보입니다. 한 줄에 하나씩 쓰면 줄을 나눠 보여 주고, '지하철: …'처럼 앞에 이름과 ':'를 붙이면 이름이 굵게 보입니다 / 300자 이하"
         defaultValue={initial?.venue_transit}
       />
       <TextArea
         name="venue_parking"
         label="주차 안내"
-        rows={3}
-        hint="오시는 길 페이지에 보입니다 / 300자 이하"
+        rows={4}
+        hint="오시는 길 페이지에 보입니다. 한 줄에 하나씩 쓰면 줄을 나눠 보여 주고, '요금: …'처럼 앞에 이름과 ':'를 붙이면 이름이 굵게 보입니다 / 300자 이하"
         defaultValue={initial?.venue_parking}
       />
     </AdminForm>
