@@ -94,6 +94,8 @@ test("isPendingReview: 최고 관리자/관리자가 아닌 계정이 올린 비
   assert.ok(!isPendingReview({ published: false, created_by: null }, admins));
   // 미디어 계정 화면: 관리자 목록 없이도 자기 비공개 글은 검토 대기
   assert.ok(isPendingReview({ published: false, created_by: MEDIA }, new Set()));
+  // 관리자 ID 목록을 못 읽으면(null) 검토 대기로 보지 않는다 — 관리자 초안이 잘못 뜨지 않게
+  assert.ok(!isPendingReview({ published: false, created_by: MEDIA }, null));
 });
 
 test("dbErrorMessage: 미디어 규칙 거절은 이유 그대로, 그 밖의 권한 오류는 다시 로그인 안내", () => {

@@ -89,8 +89,9 @@ export function flagValues(perms: PostPerms, wanted: PostFlags, isNew: boolean):
 
 /**
  * 검토 대기 — 아직 공개하지 않은 글 가운데 최고 관리자/관리자가 아닌 계정(미디어, 지운 미디어 계정 포함)이 올린 글.
- * adminIds: 최고 관리자/관리자 로그인 계정 ID (미디어 계정 화면에서는 빈 목록 — 미디어는 자기 글만 보인다)
+ * adminIds: 최고 관리자/관리자 로그인 계정 ID (미디어 계정 화면에서는 빈 목록 — 미디어는 자기 글만 보인다).
+ * null(목록을 못 읽음)이면 검토 대기로 보지 않는다.
  */
-export function isPendingReview(post: PostOwnerInfo, adminIds: ReadonlySet<string>): boolean {
-  return !post.published && post.created_by !== null && !adminIds.has(post.created_by);
+export function isPendingReview(post: PostOwnerInfo, adminIds: ReadonlySet<string> | null): boolean {
+  return adminIds !== null && !post.published && post.created_by !== null && !adminIds.has(post.created_by);
 }

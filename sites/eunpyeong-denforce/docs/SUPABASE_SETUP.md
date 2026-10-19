@@ -79,5 +79,14 @@ Vercel → 이 사이트 프로젝트 → Settings → Environment Variables 에
 ## 운영 메모
 - 저장 즉시 홈페이지에 반영된다. 서버가 여러 대로 나뉘어 있어도 늦어도 1분 안에 반영 (캐시 수명 `minutes`).
 - 이미지는 5MB 이하 JPG·PNG·WEBP·GIF. 교체·삭제하면 저장소의 옛 파일도 지운다.
-- 비밀번호 분실: 사이트에는 아직 비밀번호 재설정 화면이 없다 (KNOWN_ISSUES I-009). Supabase 대시보드 → Authentication → Users 에서 해당 사용자를 삭제하고 같은 이메일로 다시 만들면 된다 (`admins` 목록은 이메일 기준이라 그대로 유지).
+- 비밀번호 분실: 사이트에는 아직 비밀번호 재설정 화면이 없다 (KNOWN_ISSUES I-009). **사용자를 지우지 말고 비밀번호만 바꾼다** — 글/사진의 주인은 로그인 계정 ID 라(I-042) 지우고 다시 만들면 ID 가 바뀌어 옛 글/사진과 끊긴다. SQL Editor 에서:
+  ```sql
+  update auth.users set encrypted_password = extensions.crypt('새 비밀번호', extensions.gen_salt('bf')) where email = '관리자이메일@example.com';
+  ```
+  어쩔 수 없이 다시 만들었다면 옛 ID 를 새 ID 로 잇는다 (Authentication → Users 에서 두 ID 확인):
+  ```sql
+  update public.news_posts set created_by = '<새 ID>' where created_by = '<옛 ID>';
+  update public.postings set created_by = '<새 ID>' where created_by = '<옛 ID>';
+  update storage.objects set owner_id = '<새 ID>' where owner_id = '<옛 ID>';
+  ```
 - 백업: Free 플랜은 자동 백업이 없다. 중요 시점에 Database → Backups 또는 `pg_dump` 로 보관 (KNOWN_ISSUES 참고).

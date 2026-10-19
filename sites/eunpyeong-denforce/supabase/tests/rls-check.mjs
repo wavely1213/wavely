@@ -65,7 +65,8 @@ check("관리자 is_admin() = true", (await admin.rpc("is_admin")).data === true
 await writes(admin, "admin", true);
 // 4) 감사 기록: updated_by
 const s = await admin.from("sponsors").insert({ name: "audit", tier: "partner" }).select("updated_by, id").single();
-check("updated_by 에 관리자 이메일 기록", s.data?.updated_by === "admin@test.local");
+// 이메일 대신 로그인 계정 ID (I-042)
+check("updated_by 에 관리자 로그인 계정 ID 기록 (이메일 아님)", s.data?.updated_by === (await admin.auth.getUser()).data.user?.id && !s.data?.updated_by?.includes("@"));
 await admin.from("sponsors").delete().eq("id", s.data.id);
 // 5) 제약: 종료 경기 스코어 필수
 const bad = await admin.from("matches").insert({ competition: "c", kickoff: "2026-01-01T00:00:00Z", opponent: "o", status: "finished" });

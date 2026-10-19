@@ -84,7 +84,8 @@ function LoginHelp() {
       <p className={styles.hint} style={{ marginTop: 12 }}>
         여기 목록은 &apos;관리자 화면에 들어와도 되는 이메일&apos;입니다. 비밀번호가 있는 로그인 계정은 Supabase 대시보드 › Authentication › Users ›
         Add user › Create new user 에서 같은 이메일과 비밀번호로 만듭니다 (&apos;Auto Confirm User&apos; 체크). 로그인 칸이 &apos;로그인 계정
-        없음&apos;이면 아직 만들지 않은 것입니다.
+        없음&apos;이면 아직 만들지 않은 것입니다. 비밀번호를 잊었을 때는 로그인 계정을 지우지 말고 비밀번호만 바꿔 주세요 — 지우고 다시 만들면
+        그 계정이 올린 글/사진과 연결이 끊깁니다 (설정 문서 SUPABASE_SETUP 운영 메모).
       </p>
     </section>
   );

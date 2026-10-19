@@ -78,7 +78,8 @@ async function Dashboard() {
   const activePlayers = playerRows.filter((p) => p.is_active);
   const lite = playerRows.map((p) => ({ id: p.id, name: p.name, number: p.number, isActive: p.is_active, hasPhoto: Boolean(p.photo_url) }));
   // 하나라도 못 읽으면 잘못된 알림(예: '명단에 없음')을 띄우지 않게 그 알림은 건너뛰고 안내한다
-  const failed = [players, staff, news, settings, upcoming, scheduled, privacy, draftPostings].some((r) => r.error);
+  // 검토 대기 판단에 쓰는 관리자 ID 목록(admins)을 못 읽어도 알림을 만들지 않는다
+  const failed = [players, staff, news, settings, upcoming, scheduled, privacy, draftPostings].some((r) => r.error) || admins === null;
   const newsRows = news.data ?? [];
   const pendingNews = newsRows.filter((n) => isPendingReview(n, admins)).length;
   const scheduledRows = scheduled.data ?? [];
