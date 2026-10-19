@@ -1,8 +1,5 @@
 // 관리자 메뉴 — 묶음별로 사이드바에 표시 (D-048). 휴대폰에서는 '메뉴' 버튼을 눌러 연다.
-// 등급마다 보이는 메뉴가 다르다 (D-057) — roles 를 적지 않은 메뉴는 최고 관리자/관리자만.
-import { FULL_ADMIN_ROLES, OWNER_ROLES, STAFF_ROLES, type AdminRole } from "../lib/admin/roles.ts";
-
-export type AdminNavItem = { href: string; label: string; roles?: readonly AdminRole[] };
+export type AdminNavItem = { href: string; label: string };
 export type AdminNavGroup = { label: string | null; items: readonly AdminNavItem[] };
 
 export const ADMIN_NAV_GROUPS: readonly AdminNavGroup[] = [
@@ -10,8 +7,8 @@ export const ADMIN_NAV_GROUPS: readonly AdminNavGroup[] = [
   {
     label: "콘텐츠",
     items: [
-      { href: "/admin/news", label: "구단소식", roles: STAFF_ROLES },
-      { href: "/admin/postings", label: "포스팅", roles: STAFF_ROLES },
+      { href: "/admin/news", label: "구단소식" },
+      { href: "/admin/postings", label: "포스팅" },
     ],
   },
   {
@@ -37,26 +34,8 @@ export const ADMIN_NAV_GROUPS: readonly AdminNavGroup[] = [
       { href: "/admin/sponsors", label: "스폰서" },
     ],
   },
-  {
-    label: "설정",
-    items: [
-      { href: "/admin/settings", label: "링크 미리보기" },
-      { href: "/admin/accounts", label: "관리자 계정", roles: OWNER_ROLES },
-    ],
-  },
+  { label: "설정", items: [{ href: "/admin/settings", label: "링크 미리보기" }] },
 ];
-
-/** 이 등급에 보이는 메뉴 (빈 묶음은 뺀다) */
-export function navGroupsFor(role: AdminRole): AdminNavGroup[] {
-  return ADMIN_NAV_GROUPS.map((g) => ({ ...g, items: g.items.filter((i) => (i.roles ?? FULL_ADMIN_ROLES).includes(role)) })).filter(
-    (g) => g.items.length > 0,
-  );
-}
-
-/** 로그인 뒤 첫 화면 — 이 등급의 첫 메뉴 (미디어는 구단소식) */
-export function homeFor(role: AdminRole): string {
-  return navGroupsFor(role)[0]?.items[0]?.href ?? "/admin/login";
-}
 
 /** 지금 주소가 메뉴 항목 안인지 — 대시보드는 정확히 같을 때만 */
 export function isNavActive(href: string, pathname: string): boolean {

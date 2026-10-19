@@ -1,9 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { homeFor } from "@/config/admin-nav";
 import { submittedValues, type ActionState } from "@/lib/admin/form";
-import { isAdminRole } from "@/lib/admin/roles";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createSessionClient } from "@/lib/supabase/server";
 
@@ -23,14 +21,13 @@ export async function signIn(_prev: ActionState, fd: FormData): Promise<ActionSt
   // 계정 존재 여부를 드러내지 않도록 같은 문구를 쓴다
   if (error) return { message: "이메일 또는 비밀번호가 올바르지 않습니다.", values: submittedValues(fd) };
 
-  // 등급(최고 관리자/관리자/미디어)이 있는 계정만 — 등급마다 첫 화면이 다르다 (D-057)
-  const { data: profile } = await supabase.rpc("my_admin_profile").maybeSingle<{ role: string }>();
-  if (!profile || !isAdminRole(profile.role)) {
+  const { data: isAdmin } = await supabase.rpc("is_admin");
+  if (isAdmin !== true) {
     await supabase.auth.signOut();
     return { message: "관리자 권한이 없는 계정입니다.", values: submittedValues(fd) };
   }
 
-  redirect(homeFor(profile.role));
+  redirect("/admin");
 }
 
 export async function signOut() {

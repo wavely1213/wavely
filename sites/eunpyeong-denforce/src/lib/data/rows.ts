@@ -79,8 +79,6 @@ export type NewsRow = {
   featured: boolean;
   published: boolean;
   created_at: string;
-  /** 올린 사람 이메일 — 검토 대기 표시용 (D-057). 이전 글은 null */
-  created_by: string | null;
 };
 
 export type PostingRow = {
@@ -95,8 +93,6 @@ export type PostingRow = {
   posted_on: string;
   published: boolean;
   created_at: string;
-  /** 올린 사람 이메일 — 검토 대기 표시용 (D-057). 이전 글은 null */
-  created_by: string | null;
 };
 
 export type SponsorRow = {

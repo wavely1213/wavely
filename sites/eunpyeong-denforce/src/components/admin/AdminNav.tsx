@@ -2,16 +2,15 @@
 
 import { usePathname } from "next/navigation";
 import { useState, type MouseEvent, type ReactNode } from "react";
-import { isNavActive, navGroupsFor } from "@/config/admin-nav";
-import type { AdminRole } from "@/lib/admin/roles";
+import { ADMIN_NAV_GROUPS, isNavActive } from "@/config/admin-nav";
 import Link from "./AdminLink";
 import styles from "./admin.module.css";
 
-/** 등급에 맞는 메뉴만 그린다 (D-057). pathname 을 모를 때는 활성 표시 없이 */
-function AdminNavLinks({ pathname, role }: { pathname: string; role: AdminRole }) {
+/** pathname 을 모를 때(Suspense fallback)는 활성 표시 없이 그린다 */
+export function AdminNavLinks({ pathname }: { pathname: string }) {
   return (
     <nav className={styles.nav} aria-label="관리자 메뉴">
-      {navGroupsFor(role).map((group, gi) => (
+      {ADMIN_NAV_GROUPS.map((group, gi) => (
         <div key={group.label ?? gi} className={styles.navGroup}>
           {group.label && <span className={styles.navGroupLabel}>{group.label}</span>}
           {group.items.map((item) => {
@@ -33,8 +32,8 @@ function AdminNavLinks({ pathname, role }: { pathname: string; role: AdminRole }
   );
 }
 
-export function AdminNav({ role }: { role: AdminRole }) {
-  return <AdminNavLinks pathname={usePathname()} role={role} />;
+export function AdminNav() {
+  return <AdminNavLinks pathname={usePathname()} />;
 }
 
 /**

@@ -1,10 +1,9 @@
 import { Suspense } from "react";
 import Link from "@/components/admin/AdminLink";
-import { AdminMenu, AdminNav } from "@/components/admin/AdminNav";
+import { AdminMenu, AdminNav, AdminNavLinks } from "@/components/admin/AdminNav";
 import styles from "@/components/admin/admin.module.css";
 import { SITE } from "@/config/site";
 import { requireAdminPage } from "@/lib/admin/auth";
-import { ADMIN_ROLE_LABEL, STAFF_ROLES } from "@/lib/admin/roles";
 import { getSiteContent } from "@/lib/repo";
 import { signOut } from "../actions";
 
@@ -23,9 +22,8 @@ export default function PanelLayout({ children }: LayoutProps<"/admin">) {
         </div>
         {/* 휴대폰에서는 '메뉴' 버튼으로 연다 (D-048) */}
         <AdminMenu>
-          {/* 등급마다 메뉴가 달라(D-057) 계정을 확인한 뒤 그린다 */}
-          <Suspense fallback={null}>
-            <RoleNav />
+          <Suspense fallback={<AdminNavLinks pathname="" />}>
+            <AdminNav />
           </Suspense>
           <div className={styles.sideFoot}>
             <Suspense fallback={null}>
@@ -52,16 +50,7 @@ async function BrandName() {
   return <strong>{(await getSiteContent())["site.name"]}</strong>;
 }
 
-async function RoleNav() {
-  const { role } = await requireAdminPage(STAFF_ROLES);
-  return <AdminNav role={role} />;
-}
-
 async function SignedInAs() {
-  const { email, role } = await requireAdminPage(STAFF_ROLES);
-  return (
-    <span>
-      {email} ({ADMIN_ROLE_LABEL[role]})
-    </span>
-  );
+  const { email } = await requireAdminPage();
+  return <span>{email}</span>;
 }

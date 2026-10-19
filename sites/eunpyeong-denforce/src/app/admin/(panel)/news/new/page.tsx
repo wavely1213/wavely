@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AdminLoading, PageTitle } from "@/components/admin/PageTitle";
 import { requireAdminPage } from "@/lib/admin/auth";
-import { STAFF_ROLES } from "@/lib/admin/roles";
 import { createNews } from "../actions";
 import { NewsForm } from "../NewsForm";
 
@@ -20,6 +19,6 @@ export default function NewNewsPage() {
 }
 
 async function Guarded() {
-  const { perms } = await requireAdminPage(STAFF_ROLES);
-  return <NewsForm action={createNews} perms={perms} />;
+  await requireAdminPage();
+  return <NewsForm action={createNews} />;
 }

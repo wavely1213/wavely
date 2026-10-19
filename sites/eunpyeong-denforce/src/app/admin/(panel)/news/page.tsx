@@ -2,12 +2,9 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "@/components/admin/AdminLink";
 import { AdminLoading, PageTitle } from "@/components/admin/PageTitle";
-import { PublishBadge } from "@/components/admin/PublishBadge";
 import styles from "@/components/admin/admin.module.css";
 import { NEWS_CATEGORY_LABEL } from "@/data/news";
 import { requireAdminPage } from "@/lib/admin/auth";
-import { mediaEmails } from "@/lib/admin/review";
-import { isPendingReview, STAFF_ROLES } from "@/lib/admin/roles";
 import type { NewsRow } from "@/lib/data/rows";
 import { formatPostDate } from "@/lib/format";
 import { NEWS_CATEGORIES, toNewsCategory } from "@/lib/params";
@@ -19,7 +16,7 @@ export const metadata: Metadata = { title: "구단소식" };
 // 라우트 타입(.next/types)이 빌드 때 생성되므로 searchParams 타입은 직접 적는다 (PageProps 와 호환)
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
-type ListRow = Pick<NewsRow, "id" | "category" | "title" | "date" | "thumbnail_url" | "images" | "published" | "created_at" | "created_by">;
+type ListRow = Pick<NewsRow, "id" | "category" | "title" | "date" | "thumbnail_url" | "images" | "published" | "created_at">;
 
 const TABS: Array<{ value: NewsCategory | null; label: string }> = [
   { value: null, label: "전체" },
@@ -42,18 +39,17 @@ export default function NewsAdminPage({ searchParams }: { searchParams: SearchPa
 }
 
 async function NewsList({ searchParams }: { searchParams: SearchParams }) {
-  const ctx = await requireAdminPage(STAFF_ROLES);
-  const { supabase } = ctx;
+  const { supabase } = await requireAdminPage();
   const raw = (await searchParams).category;
   // 잘못된 값·여러 값은 전체로 본다
   const category = typeof raw === "string" ? toNewsCategory(raw) : null;
 
-  let query = supabase.from("news_posts").select("id, category, title, date, thumbnail_url, images, published, created_at, created_by");
+  let query = supabase.from("news_posts").select("id, category, title, date, thumbnail_url, images, published, created_at");
   if (category) query = query.eq("category", category);
-  const [{ data, error }, media] = await Promise.all([
-    query.order("date", { ascending: false }).order("created_at", { ascending: false }).returns<ListRow[]>(),
-    mediaEmails(ctx),
-  ]);
+  const { data, error } = await query
+    .order("date", { ascending: false })
+    .order("created_at", { ascending: false })
+    .returns<ListRow[]>();
   const rows = data ?? [];
 
   return (
@@ -114,7 +110,11 @@ async function NewsList({ searchParams }: { searchParams: SearchParams }) {
                     <td>{NEWS_CATEGORY_LABEL[n.category]}</td>
                     <td>{n.date ? formatPostDate(n.date) : "-"}</td>
                     <td>
-                      <PublishBadge published={n.published} pending={isPendingReview(n, media)} />
+                      {n.published ? (
+                        <span className={`${styles.badge} ${styles.badgeBlue}`}>공개</span>
+                      ) : (
+                        <span className={styles.badge}>비공개</span>
+                      )}
                     </td>
                   </tr>
                 );

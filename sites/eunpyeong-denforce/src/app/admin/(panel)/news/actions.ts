@@ -6,7 +6,6 @@ import { TAGS } from "@/lib/cache-tags";
 import { NOT_ADMIN_MESSAGE, requireAdminAction } from "@/lib/admin/auth";
 import { dbErrorMessage, FormReader, submittedValues, type ActionState } from "@/lib/admin/form";
 import { MAX_NEWS_IMAGES } from "@/lib/admin/image-list";
-import { allowedFlags, canEditPost, PUBLISHED_LOCKED_MESSAGE, STAFF_ROLES, type PostPerms } from "@/lib/admin/roles";
 import { removeImages, resolveImage, resolveImages } from "@/lib/admin/storage";
 import type { NewsRow } from "@/lib/data/rows";
 import { NEWS_CATEGORIES } from "@/lib/params";
@@ -15,7 +14,6 @@ import { parseVideoUrl } from "@/lib/video";
 // 구단소식 관리 서버 액션 — 모든 액션이 직접 관리자 권한을 확인한다 (페이지 검사에 기대지 않음).
 // 순서: 권한 → 입력 검증 → 이미지 업로드 → DB 저장 → updateTag → redirect
 // 이미지: thumbnail(목록 카드용 한 장) + images(상세 사진 여러 장, D-017)
-// 미디어 계정도 쓴다 (D-057) — 권한이 없는 칸(공개/배너/날짜)은 지금 값으로 두고, DB 트리거가 한 번 더 막는다.
 
 // DB check: date ~ '^([0-9]{4}(-[0-9]{2}-[0-9]{2})?)?$' — 빈 값은 FormReader 가 패턴 검사 전에 통과시킨다
 const POST_DATE = /^[0-9]{4}(-[0-9]{2}-[0-9]{2})?$/;
@@ -50,14 +48,6 @@ function readNews(f: FormReader) {
   };
 }
 
-type NewsFlags = Pick<NewsRow, "published" | "featured">;
-
-/** 권한 밖의 칸은 지금 값으로 — 날짜 권한이 없으면 날짜를 보내지 않는다 (DB 가 새 글은 오늘, 고칠 때는 그대로로 정한다) */
-function limitNews(values: ReturnType<typeof readNews>, perms: PostPerms, current: NewsFlags | null) {
-  const { date, ...rest } = values;
-  return { ...rest, ...allowedFlags(perms, values, current), ...(perms.setDate ? { date } : {}) };
-}
-
 /** 구단영상 주소 (선택) — 유튜브·인스타그램만, 글 상세에서 재생 (D-035) */
 function readVideoUrl(f: FormReader): string | null {
   const v = f.optText("video_url", { label: "영상 주소", max: 300 });
@@ -66,11 +56,11 @@ function readVideoUrl(f: FormReader): string | null {
 }
 
 export async function createNews(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  const ctx = await requireAdminAction(STAFF_ROLES);
+  const ctx = await requireAdminAction();
   if (!ctx) return { message: NOT_ADMIN_MESSAGE };
 
   const f = newsReader(fd);
-  const values = limitNews(readNews(f), ctx.perms, null);
+  const values = readNews(f);
   if (f.hasErrors) return f.state();
 
   const thumbnail_url = await resolveImage(ctx, f, "thumbnail", "news", null);
@@ -93,20 +83,19 @@ export async function createNews(_prev: ActionState, fd: FormData): Promise<Acti
 }
 
 export async function updateNews(id: string, _prev: ActionState, fd: FormData): Promise<ActionState> {
-  const ctx = await requireAdminAction(STAFF_ROLES);
+  const ctx = await requireAdminAction();
   if (!ctx) return { message: NOT_ADMIN_MESSAGE };
 
   // 현재 값은 클라이언트가 아니라 DB 에서 다시 읽는다
   const { data: current } = await ctx.supabase
     .from("news_posts")
-    .select("thumbnail_url, images, published, featured")
+    .select("thumbnail_url, images")
     .eq("id", id)
-    .maybeSingle<Pick<NewsRow, "thumbnail_url" | "images" | "published" | "featured">>();
+    .maybeSingle<Pick<NewsRow, "thumbnail_url" | "images">>();
   if (!current) return { message: "이미 삭제된 항목입니다." };
-  if (!canEditPost(ctx.perms, current.published)) return { message: PUBLISHED_LOCKED_MESSAGE };
 
   const f = newsReader(fd);
-  const values = limitNews(readNews(f), ctx.perms, current);
+  const values = readNews(f);
   if (f.hasErrors) return f.state();
 
   const thumbnail_url = await resolveImage(ctx, f, "thumbnail", "news", current.thumbnail_url);
@@ -135,11 +124,8 @@ export async function updateNews(id: string, _prev: ActionState, fd: FormData): 
 }
 
 export async function deleteNews(id: string): Promise<void> {
-  const ctx = await requireAdminAction(STAFF_ROLES);
+  const ctx = await requireAdminAction();
   if (!ctx) redirect("/admin/login");
-  // 공개된 글은 권한이 있어야 지운다 (DB 정책도 같은 규칙 — 여기서는 사진을 지우기 전에 멈춘다)
-  const { data: current } = await ctx.supabase.from("news_posts").select("published").eq("id", id).maybeSingle<NewsFlags>();
-  if (current && !canEditPost(ctx.perms, current.published)) redirect(`/admin/news/${id}`);
 
   const { data } = await ctx.supabase
     .from("news_posts")

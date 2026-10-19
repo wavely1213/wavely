@@ -188,15 +188,6 @@ export function siteGapAlerts(g: SiteGaps): AdminAlert[] {
   return out;
 }
 
-/** 미디어 계정이 올려 검토를 기다리는 글 (D-057) — 확인하고 '홈페이지에 공개'를 켜면 공개된다 */
-export function reviewAlerts(pending: { news: number; postings: number }): AdminAlert[] {
-  const detail = "미디어 계정이 올린 글입니다. 열어서 확인한 뒤 '홈페이지에 공개'를 켜고 저장하면 공개됩니다.";
-  const out: AdminAlert[] = [];
-  if (pending.news > 0) out.push({ level: "warn", title: `검토 대기 구단소식 ${pending.news}개`, detail, href: "/admin/news", action: "구단소식" });
-  if (pending.postings > 0) out.push({ level: "warn", title: `검토 대기 포스팅 ${pending.postings}개`, detail, href: "/admin/postings", action: "포스팅" });
-  return out;
-}
-
 const ORDER: Record<AlertLevel, number> = { warn: 0, check: 1, info: 2 };
 
 /** 중요한 것부터 */
