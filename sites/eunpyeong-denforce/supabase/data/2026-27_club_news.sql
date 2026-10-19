@@ -41,7 +41,7 @@ insert into public.news_posts (category, title, date, summary, body) values
 부성인 프로필
 등번호: 11
 포지션: 픽소(FIXO)
-선수 소개: https://eunpyeong-fs.com/team/players/no-11'),
+https://eunpyeong-fs.com/team/players/no-11'),
   ('news', '서울은평 덴포스, ''투지의 아이콘'' 아라 서진영 영입', '2026-10-07', '등번호 17번 아라(ALA), 2026-27 시즌 FK리그 1부(FK1)에서 함께한다',
    '서울은평 덴포스가 아라 서진영을 영입했다.
 
@@ -54,7 +54,7 @@ insert into public.news_posts (category, title, date, summary, body) values
 서진영 프로필
 등번호: 17
 포지션: 아라(ALA)
-선수 소개: https://eunpyeong-fs.com/team/players/no-17'),
+https://eunpyeong-fs.com/team/players/no-17'),
   ('news', '서울은평 덴포스, ''거침없는 파이터'' 아라 오영택 영입', '2026-10-07', '등번호 20번 아라(ALA), 2026-27 시즌 FK리그 1부(FK1)에서 함께한다',
    '서울은평 덴포스가 아라 오영택을 영입했다.
 
@@ -67,7 +67,7 @@ insert into public.news_posts (category, title, date, summary, body) values
 오영택 프로필
 등번호: 20
 포지션: 아라(ALA)
-선수 소개: https://eunpyeong-fs.com/team/players/no-20'),
+https://eunpyeong-fs.com/team/players/no-20'),
   ('news', '서울은평 덴포스, ''젊은 지략가'' 김기범 수석코치 영입', '2026-10-07', '2026-27 시즌 정상현 감독과 함께 코칭스태프를 이끈다',
    '서울은평 덴포스가 김기범 수석코치를 영입했다.
 
@@ -86,7 +86,7 @@ insert into public.news_posts (category, title, date, summary, body) values
 안성혁 프로필
 등번호: 9
 포지션: 피보(PIVO)
-선수 소개: https://eunpyeong-fs.com/team/players/no-9'),
+https://eunpyeong-fs.com/team/players/no-9'),
   ('news', '서울은평 덴포스, ''올라운더 골잡이'' 픽소 김종문 영입', '2026-10-08', '등번호 13번 픽소(FIXO), 2026-27 시즌 FK리그 1부(FK1)에서 함께한다',
    '서울은평 덴포스가 픽소 김종문을 영입했다.
 
@@ -99,7 +99,7 @@ insert into public.news_posts (category, title, date, summary, body) values
 김종문 프로필
 등번호: 13
 포지션: 픽소(FIXO)
-선수 소개: https://eunpyeong-fs.com/team/players/no-13'),
+https://eunpyeong-fs.com/team/players/no-13'),
   ('news', '서울은평 덴포스, ''피치 위의 살림꾼'' 아라 김선빈 영입', '2026-10-08', '등번호 23번 아라(ALA), 2026-27 시즌 FK리그 1부(FK1)에서 함께한다',
    '서울은평 덴포스가 아라 김선빈을 영입했다.
 
@@ -112,7 +112,7 @@ insert into public.news_posts (category, title, date, summary, body) values
 김선빈 프로필
 등번호: 23
 포지션: 아라(ALA)
-선수 소개: https://eunpyeong-fs.com/team/players/no-23'),
+https://eunpyeong-fs.com/team/players/no-23'),
   ('news', '서울은평 덴포스, ''웅조머'' 골레이로 조현웅 영입', '2026-10-09', '등번호 12번 골레이로(GK), 2026-27 시즌 FK리그 1부(FK1)에서 함께한다',
    '서울은평 덴포스가 골레이로 조현웅을 영입했다.
 
@@ -125,7 +125,7 @@ insert into public.news_posts (category, title, date, summary, body) values
 조현웅 프로필
 등번호: 12
 포지션: 골레이로(GK)
-선수 소개: https://eunpyeong-fs.com/team/players/no-12'),
+https://eunpyeong-fs.com/team/players/no-12'),
   ('news', '서울은평 덴포스, ''화려한 테크니션'' 아라 안현국 영입', '2026-10-10', '등번호 14번 아라(ALA), 2026-27 시즌 FK리그 1부(FK1)에서 함께한다',
    '서울은평 덴포스가 아라 안현국을 영입했다.
 
@@ -138,7 +138,7 @@ insert into public.news_posts (category, title, date, summary, body) values
 안현국 프로필
 등번호: 14
 포지션: 아라(ALA)
-선수 소개: https://eunpyeong-fs.com/team/players/no-14'),
+https://eunpyeong-fs.com/team/players/no-14'),
   ('news', '서울은평 덴포스, ''미래가 기대되는 신인'' 아라 이상욱 영입', '2026-10-10', '등번호 47번 아라(ALA), 2026-27 시즌 FK리그 1부(FK1)에서 함께한다',
    '서울은평 덴포스가 아라 이상욱을 영입했다.
 
@@ -151,7 +151,7 @@ insert into public.news_posts (category, title, date, summary, body) values
 이상욱 프로필
 등번호: 47
 포지션: 아라(ALA)
-선수 소개: https://eunpyeong-fs.com/team/players/no-47'),
+https://eunpyeong-fs.com/team/players/no-47'),
   ('news', '서울은평 덴포스, ''날카로운 왼발의 피보'' 한견희 영입', '2026-10-10', '등번호 99번 피보(PIVO), 2026-27 시즌 FK리그 1부(FK1)에서 함께한다',
    '서울은평 덴포스가 피보 한견희를 영입했다.
 
@@ -164,7 +164,7 @@ insert into public.news_posts (category, title, date, summary, body) values
 한견희 프로필
 등번호: 99
 포지션: 피보(PIVO)
-선수 소개: https://eunpyeong-fs.com/team/players/no-99'),
+https://eunpyeong-fs.com/team/players/no-99'),
   ('news', '서울은평 덴포스, ''든든한 수문장'' 골레이로 정대연 영입', '2026-10-13', '등번호 2번 골레이로(GK), 2026-27 시즌 FK리그 1부(FK1)에서 함께한다',
    '서울은평 덴포스가 골레이로 정대연을 영입했다.
 
@@ -177,7 +177,7 @@ insert into public.news_posts (category, title, date, summary, body) values
 정대연 프로필
 등번호: 2
 포지션: 골레이로(GK)
-선수 소개: https://eunpyeong-fs.com/team/players/no-2'),
+https://eunpyeong-fs.com/team/players/no-2'),
   ('news', '서울은평 덴포스, ''숨은 조력자'' 아라 이효수 영입', '2026-10-13', '등번호 19번 아라(ALA), 2026-27 시즌 FK리그 1부(FK1)에서 함께한다',
    '서울은평 덴포스가 아라 이효수를 영입했다.
 
@@ -190,7 +190,7 @@ insert into public.news_posts (category, title, date, summary, body) values
 이효수 프로필
 등번호: 19
 포지션: 아라(ALA)
-선수 소개: https://eunpyeong-fs.com/team/players/no-19'),
+https://eunpyeong-fs.com/team/players/no-19'),
   ('news', '박종현, 이적으로 서울은평 덴포스와 동행 마무리', '2026-10-13', 'No.1 박종현, 새 팀에서 새로운 도전',
    '서울은평 덴포스 박종현이 이적하며 팀과의 동행을 마무리했다.
 
