@@ -20,6 +20,14 @@ export const SITE = {
   homeVenue: "은평다목적체육관",
 } as const;
 
+/**
+ * 개인정보처리방침 페이지를 켤지 — 지금은 끈다 (소유자 2026-10-19 "나중에 로그인 창 같은거 만들면 그때", D-055).
+ * 끄면: /privacy 는 없는 페이지, 사이트맵 페이지 링크·대시보드 '준비 중' 알림·관리자 홈페이지 내용 탭이 숨는다.
+ * 본문 편집 기능과 초안(supabase/data/2026-10-18_privacy_draft.sql)은 남아 있어 true 로 바꾸면 바로 다시 쓸 수 있다.
+ * 푸터 링크는 관리자 › 홈페이지 내용 › 공통 '푸터 맨 아래 링크'에서 따로 넣는다.
+ */
+export const PRIVACY_PAGE_ENABLED = false;
+
 /** 사이트 설명 — 검색 결과·링크 미리보기의 기본 설명 (D-025, 문구 D-040) */
 export const SITE_DESCRIPTION = "서울 은평구 연고 풋살팀, FK리그 서울은평 덴포스 공식 홈페이지";
 

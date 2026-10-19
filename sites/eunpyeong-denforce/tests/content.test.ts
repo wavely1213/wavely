@@ -4,7 +4,7 @@ import { test } from "node:test";
 import { LEAGUE } from "../src/config/league.ts";
 import { CONTENT_FIELDS, type ContentKey, type FieldDef } from "../src/lib/content/fields.ts";
 import { CONTENT_LISTS, type ListDef } from "../src/lib/content/lists.ts";
-import { CONTENT_SECTIONS } from "../src/lib/content/sections.ts";
+import { CONTENT_SECTIONS, visibleSections } from "../src/lib/content/sections.ts";
 import { contentCards, contentLines, isExternalLink, normalizeHex, normalizeValue, readItem, resolveContent, storedValue, yearOf } from "../src/lib/content/values.ts";
 
 const KEYS = Object.keys(CONTENT_FIELDS) as ContentKey[];
@@ -145,4 +145,12 @@ test("관리자 개편 3단계 구역: 선수단/경기/소식/스폰서/문의�
     assert.ok(s.view.startsWith("/") && !s.view.startsWith("//"), s.id);
     for (const r of s.related) assert.ok(r.href.startsWith("/admin"), `${s.id} ${r.href}`);
   }
+});
+
+test("visibleSections: 개인정보처리방침 탭은 페이지를 켤 때만 (D-055), 다른 구역은 그대로", () => {
+  const off = visibleSections(false).map((s) => s.id);
+  const on = visibleSections(true).map((s) => s.id);
+  assert.ok(!off.includes("privacy"));
+  assert.ok(on.includes("privacy"));
+  assert.deepEqual(off, on.filter((id) => id !== "privacy"));
 });

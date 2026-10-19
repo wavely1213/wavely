@@ -4,6 +4,7 @@ import Link from "@/components/admin/AdminLink";
 import { AdminLoading, PageTitle } from "@/components/admin/PageTitle";
 import styles from "@/components/admin/admin.module.css";
 import { ADMIN_PAGE_MAP } from "@/config/admin-pages";
+import { PRIVACY_PAGE_ENABLED } from "@/config/site";
 import { NEWS_CATEGORY_LABEL } from "@/data/news";
 import { POSTING_PLATFORM_LABEL } from "@/data/postings";
 import { numberAlerts, rosterAlerts, siteGapAlerts, sortAlerts, type AdminAlert, type AlertLevel } from "@/lib/admin/alerts";
@@ -87,7 +88,8 @@ async function Dashboard() {
           contactPhone: Boolean(settings.data?.contact_phone),
           draftNews: (news.data ?? []).filter((n) => !n.published).length,
           activeWithoutPhoto: activePlayers.filter((p) => !p.photo_url).length,
-          privacyWritten: Boolean(privacy.data),
+          // 개인정보처리방침 페이지를 꺼 두면 '준비 중' 알림도 띄우지 않는다 (D-055)
+          privacyWritten: !PRIVACY_PAGE_ENABLED || Boolean(privacy.data),
         }),
       ]);
 

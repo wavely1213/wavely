@@ -1,5 +1,6 @@
 // 관리자 › 홈페이지 내용의 탭(구역) — 어떤 값·목록을 어느 화면에서 고치는지 (D-046).
 // 다른 관리 메뉴(구단소식·경기·선수 등)가 맡는 내용은 related 로 이어 준다 — '총괄' 지도.
+import { PRIVACY_PAGE_ENABLED } from "../../config/site.ts";
 import type { ContentKey } from "./fields";
 import type { ListKey } from "./lists";
 
@@ -163,6 +164,11 @@ export const CONTENT_SECTIONS = [
 ] as const satisfies ReadonlyArray<ContentSection>;
 
 export type SectionId = (typeof CONTENT_SECTIONS)[number]["id"];
+
+/** 관리자 화면 탭/목록에 보이는 구역 — 개인정보처리방침은 페이지를 켤 때만 (D-055). 주소로는 그대로 열린다 */
+export function visibleSections(enabled = PRIVACY_PAGE_ENABLED): ContentSection[] {
+  return CONTENT_SECTIONS.filter((s) => s.id !== "privacy" || enabled);
+}
 
 /** 예전 구역 주소 → 지금 구역 (기본 정보 → 공통, D-048) */
 export const LEGACY_SECTION_IDS: Readonly<Record<string, SectionId>> = { basic: "common" };

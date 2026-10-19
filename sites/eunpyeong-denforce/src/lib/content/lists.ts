@@ -64,10 +64,11 @@ export const CONTENT_LISTS = {
         label: "주소",
         max: 300,
         required: true,
-        hint: "사이트 안 페이지는 /로 시작 (예: /privacy), 바깥 사이트는 https:// 로 시작 — 바깥 사이트는 새 창",
+        hint: "사이트 안 페이지는 /로 시작 (예: /contact), 바깥 사이트는 https:// 로 시작 — 바깥 사이트는 새 창",
       },
     },
-    defaults: [{ title: "개인정보처리방침", link: "/privacy" }],
+    // 개인정보처리방침 링크는 페이지를 꺼 두면서 뺐다 (D-055) — 다시 켤 때 관리자에서 '개인정보처리방침' / '/privacy' 로 추가
+    defaults: [],
     max: 6,
   },
 

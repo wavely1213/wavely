@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { NAV } from "@/config/site";
+import { NAV, PRIVACY_PAGE_ENABLED } from "@/config/site";
 import { pageMetadata } from "@/lib/page-meta";
 import { getSiteContent } from "@/lib/repo";
 import styles from "./sitemap.module.css";
@@ -43,9 +43,11 @@ export default async function SitemapPage() {
                   {c["nav.external.label"]} ↗<span className="sr-only">(새 창)</span>
                 </a>
               </li>
-              <li>
-                <Link href="/privacy">개인정보처리방침</Link>
-              </li>
+              {PRIVACY_PAGE_ENABLED && (
+                <li>
+                  <Link href="/privacy">개인정보처리방침</Link>
+                </li>
+              )}
             </ul>
           </li>
         </ul>

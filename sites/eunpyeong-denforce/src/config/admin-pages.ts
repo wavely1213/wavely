@@ -1,5 +1,7 @@
 // 대시보드 '페이지별 고치는 곳' — 홈페이지 각 페이지의 내용을 관리자 어디에서 고치는지 (D-048, 총괄 지도)
 // edit 이 없으면 아직 관리자에서 못 고치는 페이지 (later: 개편 몇 단계에서 추가되는지)
+import { PRIVACY_PAGE_ENABLED } from "./site";
+
 export type AdminPageMap = { label: string; view: string; edit?: { href: string; label: string }; later?: string };
 
 export const ADMIN_PAGE_MAP: readonly AdminPageMap[] = [
@@ -17,5 +19,8 @@ export const ADMIN_PAGE_MAP: readonly AdminPageMap[] = [
   { label: "포스팅", view: "/news/posting", edit: { href: "/admin/postings", label: "포스팅 (글이 없을 때 안내는 홈페이지 내용 › 소식)" } },
   { label: "스폰서", view: "/sponsors", edit: { href: "/admin/sponsors", label: "스폰서 (스폰서십 문의 상자는 홈페이지 내용 › 스폰서)" } },
   { label: "문의", view: "/contact", edit: { href: "/admin/content/contact", label: "홈페이지 내용 › 문의 (연락처는 구단정보)" } },
-  { label: "개인정보처리방침", view: "/privacy", edit: { href: "/admin/content/privacy", label: "홈페이지 내용 › 개인정보처리방침" } },
+  // 개인정보처리방침은 페이지를 켤 때만 (D-055)
+  ...(PRIVACY_PAGE_ENABLED
+    ? [{ label: "개인정보처리방침", view: "/privacy", edit: { href: "/admin/content/privacy", label: "홈페이지 내용 › 개인정보처리방침" } }]
+    : []),
 ];

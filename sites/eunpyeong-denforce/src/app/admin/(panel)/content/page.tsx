@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "@/components/admin/AdminLink";
 import { PageTitle } from "@/components/admin/PageTitle";
 import styles from "@/components/admin/admin.module.css";
-import { CONTENT_SECTIONS } from "@/lib/content/sections";
+import { visibleSections } from "@/lib/content/sections";
 import local from "./content.module.css";
 import { SectionTabs } from "./SectionTabs";
 
@@ -33,7 +33,7 @@ export default function ContentHubPage() {
       <section className={styles.panel}>
         <h2 className={styles.panelTitle}>페이지별 내용</h2>
         <div className={local.cards}>
-          {CONTENT_SECTIONS.map((s) => (
+          {visibleSections().map((s) => (
             <Link key={s.id} href={`/admin/content/${s.id}`} className={local.card}>
               <strong>{s.label}</strong>
               <span>{s.description}</span>
