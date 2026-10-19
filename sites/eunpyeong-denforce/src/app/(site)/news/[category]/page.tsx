@@ -30,7 +30,12 @@ export default async function NewsCategoryPage({ params }: PageProps<"/news/[cat
     <>
       <PageHeader title={NEWS_CATEGORY_LABEL[category]} current={`/news/${category}`} />
       <div className="container">
-        {posts.length > 0 ? <NewsMoreGrid posts={posts.map(toNewsCardPost)} /> : <Placeholder label={content["news.empty"]} />}
+        {/* 구단영상은 세로 영상(릴스) 카드를 한 줄에 여럿 (D-061) */}
+        {posts.length > 0 ? (
+          <NewsMoreGrid posts={posts.map(toNewsCardPost)} vertical={category === "video"} />
+        ) : (
+          <Placeholder label={content["news.empty"]} />
+        )}
       </div>
     </>
   );

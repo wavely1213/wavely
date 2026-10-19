@@ -103,3 +103,32 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* 구단영상 탭 — 세로 영상(릴스, 9:16) 카드를 한 줄에 여럿: PC 5칸, 태블릿 4칸, 휴대폰 2칸 (D-061).
+   위의 '480px 이하 한 칸' 규칙보다 뒤에, 같은 강도(.grid.vertical)로 둔다 */
+.grid.vertical {
+  grid-template-columns: repeat(5, 1fr);
+  gap: 28px 16px;
+}
+
+.vertical .thumb {
+  aspect-ratio: 9 / 16;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 960px) {
+  .grid.vertical {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .grid.vertical {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px 12px;
+  }
+
+  .vertical .title {
+    font-size: 15px;
+  }
+}

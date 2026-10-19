@@ -6,6 +6,8 @@ export const BANNER_MAX = 5;
 
 /** 구단소식 목록 처음에 보이는 글 수 — '더 보기'를 누를 때마다 이만큼 더 */
 export const NEWS_PAGE_SIZE = 12;
+/** 구단영상 탭(세로 카드 — PC 5칸, 태블릿 4칸, 휴대폰 2칸)은 한 번에 20개 — 어느 화면에서도 줄이 꽉 찬다 (D-061) */
+export const VIDEO_PAGE_SIZE = 20;
 
 /**
  * 글 상세 아래 '이전 글 / 다음 글'. posts 는 같은 분류 글, 최근 글 먼저(목록 순서).

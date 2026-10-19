@@ -17,13 +17,13 @@ export function newsHref(post: Pick<NewsPost, "id" | "category">) {
   return `/news/${post.category}/${post.id}`;
 }
 
-export function NewsCard({ post }: { post: NewsCardPost }) {
+export function NewsCard({ post, sizes = "(max-width: 720px) 80vw, 300px" }: { post: NewsCardPost; sizes?: string }) {
   return (
     <Link href={newsHref(post)} className={styles.card}>
       <div className={styles.thumb}>
         {post.thumbnail ? (
           // 세로 포스터도 잘리지 않게 (제목 글자·머리) — 가로 사진은 꽉 채운다
-          <FitImage src={post.thumbnail} sizes="(max-width: 720px) 80vw, 300px" className={styles.media} />
+          <FitImage src={post.thumbnail} sizes={sizes} className={styles.media} />
         ) : (
           <EmblemFallback />
         )}
@@ -45,12 +45,25 @@ export function NewsCard({ post }: { post: NewsCardPost }) {
   );
 }
 
-/** scroll: 모바일에서 한 줄 가로 스와이프 (메인용) */
-export function NewsGrid({ posts, scroll = false, columns = 4 }: { posts: NewsCardPost[]; scroll?: boolean; columns?: 3 | 4 }) {
+/**
+ * scroll: 모바일에서 한 줄 가로 스와이프 (메인용)
+ * vertical: 세로 영상(릴스) 카드를 한 줄에 여럿 — PC 5칸, 태블릿 4칸, 휴대폰 2칸 (구단영상 탭, D-061)
+ */
+export function NewsGrid({
+  posts,
+  scroll = false,
+  columns = 4,
+  vertical = false,
+}: {
+  posts: NewsCardPost[];
+  scroll?: boolean;
+  columns?: 3 | 4;
+  vertical?: boolean;
+}) {
   return (
-    <div className={`${styles.grid} ${columns === 3 ? styles.cols3 : ""} ${scroll ? styles.scroll : ""}`}>
+    <div className={`${styles.grid} ${columns === 3 ? styles.cols3 : ""} ${scroll ? styles.scroll : ""} ${vertical ? styles.vertical : ""}`}>
       {posts.map((p) => (
-        <NewsCard key={p.id} post={p} />
+        <NewsCard key={p.id} post={p} sizes={vertical ? "(max-width: 720px) 50vw, 240px" : undefined} />
       ))}
     </div>
   );
