@@ -1,0 +1,38 @@
+.section {
+  padding: var(--section-gap) 0 0;
+}
+
+.head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.title {
+  font-size: clamp(24px, 3vw, 32px);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.title::before {
+  content: "";
+  display: block;
+  width: 24px;
+  height: 4px;
+  margin-bottom: 12px;
+  background: var(--c-yellow);
+}
+
+.more {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--c-text-sub);
+  white-space: nowrap;
+}
+
+.more:hover {
+  color: var(--c-blue);
+}

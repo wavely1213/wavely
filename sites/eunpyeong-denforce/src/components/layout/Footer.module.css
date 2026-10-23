@@ -1,0 +1,96 @@
+.footer {
+  margin-top: var(--section-gap);
+  background: var(--c-black);
+  color: var(--c-on-dark-sub);
+  font-size: 14px;
+}
+
+.inner {
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  flex-wrap: wrap;
+  padding-top: 48px;
+  padding-bottom: 36px;
+}
+
+.about {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.name {
+  color: var(--c-on-dark);
+  font-size: 20px;
+  margin-bottom: 6px;
+}
+
+.label {
+  margin-right: 8px;
+  color: var(--c-on-dark);
+  font-weight: 700;
+}
+
+/* 한 줄에 여러 정보 — 넘치면 묶음 단위로 다음 줄로 */
+.group {
+  display: inline-block;
+}
+
+/* '단장' 과 '문의' 사이 — 점 없이 간격만 (소유자 지시, 줄이 바뀌면 줄 끝 여백이라 안 보인다) */
+.group:not(:last-child) {
+  margin-right: 14px;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.about a:hover,
+.links a:hover,
+.sns a:hover {
+  color: var(--c-on-dark);
+}
+
+.sns {
+  display: flex;
+  gap: 16px;
+  margin-top: 10px;
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  align-content: flex-start;
+  color: var(--c-on-dark);
+}
+
+.copy {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-top: 18px;
+  padding-bottom: 28px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 12px;
+}
+
+.legal {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* 관리자 대시보드 이동 — 눈에 띄지 않게 작은 테두리 버튼 */
+.admin {
+  padding: 1px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: var(--radius-s);
+  line-height: 1.6;
+}
+
+.legal a:hover {
+  color: var(--c-on-dark);
+}

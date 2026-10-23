@@ -1,0 +1,76 @@
+/* 헤더 위 얇은 띠 (D-042) — 헤더와 같은 검정 바탕, 아래 얇은 구분선. 스크롤하면 위로 사라지고 헤더만 붙어 있다 */
+.topBar {
+  background: var(--c-black);
+  color: var(--c-on-dark-sub);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 14px;
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 44px;
+}
+
+.sns {
+  display: flex;
+  gap: 8px;
+}
+
+/* 흰 동그라미 안에 검정 로고 */
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--c-on-dark);
+  color: var(--c-black);
+  transition: background 0.15s ease;
+}
+
+.icon:hover {
+  background: var(--c-yellow);
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+/* MD스토어 — 노란 테두리 알약 버튼 + 쇼핑백 아이콘 (D-047) */
+.store {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 14px;
+  border: 1px solid var(--c-yellow);
+  border-radius: 999px;
+  color: var(--c-yellow);
+  font-weight: 700;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.store:hover {
+  background: var(--c-yellow);
+  color: var(--c-black);
+}
+
+.link {
+  font-weight: 700;
+}
+
+.link:hover {
+  color: var(--c-on-dark);
+}
+
+/* 모바일(메뉴 버튼이 나오는 폭)은 메뉴 안으로 옮긴다 — 헤더 높이 기준으로 펼쳐지는 메뉴 위치를 흔들지 않게 */
+@media (max-width: 960px) {
+  .topBar {
+    display: none;
+  }
+}

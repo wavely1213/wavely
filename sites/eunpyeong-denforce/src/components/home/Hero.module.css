@@ -1,0 +1,111 @@
+.hero {
+  position: relative;
+  min-height: min(76vh, 640px);
+  display: flex;
+  align-items: flex-end;
+  color: var(--c-on-dark);
+  background: var(--c-black);
+  overflow: hidden;
+}
+
+.bg {
+  object-fit: cover;
+  object-position: center 30%;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(14, 15, 18, 0.15) 0%, rgba(14, 15, 18, 0.35) 45%, rgba(14, 15, 18, 0.9) 100%);
+}
+
+.inner {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 32px;
+  padding-top: 120px;
+  padding-bottom: 48px;
+}
+
+/* 글 칸 — 구단 이름·슬로건이 길어져도 다음 홈경기 카드를 밀어내지 않게 줄어들 수 있다 (D-046) */
+.copy {
+  min-width: 0;
+}
+
+.eyebrow {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--c-yellow);
+}
+
+.title {
+  margin-top: 10px;
+  font-size: clamp(40px, 7vw, 76px);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+/* 윗줄 문구는 구단명과 폭이 딱 맞는 크기 — KFA고딕에서 '대한민국 풋살의 중심' 폭 × 0.7625 = '서울은평 덴포스' 폭.
+   자간도 em 으로 다시 지정해야 글자 크기와 같은 비율로 줄어 폭이 정확히 맞는다.
+   슬로건을 관리자에서 바꾸면 HeroTitle 이 실제 폭을 재서 크기를 다시 정한다 (D-046) — 그래서 글자 폭만큼만 차지하고 줄바꿈하지 않는다 */
+.lead {
+  display: block;
+  width: fit-content;
+  white-space: nowrap;
+  font-size: 0.7625em;
+  letter-spacing: -0.02em;
+}
+
+.next {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 280px;
+  padding: 18px 22px;
+  border-left: 3px solid var(--c-yellow);
+  background: rgba(14, 15, 18, 0.55);
+  backdrop-filter: blur(6px);
+}
+
+.next:hover .nextTeams {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.nextLabel {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--c-on-dark-sub);
+}
+
+.nextTeams {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.nextMeta {
+  font-size: 14px;
+  color: var(--c-on-dark-sub);
+}
+
+@media (max-width: 760px) {
+  .hero {
+    min-height: 520px;
+  }
+
+  .inner {
+    flex-direction: column;
+    align-items: stretch;
+    padding-bottom: 28px;
+  }
+
+  .next {
+    min-width: 0;
+  }
+}

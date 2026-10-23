@@ -1,0 +1,226 @@
+.group + .group {
+  margin-top: 48px;
+}
+
+.title {
+  margin-bottom: 14px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* 좁은 화면에서는 표 전체를 가로로 넘겨 본다 (tableWrap). 칸 안에서는 줄을 바꾸지 않는다 */
+.table {
+  min-width: 760px;
+}
+
+.table td {
+  white-space: nowrap;
+}
+
+.round {
+  width: 72px;
+}
+
+.when {
+  width: 190px;
+}
+
+.venue {
+  width: 200px;
+}
+
+.result {
+  width: 88px;
+}
+
+.versus {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+}
+
+.home {
+  text-align: right;
+}
+
+.vs {
+  font-size: 12px;
+  color: var(--c-text-sub);
+}
+
+.us {
+  font-weight: 700;
+  color: var(--c-blue);
+}
+
+.score {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.scoreBox {
+  display: inline-block;
+  min-width: 60px;
+  padding: 4px 8px;
+  border-radius: var(--radius-s);
+}
+
+.W {
+  background: var(--c-win);
+  color: var(--c-on-dark);
+}
+
+.D {
+  background: var(--c-draw-tint);
+  color: var(--c-text-sub);
+}
+
+.L {
+  background: var(--c-loss-tint);
+  color: var(--c-loss);
+}
+
+.mobileRound {
+  display: none;
+}
+
+/* 경기결과: 대진 아래 득점자 줄 + 영상 버튼 (details). 표 칸의 nowrap 을 풀어 긴 득점자 줄은 접는다 */
+.details {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 12px;
+  margin-top: 8px;
+  font-size: 13px;
+  white-space: normal;
+}
+
+.scorers {
+  color: var(--c-text-sub);
+  overflow-wrap: anywhere;
+}
+
+.scorersLabel {
+  font-weight: 700;
+  color: var(--c-blue);
+}
+
+.videos {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.video {
+  display: inline-block;
+  padding: 4px 10px;
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-s);
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.video:hover {
+  border-color: var(--c-blue);
+  color: var(--c-blue);
+}
+
+.video:focus-visible {
+  outline: 2px solid var(--c-blue);
+  outline-offset: 2px;
+}
+
+/* 모바일: 가로 스크롤 없이 일정·대진·결과 3칸 */
+@media (max-width: 720px) {
+  .table {
+    min-width: 0;
+    font-size: 14px;
+  }
+
+  .table th,
+  .table td {
+    padding: 12px 6px;
+  }
+
+  .round,
+  .venue {
+    display: none;
+  }
+
+  .when {
+    width: 128px;
+  }
+
+  .result {
+    width: 64px;
+  }
+
+  .scoreBox {
+    min-width: 52px;
+    padding: 3px 6px;
+  }
+
+  .table td {
+    white-space: normal;
+  }
+
+  .time,
+  .mobileRound {
+    font-size: 13px;
+    color: var(--c-text-sub);
+  }
+
+  .time {
+    display: block;
+  }
+
+  .mobileRound {
+    display: inline;
+  }
+
+  .versus {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  .home {
+    text-align: left;
+  }
+
+  .versus > span {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .vs {
+    display: none;
+  }
+
+  /* 대진 칸이 왼쪽 정렬이라 득점자/영상 줄도 왼쪽부터. 버튼 두 개가 좁은 칸(390px 기준 약 150px)에 한 줄로 */
+  .details,
+  .videos {
+    justify-content: flex-start;
+  }
+
+  .details {
+    gap: 4px 8px;
+    margin-top: 6px;
+    font-size: 12px;
+    text-align: left;
+  }
+
+  .video {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+}

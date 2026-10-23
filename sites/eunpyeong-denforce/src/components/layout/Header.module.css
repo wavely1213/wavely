@@ -1,0 +1,261 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--c-black);
+  color: var(--c-on-dark);
+}
+
+.bar {
+  height: var(--header-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+/* 구단 엠블럼 — PC 40px 너비, 휴대폰은 아래에서 줄인다 (소유자: "구단 로고랑 이름도 뭔가 작아보이고") */
+.mark {
+  width: 40px;
+  height: auto;
+}
+
+.brandText {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+.brandText small {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--c-on-dark-sub);
+}
+
+.brandText strong {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.menu {
+  display: flex;
+  height: var(--header-h);
+}
+
+.menuItem {
+  position: relative;
+}
+
+.menuLink {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 18px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--c-on-dark-sub);
+  transition: color 0.15s ease;
+}
+
+.menuLink:hover,
+.active {
+  color: var(--c-on-dark);
+}
+
+.active::after {
+  content: "";
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 0;
+  height: 3px;
+  background: var(--c-yellow);
+}
+
+/* 외부 링크 표시 (새 창) */
+.sub {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 140px;
+  padding: 8px 0;
+  background: var(--c-bg);
+  color: var(--c-text);
+  border: 1px solid var(--c-line);
+  border-top: 0;
+}
+
+.sub a {
+  display: block;
+  padding: 9px 20px;
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.sub a:hover {
+  color: var(--c-blue);
+}
+
+.menuItem:hover .sub,
+.menuItem:focus-within .sub {
+  display: block;
+}
+
+.toggle {
+  display: none;
+}
+
+/* 모바일 메뉴 맨 아래 SNS·사이트맵 (D-042) — PC 는 상단 띠(TopBar)에 있으므로 숨김 */
+.mobileExtra {
+  display: none;
+}
+
+@media (max-width: 960px) {
+  .mark {
+    width: 32px;
+  }
+
+  .brandText small {
+    font-size: 10px;
+  }
+
+  .brandText strong {
+    font-size: 20px;
+  }
+
+  .toggle {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 40px;
+    height: 40px;
+    margin-right: -8px;
+    padding: 9px;
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+
+  .toggleBar {
+    height: 2px;
+    background: var(--c-on-dark);
+  }
+
+  .nav {
+    display: none;
+    position: fixed;
+    inset: var(--header-h) 0 0 0;
+    background: var(--c-black);
+    overflow-y: auto;
+  }
+
+  .navOpen {
+    display: block;
+  }
+
+  .menu {
+    flex-direction: column;
+    height: auto;
+    padding: 8px var(--gutter) 40px;
+  }
+
+  .menuLink {
+    height: auto;
+    padding: 16px 0 6px;
+    font-size: 20px;
+    color: var(--c-on-dark);
+  }
+
+  .active {
+    color: var(--c-yellow);
+  }
+
+  .active::after {
+    display: none;
+  }
+
+  .sub,
+  .menuItem:hover .sub,
+  .menuItem:focus-within .sub {
+    display: flex;
+    flex-wrap: wrap;
+    position: static;
+    transform: none;
+    background: none;
+    border: 0;
+    color: var(--c-on-dark-sub);
+    padding: 0 0 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .sub a {
+    padding: 6px 16px 6px 0;
+  }
+
+  .sub a:hover {
+    color: var(--c-on-dark);
+  }
+
+  .mobileExtra {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 0 var(--gutter) 40px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--c-on-dark-sub);
+  }
+
+  .mobileSns {
+    display: flex;
+    gap: 10px;
+  }
+
+  .mobileSns a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--c-on-dark);
+    color: var(--c-black);
+  }
+
+  .mobileSitemap:hover {
+    color: var(--c-on-dark);
+  }
+
+  .mobileLinks {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  /* MD스토어 — 상단 띠와 같은 노란 테두리 버튼 (D-047) */
+  .mobileStore {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 14px;
+    border: 1px solid var(--c-yellow);
+    border-radius: 999px;
+    color: var(--c-yellow);
+  }
+}
