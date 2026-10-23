@@ -77,6 +77,13 @@ Vercel → 이 사이트 프로젝트 → Settings → Environment Variables 에
 2. 스폰서 하나를 추가하고 홈페이지 `/sponsors` 에 바로 보이는지 확인 → 삭제
 
 ## 운영 메모
+- 인스타그램 자동 반영 (D-065): 15분마다 `instagram-sync` 서버 함수가 돈다. 상태는 관리자 › 인스타 자동 반영.
+  ```sql
+  select cron.unschedule('instagram-sync');            -- 멈추기
+  select jobname, schedule, active from cron.job;      -- 예약 보기
+  select status, start_time from cron.job_run_details order by start_time desc limit 5;  -- 최근 실행
+  ```
+  다시 켜기는 마이그레이션 `20261023110000_instagram_sync_cron.sql` 의 `cron.schedule(...)` 을 다시 실행. 함수 코드를 고치면 supabase/functions/instagram-sync 4개 파일을 다시 배포(JWT 확인 끔 — config.toml).
 - 저장 즉시 홈페이지에 반영된다. 서버가 여러 대로 나뉘어 있어도 늦어도 1분 안에 반영 (캐시 수명 `minutes`).
 - 이미지는 5MB 이하 JPG·PNG·WEBP·GIF. 교체·삭제하면 저장소의 옛 파일도 지운다.
 - 비밀번호 분실: 사이트에는 아직 비밀번호 재설정 화면이 없다 (KNOWN_ISSUES I-009). **사용자를 지우지 말고 비밀번호만 바꾼다** — 글/사진의 주인은 로그인 계정 ID 라(I-042) 지우고 다시 만들면 ID 가 바뀌어 옛 글/사진과 끊긴다. SQL Editor 에서:

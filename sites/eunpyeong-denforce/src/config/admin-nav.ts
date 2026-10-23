@@ -12,6 +12,8 @@ export const ADMIN_NAV_GROUPS: readonly AdminNavGroup[] = [
     items: [
       { href: "/admin/news", label: "구단소식", roles: STAFF_ROLES },
       { href: "/admin/postings", label: "포스팅", roles: STAFF_ROLES },
+      // 구단 인스타그램 새 게시물을 15분마다 자동으로 넣은 기록 (D-065)
+      { href: "/admin/instagram", label: "인스타 자동 반영" },
     ],
   },
   {

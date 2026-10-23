@@ -10,6 +10,7 @@
 
 - API 키·비밀번호·토큰·DB 접속 정보는 **코드·커밋·로그·문서·주석 어디에도 남기지 않는다.**
 - 시크릿은 환경변수(또는 시크릿 매니저)로만 주입: 로컬 `.env.local`(git 제외) + Vercel 환경변수. 앱은 공개용 publishable key 만 쓴다 — **service_role/secret 키는 앱 코드·환경변수에 두지 않는다** (권한은 전부 RLS 로)
+- 예외 (D-065): Supabase 서버 함수(Edge Function) 안에서는 Supabase 가 넣어 주는 서버 키(SUPABASE_SERVICE_ROLE_KEY)를 쓴다 — 값은 Supabase 밖(저장소/Vercel/문서)에 두지 않는다. 함수 호출은 Vault 비밀 값 헤더로 확인한다.
 - `.env*`는 `.gitignore`에 포함되어 있는지 확인. 새 시크릿이 필요하면 변수명만 정하고 값 설정은 소유자에게 요청한다.
 - **코드에서 하드코딩된 시크릿을 발견하면 즉시 보고한다** (이미 커밋됐다면 키 회전 필요 — 소유자 판단).
 

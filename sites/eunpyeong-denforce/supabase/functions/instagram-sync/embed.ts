@@ -64,7 +64,23 @@ export function kstDateTime(unixSeconds: number): string {
   return new Date((unixSeconds + 9 * 3600) * 1000).toISOString().slice(0, 16).replace("T", " ");
 }
 
-const CLUB = /서울\s*은평\s*덴포스/;
+/** 우리 구단 이름 — 줄여 쓴 이름(은평덴포스, 덴포스, 은평FS)과 영문도 */
+const CLUB = /서울\s*은평|은평\s*(덴포스|FS)|덴포스|EUNPYEONG|DENFORCE/i;
+
+/** "13:00", "오후 2:00", "2:00 PM" → 24시간 "HH:MM". 오전/오후 표시 없이 9시 전이면 잘못 읽었을 수 있어 null */
+export function kickoffTime(text: string): string | null {
+  const m = /(\d{1,2}):(\d{2})/.exec(text);
+  if (!m) return null;
+  let h = Number(m[1]);
+  const min = m[2];
+  const pm = /오후|PM|P\.M\./i.test(text);
+  const am = /오전|AM|A\.M\./i.test(text);
+  if (pm && h < 12) h += 12;
+  if (am && h === 12) h = 0;
+  if (h > 23 || Number(min) > 59) return null;
+  if (!pm && !am && h < 9) return null;
+  return `${String(h).padStart(2, "0")}:${min}`;
+}
 
 export type MatchdayHint = { heading: string; opponent: string | null; time: string | null; venue: string | null };
 
@@ -80,9 +96,11 @@ export function parseMatchday(caption: string): MatchdayHint {
   let opponent: string | null = null;
   if (vsAt >= 0) {
     const sides = lines[vsAt].replace(/^🆚\s*/u, "").split(/\s+vs\s+/i).map((s) => s.trim());
-    opponent = sides.find((s) => !CLUB.test(s)) ?? null;
+    // 한쪽만 우리 구단일 때만 — 둘 다 아니거나 둘 다면 상대를 모른다
+    const ours = sides.filter((s) => CLUB.test(s));
+    if (sides.length === 2 && ours.length === 1) opponent = sides.find((s) => !CLUB.test(s)) ?? null;
   }
-  const time = /(\d{1,2}:\d{2})/.exec(lines.find((l) => l.startsWith("🕑")) ?? "")?.[1] ?? null;
+  const time = kickoffTime(lines.find((l) => l.startsWith("🕑")) ?? "");
   const venue = lines.find((l) => l.startsWith("📍"))?.replace(/^📍\s*/u, "") || null;
   return { heading, opponent, time, venue };
 }
@@ -103,8 +121,8 @@ export function parseResult(caption: string): ResultHint {
     const m = /^(.+?)\s+(\d+)\s*:\s*(\d+)\s+(.+)$/.exec(scoreLine);
     if (m) {
       const [left, a, b, right] = [m[1].trim(), Number(m[2]), Number(m[3]), m[4].trim()];
-      if (CLUB.test(left)) [opponent, scoreUs, scoreThem] = [right, a, b];
-      else if (CLUB.test(right)) [opponent, scoreUs, scoreThem] = [left, b, a];
+      if (CLUB.test(left) && !CLUB.test(right)) [opponent, scoreUs, scoreThem] = [right, a, b];
+      else if (CLUB.test(right) && !CLUB.test(left)) [opponent, scoreUs, scoreThem] = [left, b, a];
     }
   }
   const after = scoreLine ? lines.slice(lines.indexOf(scoreLine) + 1) : [];
@@ -112,11 +130,11 @@ export function parseResult(caption: string): ResultHint {
   return { opponent, scoreUs, scoreThem, scorerLines };
 }
 
-/** 사이트에 이미 넣은 게시물 코드 — postings.url 의 /p/<코드>/ 또는 /reel/<코드>/ (모든 구단 게시물은 포스팅에 들어간다, BR-029) */
+/** 사이트에 이미 넣은 게시물 코드 — postings.url 의 /p/<코드>/ 또는 /reel/<코드>/ (계정 이름이 낀 주소도). 모든 구단 게시물은 포스팅에 들어간다 (BR-029) */
 export function knownCodes(urls: readonly string[]): Set<string> {
   const out = new Set<string>();
   for (const u of urls) {
-    const m = /instagram\.com\/(?:p|reel|tv)\/([A-Za-z0-9_-]+)/.exec(u);
+    const m = /instagram\.com\/(?:[A-Za-z0-9._]+\/)?(?:p|reel|tv)\/([A-Za-z0-9_-]+)/.exec(u);
     if (m) out.add(m[1]);
   }
   return out;

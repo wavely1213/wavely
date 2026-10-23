@@ -6,7 +6,7 @@
 // --download: 새 게시물의 사진(oEmbed 표지, 640px 세로형 — 2026-10-17 이후 같은 사진)을 <폴더>/<코드>.jpg 로 받는다.
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { classifyPost, kstDateTime, knownCodes, parseMatchday, parseProfileEmbed, parseResult } from "./embed.ts";
+import { classifyPost, kstDateTime, knownCodes, parseMatchday, parseProfileEmbed, parseResult } from "../../supabase/functions/instagram-sync/embed.ts";
 
 const ACCOUNT = "eunpyeong_denforce";
 // 브라우저처럼 보내야 게시물이 담긴 HTML 을 준다 (그냥 요청하면 게시물 없는 빈 틀)

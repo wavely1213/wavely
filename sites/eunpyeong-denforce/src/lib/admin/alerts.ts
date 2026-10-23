@@ -197,6 +197,32 @@ export function reviewAlerts(pending: { news: number; postings: number }): Admin
   return out;
 }
 
+/** 인스타그램 자동 반영 (D-065) — 15분마다 도는데 1시간 넘게 성공이 없으면 멈춘 것으로 본다 */
+export const INSTAGRAM_STALE_MS = 60 * 60_000;
+
+export type InstagramSyncStatus = { lastOkAt: string | null; lastError: string | null; lastWarning?: string | null; review: number; errors: number; now: Date };
+
+/** 인스타그램 자동 반영 — 멈춤 / 빠졌을 수 있는 글 / 실패한 게시물 / 확인할 것 */
+export function instagramAlerts(s: InstagramSyncStatus): AdminAlert[] {
+  const out: AdminAlert[] = [];
+  const href = "/admin/instagram";
+  const action = "인스타 자동 반영";
+  const stale = !s.lastOkAt || s.now.getTime() - Date.parse(s.lastOkAt) > INSTAGRAM_STALE_MS;
+  if (stale)
+    out.push({
+      level: "warn",
+      title: "인스타그램 자동 반영이 1시간 넘게 성공하지 못했습니다",
+      detail: s.lastError ?? "아직 한 번도 성공하지 않았습니다.",
+      href,
+      action,
+    });
+  if (s.lastWarning) out.push({ level: "warn", title: "인스타그램 게시물이 빠졌을 수 있습니다", detail: s.lastWarning, href, action });
+  if (s.errors > 0) out.push({ level: "warn", title: `인스타그램 게시물 ${s.errors}개를 넣지 못했습니다`, detail: "다시 시도 중이거나 3번 실패했습니다. 직접 확인해 주세요.", href, action });
+  if (s.review > 0)
+    out.push({ level: "check", title: `인스타그램에서 들어온 것 중 확인할 것 ${s.review}개`, detail: "포지션, 홈/원정 같은 값을 확인해 주세요.", href, action });
+  return out;
+}
+
 const ORDER: Record<AlertLevel, number> = { warn: 0, check: 1, info: 2 };
 
 /** 중요한 것부터 */

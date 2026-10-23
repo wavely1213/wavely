@@ -1,7 +1,7 @@
 // 구단 인스타그램 새 게시물 확인 (D-064) — 임베드 읽기, 종류 나누기, 경기 글 읽기. 실행: npm test
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { classifyPost, kstDateTime, knownCodes, parseMatchday, parseProfileEmbed, parseResult } from "../scripts/instagram/embed.ts";
+import { classifyPost, kstDateTime, knownCodes, parseMatchday, parseProfileEmbed, parseResult } from "../supabase/functions/instagram-sync/embed.ts";
 
 /** 실제 임베드와 같은 모양: <script> 안 JSON 의 "contextJSON" 값이 JSON 문자열 (두 번 인코딩) */
 function embedHtml(media: unknown[]): string {
@@ -95,4 +95,26 @@ test("parseResult: 상대/점수(우리 기준)/득점 줄", () => {
 test("knownCodes: 포스팅 주소에서 게시물 코드", () => {
   const codes = knownCodes(["https://www.instagram.com/p/DerArQ-TWEJ/", "https://www.instagram.com/reel/DRi-nM8laES/", "https://blog.naver.com/x/1"]);
   assert.deepEqual([...codes], ["DerArQ-TWEJ", "DRi-nM8laES"]);
+});
+
+test("kickoffTime: 24시간/오전/오후, 표시 없이 이른 시간은 모름", async () => {
+  const { kickoffTime } = await import("../supabase/functions/instagram-sync/embed.ts");
+  assert.equal(kickoffTime("🕑 13:00"), "13:00");
+  assert.equal(kickoffTime("🕑14:00시"), "14:00");
+  assert.equal(kickoffTime("🕑 오후 2:00"), "14:00");
+  assert.equal(kickoffTime("🕑 2:30 PM"), "14:30");
+  assert.equal(kickoffTime("🕑 오전 10:00"), "10:00");
+  assert.equal(kickoffTime("🕑 2:00"), null, "표시 없는 새벽 시간");
+  assert.equal(kickoffTime("🕑 시간 미정"), null);
+});
+
+test("parseMatchday/parseResult: 줄인 구단 이름도 우리 팀, 양쪽 다 우리/아니면 상대 모름", () => {
+  assert.equal(parseMatchday("MATCH DAY\n15라운드\n🆚 은평덴포스 vs 화성FS\n🕑 13:00").opponent, "화성FS");
+  assert.equal(parseMatchday("MATCH DAY\n15라운드\n🆚 덴포스 vs 화성FS\n🕑 13:00").opponent, "화성FS");
+  assert.equal(parseMatchday("MATCH DAY\n15라운드\n🆚 고양불스 vs 화성FS\n🕑 13:00").opponent, null);
+  assert.equal(parseResult("경기결과\n은평덴포스 2 : 1 화성FS\n백승하 전반 3").opponent, "화성FS");
+});
+
+test("knownCodes: 계정 이름이 낀 주소도", () => {
+  assert.deepEqual([...knownCodes(["https://www.instagram.com/eunpyeong_denforce/p/DerArQ-TWEJ/"])], ["DerArQ-TWEJ"]);
 });

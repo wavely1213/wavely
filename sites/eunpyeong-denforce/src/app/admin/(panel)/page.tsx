@@ -7,7 +7,7 @@ import { ADMIN_PAGE_MAP } from "@/config/admin-pages";
 import { PRIVACY_PAGE_ENABLED } from "@/config/site";
 import { NEWS_CATEGORY_LABEL } from "@/data/news";
 import { POSTING_PLATFORM_LABEL } from "@/data/postings";
-import { numberAlerts, reviewAlerts, rosterAlerts, siteGapAlerts, sortAlerts, type AdminAlert, type AlertLevel } from "@/lib/admin/alerts";
+import { instagramAlerts, numberAlerts, reviewAlerts, rosterAlerts, siteGapAlerts, sortAlerts, type AdminAlert, type AlertLevel } from "@/lib/admin/alerts";
 import { requireAdminPage } from "@/lib/admin/auth";
 import { adminUserIds } from "@/lib/admin/review";
 import { isPendingReview } from "@/lib/admin/roles";
@@ -47,7 +47,7 @@ async function Dashboard() {
     return count ?? 0;
   };
 
-  const [players, staff, news, settings, upcoming, scheduled, recentNews, recentPostings, newsTotal, postingsShown, sponsors, matches, privacy, draftPostings, admins] = await Promise.all([
+  const [players, staff, news, settings, upcoming, scheduled, recentNews, recentPostings, newsTotal, postingsShown, sponsors, matches, privacy, draftPostings, admins, igState, igOpen] = await Promise.all([
     supabase.from("players").select("id, name, number, is_active, photo_url"),
     supabase.from("staff").select("id, name, role"),
     supabase.from("news_posts").select("title, date, category, published, created_by"),
@@ -72,6 +72,9 @@ async function Dashboard() {
     // 검토 대기 (D-057) — 미디어 계정이 올린 비공개 글
     supabase.from("postings").select("published, created_by").eq("published", false),
     adminUserIds(ctx),
+    // 인스타그램 자동 반영 (D-065) — 실행 상태, 확인할 것/실패
+    supabase.from("instagram_sync_state").select("last_ok_at, last_error, last_warning").eq("id", 1).maybeSingle(),
+    supabase.from("instagram_posts").select("status").in("status", ["review", "error"]),
   ]);
 
   const playerRows = players.data ?? [];
@@ -79,7 +82,8 @@ async function Dashboard() {
   const lite = playerRows.map((p) => ({ id: p.id, name: p.name, number: p.number, isActive: p.is_active, hasPhoto: Boolean(p.photo_url) }));
   // 하나라도 못 읽으면 잘못된 알림(예: '명단에 없음')을 띄우지 않게 그 알림은 건너뛰고 안내한다
   // 검토 대기 판단에 쓰는 관리자 ID 목록(admins)을 못 읽어도 알림을 만들지 않는다
-  const failed = [players, staff, news, settings, upcoming, scheduled, privacy, draftPostings].some((r) => r.error) || admins === null;
+  const failed = [players, staff, news, settings, upcoming, scheduled, privacy, draftPostings, igState, igOpen].some((r) => r.error) || admins === null;
+  const igRows = igOpen.data ?? [];
   const newsRows = news.data ?? [];
   const pendingNews = newsRows.filter((n) => isPendingReview(n, admins)).length;
   const scheduledRows = scheduled.data ?? [];
@@ -89,6 +93,14 @@ async function Dashboard() {
         ...reviewAlerts({ news: pendingNews, postings: (draftPostings.data ?? []).filter((p) => isPendingReview(p, admins)).length }),
         ...rosterAlerts({ news: newsRows, players: lite, staff: staff.data ?? [], today: kstToday(now) }),
         ...numberAlerts(lite),
+        ...instagramAlerts({
+          lastOkAt: igState.data?.last_ok_at ?? null,
+          lastError: igState.data?.last_error ?? null,
+          lastWarning: igState.data?.last_warning ?? null,
+          review: igRows.filter((r) => r.status === "review").length,
+          errors: igRows.filter((r) => r.status === "error").length,
+          now,
+        }),
         ...siteGapAlerts({
           upcomingMatches: scheduledRows.length,
           pastScheduled: scheduledRows.filter((m) => new Date(m.kickoff) < now).length,
