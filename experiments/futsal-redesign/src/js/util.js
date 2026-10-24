@@ -1,7 +1,30 @@
 /* DOM 헬퍼와 공용 렌더 함수 */
 (function (KFL) {
+  /* 원본 경로 → 새 사이트 페이지 이름 (tools/sitelib.py slug_for 와 같은 규칙) */
+  KFL.slug = function (href) {
+    if (!href || /^https?:/.test(href)) return null;
+    var m = href.match(/^brd_boardLoad\.action\?board_id=(\d+)/);
+    return m ? 'board-' + m[1] : href.split('?')[0].replace('.action', '');
+  };
+
+  /* 배포본(KFL.LOCAL)은 만들어 둔 페이지로, 한 장짜리 미리보기는 원본으로 연결 */
   KFL.url = function (href) {
-    return /^https?:/.test(href) ? href : KFL.ORIGIN + href;
+    if (/^https?:/.test(href)) return href;
+    if (KFL.LOCAL) {
+      var post = href.match(/^brd_boardRead\.action\?seq=(\d+)&board_id=(\d+)/);
+      if (post) return 'board-' + post[2] + '.html?id=' + post[1];
+      var news = href.match(/^mng_newsView\.action\?b_seq=(\d+)/);
+      if (news) return 'mng_newsList.html?id=' + news[1];
+      if (/^photoView\.action/.test(href)) return 'photo.html';
+      var slug = KFL.slug(href);
+      if (KFL.PAGES && KFL.PAGES[slug]) return slug + '.html';
+    }
+    return KFL.ORIGIN + href;
+  };
+
+  /* 첫 화면용 이미지: 빌드가 KFL.IMG(경로 → data URI 또는 배포 경로)를 넣어 준다 */
+  KFL.img = function (path) {
+    return (KFL.IMG && KFL.IMG[path]) || '../assets/img/' + path;
   };
 
   KFL.esc = function (s) {
@@ -14,8 +37,9 @@
   KFL.$$ = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
 
   KFL.link = function (href, text, cls, external) {
-    var ext = external || /^https?:/.test(href);
-    return '<a href="' + KFL.esc(KFL.url(href)) + '"' + (cls ? ' class="' + cls + '"' : '') +
+    var url = KFL.url(href);
+    var ext = external || /^https?:/.test(url);
+    return '<a href="' + KFL.esc(url) + '"' + (cls ? ' class="' + cls + '"' : '') +
       (ext ? ' target="_blank" rel="noopener"' : '') + '>' + KFL.esc(text) +
       (ext ? '<span class="sr-only"> (새 창)</span>' : '') + '</a>';
   };

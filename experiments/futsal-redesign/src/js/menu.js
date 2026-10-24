@@ -2,6 +2,11 @@
    마우스 hover에만 의존하지 않아 키보드·터치 모두 사용 가능. */
 (function (KFL) {
   KFL.renderMenu = function () {
+    // 한 장짜리 미리보기에는 다른 페이지가 없으므로 로고는 원본 첫 화면으로
+    var home = KFL.$('[data-home]');
+    if (home && !KFL.LOCAL) home.href = KFL.ORIGIN + 'home.action';
+    // 정적 HTML 안의 원본 링크(data-href)도 배포본에서는 만들어 둔 페이지로
+    KFL.$$('a[data-href]').forEach(function (a) { a.href = KFL.url(a.dataset.href); });
     var nav = KFL.$('#gnb-list');
     nav.innerHTML = KFL.MENU.map(function (g, i) {
       if (g.href) return '<li class="gnb-item">' + KFL.link(g.href, g.label, 'gnb-link', g.external) + '</li>';

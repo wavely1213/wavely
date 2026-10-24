@@ -10,6 +10,9 @@ main:focus { outline: none; }
 .page-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 48px; padding-block: 48px 64px; }
 @media (min-width: 1024px) {
   .page-grid { grid-template-columns: 280px minmax(0, 1fr); gap: 60px; }
+  /* 문서 순서는 본문 → 기록(모바일·화면낭독기에서 소식이 먼저), 넓은 화면에서만 기록을 왼쪽에 */
+  .page-grid > .sidebar { grid-column: 1; grid-row: 1; }
+  .page-grid > .content { grid-column: 2; grid-row: 1; }
 }
 .sidebar, .content { display: grid; grid-template-columns: minmax(0, 1fr); gap: 48px; align-content: start; min-width: 0; }
 

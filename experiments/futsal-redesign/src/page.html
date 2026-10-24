@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{title}} | 한국풋살연맹</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<!-- build:css -->
+<!-- /build:css -->
+<!-- build:headjs -->
+<script src="js/theme.js"></script>
+<!-- /build:headjs -->
+</head>
+<body class="sub-page">
+<!-- include:header -->
+
+<main id="main" tabindex="-1">
+  <div class="page-head">
+    <div class="container page-head-inner">
+      <nav class="crumbs" aria-label="현재 위치">
+        <ol><li><a href="index.html">홈</a></li><li>{{cat}}</li><li aria-current="page">{{title}}</li></ol>
+      </nav>
+      <p class="page-cat">{{cat}}</p>
+      <h1 class="page-title">{{title}}</h1>
+    </div>
+  </div>
+  <nav class="subnav" aria-label="{{cat}} 하위 메뉴">
+    <div class="container"><ul id="subnav-list" class="subnav-list"></ul></div>
+  </nav>
+  <div class="container page-body">
+    <div id="page" aria-live="polite"><p class="loading">불러오는 중…</p></div>
+    <p class="origin-note">원본 페이지: <a id="origin-link" href="{{origin}}" target="_blank" rel="noopener">futsal.or.kr에서 보기<span class="sr-only"> (새 창)</span></a></p>
+  </div>
+</main>
+
+<!-- include:footer -->
+
+<script>window.KFL = window.KFL || {}; KFL.PAGE = {{page_json}};</script>
+<!-- build:js -->
+<!-- /build:js -->
+</body>
+</html>

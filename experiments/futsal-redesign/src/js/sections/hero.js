@@ -1,9 +1,5 @@
 /* 히어로: 원본 첫 화면의 NEWS 슬라이드 3건. 자동으로 넘기지 않고 이전/다음·점 버튼으로 넘긴다. */
 (function (KFL) {
-  KFL.img = function (path) {
-    return (KFL.IMG && KFL.IMG[path]) || '../assets/img/' + path;
-  };
-
   KFL.renderHero = function (news) {
     var root = KFL.$('#hero');
     var n = news.length;

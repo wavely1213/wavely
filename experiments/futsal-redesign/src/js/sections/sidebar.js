@@ -18,7 +18,7 @@
   function results(league) {
     var plan = league.plan.slice().reverse(); // 최근 경기부터
     if (!plan.length) return '<p class="empty">경기 결과가 없습니다.</p>';
-    var LIMIT = 4;
+    var LIMIT = 3;
     var days = [];
     plan.forEach(function (g, i) {
       var last = days[days.length - 1];
@@ -50,7 +50,7 @@
   function standings(league) {
     var rows = league.rank.rows;
     if (!rows.length) return '<p class="empty">순위가 없습니다.</p>';
-    var LIMIT = 8;
+    var LIMIT = 6;
     return '<table class="mini"><caption class="sr-only">' + KFL.esc(league.name) + ' 팀 순위</caption>' +
       '<thead><tr><th scope="col">순위</th><th scope="col">팀명</th><th scope="col">경기</th><th scope="col">승점</th><th scope="col">득점</th></tr></thead><tbody>' +
       rows.map(function (r, i) {

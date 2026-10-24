@@ -34,14 +34,14 @@ const out = process.argv[3];
       check((await p.locator('#boards .post-list li').first().innerText()).includes('심판강습회'), 'contest news shown');
       // 사이드바: 최근 경기 결과(최근 4경기 + 전체 보기)
       const vis = sel => p.locator(sel + ':visible').count();
-      check(await vis('#results .match') === 4, 'results show latest 4');
+      check(await vis('#results .match') === 3, 'results show latest 3');
       check((await p.locator('#results .match-day h4').first().innerText()) === '2026-08-30', 'latest date first');
       await p.click('#results .btn-more');
       check(await vis('#results .match') === 31, 'results expand to 31');
       await p.click('#results [role=tab] >> text=여자1부');
       check(await p.locator('#results .match').count() === 7 && (await p.locator('#results .league-name').innerText()).includes('여자1부'), '여자1부 7 matches');
       // 팀 순위
-      check(await vis('#standings tbody tr') === 8, 'standings show top 8');
+      check(await vis('#standings tbody tr') === 6, 'standings show top 6');
       await p.click('#standings .btn-more');
       check(await vis('#standings tbody tr') === 32, 'standings expand to 32');
       await p.click('#standings [role=tab] >> text=여자1부');
