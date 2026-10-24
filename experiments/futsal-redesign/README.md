@@ -16,7 +16,7 @@
 | `src/index.html` | 페이지 골격 |
 | `src/css/` | `tokens`(색·크기·라이트/다크) · `base` · `layout` · `components` |
 | `src/js/config.js` | 메뉴·후원사·푸터 등 고정 콘텐츠(원본 문구 그대로) |
-| `src/js/util.js` · `tabs.js` · `menu.js` | 공용 헬퍼, ARIA 탭, 내비게이션 |
+| `src/js/util.js` · `tabs.js` · `menu.js` · `theme.js` | 공용 헬퍼, ARIA 탭, 내비게이션, 라이트/다크 전환 |
 | `src/js/sections/` | 섹션별 렌더러(home · fkcup · players · footer) |
 | `src/js/main.js` | 진입점 |
 | `data/data.json` | 원본에서 수집한 데이터(2026-10-24) |
@@ -24,7 +24,7 @@
 | `tools/fetch.sh` | 원본 응답을 `raw/`에 저장 |
 | `tools/parse.py` | `raw/` → `data/data.json` |
 | `tools/build.py` | 모듈을 한 파일로 묶음(`dist/index.html`, `--artifact` 시 `dist/artifact.html`, `--web` 시 `dist/web/index.html`) |
-| `tools/e2e.js` | Playwright 점검 26항목(데스크톱 1280px·모바일 390px) |
+| `tools/e2e.js` | Playwright 점검 29항목(데스크톱 1280px·모바일 390px) |
 
 `raw/`, `dist/`는 생성물이라 커밋하지 않는다.
 
@@ -40,7 +40,8 @@ node tools/e2e.js dist/index.html <스크린샷 폴더>
 ```
 
 ## 원본과 달라진 점 (UI/UX만)
-- 기본 글자 17px, 터치 영역 44~48px, 키보드 포커스 표시, 본문 바로가기, 이미지 대체 텍스트, 라이트/다크
+- 기본 글자 17px, 터치 영역 44~48px, 키보드 포커스 표시, 본문 바로가기, 이미지 대체 텍스트
+- 라이트/다크: 처음엔 시스템 설정을 따르고, 상단 버튼으로 전환(선택은 브라우저에 기억)
 - 메뉴: hover 대신 클릭·키보드로 여닫기(Esc로 닫힘), 모바일은 전체 메뉴 + 아코디언
 - 뉴스: 자동 슬라이드 → 3건 동시 노출
 - FK CUP: 부문 선택 + 탭(경기일정·득점·경고·퇴장·경기순위), 경기일정은 날짜별 묶음·승리팀 강조

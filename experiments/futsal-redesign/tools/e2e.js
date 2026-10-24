@@ -55,6 +55,14 @@ const out = process.argv[3];
       check(await p.evaluate(() => document.activeElement.className) === 'skip', 'first Tab hits skip link');
       const imgs = await p.evaluate(() => [...document.images].filter(i => !i.complete || i.naturalWidth === 0).length);
       check(imgs === 0, 'all images loaded');
+      const bg = () => p.evaluate(() => getComputedStyle(document.body).backgroundColor);
+      const before = await bg();
+      await p.click('#theme-toggle');
+      check(await bg() !== before && (await p.locator('#theme-toggle').innerText()).includes('끄기'), 'theme toggle switches to dark');
+      await p.reload();
+      check(await p.evaluate(() => document.documentElement.dataset.theme) === 'dark', 'theme choice remembered after reload');
+      await p.click('#theme-toggle');
+      check(await bg() === before, 'theme toggle back to light');
       const noAlt = await p.evaluate(() => [...document.images].filter(i => !i.hasAttribute('alt')).length);
       check(noAlt === 0, 'every img has alt');
     } else {

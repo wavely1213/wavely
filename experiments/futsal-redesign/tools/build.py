@@ -41,6 +41,7 @@ def images():
 
 html = read(SRC, 'index.html')
 html = block(html, 'css', r'href="([^"]+\.css)"', '<style>\n%s\n</style>')
+html = block(html, 'headjs', r'src="([^"]+\.js)"', '<script>\n%s\n</script>')
 data = json.load(open(os.path.join(ROOT, 'data', 'data.json'), encoding='utf-8'))
 inline = 'window.KFL=window.KFL||{};KFL.DATA=%s;KFL.IMG=%s;' % (
     json.dumps(data, ensure_ascii=False, separators=(',', ':')),

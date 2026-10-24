@@ -15,9 +15,15 @@ main:focus { outline: none; }
 
 /* 헤더 */
 .site-header { background: var(--bg); border-bottom: 1px solid var(--line); position: sticky; top: env(safe-area-inset-top, 0px); z-index: 50; }
-.utility { display: flex; justify-content: space-between; align-items: center; min-height: 40px; font-size: var(--fs-sm); color: var(--text-2); }
-.utility-links { display: flex; gap: 4px; }
+.utility { display: flex; flex-wrap: wrap; column-gap: 12px; justify-content: space-between; align-items: center; min-height: 40px; font-size: var(--fs-sm); color: var(--text-2); }
+.utility-links { display: flex; gap: 4px; align-items: center; margin-left: auto; white-space: nowrap; }
 .utility-links a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 10px; text-decoration: none; }
+.theme-toggle {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px;
+  border: 1px solid var(--line); border-radius: 999px; background: var(--bg); color: var(--text-2); font-size: var(--fs-sm);
+}
+.theme-toggle:hover { color: var(--text); border-color: var(--text-2); }
+.theme-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid currentColor; background: linear-gradient(90deg, currentColor 50%, transparent 50%); }
 .bar { display: flex; align-items: center; gap: 16px; min-height: 64px; flex-wrap: wrap; }
 .brand { display: inline-flex; align-items: center; gap: 10px; font-size: var(--fs-lg); font-weight: 800; text-decoration: none; color: var(--text); min-height: var(--tap); }
 .brand-logo { height: 42px; width: auto; padding: 2px 4px; border-radius: var(--radius-sm); background: var(--logo-bg); }
