@@ -1,0 +1,71 @@
+.container {
+  width: 100%; max-width: var(--container); margin: 0 auto;
+  padding-left: max(var(--gutter), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--gutter), env(safe-area-inset-right, 0px));
+}
+
+main:focus { outline: none; }
+.section { margin-top: clamp(32px, 5vw, 56px); }
+
+.two-col { display: grid; gap: var(--gap); grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 960px) {
+  .two-col { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+  .two-col.wide-left { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
+}
+
+/* 헤더 */
+.site-header { background: var(--bg); border-bottom: 1px solid var(--line); position: sticky; top: env(safe-area-inset-top, 0px); z-index: 50; }
+.utility { display: flex; justify-content: space-between; align-items: center; min-height: 40px; font-size: var(--fs-sm); color: var(--text-2); }
+.utility-links { display: flex; gap: 4px; }
+.utility-links a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 10px; text-decoration: none; }
+.bar { display: flex; align-items: center; gap: 16px; min-height: 64px; flex-wrap: wrap; }
+.brand { display: inline-flex; align-items: center; gap: 10px; font-size: var(--fs-lg); font-weight: 800; text-decoration: none; color: var(--text); min-height: var(--tap); }
+.brand-logo { height: 42px; width: auto; padding: 2px 4px; border-radius: var(--radius-sm); background: var(--logo-bg); }
+
+.menu-toggle {
+  margin-left: auto; display: inline-flex; align-items: center; gap: 8px;
+  min-height: var(--tap); padding: 0 14px; border: 1px solid var(--line); border-radius: var(--radius-sm);
+  background: var(--bg); font-weight: 700;
+}
+.burger, .burger::before, .burger::after { display: block; width: 18px; height: 2px; background: currentColor; position: relative; }
+.burger::before, .burger::after { content: ""; position: absolute; left: 0; }
+.burger::before { top: -6px; } .burger::after { top: 6px; }
+
+.gnb { display: none; width: 100%; padding-bottom: 16px; }
+.gnb.open { display: block; }
+.gnb-item { border-top: 1px solid var(--line); }
+.gnb-btn, .gnb-link {
+  display: flex; justify-content: space-between; align-items: center; width: 100%;
+  min-height: 52px; padding: 0 4px; border: 0; background: none; text-align: left;
+  font-size: var(--fs-base); font-weight: 700; text-decoration: none;
+}
+.chev { width: 9px; height: 9px; margin-top: -4px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); transition: transform .15s; }
+[aria-expanded="true"] > .chev { margin-top: 4px; transform: rotate(-135deg); }
+.sub { padding: 0 0 12px 8px; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.sub a { display: flex; align-items: center; min-height: 44px; padding: 0 8px; border-radius: var(--radius-sm); text-decoration: none; color: var(--text-2); }
+.sub a:hover { background: var(--surface); color: var(--text); }
+
+@media (min-width: 960px) {
+  .bar { flex-wrap: nowrap; }
+  .menu-toggle { display: none; }
+  .gnb { display: block; width: auto; margin-left: auto; padding: 0; }
+  .gnb-list { display: flex; gap: 2px; }
+  .gnb-item { border: 0; position: relative; }
+  .gnb-btn, .gnb-link { width: auto; gap: 6px; padding: 0 10px; font-size: 0.9875rem; border-radius: var(--radius-sm); }
+  .gnb-btn:hover, .gnb-link:hover, .gnb-btn[aria-expanded="true"] { background: var(--surface); color: var(--brand); }
+  .sub {
+    position: absolute; top: calc(100% + 6px); left: 0; min-width: 200px; display: block;
+    padding: 8px; background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow);
+  }
+  .gnb-item:nth-last-child(-n+3) .sub { left: auto; right: 0; }
+}
+@media (max-width: 959px) { body.menu-open main, body.menu-open footer { display: none; } }
+
+/* 밴드(FK CUP) */
+.band { background: var(--band-bg); color: var(--band-text); padding: clamp(32px, 5vw, 56px) 0; }
+
+/* 푸터 */
+.site-footer { margin-top: clamp(40px, 6vw, 72px); background: var(--surface); border-top: 1px solid var(--line); padding: 32px 0 40px; color: var(--text-2); font-size: var(--fs-sm); }
+.footer-inner { display: flex; flex-wrap: wrap; gap: 24px; justify-content: space-between; }
+.footer-name { font-weight: 800; color: var(--text); font-size: var(--fs-base); margin-bottom: 6px; }
+.copy { margin-top: 10px; }

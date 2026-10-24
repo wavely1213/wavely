@@ -1,0 +1,81 @@
+/* 디자인 토큰. 모든 텍스트/배경 조합은 WCAG AA(4.5:1) 이상. */
+:root {
+  --bg: #ffffff;
+  --surface: #f4f6f9;
+  --surface-2: #e9edf3;
+  --line: #d3d9e2;
+  --text: #141a24;
+  --text-2: #475163;
+  --brand: #0b3a75;        /* 연맹 네이비 */
+  --brand-ink: #ffffff;
+  --accent: #0a7a4b;       /* 피치 그린 */
+  --accent-soft: #e3f3eb;
+  --danger: #b42318;
+  --focus: #f5a524;
+  --band-bg: #0b2447;
+  --band-text: #ffffff;
+  --band-muted: #c4d2e6;
+  --band-line: #26406a;
+  --band-head: #13305c;
+  --on-accent: #ffffff;
+  --logo-bg: transparent;
+
+  --font: "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --fs-base: 1.0625rem;    /* 17px: 일반보다 한 단계 크게 */
+  --fs-sm: 0.9375rem;
+  --fs-lg: 1.25rem;
+  --fs-xl: clamp(1.375rem, 1.1rem + 1vw, 1.75rem);
+
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 1px 2px rgb(16 24 40 / 0.06), 0 2px 8px rgb(16 24 40 / 0.06);
+  --gap: clamp(16px, 2.5vw, 28px);
+  --tap: 48px;             /* 최소 터치 영역 */
+  --container: 1200px;
+  --gutter: 16px;
+}
+
+@media (min-width: 640px) { :root { --gutter: 24px; } }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f141c;
+    --surface: #171e29;
+    --surface-2: #1f2836;
+    --line: #2d3848;
+    --text: #eef2f7;
+    --text-2: #a9b4c4;
+    --brand: #7fb0ff;
+    --brand-ink: #0b1a30;
+    --accent: #4fd197;
+    --accent-soft: #143528;
+    --danger: #ff8a7a;
+    --band-bg: #0a1424;
+    --band-line: #22324a;
+    --band-head: #13284a;
+    --on-accent: #06281a;
+    --logo-bg: #f4f6f9;
+    --shadow: none;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f141c;
+  --surface: #171e29;
+  --surface-2: #1f2836;
+  --line: #2d3848;
+  --text: #eef2f7;
+  --text-2: #a9b4c4;
+  --brand: #7fb0ff;
+  --brand-ink: #0b1a30;
+  --accent: #4fd197;
+  --accent-soft: #143528;
+  --danger: #ff8a7a;
+  --band-bg: #0a1424;
+  --band-line: #22324a;
+  --band-head: #13284a;
+  --on-accent: #06281a;
+  --logo-bg: #f4f6f9;
+  --shadow: none;
+  color-scheme: dark;
+}
