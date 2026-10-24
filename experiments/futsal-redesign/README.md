@@ -13,6 +13,7 @@
 - 원본으로 연결만 하는 것: 첨부파일 내려받기, 동영상 재생, 대회 상세(leagueRead), 로그인·회원가입, 산하 시도연맹 사이트.
 
 ## Vercel 배포
+- 정식 주소: https://futsal-redesign.vercel.app (누구나 공개, 상단 비공식 시안 배너·검색 노출 차단 유지)
 - 별도 프로젝트 `futsal-redesign`(와벨리 `wavely` 프로젝트와 분리). 같은 GitHub 저장소를 쓰지만 Root Directory가 이 폴더다.
 - 빌드: `python3 tools/build_web.py` → 출력 `dist/web`
 - 설정은 이 폴더의 `vercel.json`(저장소 루트 `vercel.json`보다 우선). 이 폴더에 변경이 없는 커밋은 빌드를 건너뛴다(`ignoreCommand`).
