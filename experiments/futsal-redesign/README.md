@@ -8,7 +8,7 @@
 ## Vercel 배포
 - 별도 프로젝트 `futsal-redesign`(와벨리 `wavely` 프로젝트와 분리). 같은 GitHub 저장소를 쓰지만 Root Directory가 이 폴더다.
 - 빌드: `python3 tools/build.py --web` → 출력 `dist/web`
-- 이 폴더에 변경이 없는 커밋은 빌드를 건너뛴다(Ignored Build Step: `git diff --quiet HEAD^ HEAD -- .`).
+- 설정은 이 폴더의 `vercel.json`(저장소 루트 `vercel.json`보다 우선). 이 폴더에 변경이 없는 커밋은 빌드를 건너뛴다(`ignoreCommand`).
 
 ## 구조
 | 경로 | 내용 |
