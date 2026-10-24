@@ -1,0 +1,23 @@
+/* 페이지 골격: 히어로 → 좌측 사이드바(280px) + 본문 2단 (K리그 메인 구성) */
+.container {
+  width: 100%; max-width: var(--container); margin: 0 auto;
+  padding-left: max(var(--gutter), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--gutter), env(safe-area-inset-right, 0px));
+}
+
+main:focus { outline: none; }
+
+.page-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 48px; padding-block: 48px 64px; }
+@media (min-width: 1024px) {
+  .page-grid { grid-template-columns: 280px minmax(0, 1fr); gap: 60px; }
+  /* 문서 순서는 본문 → 기록(모바일·화면낭독기에서 소식이 먼저), 넓은 화면에서만 기록을 왼쪽에 */
+  .page-grid > .sidebar { grid-column: 1; grid-row: 1; }
+  .page-grid > .content { grid-column: 2; grid-row: 1; }
+}
+.sidebar, .content { display: grid; grid-template-columns: minmax(0, 1fr); gap: 48px; align-content: start; min-width: 0; }
+
+/* 블록 제목: 왼쪽 제목, 오른쪽 더보기/탭 */
+.block-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; min-height: 32px; }
+.block-head h2 { font-size: var(--fs-xl); font-weight: 700; line-height: 1.3; display: flex; align-items: center; gap: 8px; }
+.block-head.ruled { padding-bottom: 12px; margin-bottom: 20px; border-bottom: 2px solid transparent; border-image: linear-gradient(90deg, var(--navy), var(--red)) 1; }
+.side-block .block-head h2 { font-size: var(--fs-lg); }

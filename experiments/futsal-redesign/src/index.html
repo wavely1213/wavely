@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>한국풋살연맹</title>
+<meta name="description" content="한국풋살연맹 소개, 비젼&amp;목표, 풋살월드컵, 풋살역사, 구단순위, FK리그, 아마추어풋살대회 등 안내.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<!-- build:css -->
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/header.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/sidebar.css">
+<link rel="stylesheet" href="css/footer.css">
+<!-- /build:css -->
+<!-- build:headjs -->
+<script src="js/theme.js"></script>
+<!-- /build:headjs -->
+</head>
+<body>
+<!-- include:header -->
+
+<main id="main" tabindex="-1">
+  <section class="hero" aria-roledescription="carousel" aria-labelledby="hero-h">
+    <h2 id="hero-h" class="sr-only">NEWS</h2>
+    <div id="hero"></div>
+  </section>
+
+  <div class="container page-grid">
+
+    <div class="content">
+      <section class="block" aria-labelledby="boards-h">
+        <div id="boards"></div>
+      </section>
+
+      <section class="block" aria-labelledby="comp-h">
+        <div class="block-head ruled">
+          <h2 id="comp-h">대회일정</h2>
+          <a class="more-link" href="http://www.futsal.or.kr/LeagueList.action" data-href="LeagueList.action">대회일정 더보기</a>
+        </div>
+        <ul id="comp-list" class="comp-list"></ul>
+      </section>
+
+      <section class="block" aria-labelledby="players-h">
+        <div class="block-head ruled"><h2 id="players-h">선수기록</h2></div>
+        <div class="card pad" id="players"></div>
+      </section>
+
+      <section class="block" aria-labelledby="photo-h">
+        <div class="block-head ruled">
+          <h2 id="photo-h">포토</h2>
+          <a class="more-link" href="http://www.futsal.or.kr/photo.action" data-href="photo.action">포토 더보기</a>
+        </div>
+        <ul id="photo-list" class="photo-list"></ul>
+      </section>
+
+      <section class="block" aria-labelledby="quick-h">
+        <div class="block-head ruled"><h2 id="quick-h">바로가기</h2></div>
+        <ul id="quick-list" class="quick-list"></ul>
+      </section>
+    </div>
+
+    <aside class="sidebar" aria-label="FK CUP 기록">
+      <section class="side-block" aria-labelledby="results-h">
+        <div class="block-head"><h2 id="results-h">최근 경기 결과</h2></div>
+        <div class="side-card" id="results"></div>
+      </section>
+      <section class="side-block" aria-labelledby="rank-h">
+        <div class="block-head"><h2 id="rank-h"><span class="ball" aria-hidden="true"></span>팀 순위</h2></div>
+        <div class="side-card" id="standings"></div>
+      </section>
+      <section class="side-block" aria-labelledby="goal-h">
+        <div class="block-head">
+          <h2 id="goal-h">득점 TOP5</h2>
+          <a class="more-link" href="http://www.futsal.or.kr/mng_GameCupList.action" data-href="mng_GameCupList.action">더보기</a>
+        </div>
+        <div class="side-card" id="top-goal"></div>
+      </section>
+      <section class="side-block" aria-labelledby="foul-h">
+        <div class="block-head">
+          <h2 id="foul-h">경고 TOP5</h2>
+          <a class="more-link" href="http://www.futsal.or.kr/mng_GameCupList.action" data-href="mng_GameCupList.action">더보기</a>
+        </div>
+        <div class="side-card" id="top-foul"></div>
+      </section>
+    </aside>
+  </div>
+</main>
+
+<!-- include:footer -->
+
+<!-- build:js -->
+<script src="js/config.js"></script>
+<script src="js/util.js"></script>
+<script src="js/tabs.js"></script>
+<script src="js/menu.js"></script>
+<script src="js/sections/hero.js"></script>
+<script src="js/sections/sidebar.js"></script>
+<script src="js/sections/content.js"></script>
+<script src="js/sections/players.js"></script>
+<script src="js/sections/footer.js"></script>
+<script src="js/main.js"></script>
+<!-- /build:js -->
+</body>
+</html>
