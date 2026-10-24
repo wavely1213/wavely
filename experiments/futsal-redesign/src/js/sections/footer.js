@@ -1,12 +1,5 @@
-/* 포토, 후원사, 푸터 */
+/* 푸터: 후원사 띠, 사이트맵(원본 메뉴 전체), 연락처 바, 저작권 */
 (function (KFL) {
-  KFL.renderPhotos = function (photos) {
-    KFL.$('#photo-list').innerHTML = photos.map(function (p, i) {
-      return '<li><a href="' + KFL.esc(KFL.url('photoView.action?b_seq=' + p[0])) + '" target="_blank" rel="noopener">' +
-        '<img src="' + KFL.img('photo/' + p[0] + '.jpg') + '" alt="포토 ' + (i + 1) + ' (새 창에서 크게 보기)"></a></li>';
-    }).join('');
-  };
-
   KFL.renderSponsors = function () {
     KFL.$('#sponsor-list').innerHTML = KFL.SPONSORS.map(function (s) {
       return '<li><a href="' + KFL.esc(s.href) + '" target="_blank" rel="noopener">' +
@@ -14,16 +7,28 @@
     }).join('');
   };
 
+  KFL.renderSitemap = function () {
+    KFL.$('#sitemap').innerHTML = KFL.MENU.map(function (g) {
+      if (g.href) return '<div><h3>' + KFL.link(g.href, g.label, '', g.external) + '</h3></div>';
+      return '<div><h3>' + KFL.esc(g.label) + '</h3><ul>' + g.items.map(function (it) {
+        return '<li>' + KFL.link(it.href, it.label, '', it.external) + '</li>';
+      }).join('') + '</ul></div>';
+    }).join('');
+  };
+
   KFL.renderFooter = function () {
     var f = KFL.FOOTER;
     KFL.$('#footer-info').innerHTML =
-      '<p class="footer-name">' + KFL.esc(KFL.SITE.name) + '</p>' +
-      '<address><p>' + KFL.esc(f.address) + '</p>' +
-      '<p>TEL <a href="tel:' + f.telHref + '">' + KFL.esc(f.tel) + '</a> · FAX ' + KFL.esc(f.fax) + '</p>' +
-      '<p>E-mail <a href="mailto:' + f.email + '">' + KFL.esc(f.email) + '</a></p></address>' +
-      '<p class="copy">' + KFL.esc(f.copyright) + '</p>';
-    KFL.$('#social-list').innerHTML = f.social.map(function (s) {
-      return '<li>' + KFL.link(s.href, s.label, 'social') + '</li>';
-    }).join('');
+      '<p class="footer-brand"><img src="' + KFL.img('brand/logo.png') + '" alt="">' + KFL.esc(KFL.SITE.name) + '</p>' +
+      '<address>' +
+      '<span><b>A</b>' + KFL.esc(f.address) + '</span>' +
+      '<span><b>T</b><a href="tel:' + f.telHref + '">' + KFL.esc(f.tel) + '</a></span>' +
+      '<span><b>F</b>' + KFL.esc(f.fax) + '</span>' +
+      '<span><b>E</b><a href="mailto:' + f.email + '">' + KFL.esc(f.email) + '</a></span>' +
+      '</address>' +
+      '<ul class="social-list">' + f.social.map(function (s) {
+        return '<li>' + KFL.link(s.href, s.label, 'social') + '</li>';
+      }).join('') + '</ul>';
+    KFL.$('#footer-copy').textContent = f.copyright;
   };
 })(window.KFL);

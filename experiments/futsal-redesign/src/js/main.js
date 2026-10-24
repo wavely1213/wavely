@@ -2,14 +2,15 @@
 (function (KFL) {
   function start(data) {
     KFL.renderMenu();
-    KFL.renderQuick();
-    KFL.renderNews(data.news);
+    KFL.renderHero(data.news);
+    KFL.renderSidebar(data.leagues);
     KFL.renderBoards(data);
     KFL.renderCompetitions(data.competitions);
-    KFL.renderFkCup(data.leagues);
     KFL.renderPlayers(data.players);
     KFL.renderPhotos(data.photos);
+    KFL.renderQuick();
     KFL.renderSponsors();
+    KFL.renderSitemap();
     KFL.renderFooter();
   }
 

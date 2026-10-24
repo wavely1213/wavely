@@ -11,8 +11,11 @@
 <!-- build:css -->
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/header.css">
 <link rel="stylesheet" href="css/layout.css">
 <link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/sidebar.css">
+<link rel="stylesheet" href="css/footer.css">
 <!-- /build:css -->
 <!-- build:headjs -->
 <script src="js/theme.js"></script>
@@ -22,97 +25,120 @@
 <a class="skip" href="#main">본문 바로가기</a>
 
 <header class="site-header">
-  <div class="utility container">
-    <p class="slogan">하나의 단체, 더 큰 풋살</p>
-    <ul class="utility-links">
-      <li><a href="http://www.futsal.or.kr/lgn_loginLoad.action">로그인</a></li>
-      <li><a href="http://www.futsal.or.kr/mem_memberAgreeLoad.action">회원가입</a></li>
-      <li><button type="button" id="theme-toggle" class="theme-toggle"><span class="theme-dot" aria-hidden="true"></span><span class="label">다크 모드 켜기</span></button></li>
-    </ul>
+  <div class="utility">
+    <div class="container utility-inner">
+      <ul class="utility-links">
+        <li><a href="http://www.futsal.or.kr/lgn_loginLoad.action">로그인</a></li>
+        <li><a href="http://www.futsal.or.kr/mem_memberAgreeLoad.action">회원가입</a></li>
+      </ul>
+    </div>
   </div>
-  <div class="bar container">
+  <div class="container brand-row">
     <a class="brand" href="http://www.futsal.or.kr/home.action">
       <img class="brand-logo" src="../assets/img/brand/logo.png" alt="" width="97" height="42">한국풋살연맹
     </a>
+    <p class="slogan">하나의 단체, 더 큰 풋살</p>
     <button type="button" id="menu-toggle" class="menu-toggle" aria-expanded="false" aria-controls="gnb">
       <span class="burger" aria-hidden="true"></span><span class="label">전체 메뉴</span>
     </button>
-    <nav id="gnb" class="gnb" aria-label="주 메뉴">
-      <ul id="gnb-list" class="gnb-list"></ul>
-    </nav>
   </div>
+  <nav id="gnb" class="gnb" aria-label="주 메뉴">
+    <ul id="gnb-list" class="container gnb-list"></ul>
+  </nav>
 </header>
 
 <main id="main" tabindex="-1">
-  <section class="quick container" aria-labelledby="quick-h">
-    <h2 id="quick-h" class="sr-only">바로가기</h2>
-    <ul id="quick-list" class="quick-list"></ul>
+  <section class="hero" aria-roledescription="carousel" aria-labelledby="hero-h">
+    <h2 id="hero-h" class="sr-only">NEWS</h2>
+    <div id="hero"></div>
   </section>
 
-  <section class="container section" aria-labelledby="news-h">
-    <div class="section-head">
-      <h2 id="news-h">NEWS</h2>
-      <a class="more-link" href="http://www.futsal.or.kr/mng_newsList.action">NEWS 더보기</a>
+  <div class="container page-grid">
+    <aside class="sidebar" aria-label="FK CUP 기록">
+      <section class="side-block" aria-labelledby="results-h">
+        <div class="block-head"><h2 id="results-h">최근 경기 결과</h2></div>
+        <div class="side-card" id="results"></div>
+      </section>
+      <section class="side-block" aria-labelledby="rank-h">
+        <div class="block-head"><h2 id="rank-h"><span class="ball" aria-hidden="true"></span>팀 순위</h2></div>
+        <div class="side-card" id="standings"></div>
+      </section>
+      <section class="side-block" aria-labelledby="goal-h">
+        <div class="block-head">
+          <h2 id="goal-h">득점 TOP5</h2>
+          <a class="more-link" href="http://www.futsal.or.kr/mng_GameCupList.action">더보기</a>
+        </div>
+        <div class="side-card" id="top-goal"></div>
+      </section>
+      <section class="side-block" aria-labelledby="foul-h">
+        <div class="block-head">
+          <h2 id="foul-h">경고 TOP5</h2>
+          <a class="more-link" href="http://www.futsal.or.kr/mng_GameCupList.action">더보기</a>
+        </div>
+        <div class="side-card" id="top-foul"></div>
+      </section>
+    </aside>
+
+    <div class="content">
+      <section class="block" aria-labelledby="boards-h">
+        <div id="boards"></div>
+      </section>
+
+      <section class="block" aria-labelledby="comp-h">
+        <div class="block-head ruled">
+          <h2 id="comp-h">대회일정</h2>
+          <a class="more-link" href="http://www.futsal.or.kr/LeagueList.action">대회일정 더보기</a>
+        </div>
+        <ul id="comp-list" class="comp-list"></ul>
+      </section>
+
+      <section class="block" aria-labelledby="players-h">
+        <div class="block-head ruled"><h2 id="players-h">선수기록</h2></div>
+        <div class="card pad" id="players"></div>
+      </section>
+
+      <section class="block" aria-labelledby="photo-h">
+        <div class="block-head ruled">
+          <h2 id="photo-h">포토</h2>
+          <a class="more-link" href="http://www.futsal.or.kr/photo.action">포토 더보기</a>
+        </div>
+        <ul id="photo-list" class="photo-list"></ul>
+      </section>
+
+      <section class="block" aria-labelledby="quick-h">
+        <div class="block-head ruled"><h2 id="quick-h">바로가기</h2></div>
+        <ul id="quick-list" class="quick-list"></ul>
+      </section>
     </div>
-    <ul id="news-list" class="news-list"></ul>
-  </section>
-
-  <div class="container section two-col">
-    <section class="card" aria-labelledby="boards-h">
-      <h2 id="boards-h" class="sr-only">공지사항 · 대회소식</h2>
-      <div id="boards"></div>
-    </section>
-    <section class="card" aria-labelledby="comp-h">
-      <div class="section-head">
-        <h2 id="comp-h">대회일정</h2>
-        <a class="more-link" href="http://www.futsal.or.kr/LeagueList.action">대회일정 더보기</a>
-      </div>
-      <ul id="comp-list" class="comp-list"></ul>
-    </section>
   </div>
-
-  <section class="band section" aria-labelledby="fkcup-title">
-    <div class="container">
-      <p class="eyebrow">FK CUP</p>
-      <h2 id="fkcup-title" aria-live="polite"></h2>
-      <div id="fkcup"></div>
-    </div>
-  </section>
-
-  <div class="container section two-col wide-left">
-    <section class="card" aria-labelledby="players-h">
-      <h2 id="players-h">선수기록</h2>
-      <div id="players"></div>
-    </section>
-    <section class="card" aria-labelledby="photo-h">
-      <div class="section-head">
-        <h2 id="photo-h">포토</h2>
-        <a class="more-link" href="http://www.futsal.or.kr/photo.action">포토 더보기</a>
-      </div>
-      <ul id="photo-list" class="photo-list"></ul>
-    </section>
-  </div>
-
-  <section class="container section" aria-labelledby="spon-h">
-    <h2 id="spon-h">후원사</h2>
-    <ul id="sponsor-list" class="sponsor-list"></ul>
-  </section>
 </main>
 
 <footer class="site-footer">
-  <div class="container footer-inner">
-    <div id="footer-info"></div>
-    <nav aria-label="소셜 미디어"><ul id="social-list" class="social-list"></ul></nav>
+  <section class="sponsors" aria-labelledby="spon-h">
+    <h2 id="spon-h" class="sr-only">후원사</h2>
+    <ul id="sponsor-list" class="container sponsor-list"></ul>
+  </section>
+  <nav class="sitemap" aria-label="사이트맵">
+    <div id="sitemap" class="container sitemap-grid"></div>
+  </nav>
+  <div class="footer-bar">
+    <div class="container footer-bar-inner" id="footer-info"></div>
+  </div>
+  <div class="footer-copy">
+    <p class="container" id="footer-copy"></p>
   </div>
 </footer>
+
+<button type="button" id="theme-toggle" class="theme-toggle"><span class="theme-dot" aria-hidden="true"></span><span class="label">다크 모드 켜기</span></button>
 
 <!-- build:js -->
 <script src="js/config.js"></script>
 <script src="js/util.js"></script>
 <script src="js/tabs.js"></script>
 <script src="js/menu.js"></script>
-<script src="js/sections/home.js"></script>
-<script src="js/sections/fkcup.js"></script>
+<script src="js/sections/hero.js"></script>
+<script src="js/sections/sidebar.js"></script>
+<script src="js/sections/content.js"></script>
 <script src="js/sections/players.js"></script>
 <script src="js/sections/footer.js"></script>
 <script src="js/main.js"></script>

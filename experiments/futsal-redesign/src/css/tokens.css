@@ -1,36 +1,34 @@
-/* 디자인 토큰. 모든 텍스트/배경 조합은 WCAG AA(4.5:1) 이상. */
+/* 디자인 토큰 — K리그 홈페이지(kleague.com) 색 체계를 기준으로 한다.
+   네이비 #001C48 · 레드 #EE2529 · 바탕 #F2F3F6 · 본문 #222
+   텍스트/배경 조합은 WCAG AA(4.5:1) 이상. */
 :root {
-  --bg: #ffffff;
-  --surface: #f4f6f9;
-  --surface-2: #e9edf3;
-  --line: #d3d9e2;
-  --text: #141a24;
-  --text-2: #475163;
-  --brand: #0b3a75;        /* 연맹 네이비 */
-  --brand-ink: #ffffff;
-  --accent: #0a7a4b;       /* 피치 그린 */
-  --accent-soft: #e3f3eb;
-  --danger: #b42318;
+  --bg: #f2f3f6;           /* 페이지 바탕 */
+  --card: #ffffff;         /* 카드·헤더 */
+  --surface: #f5f6f8;      /* 카드 안 보조 면 */
+  --line: #e2e2e2;
+  --text: #222222;
+  --text-2: #5f6670;
+  --navy: #001c48;         /* GNB·버튼·강조 면 */
+  --navy-2: #0a2a5e;
+  --on-navy: #ffffff;
+  --on-navy-2: #c9d3e6;
+  --red: #ee2529;          /* 활성 탭·배지 */
+  --red-text: #d0161b;     /* 흰 바탕 위 빨간 글자(대비 확보) */
+  --on-red: #ffffff;
+  --footer: #141a3a;       /* 사이트맵 */
+  --footer-text: #c3c8dc;
   --focus: #f5a524;
-  --band-bg: #0b2447;
-  --band-text: #ffffff;
-  --band-muted: #c4d2e6;
-  --band-line: #26406a;
-  --band-head: #13305c;
-  --on-accent: #ffffff;
   --logo-bg: transparent;
+  --shadow: 0 2px 12px rgb(0 28 72 / 0.07);
 
   --font: "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-  --fs-base: 1.0625rem;    /* 17px: 일반보다 한 단계 크게 */
-  --fs-sm: 0.9375rem;
+  --fs-base: 1rem;         /* 16px: 원본(14px)보다 크게 */
+  --fs-sm: 0.875rem;
+  --fs-xs: 0.8125rem;
   --fs-lg: 1.25rem;
-  --fs-xl: clamp(1.375rem, 1.1rem + 1vw, 1.75rem);
+  --fs-xl: clamp(1.25rem, 1.05rem + 0.8vw, 1.5rem);
 
-  --radius: 12px;
-  --radius-sm: 8px;
-  --shadow: 0 1px 2px rgb(16 24 40 / 0.06), 0 2px 8px rgb(16 24 40 / 0.06);
-  --gap: clamp(16px, 2.5vw, 28px);
-  --tap: 48px;             /* 최소 터치 영역 */
+  --tap: 44px;             /* 최소 터치 영역 */
   --container: 1200px;
   --gutter: 16px;
 }
@@ -39,43 +37,43 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0f141c;
-    --surface: #171e29;
-    --surface-2: #1f2836;
-    --line: #2d3848;
-    --text: #eef2f7;
-    --text-2: #a9b4c4;
-    --brand: #7fb0ff;
-    --brand-ink: #0b1a30;
-    --accent: #4fd197;
-    --accent-soft: #143528;
-    --danger: #ff8a7a;
-    --band-bg: #0a1424;
-    --band-line: #22324a;
-    --band-head: #13284a;
-    --on-accent: #06281a;
-    --logo-bg: #f4f6f9;
+    --bg: #0b1120;
+    --card: #131b2e;
+    --surface: #1a2338;
+    --line: #2a3550;
+    --text: #eef1f7;
+    --text-2: #a7b0c3;
+    --navy: #1b3a78;
+    --navy-2: #24488f;
+    --on-navy: #ffffff;
+    --on-navy-2: #d2dbee;
+    --red: #ff4d51;
+    --red-text: #ff7a7d;
+    --on-red: #1a0506;
+    --footer: #080d1c;
+    --footer-text: #aab2c9;
+    --logo-bg: #f2f3f6;
     --shadow: none;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0f141c;
-  --surface: #171e29;
-  --surface-2: #1f2836;
-  --line: #2d3848;
-  --text: #eef2f7;
-  --text-2: #a9b4c4;
-  --brand: #7fb0ff;
-  --brand-ink: #0b1a30;
-  --accent: #4fd197;
-  --accent-soft: #143528;
-  --danger: #ff8a7a;
-  --band-bg: #0a1424;
-  --band-line: #22324a;
-  --band-head: #13284a;
-  --on-accent: #06281a;
-  --logo-bg: #f4f6f9;
+  --bg: #0b1120;
+  --card: #131b2e;
+  --surface: #1a2338;
+  --line: #2a3550;
+  --text: #eef1f7;
+  --text-2: #a7b0c3;
+  --navy: #1b3a78;
+  --navy-2: #24488f;
+  --on-navy: #ffffff;
+  --on-navy-2: #d2dbee;
+  --red: #ff4d51;
+  --red-text: #ff7a7d;
+  --on-red: #1a0506;
+  --footer: #080d1c;
+  --footer-text: #aab2c9;
+  --logo-bg: #f2f3f6;
   --shadow: none;
   color-scheme: dark;
 }

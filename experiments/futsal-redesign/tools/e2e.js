@@ -19,26 +19,39 @@ const out = process.argv[3];
     if (name === 'desktop') {
       check(await p.locator('#gnb-list > li').count() === 9, 'GNB has 9 top items');
       check(await p.locator('.sub a').count() === 31, 'submenus have 31 links');
-      check(await p.locator('#news-list li').count() === 3, '3 news');
+      // 히어로: 원본 NEWS 3건, 자동 넘김 없음
+      check(await p.locator('#hero .slide').count() === 3, '3 news slides');
+      check(await p.locator('#hero .slide:not([hidden])').count() === 1, 'one slide visible');
+      await p.click('#hero [data-step="1"]');
+      check(await p.locator('#slide-1').isVisible() && await p.locator('#hero .dot').nth(1).getAttribute('aria-current') === 'true', 'next button shows slide 2');
+      await p.click('#hero .dot >> nth=0');
+      check(await p.locator('#slide-0').isVisible(), 'dot jumps to slide 1');
+      // 소식(공지사항|대회소식)
       check(await p.locator('#boards .post-list li').count() === 10, '10 notices');
       await p.locator('#boards [role=tab]').nth(0).focus();
       await p.keyboard.press('ArrowRight');
       check(await p.locator('#boards [role=tab]').nth(1).getAttribute('aria-selected') === 'true', 'arrow key switches board tab');
       check((await p.locator('#boards .post-list li').first().innerText()).includes('심판강습회'), 'contest news shown');
-      check(await p.locator('.match').count() === 31, 'FK CUP 남자부 31 matches');
-      await p.click('.division .chip >> nth=1');
-      check(await p.locator('.match').count() === 7, '여자1부 7 matches');
-      check((await p.locator('#fkcup-title').innerText()).includes('여자1부'), 'title follows division');
-      await p.click('#fk-views [role=tab] >> text=경기순위');
-      check(await p.locator('#fkcup tbody tr').count() === 8, '여자1부 rank 8 rows');
-      await p.click('#fk-views [role=tab] >> text=퇴장');
-      check(await p.locator('#fkcup .empty').count() === 1, 'empty 퇴장 shows message');
-      await p.click('.division .chip >> nth=0');
-      await p.click('#fk-views [role=tab] >> text=득점');
-      check(await p.locator('#fkcup tbody tr:not([hidden])').count() === 10, 'goal table limited to 10');
-      await p.click('#fkcup .btn-more');
-      check(await p.locator('#fkcup tbody tr:not([hidden])').count() === 125, 'more expands to 125');
-      await p.locator('#fkcup').screenshot({ path: `${out}/fkcup.png` });
+      // 사이드바: 최근 경기 결과(최근 4경기 + 전체 보기)
+      const vis = sel => p.locator(sel + ':visible').count();
+      check(await vis('#results .match') === 4, 'results show latest 4');
+      check((await p.locator('#results .match-day h4').first().innerText()) === '2026-08-30', 'latest date first');
+      await p.click('#results .btn-more');
+      check(await vis('#results .match') === 31, 'results expand to 31');
+      await p.click('#results [role=tab] >> text=여자1부');
+      check(await p.locator('#results .match').count() === 7 && (await p.locator('#results .league-name').innerText()).includes('여자1부'), '여자1부 7 matches');
+      // 팀 순위
+      check(await vis('#standings tbody tr') === 8, 'standings show top 8');
+      await p.click('#standings .btn-more');
+      check(await vis('#standings tbody tr') === 32, 'standings expand to 32');
+      await p.click('#standings [role=tab] >> text=여자1부');
+      check(await p.locator('#standings tbody tr').count() === 8, '여자1부 rank 8 rows');
+      // TOP5
+      check((await p.locator('#top-goal .top1 .name').innerText()) === '엄지용' && await p.locator('#top-goal .top-rest li').count() === 4, 'goal top5: 1st 엄지용 + 4');
+      check(await p.locator('#top-foul .scope-note').count() === 1, 'FK CUP team label shown');
+      await p.locator('.sidebar').screenshot({ path: `${out}/sidebar.png` });
+      // 사이트맵: 원본 메뉴 전체
+      check(await p.locator('#sitemap a').count() === 33, 'sitemap has 33 links');
       await p.fill('#player-q', '강원FS');
       const n = await p.locator('#players tbody tr').count();
       check(n > 0 && (await p.locator('#players tbody tr').allInnerTexts()).every(t => t.includes('강원FS')), `search filters players (${n})`);
