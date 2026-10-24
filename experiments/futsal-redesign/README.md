@@ -5,6 +5,11 @@
 
 공유 링크(비공식 시안 배너 포함): https://claude.ai/artifact/LUytaoEKFtP9MQwfiVzaPS
 
+## Vercel 배포
+- 별도 프로젝트 `futsal-redesign`(와벨리 `wavely` 프로젝트와 분리). 같은 GitHub 저장소를 쓰지만 Root Directory가 이 폴더다.
+- 빌드: `python3 tools/build.py --web` → 출력 `dist/web`
+- 이 폴더에 변경이 없는 커밋은 빌드를 건너뛴다(Ignored Build Step: `git diff --quiet HEAD^ HEAD -- .`).
+
 ## 구조
 | 경로 | 내용 |
 |---|---|
@@ -18,7 +23,7 @@
 | `assets/img/` | 원본 뉴스·포토·후원사·연맹 로고 이미지 |
 | `tools/fetch.sh` | 원본 응답을 `raw/`에 저장 |
 | `tools/parse.py` | `raw/` → `data/data.json` |
-| `tools/build.py` | 모듈을 한 파일로 묶음(`dist/index.html`, `--artifact` 시 `dist/artifact.html`) |
+| `tools/build.py` | 모듈을 한 파일로 묶음(`dist/index.html`, `--artifact` 시 `dist/artifact.html`, `--web` 시 `dist/web/index.html`) |
 | `tools/e2e.js` | Playwright 점검 26항목(데스크톱 1280px·모바일 390px) |
 
 `raw/`, `dist/`는 생성물이라 커밋하지 않는다.
@@ -30,6 +35,7 @@ bash tools/fetch.sh            # 원본 최신 데이터 받기(선택)
 python3 -I tools/parse.py      # data/data.json 갱신
 python3 -I tools/build.py      # dist/index.html (로컬 미리보기)
 python3 -I tools/build.py --artifact   # dist/artifact.html (공유 링크용)
+python3 -I tools/build.py --web        # dist/web/index.html (Vercel 배포용: 배너 + noindex)
 node tools/e2e.js dist/index.html <스크린샷 폴더>
 ```
 

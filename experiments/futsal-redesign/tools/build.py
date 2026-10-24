@@ -1,9 +1,14 @@
 """src/ 의 모듈(CSS·JS)과 data/·assets/ 를 하나의 HTML 로 묶는다.
 사용: python3 -I tools/build.py             -> dist/index.html (로컬 미리보기)
-      python3 -I tools/build.py --artifact  -> dist/artifact.html (공유 링크용: 비공식 시안 배너 포함)"""
+      python3 -I tools/build.py --artifact  -> dist/artifact.html (공유 링크용: 비공식 시안 배너 포함)
+      python3 -I tools/build.py --web       -> dist/web/index.html (Vercel 배포용: 배너 + 검색 노출 차단)"""
 import base64, json, mimetypes, os, re, sys
 
 ARTIFACT = '--artifact' in sys.argv
+WEB = '--web' in sys.argv
+# 배너는 '본문 바로가기' 다음에 둬서 첫 Tab이 바로가기 링크에 닿게 한다
+SKIP = '<a class="skip" href="#main">본문 바로가기</a>'
+CONCEPT_TITLE = '<title>풋살연맹 리디자인 시안</title>'
 BANNER = ('<div class="concept-banner" role="note"><p class="container">'
           '비공식 리디자인 시안입니다. 한국풋살연맹 공식 사이트가 아니며, 내용은 2026-10-24에 '
           '<a href="http://www.futsal.or.kr/" target="_blank" rel="noopener">futsal.or.kr</a>에서 가져왔습니다.</p></div>')
@@ -48,10 +53,14 @@ if ARTIFACT:
     head = html[html.index('<head>') + 6:html.index('</head>')]
     body = html[html.index('<body>') + 6:html.index('</body>')]
     head = re.sub(r'<meta charset[^>]*>\s*|<meta name="viewport"[^>]*>\s*', '', head)
-    head = head.replace('<title>한국풋살연맹</title>', '<title>풋살연맹 리디자인 시안</title>\n<meta name="claude:viewport-fit-sides" content="cover">')
-    html = head.strip() + '\n' + BANNER + body
-os.makedirs(os.path.join(ROOT, 'dist'), exist_ok=True)
-out = os.path.join(ROOT, 'dist', 'artifact.html' if ARTIFACT else 'index.html')
+    head = head.replace('<title>한국풋살연맹</title>', CONCEPT_TITLE + '\n<meta name="claude:viewport-fit-sides" content="cover">')
+    html = head.strip() + '\n' + body.replace(SKIP, SKIP + '\n' + BANNER, 1)
+elif WEB:
+    # 공개 배포본: 실제 연맹 사이트로 오인·검색 노출되지 않도록 배너와 noindex를 넣는다
+    html = html.replace('<title>한국풋살연맹</title>', CONCEPT_TITLE + '\n<meta name="robots" content="noindex, nofollow">')
+    html = html.replace(SKIP, SKIP + '\n' + BANNER, 1)
+out = os.path.join(ROOT, 'dist', 'web' if WEB else '', 'artifact.html' if ARTIFACT else 'index.html')
+os.makedirs(os.path.dirname(out), exist_ok=True)
 with open(out, 'w', encoding='utf-8') as f:
     f.write(html)
 print('built', out, '%.0f KB' % (os.path.getsize(out) / 1024))
