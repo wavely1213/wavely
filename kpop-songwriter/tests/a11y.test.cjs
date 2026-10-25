@@ -1,0 +1,44 @@
+// 접근성 점검: 모든 화면(곡 탭·앨범 탭·내 취향)에서 이름(label·aria-label) 없는 입력 칸·빈 버튼이 없는지. 실행: npm run build && npm run test:a11y
+const path = require('path');
+const { chromium } = require(require('child_process').execSync('npm root -g').toString().trim() + '/playwright');
+(async () => {
+  const b = await chromium.launch();
+  const p = await b.newPage({ viewport: { width: 1280, height: 900 } });
+  await p.goto('file://' + path.join(__dirname, '..', 'dist', 'index.html'));
+  await p.waitForSelector('.tab');
+  const audit = () => p.evaluate(() => {
+    const bad = [];
+    document.querySelectorAll('input:not([type=hidden]):not(.visually-hidden), select, textarea').forEach((el) => {
+      const labelled = el.getAttribute('aria-label') || el.closest('label') || (el.id && document.querySelector(`label[for="${el.id}"]`)) || el.getAttribute('aria-labelledby');
+      if (!labelled) bad.push(`${el.tagName.toLowerCase()}#${el.id || '?'} placeholder="${(el.placeholder || '').slice(0, 20)}"`);
+    });
+    document.querySelectorAll('button').forEach((el) => { if (!el.textContent.trim() && !el.getAttribute('aria-label')) bad.push(`button(empty) ${el.className}`); });
+    return bad;
+  });
+  const all = new Set();
+  const tabs = await p.$$eval('.tab', (els) => els.map((e) => e.textContent));
+  for (const t of tabs) { await p.click(`.tab:text-is("${t}")`); (await audit()).forEach((x) => all.add(`[${t}] ${x}`)); }
+  await p.click('text=+ 새 앨범');
+  const atabs = await p.$$eval('.tab', (els) => els.map((e) => e.textContent));
+  for (const t of atabs) { await p.click(`.tab:text-is("${t}")`); (await audit()).forEach((x) => all.add(`[앨범 ${t}] ${x}`)); }
+  await p.click('.song-item:has-text("내 취향")');
+  (await audit()).forEach((x) => all.add(`[취향] ${x}`));
+  // 리메이크·번안 곡: 원곡·이용 허락 카드, 원곡 가사 비교표(읽기 칸), Suno 안내
+  await p.click('#new-remake');
+  (await audit()).forEach((x) => all.add(`[리메이크 컨셉] ${x}`));
+  await p.click('.tab:text-is("구조·가사")');
+  await p.fill('#remake-paste', '[サビ]\n雪の華\nふたりで');
+  await p.click('#remake-split');
+  (await audit()).forEach((x) => all.add(`[리메이크 가사] ${x}`));
+  await p.click('.tab:text-is("내보내기")');
+  (await audit()).forEach((x) => all.add(`[리메이크 내보내기] ${x}`));
+  // 직접 녹음 카드 (멤버 없음 → 음역 고르기, 멤버 추가 뒤 → 부를 멤버 고르기)
+  await p.click('text=+ 새 곡');
+  await p.click('.tab:text-is("내보내기")');
+  await p.click('#self-record');
+  (await audit()).forEach((x) => all.add(`[직접 녹음] ${x}`));
+  await p.click('#self-add-member');
+  (await audit()).forEach((x) => all.add(`[직접 녹음 멤버] ${x}`));
+  if (all.size) { console.log([...all].join('\n')); console.log('a11y FAILED'); process.exitCode = 1; } else console.log('a11y OK');
+  await b.close();
+})();

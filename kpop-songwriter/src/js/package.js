@@ -1,0 +1,106 @@
+// 제작 패키지(zip): 가사·스타일 텍스트, MIDI, WAV 데모, 프로젝트 파일, 작업 안내서.
+import { buildLyrics, sunoStyle } from './suno.js';
+import { buildMidi } from './music/midi.js';
+import { renderSong } from './music/player.js';
+import { encodeWav, zip } from './music/pack.js';
+import { keyName } from './music/theory.js';
+import { songSeconds } from './music/arrangement.js';
+import { DEFAULT_TARGET } from './music/dsp.js';
+import { recordingOf, recordingSheet } from './recording/model.js';
+
+function safeName(title) {
+  return (title || 'song').replace(/^예시:\s*/, '').replace(/[\\/:*?"<>|]+/g, '').trim().slice(0, 60) || 'song';
+}
+
+// README.txt (작업 안내서). 테스트가 직접 읽는다
+export function guide(song) {
+  const sec = Math.round(songSeconds(song));
+  return [
+    `${song.title}`,
+    `${keyName(song.music.root, song.music.mode)} · ${song.music.bpm} BPM · 약 ${Math.floor(sec / 60)}분 ${sec % 60}초`,
+    '',
+    '[파일]',
+    '- lyrics_suno.txt : Suno Custom 모드 Lyrics 칸에 붙여넣기',
+    '- style_suno.txt  : Suno Styles 칸 (첫 줄), Exclude styles (둘째 줄)',
+    '- demo.wav        : 앱에서 만든 코드·리듬·가이드 멜로디 데모',
+    '- song.mid        : 악기별 트랙이 나뉜 MIDI. DAW(FL Studio, Logic, Ableton, GarageBand 등)로 가져가기',
+    '- project.json    : 이 앱의 곡 데이터 백업 (앱 왼쪽 "가져오기"로 되살릴 수 있음)',
+    ...(recordingOf(song) ? ['- recording_sheet.txt : 직접 녹음할 때 보는 가사·마디표 (키·빠르기·부를 사람 음역)'] : []),
+    '',
+    ...(song.remake ? [
+      // 커버·번안 곡: Suno Cover는 본인 곡 전용이라 안내하지 않는다 (D-026, cover-remake 2장)
+      '[커버·번안 곡 녹음하기]',
+      '1. demo.wav는 이용 허락 신청용 데모로 쓴다. Suno의 Upload Audio → Cover는 본인이 만든 곡에만 쓸 수 있어 이 곡에는 쓰지 않는다.',
+      '2. 서면 허락을 받은 뒤 사람이 lyrics_suno.txt의 가사로 녹음하고, MR은 사람 편곡자나 DAW(song.mid)로 만든다.',
+    ] : [
+      '[Suno로 완성하기]',
+      '1. Suno에서 Create → Upload Audio로 demo.wav를 올린다.',
+      '2. 올린 오디오에서 Cover(커버)를 고르고, Lyrics에 lyrics_suno.txt, Styles에 style_suno.txt를 넣는다.',
+      '   → 데모의 코드 진행·멜로디 흐름을 살린 채 Suno가 보컬과 사운드를 입힌다.',
+      '3. 여러 번 생성해 보고 좋은 결과는 앱의 버전 탭에 메모해 둔다.',
+      '   (Suno 메뉴 이름과 기능은 바뀔 수 있으니 현재 화면 기준으로 찾으세요.)',
+    ]),
+    '',
+    '[DAW로 다듬기]',
+    '1. song.mid를 DAW로 가져오면 드럼·베이스·코드·멜로디가 트랙별로 들어온다.',
+    '2. 원하는 가상 악기로 바꾸고, 가이드 멜로디 트랙을 보고 보컬을 녹음하거나 보컬 신스를 쓴다.',
+    '3. Suno 결과물의 스템(보컬 분리 등)을 함께 쓰면 믹싱 자유도가 높아진다.',
+    '',
+    ...(recordingOf(song) && song.remake ? [
+      // 커버·번안 곡은 Suno MR을 쓰지 않는다 (D-026)
+      '[직접 녹음해서 발매하기 — 커버·번안 곡]',
+      '1. 서면 허락을 받은 뒤 MR은 사람 편곡자나 DAW(song.mid)로 만든다. Suno로 만든 MR·가이드 보컬은 발매에 쓰지 않는다.',
+      '2. DAW에 MR을 올리고 recording_sheet.txt를 보며 내 목소리로 녹음한다. demo.wav의 가이드 멜로디로 연습해도 된다.',
+      '3. 믹스한 WAV(24비트, 44.1kHz 이상)를 앱의 마스터링 탭에 넣고, 앨범 AI 표기에서 쓰지 않은 항목은 끈다.',
+      '',
+    ] : recordingOf(song) ? [
+      '[직접 녹음해서 발매하기]',
+      '1. Suno로 가이드 보컬이 든 곡을 만들고, 스템(보컬·반주)이나 Instrumental 버전으로 MR을 받는다. 상업 발매용 MR은 유료 요금제로 만든 것만 쓴다.',
+      '2. DAW에 MR과 가이드 보컬을 올리고 recording_sheet.txt를 보며 내 목소리로 녹음한다. 가이드 보컬은 빼고 내 보컬과 MR만 믹스한다.',
+      '3. 믹스한 WAV(24비트, 44.1kHz 이상)를 앱의 마스터링 탭에 넣고, 앨범 AI 표기에서 보컬은 끄고 Suno MR이면 작곡·편곡은 켜 둔다.',
+      '',
+    ] : []),
+    ...(song.remake ? [
+      '[커버·번안 곡]',
+      '- Suno에 올리는 가사·오디오는 모든 권리를 가졌다고 보증해야 하고(모델 학습 포함), Cover 기능은 본인이 만든 곡에만 쓴다. 원곡 음원·원곡 가사는 올리지 않는다.',
+      '- 남의 곡으로 만든 Suno 결과는 수익화할 수 없다. 허락받은 곡이어도 Suno 음원으로 상업 발매하기 어려우니, demo.wav는 허락 신청용 데모로 쓰고 서면 허락 뒤 사람이 녹음한다.',
+      song.remake.kind === 'adapt'
+        ? '- 원곡(외국어) 가사는 이 패키지(project.json)에 넣지 않았다.'
+        : '- lyrics_suno.txt·project.json·song.mid의 가사는 원곡 가사다. 허락 범위 밖(Suno 업로드 등)으로 내보내지 않는다.',
+      '',
+    ] : []),
+    '[발매 전 확인]',
+    '- Suno로 만든 음원의 상업적 이용 조건은 생성 당시 요금제와 Suno 약관을 따른다. 발매 전에 최신 약관을 확인하세요.',
+    '- 레퍼런스 곡의 멜로디·가사를 그대로 쓰지 않았는지 확인하세요.',
+    '- 유통사(음원 유통 대행)마다 AI 생성 음원 정책이 다르니 미리 확인하세요.',
+    `- 완성곡은 앱의 마스터링 탭에서 음량(기본 ${DEFAULT_TARGET} LUFS, 유통사 권장치가 있으면 그 값)·트루 피크(-1 dBTP)를 맞춰 WAV로 받으세요.`,
+    '',
+    '[사운드 출처 — demo.wav]',
+    '- Salamander Grand Piano (Alexander Holm), FluidR3 GM (Frank Wen): CC BY 3.0 — 데모를 그대로 공개할 땐 출처를 적어 주세요.',
+    '- smpldsnds drum-machines: 퍼블릭 도메인',
+  ].join('\n');
+}
+
+// onStep: 진행 상황 문구
+export async function buildPackage(song, { includeWav, lyricOpts, onStep }) {
+  const files = [];
+  const name = safeName(song.title);
+  files.push({ name: `${name}/lyrics_suno.txt`, data: buildLyrics(song, lyricOpts) });
+  files.push({ name: `${name}/style_suno.txt`, data: `${sunoStyle(song)}\n${song.style.exclude || ''}\n` });
+  onStep('MIDI 만드는 중');
+  files.push({ name: `${name}/song.mid`, data: buildMidi(song) });
+  if (includeWav) {
+    onStep('데모 WAV 녹음 중 (곡 길이에 따라 수십 초)');
+    await new Promise((r) => setTimeout(r, 30));
+    const buf = await renderSong(song);
+    onStep('WAV 저장 중');
+    files.push({ name: `${name}/demo.wav`, data: encodeWav(buf) });
+  }
+  const { versions, memo, ...project } = song; // 작업 메모는 나만 보는 것이라 공유하는 패키지엔 넣지 않음
+  // 원곡 가사는 남에게 주는 zip에 넣지 않는다 (기기에만, D-026). 음 수 비교는 받은 쪽에서 다시 붙여넣는다
+  if (project.remake) project.remake = { ...project.remake, originalLyrics: { lang: project.remake.originalLyrics?.lang || 'ja', sections: {} } };
+  files.push({ name: `${name}/project.json`, data: JSON.stringify(project, null, 1) });
+  if (recordingOf(song)) files.push({ name: `${name}/recording_sheet.txt`, data: recordingSheet(song) });
+  files.push({ name: `${name}/README.txt`, data: guide(song) });
+  return { blob: zip(files), filename: `${name}.zip` };
+}
