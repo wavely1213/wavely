@@ -56,16 +56,15 @@
 
 /* 게시판 목록: 번호 · 제목 · (날짜·조회) */
 .board-list { border-top: 2px solid var(--line-strong); }
-.board-list li { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; align-items: center; gap: 16px; padding: 16px 20px; border-bottom: 1px solid var(--line); }
-.board-list .no { text-align: center; color: var(--text-2); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
+.board-list li { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; align-items: center; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+.board-list .no { text-align: left; color: var(--text-2); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
 .board-list .tag { display: inline-block; padding: 2px 8px; border-radius: var(--radius); background: var(--court); color: var(--on-court); font-size: var(--fs-xs); font-weight: 700; }
 .board-list .title { font-size: var(--fs-md); font-weight: 500; text-decoration: none; line-height: 1.5; }
 .board-list .title:hover { color: var(--accent); text-decoration: underline; }
-.board-list .pinned { background: var(--surface); }
 .board-list .pinned .title { font-weight: 700; }
 .board-list .meta { display: flex; gap: 14px; font-size: var(--fs-xs); color: var(--text-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
 @media (max-width: 719px) {
-  .board-list li { grid-template-columns: minmax(0, 1fr); gap: 6px; padding: 14px 4px; }
+  .board-list li { grid-template-columns: minmax(0, 1fr); gap: 6px; padding: 14px 0; }
   .board-list .no { display: none; }
   .board-list .pinned .no { display: block; text-align: left; }
 }
@@ -92,7 +91,7 @@
 .files li a::before { content: ""; flex: none; width: 16px; height: 16px; background: currentColor; -webkit-mask: var(--ico-clip) center / contain no-repeat; mask: var(--ico-clip) center / contain no-repeat; }
 .post-body { margin-top: 28px; }
 .post-nav { display: grid; margin-top: 16px; border-top: 2px solid var(--line-strong); }
-.post-nav a { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 12px; padding: 14px 4px; border-bottom: 1px solid var(--line); text-decoration: none; }
+.post-nav a { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line); text-decoration: none; }
 .post-nav a span { color: var(--text-2); font-size: var(--fs-sm); }
 .post-nav a:hover { color: var(--accent); }
 .back-row { margin-top: 20px; text-align: center; }
@@ -101,7 +100,7 @@
 
 /* 뉴스 목록 */
 .news-list { display: grid; border-top: 2px solid var(--line-strong); }
-.news-item { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 20px; padding: 18px 4px; border-bottom: 1px solid var(--line); position: relative; }
+.news-item { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 20px; padding: 18px 0; border-bottom: 1px solid var(--line); position: relative; }
 .news-item img, .news-item .noimg { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius); background: var(--surface); }
 .news-item h3 { font-size: var(--fs-md); line-height: 1.45; font-weight: 700; }
 .news-item h3 a { text-decoration: none; }
@@ -111,13 +110,13 @@
 .news-item a:focus-visible { outline: none; }
 .news-item p { margin-top: 6px; color: var(--text-2); font-size: var(--fs-sm); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .news-item time { display: block; margin-top: 8px; font-size: var(--fs-xs); color: var(--text-2); }
-@media (max-width: 599px) { .news-item { grid-template-columns: 110px minmax(0, 1fr); gap: 12px; padding: 14px 4px; } .news-item h3 { font-size: var(--fs-base); } }
+@media (max-width: 599px) { .news-item { grid-template-columns: 110px minmax(0, 1fr); gap: 12px; padding: 14px 0; } .news-item h3 { font-size: var(--fs-base); } }
 
 /* 포토 갤러리 + 크게 보기 */
 .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
 .gallery button { display: block; width: 100%; padding: 0; border: 0; background: none; text-align: left; }
 .gallery img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; border-radius: var(--radius); background: var(--surface); }
-.gallery .cap { display: block; padding: 8px 2px 4px; font-size: var(--fs-sm); line-height: 1.45; }
+.gallery .cap { display: block; padding: 8px 0 4px; font-size: var(--fs-sm); line-height: 1.45; }
 .gallery button:hover .cap { color: var(--accent); text-decoration: underline; }
 .lightbox { width: min(1000px, 94vw); max-height: 94vh; padding: 0; border: 0; background: var(--media-bg); color: var(--on-media); }
 .lightbox::backdrop { background: var(--scrim); }
@@ -133,7 +132,7 @@
 .video-list a { position: relative; display: grid; gap: 4px; padding-bottom: 14px; text-decoration: none; }
 .video-list img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius); background: var(--surface); }
 .video-list .play { position: absolute; top: 12px; left: 12px; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--mark); color: var(--on-mark); }
-.video-list strong, .video-list span:not(.play):not(.sr-only), .video-list time { padding: 0 2px; }
+.video-list strong, .video-list span:not(.play):not(.sr-only), .video-list time { padding: 0; }
 .video-list span:not(.play):not(.sr-only), .video-list time { font-size: var(--fs-xs); color: var(--text-2); }
 
 /* 표: 넓은 화면은 표, 좁은 화면은 카드처럼 쌓기 */
@@ -141,7 +140,7 @@
 @media (max-width: 719px) {
   .data.stack thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
   .data.stack, .data.stack tbody, .data.stack tr, .data.stack td { display: block; width: 100%; }
-  .data.stack tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 12px; padding: 14px 4px; border-bottom: 1px solid var(--line); }
+  .data.stack tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 12px; padding: 14px 0; border-bottom: 1px solid var(--line); }
   .data.stack td { display: grid; gap: 2px; padding: 0; border: 0; overflow-wrap: anywhere; }
   .data.stack td::before { content: attr(data-label); color: var(--text-2); font-size: var(--fs-xs); }
   .list-tools { justify-content: stretch; }

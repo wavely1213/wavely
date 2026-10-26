@@ -14,8 +14,8 @@
         : KFL.link(it.href, it.label, '', it.external)) + '</li>';
     }).join('');
     var cur = KFL.$('[aria-current="page"]', list);
-    // 현재 탭이 보이도록 탭 띠만 가로로 옮긴다(페이지 전체는 움직이지 않게)
-    if (cur) list.scrollLeft = cur.offsetLeft - (list.clientWidth - cur.offsetWidth) / 2;
+    // 현재 탭이 가려질 때만, 오른쪽 끝에 딱 보이도록 탭 띠만 가로로 옮긴다(페이지 전체는 움직이지 않게)
+    if (cur && cur.offsetLeft + cur.offsetWidth > list.clientWidth) list.scrollLeft = cur.offsetLeft + cur.offsetWidth - list.clientWidth;
   };
 
   /* 주소창 쿼리 읽기·쓰기 */
