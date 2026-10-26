@@ -403,6 +403,73 @@ def org(page):
     return dict(page, type='org', org=ORG)
 
 
+# ---------- 원본 글(풋살이란·풋살의역사): <br><br> 은 문단, <br> 하나는 원본 편집기의 줄바꿈이라 잇는다 ----------
+
+def join_soft(a, b):
+    """원본이 단어 중간에서 줄을 바꾼 경우("우루과<br>이 몬테비데오")는 붙이고, 아니면 한 칸 띄워 잇는다."""
+    if not a:
+        return b
+    if re.match(r'^[가-힣](?:[\s,.)]|$)', b) and re.search(r'[가-힣]$', a):
+        return a + b
+    return a + ' ' + b
+
+
+def text_paras(el):
+    html = re.sub(r'\s*\n\s*', ' ', el.decode_contents())
+    out = []
+    for chunk in re.split(r'(?:<br\s*/?>\s*){2,}', html):
+        para = ''
+        for line in re.split(r'<br\s*/?>', chunk):
+            t = re.sub(r'\s+', ' ', BeautifulSoup(line, 'lxml').get_text()).strip()
+            if t:
+                para = join_soft(para, t)
+        if para:
+            out.append(para)
+    return out
+
+
+def html_blocks(root):
+    blocks, aside = [], None
+    for el in root.find_all(['div', 'h1', 'h2', 'h3', 'table', 'li', 'img'], recursive=True):
+        if el.name == 'img':
+            if el.find_parent('table') is None:
+                aside = {'img': el['src'], 'alt': el.get('alt', '')}
+            continue
+        if el.name in ('h1', 'h2', 'h3'):
+            blocks.append({'t': 'h', 'text': txt(el)})
+        elif el.name == 'table':
+            rows = el.find_all('tr')
+            head = [unspace(txt(c)) for c in rows[0].find_all(['th', 'td'])]
+            body = [[unspace(txt(c)) for c in tr.find_all(['th', 'td'])] for tr in rows[1:]]
+            blocks.append({'t': 'table', 'head': head, 'rows': [r for r in body if any(r)]})
+        elif el.name == 'li' or (el.name == 'div' and not el.find(['div', 'table', 'ul', 'h1', 'h2', 'img'])):
+            if el.find_parent('table') is None:
+                blocks.extend({'t': 'p', 'text': x} for x in text_paras(el))
+    return blocks, aside
+
+
+def prose_article(page):
+    s = soup(unfold_tables(page)['html'])
+    blocks, aside = html_blocks(s.body or s)
+    # 따옴표로 시작하는 짧은 첫 줄들은 머리말(크게)
+    for b in blocks[:2]:
+        if b['t'] == 'p' and b['text'].startswith('“') and len(b['text']) < 40:
+            b['t'] = 'lead'
+    return dict(page, type='article', aside=aside, blocks=blocks, sign=None)
+
+
+# 클럽등록: 원본 단계 그림(re_step01.gif)의 글자를 옮겨 적음. 등록 자체는 원본 사이트에서만 된다
+CLUB_STEPS = ['약관동의', '정보입력', '등록완료']
+
+
+def club_join(page):
+    return dict(page, type='article', aside=None, sign=None, blocks=[
+        {'t': 'steps', 'items': CLUB_STEPS},
+        {'t': 'p', 'text': '클럽 등록은 원본 사이트(futsal.or.kr)에서 약관 동의 후 진행합니다.'},
+        {'t': 'link', 'href': page['origin'], 'text': '원본 사이트에서 클럽 등록하기'},
+    ])
+
+
 def structure(page):
     slug = page['slug']
     if slug == 'mng_FKLeagueTeam':
@@ -425,6 +492,10 @@ def structure(page):
         return vision(page)
     if slug == 'intr_groupLoad':
         return org(page)
+    if slug in ('fal_infoLoad', 'fal_historyLoad'):
+        return prose_article(page)
+    if slug == 'clubjoin':
+        return club_join(page)
     if slug == 'intr_sponLoad':
         return sponsors(page)
     if slug in ('mng_FKRule', 'intr_historyLoad'):

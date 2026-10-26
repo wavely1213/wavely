@@ -11,6 +11,14 @@
       case 'figure': return '<figure class="art-figure"><img src="' + esc(b.img) + '" alt="' + esc(b.alt) + '" loading="lazy"></figure>';
       case 'pyramids': return pyramids(b.items);
       case 'effects': return effects(b);
+      case 'table': return '<div class="table-wrap art-table" tabindex="0" role="region" aria-label="' + esc(b.caption || '표') + '"><table class="data"><thead><tr>' +
+        b.head.map(function (h) { return '<th scope="col">' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+        b.rows.map(function (r) { return '<tr>' + r.map(function (v) { return '<td>' + esc(v) + '</td>'; }).join('') + '</tr>'; }).join('') +
+        '</tbody></table></div>';
+      case 'steps': return '<ol class="steps">' + b.items.map(function (x, i) {
+        return '<li><span class="step-n">Step' + (i + 1) + '</span><span>' + esc(x) + '</span></li>';
+      }).join('') + '</ol>';
+      case 'link': return '<p><a class="btn" href="' + esc(b.href) + '" target="_blank" rel="noopener">' + esc(b.text) + '<span class="sr-only"> (새 창)</span></a></p>';
       default: return '<p>' + esc(b.text) + '</p>';
     }
   }
@@ -34,6 +42,8 @@
 
   KFL.views.article = function (page, root) {
     var a = page.aside;
+    // 표는 바로 앞 소제목을 이름으로
+    page.blocks.forEach(function (b, i) { if (b.t === 'table' && i && page.blocks[i - 1].t === 'h') b.caption = page.blocks[i - 1].text; });
     root.innerHTML = '<div class="article' + (a ? ' has-aside' : '') + '">' +
       '<div class="art-body">' + page.blocks.map(block).join('') +
       (page.sign ? '<p class="art-sign"><span>' + esc(page.sign.role) + '</span> <strong>' + esc(page.sign.name) + '</strong></p>' : '') +

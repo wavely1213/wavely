@@ -16,16 +16,16 @@
 .kv.compact dt { font-size: var(--fs-xs); }
 
 /* FK리그구단소개: 같은 크기 카드 */
-.team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
+.team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 24px 16px; }
 .team-card {
-  display: grid; justify-items: center; align-content: start; gap: 14px; height: 100%; padding: 24px 12px 20px;
-  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); text-align: center; text-decoration: none;
+  display: grid; justify-items: center; align-content: start; gap: 14px; height: 100%; padding: 8px 4px 16px;
+  text-align: center; text-decoration: none;
 }
-.team-card:hover { border-color: var(--court); }
+.team-card:hover .team-logo { border-color: var(--line-strong); }
 .team-card:hover .team-name { color: var(--accent); text-decoration: underline; }
-.team-logo { display: grid; place-items: center; width: 104px; height: 104px; border-radius: 50%; background: var(--sponsor-bg); border: 1px solid var(--line); }
-.team-logo img { width: 80px; height: 80px; object-fit: contain; }
-.team-name { font-weight: 700; line-height: 1.4; }
+.team-logo { display: grid; place-items: center; width: 120px; height: 120px; border-radius: 50%; background: var(--sponsor-bg); border: 1px solid var(--line); }
+.team-logo img { width: 92px; height: 92px; object-fit: contain; }
+.team-name { font-weight: 700; line-height: 1.4; color: var(--heading); }
 
 /* 구단 상세 */
 .team-head { display: grid; gap: 28px; }
@@ -36,18 +36,18 @@
 .timeline li { display: grid; grid-template-columns: 9em minmax(0, 1fr); gap: 16px; padding: 12px 4px; border-bottom: 1px solid var(--line); }
 .timeline .when { font-weight: 700; color: var(--hot); font-variant-numeric: tabular-nums; }
 @media (max-width: 599px) { .timeline li { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
-.staff-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
-.staff-grid > div { padding: 14px 16px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); }
+.staff-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 0 24px; border-top: 2px solid var(--line-strong); }
+.staff-grid > div { padding: 14px 0; border-bottom: 1px solid var(--line); }
 .staff-grid dt { font-size: var(--fs-xs); color: var(--text-2); }
 .staff-grid dd { margin: 4px 0 0; font-weight: 700; }
-.quote { margin: 16px 0 0; padding: 18px 20px; background: var(--surface); border-left: 4px solid var(--court); border-radius: 0 var(--radius) var(--radius) 0; }
-.quote blockquote { margin: 0; line-height: var(--lh-prose); }
+.quote { margin: 24px 0 0; padding: 4px 0 4px 20px; border-left: 3px solid var(--hot); max-width: 720px; }
+.quote blockquote { margin: 0; font-size: var(--fs-md); line-height: var(--lh-prose); color: var(--heading); }
 .quote figcaption { margin-top: 8px; font-size: var(--fs-sm); font-weight: 700; color: var(--text-2); }
 .pos-title { margin: 24px 0 10px; font-size: var(--fs-sm); font-weight: 700; color: var(--text-2); }
 .pos-title span { color: var(--text); }
-.roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
-.roster li { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); }
-.roster .no { display: inline-grid; place-items: center; flex: none; min-width: 40px; height: 40px; border-radius: var(--radius); background: var(--court); color: var(--on-court); font-weight: 700; font-size: var(--fs-md); font-variant-numeric: tabular-nums; }
+.roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 0 24px; border-top: 1px solid var(--line-strong); }
+.roster li { display: flex; align-items: baseline; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.roster .no { flex: none; min-width: 2ch; font-family: var(--font-display); font-weight: var(--fw-display); font-size: var(--fs-xl); line-height: 1; color: var(--heading); font-variant-numeric: tabular-nums; }
 .roster .pname { font-weight: 700; overflow-wrap: anywhere; }
 
 /* 대회 목록: 상태 | 대회명(참가·지역) | 장소·기간 */
@@ -88,10 +88,11 @@
 .stadium h3 { font-size: var(--fs-md); font-weight: 700; line-height: 1.4; }
 
 /* 산하단체: 같은 크기 링크 칸 */
-.link-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; }
+.link-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0 24px; border-top: 2px solid var(--line-strong); }
 .link-grid.wide { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
-.link-grid a { display: flex; align-items: center; min-height: var(--tap); padding: 0 14px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); text-decoration: none; font-weight: 500; }
-.link-grid a:hover { border-color: var(--accent); color: var(--accent); }
+.link-grid li { border-bottom: 1px solid var(--line); }
+.link-grid a { display: flex; align-items: center; min-height: 48px; text-decoration: none; font-weight: 500; }
+.link-grid a:hover { color: var(--accent); text-decoration: underline; }
 
 /* 찾아오시는길 */
 .facts { display: grid; gap: 24px; }
@@ -101,23 +102,23 @@
 
 /* 후원사 */
 .logo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
-.logo-card { display: grid; gap: 12px; height: 100%; padding: 16px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); text-decoration: none; text-align: center; }
-.logo-card:hover { border-color: var(--court); }
+.logo-card { display: grid; gap: 12px; height: 100%; text-decoration: none; }
+.logo-card:hover .logo-box { border-color: var(--line-strong); }
 .logo-card:hover .logo-name { color: var(--accent); text-decoration: underline; }
-.logo-box { display: grid; place-items: center; height: 96px; border-radius: var(--radius); background: var(--sponsor-bg); }
+.logo-box { display: grid; place-items: center; height: 112px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--sponsor-bg); }
 .logo-box img { max-width: 80%; max-height: 72px; object-fit: contain; }
-.logo-name { font-weight: 700; }
+.logo-name { font-weight: 700; color: var(--heading); }
 
 /* 규정·정관: 넓은 화면은 왼쪽 목차 고정 + 오른쪽 본문 */
 .law { display: grid; gap: 24px; }
 @media (min-width: 900px) { .law { grid-template-columns: 260px minmax(0, 1fr); gap: 48px; align-items: start; } }
-.law-toc { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); }
+.law-toc { border-top: 2px solid var(--line-strong); }
 @media (min-width: 900px) { .law-toc { position: sticky; top: 72px; max-height: calc(100vh - 96px); overflow-y: auto; } }
-.law-toc summary { min-height: var(--tap); display: flex; align-items: center; padding: 0 16px; font-weight: 700; cursor: pointer; }
-.law-toc ol { padding: 0 8px 12px; font-size: var(--fs-sm); }
-.law-toc a { display: block; padding: 6px 8px; border-radius: var(--radius); color: var(--text-2); text-decoration: none; line-height: 1.45; }
-.law-toc a:hover { background: var(--surface); color: var(--text); }
-.law-toc .toc-ch a { margin-top: 8px; color: var(--text); font-weight: 700; }
+.law-toc summary { min-height: var(--tap); display: flex; align-items: center; font-weight: 700; color: var(--heading); cursor: pointer; }
+.law-toc ol { padding: 0 0 12px; font-size: var(--fs-sm); }
+.law-toc a { display: block; padding: 5px 0; color: var(--text-2); text-decoration: none; line-height: 1.45; }
+.law-toc a:hover { color: var(--heading); text-decoration: underline; }
+.law-toc .toc-ch a { margin-top: 10px; color: var(--heading); font-weight: 700; }
 .law-body { max-width: 72ch; font-size: var(--fs-md); line-height: var(--lh-prose); }
 .law-head { margin-bottom: 32px; padding-bottom: 20px; border-bottom: 2px solid var(--line-strong); color: var(--text-2); }
 .law-head .law-name { font-family: var(--font-display); font-weight: var(--fw-display); font-size: var(--fs-2xl); color: var(--text); line-height: var(--lh-tight); }

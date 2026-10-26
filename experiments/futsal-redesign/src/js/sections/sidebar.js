@@ -70,15 +70,19 @@
       var head = league[key].columns;
       var stat = head[head.indexOf('경기') + 1]; // 득점 또는 경고
       var first = rows[0];
+      var max = Number(first[stat]) || 1;
       return NOTE +
-        '<div class="top1' + (tone === 'caution' ? ' caution' : '') + '"><p class="nth">1위</p>' +
-        '<p class="name">' + KFL.esc(first['이름']) + '</p>' +
-        '<p class="stat">' + first[stat] + unit + ' · ' + first['경기'] + '경기</p>' +
-        '<p class="club">' + KFL.esc(first['팀명']) + '</p></div>' +
+        '<div class="top1' + (tone === 'caution' ? ' caution' : '') + '">' +
+        '<div class="top1-who"><p class="nth">1위</p><p class="name">' + KFL.esc(first['이름']) + '</p>' +
+        '<p class="club">' + KFL.esc(first['팀명']) + '</p><p class="club">' + first['경기'] + '경기</p></div>' +
+        '<p class="top1-stat"><b>' + first[stat] + '</b><span>' + unit + '</span></p></div>' +
         '<ol class="top-rest" start="2">' + rows.slice(1).map(function (r, i) {
+          // 1위 대비 막대: 격차가 한눈에 보이게
+          var pct = Math.round(100 * (Number(r[stat]) || 0) / max);
           return '<li><span class="n" aria-hidden="true">' + (i + 2) + '</span>' +
             '<span class="who">' + KFL.esc(r['이름']) + '<small>' + KFL.esc(r['팀명']) + '</small></span>' +
-            '<span class="v">' + r[stat] + unit + '</span></li>';
+            '<span class="v">' + r[stat] + unit + '</span>' +
+            '<span class="bar" aria-hidden="true"><i style="width:' + pct + '%"></i></span></li>';
         }).join('') + '</ol>';
     };
   }
