@@ -16,7 +16,7 @@
 - 정식 주소: https://futsal-redesign.vercel.app (누구나 공개, 상단 비공식 시안 배너·검색 노출 차단 유지)
 - 별도 프로젝트 `futsal-redesign`(와벨리 `wavely` 프로젝트와 분리). 같은 GitHub 저장소를 쓰지만 Root Directory가 이 폴더다.
 - 빌드: `python3 tools/build_web.py` → 출력 `dist/web`
-- 설정은 이 폴더의 `vercel.json`(저장소 루트 `vercel.json`보다 우선). 이 폴더에 변경이 없는 커밋은 빌드를 건너뛴다(`ignoreCommand`).
+- 설정은 이 폴더의 `vercel.json`(저장소 루트 `vercel.json`보다 우선). 이 브랜치에서 마지막으로 성공한 배포(`VERCEL_GIT_PREVIOUS_SHA`) 이후 이 폴더에 변경이 없으면 빌드를 건너뛴다(`ignoreCommand`). 직전 커밋과만 비교하면 머지 커밋이 마지막일 때 실제 변경이 있어도 건너뛰는 문제가 있었다.
 
 ## 구조
 | 경로 | 내용 |
