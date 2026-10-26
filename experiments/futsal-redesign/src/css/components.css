@@ -37,15 +37,16 @@
 .dot[aria-current="true"]::before { background: var(--mark); border-color: var(--mark); }
 
 /* 부문 탭: 활성은 잉크 글자 + 코트 파랑 밑줄 */
-.tablist { display: flex; margin-bottom: 16px; overflow-x: auto; border-bottom: 1px solid var(--line); }
+.tablist { display: flex; margin-bottom: 16px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; box-shadow: inset 0 -1px 0 var(--line); }
+.tablist::-webkit-scrollbar { display: none; }
 .tablist [role=tab] {
-  flex: 1 0 auto; min-height: var(--tap); padding: 0 12px; margin-bottom: -1px; border: 0; background: none;
+  flex: 1 0 auto; min-height: var(--tap); padding: 0 12px; border: 0; background: none;
   border-bottom: 3px solid transparent; color: var(--text-2); font-weight: 700; font-size: var(--fs-sm); white-space: nowrap;
 }
 .tablist [role=tab]:hover { color: var(--text); }
 .tablist [role=tab][aria-selected=true] { color: var(--text); border-bottom-color: var(--accent); }
 /* 텍스트형 탭(소식 종류): 제목 오른쪽, 구분선 */
-.tablist.text { margin: 0; overflow: visible; border: 0; }
+.tablist.text { margin: 0; overflow: visible; box-shadow: none; }
 .tablist.text [role=tab] { flex: none; border: 0; margin: 0; padding: 0 14px; position: relative; font-weight: 500; font-size: var(--fs-base); }
 .tablist.text [role=tab] + [role=tab]::before { content: ""; position: absolute; left: 0; top: 50%; width: 1px; height: 14px; margin-top: -7px; background: var(--line); }
 .tablist.text [role=tab][aria-selected=true] { color: var(--text); font-weight: 800; text-decoration: underline; text-decoration-color: var(--accent); text-decoration-thickness: 3px; text-underline-offset: 10px; }
