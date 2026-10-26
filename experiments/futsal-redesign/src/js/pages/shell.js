@@ -5,6 +5,8 @@
     var list = KFL.$('#subnav-list');
     if (!group || !group.items) { list.parentNode.parentNode.hidden = true; return; }
     var current = page.parent || page.slug;
+    // 주 메뉴에서도 지금 있는 분류를 표시
+    KFL.$$('.gnb-btn').forEach(function (btn) { if (btn.textContent.trim() === page.cat) btn.setAttribute('data-current', ''); });
     list.innerHTML = group.items.map(function (it) {
       var on = KFL.slug(it.href) === current;
       return '<li>' + (on

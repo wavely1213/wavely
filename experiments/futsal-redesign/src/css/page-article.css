@@ -1,0 +1,59 @@
+/* 글 페이지(인사말·비전&목표)와 조직도.
+   읽는 칸은 제목과 같은 왼쪽 선에서 시작(최대 720px), 사진은 오른쪽 끝에 맞춘다. */
+.article { display: grid; gap: 32px; }
+@media (min-width: 900px) {
+  .article.has-aside { grid-template-columns: minmax(0, 720px) minmax(240px, 340px); justify-content: space-between; align-items: start; }
+}
+.art-body { max-width: 720px; font-size: var(--fs-md); line-height: var(--lh-prose); overflow-wrap: anywhere; }
+.art-body > * + * { margin-top: 1.1em; }
+.art-body .lead { font-size: var(--fs-xl); font-weight: 700; line-height: 1.5; letter-spacing: -0.01em; }
+.art-h { margin-top: 2.2em !important; font-size: var(--fs-lg); font-weight: 700; line-height: 1.4;color: var(--heading); }
+.art-list { padding-left: 1.2em; list-style: disc; }
+.art-list li + li { margin-top: 0.3em; }
+.art-figure img { width: 100%; max-width: 560px; height: auto; }
+.art-sign { margin-top: 2.5em !important; padding-top: 20px; border-top: 1px solid var(--line); color: var(--text-2); }
+.art-sign strong { margin-left: 6px; color: var(--text); font-size: var(--fs-lg); }
+.art-aside { margin: 0; }
+.art-aside img { width: 100%; max-width: 340px; height: auto; background: var(--surface); }
+@media (max-width: 899px) { .art-aside { order: -1; } .art-aside img { max-width: 220px; } }
+@media (min-width: 900px) { .art-aside { position: sticky; top: 80px; } }
+
+/* 연령대 분포도(원본 그림을 옮겨 그림): 층마다 폭이 다른 막대 */
+.pyramids { display: grid; gap: 32px; margin-top: 1.6em !important; }
+@media (min-width: 640px) { .pyramids { grid-template-columns: 1fr 1fr; gap: 40px; } }
+.pyramid { margin: 0; }
+.pyramid ol { display: grid; gap: 4px; }
+.pyramid li { justify-self: center; width: max(var(--w), 44%); display: grid; place-items: center; min-height: 52px; padding: 6px 8px; text-align: center; font-size: var(--fs-sm); font-weight: 700; line-height: 1.35; }
+.pyramid.shape-inverted li { background: var(--surface); color: var(--text-2); }
+.pyramid.shape-pyramid li { background: var(--court); color: var(--on-court); }
+.pyramid figcaption { margin-top: 12px; text-align: center; font-size: var(--fs-sm); font-weight: 700; }
+.pyramid.shape-inverted figcaption { color: var(--text-2); }
+
+/* 기대효과: 가운데 문장 + 네 가지 */
+.effects { margin-top: 1.4em !important; }
+.effects-center { padding: 4px 0 4px 20px; border-left: 3px solid var(--hot); color: var(--heading); font-size: var(--fs-xl); font-weight: 700; line-height: 1.45; }
+.effects ul { display: grid; gap: 0 32px; margin-top: 24px; }
+@media (min-width: 640px) { .effects ul { grid-template-columns: 1fr 1fr; } }
+.effects li { padding: 16px 0; border-top: 1px solid var(--line); line-height: 1.6; }
+
+/* 조직도 */
+.org-chart { display: none; width: 100%; max-width: 760px; height: auto; font-family: var(--font); }
+.org-chart polyline { fill: none; stroke: var(--text-2); stroke-width: 1.2; }
+.org-node rect { fill: var(--card); stroke: var(--line-strong); stroke-width: 1.2; }
+.org-node text { fill: var(--text); font-size: 15px; font-weight: 700; text-anchor: middle; }
+.org-node.head rect { fill: var(--court); stroke: var(--court); }
+.org-node.head text { fill: var(--on-court); font-size: 17px; }
+.org-node.team rect { fill: var(--surface); stroke: var(--surface); }
+.org-node.assembly rect { fill: var(--hot); stroke: var(--hot); }
+.org-node.assembly text { fill: var(--on-hot); }
+.org-tree, .org-tree ul { list-style: none; }
+.org-tree ul { margin-left: 10px; padding-left: 18px; border-left: 1px solid var(--line-strong); }
+.org-tree li { padding-top: 10px; }
+.org-tree li > span { display: inline-block; padding: 8px 14px; border: 1px solid var(--line-strong); border-radius: 4px; font-weight: 700; }
+.org-tree li.head > span { background: var(--court); color: var(--on-court); }
+.org-tree li.assembly > span { background: var(--hot); border-color: var(--hot); color: var(--on-hot); }
+.org-tree > li + li { margin-top: 24px; }
+@media (min-width: 760px) {
+  .org-chart { display: block; }
+  .org-tree { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}

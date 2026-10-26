@@ -1,28 +1,32 @@
-/* 디자인 토큰 — "코트" 체계.
-   풋살은 실내 코트 경기다. 바탕은 코트 바닥, 강조 면은 경기장 파랑, 노랑은 코트 라인·공·경고 카드 색.
-   코트 #1C4E9E · 라인 #FFC72C · 잉크 #13233F · 바닥 #F3F5F8 · 종이 #FFFFFF
-   노랑은 파랑·잉크 면 위에서만 쓴다(흰 바탕 위 대비 부족). 텍스트/배경 조합은 WCAG AA(4.5:1) 이상. */
+/* 디자인 토큰 — 원본 사이트의 두 색(KFL 로고 남색 + 연맹 주황)을 의미 있는 자리에만.
+   남색 #021A59: 제목·채운 면(주 버튼·현재 쪽·배번·조직도 회장)·푸터
+   주황 #C2410C: "지금 위치"(메뉴·탭 밑줄)와 순위·기록 강조(원본 조직도·단계 표시의 주황)
+   파랑 #1C4E9E: 본문 링크 · 노랑 #FFC72C: 경고(카드) 기록
+   바탕 흰색, 옅은 면은 남색이 도는 #F1F4FA. 텍스트/배경 조합은 WCAG AA(4.5:1) 이상. */
 :root {
-  --bg: #f3f5f8;           /* 페이지 바탕(코트 바닥) */
-  --card: #ffffff;         /* 종이 면 */
-  --surface: #eaeef4;      /* 보조 면(표 머리·고정 글) */
-  --line: #d9dfe8;
-  --line-strong: #13233f;
-  --text: #13233f;         /* 잉크 */
-  --text-2: #55627a;
-  --court: #1c4e9e;        /* 경기장 파랑: 히어로·분류 띠·GNB·주 버튼 */
-  --court-2: #163f82;      /* 눌림·hover */
+  --bg: #ffffff;           /* 페이지 바탕 */
+  --card: #ffffff;
+  --surface: #f1f4fa;      /* 옅은 면: 표 머리·인용·고정 글 */
+  --line: #e1e6ef;
+  --line-strong: #021a59;
+  --text: #172033;         /* 본문 잉크 */
+  --text-2: #5a6375;
+  --heading: #021a59;      /* 제목 */
+  --court: #021a59;        /* 채운 면: KFL 남색 */
+  --court-2: #1a3175;
   --on-court: #ffffff;
-  --on-court-2: #cfe0ff;
-  --mark: #ffc72c;         /* 코트 라인·공: 파랑/잉크 면 위 강조 */
-  --on-mark: #13233f;
-  --accent: #1c4e9e;       /* 흰 바탕 위 강조 글자·밑줄 */
-  --ink: #13233f;          /* 푸터·점수판 */
+  --on-court-2: #b8c4e0;
+  --hot: #c2410c;          /* 지금 위치·순위 강조: 연맹 주황 */
+  --on-hot: #ffffff;
+  --mark: #ffc72c;         /* 경고 카드 기록 */
+  --on-mark: #172033;
+  --accent: #1c4e9e;       /* 링크 */
+  --ink: #021a59;          /* 푸터 */
   --on-ink: #ffffff;
-  --on-ink-2: #aab6cc;
+  --on-ink-2: #b8c4e0;
   --focus: #f5a524;
   --logo-bg: transparent;
-  --sponsor-bg: #ffffff;   /* 후원사 로고는 흰 바탕 기준 이미지 */
+  --sponsor-bg: #ffffff;   /* 후원사·구단 로고는 흰 바탕 기준 이미지 */
   --media-bg: #000000;     /* 사진 크게 보기 */
   --on-media: #ffffff;
   --on-media-2: #c4c4c4;
@@ -55,38 +59,53 @@
   --ico-next: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 6l6 6-6 6'/%3E%3C/svg%3E");
   --ico-ext: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5'/%3E%3C/svg%3E");
   --ico-clip: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 11.5l-8.1 8.1a5 5 0 0 1-7.1-7.1l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7l-8.5 8.5a1.7 1.7 0 0 1-2.4-2.4l7.8-7.8'/%3E%3C/svg%3E");
-  /* 풋살 코트 라인(40×20m 비율): 터치라인·하프라인·센터서클·페널티 구역·페널티 마크 */
-  --court-lines: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 200' preserveAspectRatio='xMidYMid slice' fill='none' stroke='white' stroke-opacity='.22' stroke-width='1.2'%3E%3Crect x='10' y='10' width='380' height='180'/%3E%3Cpath d='M200 10v180M10 28.75A57 57 0 0 1 67 85.75v28.5A57 57 0 0 1 10 171.25M390 28.75A57 57 0 0 0 333 85.75v28.5A57 57 0 0 0 390 171.25'/%3E%3Ccircle cx='200' cy='100' r='28.5'/%3E%3Cg fill='white' fill-opacity='.22' stroke='none'%3E%3Ccircle cx='200' cy='100' r='2'/%3E%3Ccircle cx='67' cy='100' r='1.6'/%3E%3Ccircle cx='105' cy='100' r='1.6'/%3E%3Ccircle cx='333' cy='100' r='1.6'/%3E%3Ccircle cx='295' cy='100' r='1.6'/%3E%3C/g%3E%3C/svg%3E");
 }
 
 @media (min-width: 640px) { :root { --gutter: 24px; } }
 
-/* 다크: 조명 꺼진 체육관. 코트 파랑·라인 노랑은 그대로 두고 바닥·종이만 어둡게 */
+/* 다크: 바탕·종이를 어둡게, 채운 면은 밝게 뒤집는다 */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0e1726;
-    --card: #16223a;
-    --surface: #1d2b47;
-    --line: #2b3a59;
-    --line-strong: #9fb0c8;
-    --text: #e8eef7;
-    --text-2: #9fb0c8;
+    --bg: #0f1420;
+    --card: #161c2a;
+    --surface: #1c2333;
+    --line: #2a3243;
+    --line-strong: #a3acbd;
+    --text: #e9ecf2;
+    --text-2: #a3acbd;
+    --court: #e9ecf2;
+    --court-2: #c7cdd8;
+    --on-court: #161c2a;
+    --on-court-2: #3a4356;
     --accent: #8fb4ff;
-    --ink: #0a111e;
+  --heading: #e9ecf2;
+  --hot: #ff8a4c;
+  --on-hot: #161c2a;
+    --heading: #e9ecf2;
+    --hot: #ff8a4c;
+    --on-hot: #161c2a;
+    --ink: #0a0e17;
     --logo-bg: #f3f5f8;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0e1726;
-  --card: #16223a;
-  --surface: #1d2b47;
-  --line: #2b3a59;
-  --line-strong: #9fb0c8;
-  --text: #e8eef7;
-  --text-2: #9fb0c8;
+  --bg: #0f1420;
+  --card: #161c2a;
+  --surface: #1c2333;
+  --line: #2a3243;
+  --line-strong: #a3acbd;
+  --text: #e9ecf2;
+  --text-2: #a3acbd;
+  --court: #e9ecf2;
+  --court-2: #c7cdd8;
+  --on-court: #161c2a;
+  --on-court-2: #3a4356;
   --accent: #8fb4ff;
-  --ink: #0a111e;
+  --heading: #e9ecf2;
+  --hot: #ff8a4c;
+  --on-hot: #161c2a;
+  --ink: #0a0e17;
   --logo-bg: #f3f5f8;
   color-scheme: dark;
 }

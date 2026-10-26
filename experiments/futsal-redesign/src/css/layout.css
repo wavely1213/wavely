@@ -18,6 +18,6 @@ main:focus { outline: none; }
 
 /* 블록 제목: 왼쪽 제목(굵은 단계), 오른쪽 더보기/탭. 구분선 없이 여백으로 나눈다 */
 .block-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; min-height: 32px; }
-.block-head h2 { font-family: var(--font-display); font-weight: var(--fw-display); font-size: var(--fs-2xl); line-height: var(--lh-tight); display: flex; align-items: center; gap: 10px; }
+.block-head h2 { font-family: var(--font-display); font-weight: var(--fw-display); font-size: var(--fs-2xl); line-height: var(--lh-tight); display: flex; align-items: center; gap: 10px;color: var(--heading); }
 .block-head.ruled { margin-bottom: 20px; }
 .side-block .block-head h2 { font-size: var(--fs-lg); }

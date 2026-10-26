@@ -29,7 +29,7 @@
 .mini th, .mini td { padding: 9px 4px; border-bottom: 1px solid var(--line); text-align: center; }
 .mini thead th { border-top: 2px solid var(--line-strong); background: var(--surface); font-weight: 500; }
 .mini td.team-cell { text-align: left; font-weight: 500; overflow-wrap: anywhere; }
-.mini tr:nth-child(-n+3) td:first-child { color: var(--accent); font-family: var(--font-display); font-weight: var(--fw-display); font-size: var(--fs-sm); }
+.mini tr:nth-child(-n+3) td:first-child { color: var(--hot); font-family: var(--font-display); font-weight: var(--fw-display); font-size: var(--fs-sm); }
 
 /* TOP5: 1위 블록 + 2~5위 줄. 득점은 코트 파랑, 경고는 경고 카드 노랑 */
 .top1 { padding: 18px 20px; border-radius: var(--radius); color: var(--on-court); background: var(--court); }
@@ -40,7 +40,7 @@
 .top1 .club { margin-top: 2px; font-size: var(--fs-xs); color: var(--on-court-2); }
 .top1.caution .club { color: var(--on-mark); }
 .top-rest li { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 10px 4px; border-bottom: 1px solid var(--line); font-size: var(--fs-xs); }
-.top-rest .n { font-family: var(--font-display); font-weight: var(--fw-display); font-size: var(--fs-lg); color: var(--accent); }
+.top-rest .n { font-family: var(--font-display); font-weight: var(--fw-display); font-size: var(--fs-lg); color: var(--hot); }
 .top-rest .who { font-weight: 700; font-size: var(--fs-sm); overflow-wrap: anywhere; }
 .top-rest .who small { display: block; font-weight: 400; font-size: var(--fs-xs); color: var(--text-2); }
 .top-rest .v { font-weight: 700; white-space: nowrap; }

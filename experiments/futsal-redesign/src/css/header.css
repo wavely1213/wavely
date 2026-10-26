@@ -1,4 +1,4 @@
-/* 헤더: 유틸리티 바 → 로고 줄 → 코트 파랑 GNB(현재 열린 메뉴는 노란 라인) */
+/* 헤더: 유틸리티 바 → 로고 줄 → 흰 GNB(선으로만 구분, 지금 위치는 파랑 밑줄). 모든 줄이 같은 왼쪽 선에서 시작 */
 .site-header { background: var(--card); position: relative; z-index: 50; }
 
 .utility { background: var(--card); border-bottom: 1px solid var(--line); font-size: var(--fs-xs); }
@@ -9,7 +9,7 @@
 .utility-links a:hover { color: var(--text); }
 
 .brand-row { display: flex; align-items: center; gap: 20px; min-height: 76px; }
-.brand { display: inline-flex; align-items: center; gap: 12px; white-space: nowrap; font-family: var(--font-display); font-weight: var(--fw-display); font-size: var(--fs-xl); text-decoration: none; color: var(--court); min-height: var(--tap); }
+.brand { display: inline-flex; align-items: center; gap: 12px; white-space: nowrap; font-family: var(--font-display); font-weight: var(--fw-display); font-size: var(--fs-xl); text-decoration: none; color: var(--accent); min-height: var(--tap); }
 :root[data-theme="dark"] .brand { color: var(--text); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .brand { color: var(--text); } }
 .brand-logo { height: 42px; width: auto; padding: 2px 4px; border-radius: var(--radius); background: var(--logo-bg); }
@@ -24,20 +24,22 @@
 .burger::before { top: -6px; } .burger::after { top: 6px; }
 
 /* GNB */
-.gnb { display: none; background: var(--court); color: var(--on-court); }
+.gnb { display: none; background: var(--card); color: var(--text); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .gnb.open { display: block; }
-.gnb-item { border-top: 1px solid rgb(255 255 255 / 0.14); }
+.gnb-item { border-top: 1px solid var(--line); }
+.gnb-item:first-child { border-top: 0; }
 .gnb-btn, .gnb-link {
   display: flex; justify-content: space-between; align-items: center; width: 100%;
-  min-height: 52px; padding: 0 4px; border: 0; background: none; color: inherit; text-align: left;
+  min-height: 52px; padding: 0; border: 0; background: none; color: inherit; text-align: left;
   font-size: var(--fs-base); font-weight: 700; text-decoration: none;
 }
-.gnb-link:hover, .gnb-btn:hover { color: var(--on-court); text-decoration: underline; text-decoration-color: var(--mark); text-decoration-thickness: 2px; text-underline-offset: 6px; }
+.gnb-link:hover, .gnb-btn:hover { color: var(--heading); }
+.gnb-btn[data-current] { color: var(--heading); }
 .chev { width: 8px; height: 8px; margin-top: -4px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); transition: transform .15s; }
 [aria-expanded="true"] > .chev { margin-top: 4px; transform: rotate(-135deg); }
-.sub { padding: 0 0 12px 8px; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
-.sub a { display: flex; align-items: center; min-height: 44px; padding: 0 8px; text-decoration: none; color: var(--on-court-2); }
-.sub a:hover { color: var(--on-court); text-decoration: underline; }
+.sub { padding: 0 0 12px; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.sub a { display: flex; align-items: center; min-height: 44px; text-decoration: none; color: var(--text-2); }
+.sub a:hover { color: var(--accent); text-decoration: underline; }
 
 @media (max-width: 959px) {
   .slogan { display: none; }
@@ -50,13 +52,13 @@
   .gnb { display: block; }
   .gnb-list { display: flex; justify-content: space-between; }
   .gnb-item { border: 0; position: relative; }
-  .gnb-btn, .gnb-link { width: auto; gap: 6px; padding: 0 12px; min-height: 52px; font-size: var(--fs-base); }
-  .gnb-btn[aria-expanded="true"] { box-shadow: inset 0 -4px 0 var(--mark); }
+  .gnb-btn, .gnb-link { width: auto; min-height: 56px; font-size: var(--fs-base); }
+  .gnb-btn[aria-expanded="true"], .gnb-btn[data-current] { box-shadow: inset 0 -3px 0 var(--hot); }
   .gnb-item .chev { display: none; }
   .sub {
-    position: absolute; top: 100%; left: 50%; transform: translateX(-50%); min-width: 180px; display: block;
-    padding: 8px 0; background: var(--card); border: 1px solid var(--line); border-top: 4px solid var(--mark);
+    position: absolute; top: 100%; left: -20px; min-width: 200px; display: block;
+    padding: 8px 0; background: var(--card); border: 1px solid var(--line); box-shadow: 0 12px 24px rgb(23 32 51 / 0.08);
   }
-  .sub a { justify-content: center; color: var(--text); min-height: 40px; }
+  .sub a { padding: 0 20px; color: var(--text); min-height: 40px; }
   .sub a:hover { color: var(--accent); background: var(--surface); text-decoration: none; }
 }

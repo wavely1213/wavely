@@ -1,25 +1,24 @@
-/* 하위 페이지: 코트 파랑 분류 띠 → 하위 메뉴 탭 → 본문
-   가독성: 글 폭 72자 안팎, 줄 간격 1.8, 표는 머리글 고정·줄무늬, 목록은 제목을 가장 크게 */
-.page-head { background: var(--court); color: var(--on-court); }
-.page-head-inner { padding-block: 24px 36px; }
-.crumbs ol { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: var(--fs-xs); color: var(--on-court-2); }
+/* 하위 페이지: 위치(작게) → 제목(크게) → 하위 메뉴 탭 → 본문. 띠 색 없이 모두 같은 왼쪽 선에서 시작 */
+.page-head { background: var(--bg); color: var(--text); }
+.page-head-inner { padding-block: 40px 28px; }
+.crumbs ol { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: var(--fs-sm); color: var(--text-2); }
 .crumbs li { display: inline-flex; align-items: center; }
 .crumbs li + li::before { content: ""; width: 12px; height: 12px; margin: 0 6px; background: currentColor; -webkit-mask: var(--ico-next) center / contain no-repeat; mask: var(--ico-next) center / contain no-repeat; }
-.crumbs a { color: var(--on-court-2); }
-.crumbs a:hover { color: var(--on-court); }
-.page-title { margin-top: 20px; font-family: var(--font-display); font-weight: var(--fw-display); font-size: var(--fs-3xl); line-height: var(--lh-tight); }
+.crumbs a { color: var(--text-2); }
+.crumbs a:hover { color: var(--accent); }
+.page-title { margin-top: 12px; font-family: var(--font-display); font-weight: var(--fw-display); font-size: clamp(2rem, 1.4rem + 2.2vw, 2.75rem); line-height: 1.2; letter-spacing: -0.01em;color: var(--heading); }
 
-/* 하위 메뉴 탭: 가로로 넘겨 보는 띠, 현재 페이지는 코트 파랑 밑줄 */
+/* 하위 메뉴 탭: 가로로 넘겨 보는 띠, 현재 페이지는 파랑 밑줄. 첫 탭 글자가 제목과 같은 선에서 시작 */
 .subnav { background: var(--card); border-bottom: 1px solid var(--line); position: sticky; top: env(safe-area-inset-top, 0px); z-index: 40; }
-.subnav-list { display: flex; overflow-x: auto; scrollbar-width: thin; position: relative; }
+.subnav-list { display: flex; gap: 32px; overflow-x: auto; scrollbar-width: none; position: relative; }
 .subnav-list a {
-  display: flex; align-items: center; min-height: 56px; padding: 0 18px; white-space: nowrap;
+  display: flex; align-items: center; min-height: 52px; padding: 0; white-space: nowrap;
   color: var(--text-2); font-weight: 500; text-decoration: none; border-bottom: 3px solid transparent;
 }
 .subnav-list a:hover { color: var(--text); }
-.subnav-list a[aria-current="page"] { color: var(--text); font-weight: 800; border-bottom-color: var(--accent); }
+.subnav-list a[aria-current="page"] { color: var(--heading); font-weight: 800; border-bottom-color: var(--hot); }
 
-.page-body { padding-block: 40px 64px; }
+.page-body { padding-block: 48px 80px; }
 .sub-page .site-header { position: relative; }
 .loading { padding: 48px 0; text-align: center; color: var(--text-2); }
 .origin-note { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--line); font-size: var(--fs-xs); color: var(--text-2); }

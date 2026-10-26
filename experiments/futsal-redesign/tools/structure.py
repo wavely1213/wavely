@@ -40,7 +40,8 @@ def unspace(s):
 
 def lines(el):
     """<br> 로 나뉜 줄 목록."""
-    html = re.sub(r'<br\s*/?>', '\n', el.decode_contents())
+    html = re.sub(r'\s*\n\s*', ' ', el.decode_contents())  # 소스 줄바꿈은 공백
+    html = re.sub(r'<br\s*/?>', '\n', html)
     return [re.sub(r'\s+', ' ', l).strip() for l in BeautifulSoup(html, 'lxml').get_text().split('\n') if l.strip()]
 
 
@@ -299,6 +300,109 @@ def unfold_tables(page):
     return page
 
 
+# ---------- 글 페이지(인사말·비전&목표): 문단을 다시 잇고, 그림 속 글자는 옮겨 적는다 ----------
+
+SENT_END = re.compile(r'[.!?。…”"\'다요]\s*$')
+
+
+def paras_of(container):
+    """<p> 들을 문단으로. 문장 중간에서 끊긴 <p>(끝이 마침표 등이 아님)는 다음 <p>와 잇는다."""
+    out = []
+    pending = ''
+    for p in container.find_all('p'):
+        if p.find('img'):
+            continue
+        t = txt(p)
+        if not t:
+            continue
+        pending = (pending + ' ' + t).strip() if pending else t
+        if SENT_END.search(pending):
+            out.append(pending)
+            pending = ''
+    if pending:
+        out.append(pending)
+    return out
+
+
+def greeting(page):
+    s = soup(page['html'])
+    photo = img(s)
+    blocks = []
+    sign = None
+    for p in s.find_all('p'):
+        parts = lines(p)
+        if not parts:
+            continue
+        if p.find('b') and p is s.find_all('p')[-1]:
+            name = unspace(txt(p.find('b')))
+            sign = {'role': txt(p)[:-len(txt(p.find('b')))].strip(), 'name': name}
+            continue
+        if parts[0].startswith('*'):
+            blocks.append({'t': 'h', 'text': parts[0].lstrip('* ').strip()})
+            parts = parts[1:]
+        # <br> 은 문단 나눔으로(lines), 소스 줄바꿈은 한 문단 안 공백으로
+        blocks.extend({'t': 'p', 'text': x} for x in parts)
+    # 첫 문단(인사)은 크게
+    if blocks and blocks[0]['t'] == 'p':
+        blocks[0]['t'] = 'lead'
+    alt = (sign['role'] + ' ' + sign['name']) if sign else ''
+    return dict(page, type='article', aside={'img': photo, 'alt': alt}, blocks=blocks, sign=sign or None)
+
+
+# 비전&목표의 그림(re_vision_img.gif · re_vision_img2.gif)에 적힌 글자를 그대로 옮겨 적은 것
+AGE_PYRAMIDS = [
+    {'title': '타 종목 연령대분포도', 'shape': 'inverted', 'levels': ['성인', '청소년', '유아']},
+    {'title': '풋살 연령대 분포도', 'shape': 'pyramid', 'levels': ['30-40대부,여자부', 'U-16, U19, 20대부', 'U-7, U-9, U-11, U-13']},
+]
+EFFECTS = {
+    'center': '참여스포츠, 엘리트스포츠, 관람 스포츠로서의 발전가능성',
+    'items': ['유,청소년 생활체육부터 튼튼한 기반을 쌓는 풋살',
+              '풋살 보급화를 통해 언제, 누구나 풋살을 즐길 수 있는 환경 조성',
+              '생활체육과 엘리트체육의 선순환 발전 구조',
+              '풋살 발전을 통한 대한민국 축구발전 가능성'],
+}
+
+
+def vision(page):
+    s = soup(page['html'])
+    blocks = []
+    top = s.find('img', src=re.compile('vision_img4'))
+    if top:
+        blocks.append({'t': 'figure', 'img': top['src'], 'alt': '한국풋살연맹과 국민생활체육 전국풋살연합회 로고'})
+    for box in s.select('div > div > div'):
+        head = box.find('b')
+        if head and txt(head) in ('목표', '기대효과'):
+            blocks.append({'t': 'h', 'text': txt(head)})
+            items = [txt(p) for p in box.find_all('p') if txt(p) and not p.find('b') and not p.find('img')]
+            plain = [x for x in items if not x.startswith('-')]
+            bullets = [x.lstrip('- ').strip() for x in items if x.startswith('-')]
+            blocks.extend({'t': 'p', 'text': x} for x in plain)
+            if bullets:
+                blocks.append({'t': 'list', 'items': bullets})
+            if box.find('img', src=re.compile(r'vision_img\.gif')):
+                blocks.append({'t': 'pyramids', 'items': AGE_PYRAMIDS})
+            if box.find('img', src=re.compile('vision_img2')):
+                blocks.append({'t': 'effects', **EFFECTS})
+        elif not head and box.find('p') and not box.find('img'):
+            blocks.extend({'t': 'p', 'text': x} for x in paras_of(box))
+    return dict(page, type='article', aside=None, blocks=blocks, sign=None)
+
+
+# 조직도 그림(re_organization.jpg)을 옮겨 적은 것. 글자 사이 공백("회 장")만 붙였다.
+ORG = {
+    'assembly': {'name': '대의원총회', 'children': ['시도연맹', 'FK리그구단']},
+    'head': '회장',
+    'audit': ['감사', '고문'],
+    'chain': ['부회장단', '전무이사', '사무총장'],
+    'board': {'name': '이사회', 'children': ['분과위원회'], 'after': '부회장단'},
+    'teams': [{'name': '사업팀', 'children': ['FK리그', '생활체육']}, {'name': '총무팀', 'children': []}],
+}
+
+
+def org(page):
+    return dict(page, type='org', org=ORG)
+
+
 def structure(page):
     slug = page['slug']
     if slug == 'mng_FKLeagueTeam':
@@ -315,6 +419,12 @@ def structure(page):
         return location(page)
     if slug == 'DonationList':
         return donation(page)
+    if slug == 'intr_speechLoad':
+        return greeting(page)
+    if slug == 'intr_introduceLoad':
+        return vision(page)
+    if slug == 'intr_groupLoad':
+        return org(page)
     if slug == 'intr_sponLoad':
         return sponsors(page)
     if slug in ('mng_FKRule', 'intr_historyLoad'):
