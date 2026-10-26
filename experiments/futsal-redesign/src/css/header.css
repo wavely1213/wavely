@@ -9,7 +9,7 @@
 .utility-links a:hover { color: var(--text); }
 
 .brand-row { display: flex; align-items: center; gap: 20px; min-height: 76px; }
-.brand { display: inline-flex; align-items: center; gap: 12px; white-space: nowrap; font-family: var(--font-display); font-weight: 400; font-size: var(--fs-xl); text-decoration: none; color: var(--court); min-height: var(--tap); }
+.brand { display: inline-flex; align-items: center; gap: 12px; white-space: nowrap; font-family: var(--font-display); font-weight: var(--fw-display); font-size: var(--fs-xl); text-decoration: none; color: var(--court); min-height: var(--tap); }
 :root[data-theme="dark"] .brand { color: var(--text); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .brand { color: var(--text); } }
 .brand-logo { height: 42px; width: auto; padding: 2px 4px; border-radius: var(--radius); background: var(--logo-bg); }

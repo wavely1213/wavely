@@ -11,6 +11,11 @@ from buildlib import (BANNER, CONCEPT_TITLE, ROOT, SKIP, block_files, bundle, in
 ARTIFACT = '--artifact' in sys.argv
 
 
+def font_uri(name):
+    with open(os.path.join(ROOT, 'assets', 'fonts', name), 'rb') as fh:
+        return 'data:font/woff2;base64,' + base64.b64encode(fh.read()).decode()
+
+
 def images():
     out = {}
     base = os.path.join(ROOT, 'assets', 'img')
@@ -24,7 +29,9 @@ def images():
 
 
 html = includes(read(SRC, 'index.html'))
-html = replace_block(html, 'css', '<style>\n%s\n</style>' % bundle(block_files(html, 'css', r'href="([^"]+\.css)"')))
+css = bundle(block_files(html, 'css', r'href="([^"]+\.css)"'))
+css = re.sub(r'\.\./\.\./assets/fonts/([\w.-]+)', lambda m: font_uri(m.group(1)), css)
+html = replace_block(html, 'css', '<style>\n%s\n</style>' % css)
 html = replace_block(html, 'headjs', script(bundle(block_files(html, 'headjs', r'src="([^"]+\.js)"'))))
 imgs = images()
 inline = menu_js() + 'KFL.DATA=%s;KFL.IMG=%s;' % (

@@ -54,7 +54,8 @@ def main():
     page = includes(read(SRC, 'page.html'))
 
     css = bundle(block_files(index, 'css', r'href="([^"]+\.css)"') + ['css/page.css'])
-    write('assets/site.css', css)
+    write('assets/site.css', css.replace('../../assets/fonts/', 'fonts/'))
+    copytree(os.path.join(ROOT, 'assets', 'fonts'), 'assets/fonts')
     head_js = script(bundle(block_files(index, 'headjs', r'src="([^"]+\.js)"')))
     pages = site_pages()
     # 첫 화면·푸터 이미지(assets/img) → 배포 경로

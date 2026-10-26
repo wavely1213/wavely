@@ -28,9 +28,10 @@
   --on-media-2: #c4c4c4;
   --scrim: rgb(0 0 0 / 0.8);
 
-  /* 서체: 제목·숫자는 검은고딕(Black Han Sans, 굵은 한 벌), 본문은 Noto Sans KR */
-  --font: "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-  --font-display: "Black Han Sans", "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+  /* 서체: KFA고딕 한 벌(fonts.css). 제목·숫자는 Bold 로 구분한다 */
+  --font: "KFA Gothic", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-display: var(--font);
+  --fw-display: 700;
 
   /* 글자 크기: 16px 기준 고전 음계(13·14·16·18·21·24·30·36~48) */
   --fs-xs: 0.8125rem;

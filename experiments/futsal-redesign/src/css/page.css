@@ -7,7 +7,7 @@
 .crumbs li + li::before { content: ""; width: 12px; height: 12px; margin: 0 6px; background: currentColor; -webkit-mask: var(--ico-next) center / contain no-repeat; mask: var(--ico-next) center / contain no-repeat; }
 .crumbs a { color: var(--on-court-2); }
 .crumbs a:hover { color: var(--on-court); }
-.page-title { margin-top: 20px; font-family: var(--font-display); font-weight: 400; font-size: var(--fs-3xl); line-height: var(--lh-tight); }
+.page-title { margin-top: 20px; font-family: var(--font-display); font-weight: var(--fw-display); font-size: var(--fs-3xl); line-height: var(--lh-tight); }
 
 /* 하위 메뉴 탭: 가로로 넘겨 보는 띠, 현재 페이지는 코트 파랑 밑줄 */
 .subnav { background: var(--card); border-bottom: 1px solid var(--line); position: sticky; top: env(safe-area-inset-top, 0px); z-index: 40; }
@@ -46,8 +46,8 @@
 
 /* 목록 도구: 필터 + 검색 */
 .list-tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; justify-content: flex-end; margin-bottom: 14px; }
-.list-search { display: flex; flex: 1 1 280px; max-width: 420px; }
-.list-search input { flex: 1; min-width: 0; min-height: var(--tap); padding: 0 14px; border: 1px solid var(--line-strong); border-right: 0; border-radius: var(--radius) 0 0 var(--radius); background: var(--card); }
+.list-search { display: flex; flex: 1 1 280px; min-width: 0; max-width: 420px; }
+.list-search input { flex: 1; width: 0; min-width: 0; min-height: var(--tap); padding: 0 14px; border: 1px solid var(--line-strong); border-right: 0; border-radius: var(--radius) 0 0 var(--radius); background: var(--card); }
 .list-search button { min-height: var(--tap); padding: 0 18px; border: 0; border-radius: 0 var(--radius) var(--radius) 0; background: var(--court); color: var(--on-court); font-weight: 700; }
 .filter { display: grid; gap: 4px; font-size: var(--fs-xs); color: var(--text-2); }
 .filter select { min-height: var(--tap); padding: 0 12px; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--card); color: var(--text); font-size: var(--fs-sm); }

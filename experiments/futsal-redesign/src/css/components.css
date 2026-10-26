@@ -15,7 +15,7 @@
 .slide[hidden] { display: none; }
 .slide-media { order: -1; }
 .slide-media img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; border-radius: var(--radius); background: var(--court-2); }
-.slide h3 { font-family: var(--font-display); font-weight: 400; font-size: var(--fs-3xl); line-height: 1.22; text-wrap: balance; overflow-wrap: anywhere; }
+.slide h3 { font-family: var(--font-display); font-weight: var(--fw-display); font-size: var(--fs-3xl); line-height: 1.22; text-wrap: balance; overflow-wrap: anywhere; }
 .slide h3 a { color: var(--on-court); text-decoration: none; }
 .slide h3 a:hover { text-decoration: underline; text-decoration-color: var(--mark); text-decoration-thickness: 3px; text-underline-offset: 8px; }
 .slide-meta { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: var(--fs-sm); color: var(--on-court-2); }
@@ -53,7 +53,7 @@
 
 /* 게시판(공지사항·대회소식): 클린 리스트 */
 .boards-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 12px; }
-.boards-head h2 { font-family: var(--font-display); font-weight: 400; font-size: var(--fs-2xl); line-height: var(--lh-tight); }
+.boards-head h2 { font-family: var(--font-display); font-weight: var(--fw-display); font-size: var(--fs-2xl); line-height: var(--lh-tight); }
 .post-list { border-top: 2px solid var(--line-strong); }
 .post-list li { display: flex; justify-content: space-between; gap: 16px; align-items: center; padding: 0 4px; border-bottom: 1px solid var(--line); }
 .post-list a { flex: 1; min-width: 0; padding: 15px 0; text-decoration: none; }
@@ -83,7 +83,7 @@ table.data { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); fo
 .data tbody th { font-weight: 700; }
 .data .num { text-align: right; }
 .data .rank { text-align: center; width: 3.5em; }
-.data .rank.top { color: var(--accent); font-family: var(--font-display); font-weight: 400; font-size: var(--fs-md); }
+.data .rank.top { color: var(--accent); font-family: var(--font-display); font-weight: var(--fw-display); font-size: var(--fs-md); }
 .btn-more {
   display: block; width: 100%; margin-top: 12px; min-height: var(--tap);
   border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--card); font-weight: 700; font-size: var(--fs-sm);
