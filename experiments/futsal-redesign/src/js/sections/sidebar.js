@@ -71,7 +71,7 @@
       var stat = head[head.indexOf('경기') + 1]; // 득점 또는 경고
       var first = rows[0];
       return NOTE +
-        '<div class="top1' + (tone === 'red' ? ' red' : '') + '"><p class="nth">1st</p>' +
+        '<div class="top1' + (tone === 'caution' ? ' caution' : '') + '"><p class="nth">1위</p>' +
         '<p class="name">' + KFL.esc(first['이름']) + '</p>' +
         '<p class="stat">' + first[stat] + unit + ' · ' + first['경기'] + '경기</p>' +
         '<p class="club">' + KFL.esc(first['팀명']) + '</p></div>' +
@@ -86,7 +86,7 @@
   KFL.renderSidebar = function (leagues) {
     divisionCard('results', leagues, results);
     divisionCard('standings', leagues, standings);
-    divisionCard('top-goal', leagues, top5('goal', '득점', 'navy'));
-    divisionCard('top-foul', leagues, top5('foul', '경고', 'red'));
+    divisionCard('top-goal', leagues, top5('goal', '득점', 'court'));
+    divisionCard('top-foul', leagues, top5('foul', '경고', 'caution'));
   };
 })(window.KFL);

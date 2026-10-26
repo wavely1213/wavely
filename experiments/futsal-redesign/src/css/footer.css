@@ -1,27 +1,30 @@
-/* 푸터: 후원사 띠 → 네이비 사이트맵 → 연락처 바 → 저작권 줄 (K리그 구성) */
+/* 푸터: 후원사 띠 → 잉크 사이트맵 → 연락처 바 → 저작권 줄 */
 .sponsors { background: var(--card); border-top: 1px solid var(--line); }
 .sponsor-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; padding-block: 20px; }
-.sponsor-list a { display: grid; place-items: center; min-height: 60px; padding: 6px; background: #ffffff; border: 1px solid var(--line); }
+.sponsor-list a { display: grid; place-items: center; min-height: 60px; padding: 6px; border-radius: var(--radius); background: var(--sponsor-bg); border: 1px solid var(--line); }
 .sponsor-list img { width: 100%; max-width: 166px; height: auto; }
 
-.sitemap { background: var(--footer); color: var(--footer-text); }
-.sitemap-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 28px 20px; padding-block: 36px 40px; }
-.sitemap h3 { font-size: var(--fs-base); font-weight: 700; color: #ffffff; margin-bottom: 12px; }
+.sitemap { background: var(--ink); color: var(--on-ink-2); }
+.sitemap-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 28px 20px; padding-block: 40px; }
+.sitemap h3 { font-family: var(--font-display); font-weight: 400; font-size: var(--fs-md); color: var(--on-ink); margin-bottom: 10px; }
 .sitemap h3 a { color: inherit; text-decoration: none; }
-.sitemap h3 a:hover { text-decoration: underline; }
-.sitemap li a { display: inline-flex; align-items: center; min-height: 32px; font-size: var(--fs-xs); color: var(--footer-text); text-decoration: none; }
-.sitemap li a:hover { color: #ffffff; text-decoration: underline; }
+.sitemap h3 a:hover { text-decoration: underline; text-decoration-color: var(--mark); }
+.sitemap li a { display: inline-flex; align-items: center; min-height: 32px; font-size: var(--fs-xs); color: var(--on-ink-2); text-decoration: none; }
+.sitemap li a:hover { color: var(--on-ink); text-decoration: underline; }
 
-.footer-bar { background: #001c48; color: #c9d3e6; font-size: var(--fs-xs); }
+.footer-bar { background: var(--ink); color: var(--on-ink-2); font-size: var(--fs-xs); border-top: 1px solid rgb(255 255 255 / 0.12); }
 .footer-bar-inner { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 28px; padding-block: 20px; }
-.footer-brand { display: inline-flex; align-items: center; gap: 10px; color: #ffffff; font-weight: 800; font-size: var(--fs-base); }
-.footer-brand img { height: 34px; width: auto; padding: 2px 4px; border-radius: 4px; background: #f2f3f6; }
+.footer-brand { display: inline-flex; align-items: center; gap: 10px; color: var(--on-ink); font-family: var(--font-display); font-weight: 400; font-size: var(--fs-md); }
+.footer-brand img { height: 34px; width: auto; padding: 2px 4px; border-radius: var(--radius); background: var(--bg); }
+:root[data-theme="dark"] .footer-brand img { background: var(--logo-bg); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .footer-brand img { background: var(--logo-bg); } }
 .footer-bar address { display: flex; flex-wrap: wrap; gap: 4px 18px; }
-.footer-bar address span b { color: #8fa0c4; font-weight: 500; margin-right: 6px; }
-.footer-bar a { color: #ffffff; }
+.footer-bar address span b { color: var(--on-ink-2); font-weight: 400; margin-right: 6px; }
+.footer-bar address span { color: var(--on-ink); }
+.footer-bar a { color: var(--on-ink); }
 .social-list { display: flex; gap: 8px; margin-left: auto; }
-.social { display: inline-flex; align-items: center; min-height: 36px; padding: 0 14px; border-radius: 999px; background: rgb(255 255 255 / 0.12); color: #ffffff; text-decoration: none; font-size: var(--fs-xs); }
-.social:hover { background: #ffffff; color: #001c48; }
+.social { display: inline-flex; align-items: center; min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--on-ink-2); color: var(--on-ink); text-decoration: none; font-size: var(--fs-xs); }
+.social:hover { background: var(--mark); border-color: var(--mark); color: var(--on-mark); }
 
 .footer-copy { background: var(--surface); color: var(--text-2); font-size: var(--fs-xs); }
 .footer-copy p { padding-block: 12px calc(72px + env(safe-area-inset-bottom, 0px)); }

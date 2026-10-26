@@ -1,79 +1,91 @@
-/* 디자인 토큰 — K리그 홈페이지(kleague.com) 색 체계를 기준으로 한다.
-   네이비 #001C48 · 레드 #EE2529 · 바탕 #F2F3F6 · 본문 #222
-   텍스트/배경 조합은 WCAG AA(4.5:1) 이상. */
+/* 디자인 토큰 — "코트" 체계.
+   풋살은 실내 코트 경기다. 바탕은 코트 바닥, 강조 면은 경기장 파랑, 노랑은 코트 라인·공·경고 카드 색.
+   코트 #1C4E9E · 라인 #FFC72C · 잉크 #13233F · 바닥 #F3F5F8 · 종이 #FFFFFF
+   노랑은 파랑·잉크 면 위에서만 쓴다(흰 바탕 위 대비 부족). 텍스트/배경 조합은 WCAG AA(4.5:1) 이상. */
 :root {
-  --bg: #f2f3f6;           /* 페이지 바탕 */
-  --card: #ffffff;         /* 카드·헤더 */
-  --surface: #f5f6f8;      /* 카드 안 보조 면 */
-  --line: #e2e2e2;
-  --text: #222222;
-  --text-2: #5f6670;
-  --navy: #001c48;         /* GNB·버튼·강조 면 */
-  --navy-2: #0a2a5e;
-  --on-navy: #ffffff;
-  --on-navy-2: #c9d3e6;
-  --red: #ee2529;          /* 활성 탭·배지 */
-  --red-text: #d0161b;     /* 흰 바탕 위 빨간 글자(대비 확보) */
-  --on-red: #ffffff;
-  --footer: #141a3a;       /* 사이트맵 */
-  --footer-text: #c3c8dc;
+  --bg: #f3f5f8;           /* 페이지 바탕(코트 바닥) */
+  --card: #ffffff;         /* 종이 면 */
+  --surface: #eaeef4;      /* 보조 면(표 머리·고정 글) */
+  --line: #d9dfe8;
+  --line-strong: #13233f;
+  --text: #13233f;         /* 잉크 */
+  --text-2: #55627a;
+  --court: #1c4e9e;        /* 경기장 파랑: 히어로·분류 띠·GNB·주 버튼 */
+  --court-2: #163f82;      /* 눌림·hover */
+  --on-court: #ffffff;
+  --on-court-2: #cfe0ff;
+  --mark: #ffc72c;         /* 코트 라인·공: 파랑/잉크 면 위 강조 */
+  --on-mark: #13233f;
+  --accent: #1c4e9e;       /* 흰 바탕 위 강조 글자·밑줄 */
+  --ink: #13233f;          /* 푸터·점수판 */
+  --on-ink: #ffffff;
+  --on-ink-2: #aab6cc;
   --focus: #f5a524;
   --logo-bg: transparent;
-  --shadow: 0 2px 12px rgb(0 28 72 / 0.07);
+  --sponsor-bg: #ffffff;   /* 후원사 로고는 흰 바탕 기준 이미지 */
+  --media-bg: #000000;     /* 사진 크게 보기 */
+  --on-media: #ffffff;
+  --on-media-2: #c4c4c4;
+  --scrim: rgb(0 0 0 / 0.8);
 
+  /* 서체: 제목·숫자는 검은고딕(Black Han Sans, 굵은 한 벌), 본문은 Noto Sans KR */
   --font: "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-  --fs-base: 1rem;         /* 16px: 원본(14px)보다 크게 */
-  --fs-sm: 0.875rem;
-  --fs-xs: 0.8125rem;
-  --fs-lg: 1.25rem;
-  --fs-xl: clamp(1.25rem, 1.05rem + 0.8vw, 1.5rem);
+  --font-display: "Black Han Sans", "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
 
+  /* 글자 크기: 16px 기준 고전 음계(13·14·16·18·21·24·30·36~48) */
+  --fs-xs: 0.8125rem;
+  --fs-sm: 0.875rem;
+  --fs-base: 1rem;         /* 원본 14px보다 크게 */
+  --fs-md: 1.125rem;
+  --fs-lg: 1.3125rem;
+  --fs-xl: 1.5rem;
+  --fs-2xl: clamp(1.5rem, 1.2rem + 1.2vw, 1.875rem);
+  --fs-3xl: clamp(1.75rem, 1.2rem + 2vw, 2.5rem);
+  --lh-tight: 1.25;
+  --lh-body: 1.65;
+  --lh-prose: 1.85;
+
+  --radius: 4px;           /* 사진·입력칸 */
   --tap: 44px;             /* 최소 터치 영역 */
   --container: 1200px;
   --gutter: 16px;
+
+  /* 아이콘(한 벌, 선 2px): CSS 장식 자리에서 mask 로 쓴다. JS 쪽은 KFL.icon() */
+  --ico-next: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 6l6 6-6 6'/%3E%3C/svg%3E");
+  --ico-ext: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5'/%3E%3C/svg%3E");
+  --ico-clip: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 11.5l-8.1 8.1a5 5 0 0 1-7.1-7.1l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7l-8.5 8.5a1.7 1.7 0 0 1-2.4-2.4l7.8-7.8'/%3E%3C/svg%3E");
+  /* 풋살 코트 라인(40×20m 비율): 터치라인·하프라인·센터서클·페널티 구역·페널티 마크 */
+  --court-lines: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 200' preserveAspectRatio='xMidYMid slice' fill='none' stroke='white' stroke-opacity='.22' stroke-width='1.2'%3E%3Crect x='10' y='10' width='380' height='180'/%3E%3Cpath d='M200 10v180M10 28.75A57 57 0 0 1 67 85.75v28.5A57 57 0 0 1 10 171.25M390 28.75A57 57 0 0 0 333 85.75v28.5A57 57 0 0 0 390 171.25'/%3E%3Ccircle cx='200' cy='100' r='28.5'/%3E%3Cg fill='white' fill-opacity='.22' stroke='none'%3E%3Ccircle cx='200' cy='100' r='2'/%3E%3Ccircle cx='67' cy='100' r='1.6'/%3E%3Ccircle cx='105' cy='100' r='1.6'/%3E%3Ccircle cx='333' cy='100' r='1.6'/%3E%3Ccircle cx='295' cy='100' r='1.6'/%3E%3C/g%3E%3C/svg%3E");
 }
 
 @media (min-width: 640px) { :root { --gutter: 24px; } }
 
+/* 다크: 조명 꺼진 체육관. 코트 파랑·라인 노랑은 그대로 두고 바닥·종이만 어둡게 */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0b1120;
-    --card: #131b2e;
-    --surface: #1a2338;
-    --line: #2a3550;
-    --text: #eef1f7;
-    --text-2: #a7b0c3;
-    --navy: #1b3a78;
-    --navy-2: #24488f;
-    --on-navy: #ffffff;
-    --on-navy-2: #d2dbee;
-    --red: #ff4d51;
-    --red-text: #ff7a7d;
-    --on-red: #1a0506;
-    --footer: #080d1c;
-    --footer-text: #aab2c9;
-    --logo-bg: #f2f3f6;
-    --shadow: none;
+    --bg: #0e1726;
+    --card: #16223a;
+    --surface: #1d2b47;
+    --line: #2b3a59;
+    --line-strong: #9fb0c8;
+    --text: #e8eef7;
+    --text-2: #9fb0c8;
+    --accent: #8fb4ff;
+    --ink: #0a111e;
+    --logo-bg: #f3f5f8;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0b1120;
-  --card: #131b2e;
-  --surface: #1a2338;
-  --line: #2a3550;
-  --text: #eef1f7;
-  --text-2: #a7b0c3;
-  --navy: #1b3a78;
-  --navy-2: #24488f;
-  --on-navy: #ffffff;
-  --on-navy-2: #d2dbee;
-  --red: #ff4d51;
-  --red-text: #ff7a7d;
-  --on-red: #1a0506;
-  --footer: #080d1c;
-  --footer-text: #aab2c9;
-  --logo-bg: #f2f3f6;
-  --shadow: none;
+  --bg: #0e1726;
+  --card: #16223a;
+  --surface: #1d2b47;
+  --line: #2b3a59;
+  --line-strong: #9fb0c8;
+  --text: #e8eef7;
+  --text-2: #9fb0c8;
+  --accent: #8fb4ff;
+  --ink: #0a111e;
+  --logo-bg: #f3f5f8;
   color-scheme: dark;
 }
