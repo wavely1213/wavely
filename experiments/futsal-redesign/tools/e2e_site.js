@@ -76,6 +76,22 @@ const dist = path.join(__dirname, '..', 'dist', 'web');
   await p.goto(`${base}/mng_Lbfs.html`); await ready();
   check(await p.$eval('#subnav-list [aria-current=page]', a => a.textContent) === 'FK리그구단소개', 'team page under 구단소개 tab');
 
+  // 8) 원본 배치용 표를 풀어 다시 짠 화면
+  await p.goto(`${base}/mng_FKLeagueTeam.html`); await ready();
+  check(await p.locator('.team-grid .team-card').count() === 14, 'team list: 14 equal cards');
+  const sizes = await p.$$eval('.team-card', es => [...new Set(es.map(e => Math.round(e.getBoundingClientRect().width)))]);
+  check(sizes.length === 1, `team cards same width ${sizes}`);
+  await p.click('.team-card >> nth=0'); await ready();
+  check(await p.locator('.roster li').count() > 5 && await p.locator('.team-head .kv').count() === 1, 'team detail: info + roster');
+  await p.goto(`${base}/mng_GameList.html`); await ready();
+  const st = await p.$$eval('.event .status', es => es.map(e => e.textContent));
+  check(st.length === 10 && st.every(t => /기간|종료|마감/.test(t)), `events: status as text (${[...new Set(st)]})`);
+  check(await p.locator('#page img').count() === 0 && !(await p.locator('#page').innerText()).includes('조회'), 'events: no status gifs / leftover form');
+  await p.goto(`${base}/mng_FKRule.html`); await ready();
+  check(await p.locator('.law-toc a').count() > 50 && await p.locator('.law-art').count() > 50, 'rules: TOC + articles');
+  await p.goto(`${base}/popup_onstn_league.html`); await ready();
+  check(await p.locator('.bc-list li').count() === 20, 'broadcasts: 20 per page');
+
   console.log(fails ? `${fails} FAILED` : 'ALL PASS');
   process.exitCode = fails ? 1 : 0;
   await b.close();

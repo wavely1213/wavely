@@ -10,6 +10,7 @@ import json, os, re, sys
 from bs4 import BeautifulSoup
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from structure import structure  # noqa: E402
 from sitelib import BASE, Sanitizer, content_block, img_url, slug_for, text  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -127,7 +128,7 @@ def parse_html(slug):
     # 글 없이 그림 한 장인 페이지(조직도 등)는 그림 설명으로 페이지 이름을 쓴다
     if not BeautifulSoup(html, 'lxml').get_text(strip=True) and html.count('<img') == 1:
         html = html.replace('alt=""', 'alt="%s"' % m['title'], 1)
-    return dict(m, type='html', html=html)
+    return structure(dict(m, type='html', html=html))
 
 
 def parse_board(slug):
@@ -298,13 +299,15 @@ def main():
             continue
         page = PARSERS[kind](slug)
         save(slug + '.json', page)
-        summary[slug] = (kind, len(page.get('posts') or page.get('rows') or []) or len(page.get('html', '')))
+        summary[slug] = (page['type'], len(page.get('posts') or page.get('rows') or page.get('items') or []) or len(page.get('html', '')))
     for slug, name in TEAMS.items():
         if raw(slug + '.action'):
             page = parse_html(slug)
             page['title'] = name
+            if page['type'] == 'team':
+                page['team']['name'] = page['team']['name'] or name
             save(slug + '.json', page)
-            summary[slug] = ('team', len(page['html']))
+            summary[slug] = (page['type'], len(page['html']))
     save('teams.json', [{'slug': k, 'name': v} for k, v in TEAMS.items()])
     save('images.json', sorted(IMAGES))
     for k, v in summary.items():

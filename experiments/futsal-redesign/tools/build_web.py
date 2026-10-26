@@ -18,7 +18,7 @@ from buildlib import (CONCEPT_TITLE, ROOT, SRC, block_files, bundle, includes, l
 
 OUT = os.path.join(ROOT, 'dist', 'web')
 PAGE_JS = ['js/config.js', 'js/util.js', 'js/tabs.js', 'js/menu.js', 'js/sections/footer.js',
-           'js/pages/shell.js', 'js/pages/views.js', 'js/pages/page-main.js']
+           'js/pages/shell.js', 'js/pages/views.js', 'js/pages/views-struct.js', 'js/pages/page-main.js']
 
 
 def write(rel, text):
@@ -53,7 +53,7 @@ def main():
     index = includes(read(SRC, 'index.html'))
     page = includes(read(SRC, 'page.html'))
 
-    css = bundle(block_files(index, 'css', r'href="([^"]+\.css)"') + ['css/page.css'])
+    css = bundle(block_files(index, 'css', r'href="([^"]+\.css)"') + ['css/page.css', 'css/page-struct.css'])
     write('assets/site.css', css.replace('../../assets/fonts/', 'fonts/'))
     copytree(os.path.join(ROOT, 'assets', 'fonts'), 'assets/fonts')
     head_js = script(bundle(block_files(index, 'headjs', r'src="([^"]+\.js)"')))
