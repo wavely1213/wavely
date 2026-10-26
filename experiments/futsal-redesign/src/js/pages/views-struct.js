@@ -37,7 +37,10 @@
     var t = page.team;
     var info = t.info.map(function (r) { return [r[0], esc(r[1])]; });
     var history = t.history.length ? section('연혁', '<ol class="timeline">' + t.history.map(function (line) {
-      var m = line.match(/^((?:\D{0,6}\s)?\d{4}(?:[-~]\d{2,4})?(?:년(?:\s*\d{1,2}월(?:\s*\d{1,2}일)?)?)?)\s*(.*)$/);
+      // 줄 맨 앞의 날짜(2021 / 2013-14 / 2021.12. / 2012년 11월 17일)가 공백으로 떨어져 있을 때만 연도 칸으로.
+      // "2015-16시즌 …", "2009-10, 12-13 …", "현대해상 2017 …" 처럼 날짜가 문장에 붙어 있으면 한 줄 그대로 둔다
+      var m = line.match(/^(\d{4}(?:[-.]\d{1,4})?\.?(?:년)?(?:\s*\d{1,2}월(?:\s*\d{1,2}일)?)?)\s+(.*)$/);
+      if (m) m[1] = m[1].replace(/\.$/, ''), m[2] = m[2].replace(/^[.\s]+/, '');
       return m && m[2] ? '<li><span class="when">' + esc(m[1]) + '</span><span>' + esc(m[2]) + '</span></li>'
         : '<li><span class="when"></span><span>' + esc(line) + '</span></li>';
     }).join('') + '</ol>') : '';
@@ -162,7 +165,7 @@
       var list = rows(i).concat(i === 0 ? total : []);
       panel.innerHTML = '<div class="table-wrap" tabindex="0" role="region" aria-label="' + esc(page.title + ' ' + tabs[i]) + '">' +
         '<table class="data stack"><thead><tr>' + page.columns.map(function (c) {
-          return '<th scope="col">' + (c ? esc(c) : '<span class="sr-only">번호</span>') + '</th>';
+          return '<th scope="col"' + (c === '금액(원)' ? ' class="num"' : '') + '>' + (c ? esc(c) : '<span class="sr-only">번호</span>') + '</th>';
         }).join('') + '</tr></thead><tbody>' + list.map(function (r) {
           return '<tr>' + r.map(function (v, k) {
             return '<td data-label="' + esc(page.columns[k] || '') + '"' + (k === amountAt ? ' class="num"' : '') +

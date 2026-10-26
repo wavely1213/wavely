@@ -256,6 +256,9 @@ def law(page):
         if last and last['t'] in ('chapter', 'article') and last['text'].count('(') > last['text'].count(')'):
             last['text'] += ' ' + l  # 줄에서 잘린 조 제목 "제6조(윤리강령 및 축구, 풋살인" + "헌장)"
         elif CHAPTER.match(l):
+            # "제1장 총 칙"·"부 칙(…)" 처럼 글자마다 띄운 장 이름만 붙인다
+            m = re.match(r'(제\s*\d+\s*장)\s*(.*)$', l)
+            l = (m.group(1) + (' ' + unspace(m.group(2)) if m.group(2) else '')) if m else re.sub(r'^부\s+칙', '부칙', l)
             blocks.append({'t': 'chapter', 'text': l})
         elif ARTICLE.match(l):
             blocks.append({'t': 'article', 'text': l})

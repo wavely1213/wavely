@@ -86,6 +86,8 @@
     --on-hot: #161c2a;
     --ink: #0a0e17;
     --logo-bg: #f3f5f8;
+  --logo-pad: 2px 4px;
+    --logo-pad: 2px 4px;
     color-scheme: dark;
   }
 }
@@ -107,5 +109,6 @@
   --on-hot: #161c2a;
   --ink: #0a0e17;
   --logo-bg: #f3f5f8;
+  --logo-pad: 2px 4px;
   color-scheme: dark;
 }
