@@ -5,6 +5,8 @@
     var list = KFL.$('#subnav-list');
     if (!group || !group.items) { list.parentNode.parentNode.hidden = true; return; }
     var current = page.parent || page.slug;
+    // 주 메뉴에서도 지금 있는 분류를 표시
+    KFL.$$('.gnb-btn').forEach(function (btn) { if (btn.textContent.trim() === page.cat) btn.setAttribute('data-current', ''); });
     list.innerHTML = group.items.map(function (it) {
       var on = KFL.slug(it.href) === current;
       return '<li>' + (on
@@ -42,12 +44,12 @@
       else if (nums[nums.length - 1] !== '…') nums.push('…');
     }
     return '<nav class="pager" aria-label="쪽 이동">' +
-      '<button type="button" data-page="' + (page - 1) + '"' + (page === 1 ? ' disabled' : '') + ' aria-label="이전 쪽">‹</button>' +
+      '<button type="button" data-page="' + (page - 1) + '"' + (page === 1 ? ' disabled' : '') + ' aria-label="이전 쪽">' + KFL.icon('prev') + '</button>' +
       nums.map(function (n) {
         if (n === '…') return '<span class="gap" aria-hidden="true">…</span>';
         return '<button type="button" data-page="' + n + '"' + (n === page ? ' aria-current="page"' : '') + ' aria-label="' + n + '쪽">' + n + '</button>';
       }).join('') +
-      '<button type="button" data-page="' + (page + 1) + '"' + (page === pages ? ' disabled' : '') + ' aria-label="다음 쪽">›</button></nav>';
+      '<button type="button" data-page="' + (page + 1) + '"' + (page === pages ? ' disabled' : '') + ' aria-label="다음 쪽">' + KFL.icon('next') + '</button></nav>';
   };
 
   KFL.searchBox = function (id, label, value, placeholder) {

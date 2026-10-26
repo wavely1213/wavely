@@ -105,9 +105,9 @@
       var p = shown[at];
       dlg.innerHTML = '<figure><img src="' + p.img + '" alt="' + KFL.esc(p.title) + '"><figcaption>' + KFL.esc(p.title) +
         ' <span>(' + (at + 1) + ' / ' + shown.length + ')</span></figcaption></figure>' +
-        '<button type="button" class="lb-prev" data-step="-1" aria-label="이전 사진">‹</button>' +
-        '<button type="button" class="lb-next" data-step="1" aria-label="다음 사진">›</button>' +
-        '<button type="button" class="lb-close" data-close aria-label="닫기">×</button>';
+        '<button type="button" class="lb-prev" data-step="-1" aria-label="이전 사진">' + KFL.icon('prev') + '</button>' +
+        '<button type="button" class="lb-next" data-step="1" aria-label="다음 사진">' + KFL.icon('next') + '</button>' +
+        '<button type="button" class="lb-close" data-close aria-label="닫기">' + KFL.icon('close') + '</button>';
     }
     root.addEventListener('click', function (e) {
       var b = e.target.closest('[data-photo]');
@@ -130,7 +130,7 @@
     root.innerHTML = '<p class="note">동영상은 원본 사이트에서 재생됩니다.</p><ul class="video-list">' + page.posts.map(function (v) {
       return '<li><a href="' + KFL.esc(v.href) + '" target="_blank" rel="noopener">' +
         (v.img ? '<img src="' + v.img + '" alt="" loading="lazy">' : '') +
-        '<span class="play" aria-hidden="true">▶</span><strong>' + KFL.esc(v.title) + '</strong>' +
+        '<span class="play" aria-hidden="true">' + KFL.icon('play') + '</span><strong>' + KFL.esc(v.title) + '</strong>' +
         (v.sub && v.sub !== v.title ? '<span>' + KFL.esc(v.sub) + '</span>' : '') +
         '<time datetime="' + v.date + '">' + v.date + '</time><span class="sr-only"> (원본 사이트, 새 창)</span></a></li>';
     }).join('') + '</ul>';

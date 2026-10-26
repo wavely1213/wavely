@@ -44,7 +44,7 @@ class Sanitizer:
     UNWRAP = {'span', 'font', 'o:p', 'center', 'u', 'ins', 'label', 'nobr', 'colgroup', 'col', 'tbody', 'thead'}
     KEEP_ATTRS = {'a': {'href'}, 'img': {'src', 'alt'}, 'td': {'colspan', 'rowspan'}, 'th': {'colspan', 'rowspan'}}
     # 장식용 원본 이미지(글머리표·버튼·아이콘)
-    DECOR = re.compile(r'(re_dot|bullet|icon|btn|open\.gif|close\.gif|ajax-loader|blank|arrow|more|_bg\.|line\.)', re.I)
+    DECOR = re.compile(r'(re_dot|point\d|bullet|icon|btn|open\.gif|close\.gif|ajax-loader|blank|arrow|more|_bg\.|line\.)', re.I)
 
     def __init__(self, link_map):
         self.link_map = link_map  # (onclick/href 문자열) → 새 주소 또는 None

@@ -27,6 +27,18 @@
     return (KFL.IMG && KFL.IMG[path]) || '../assets/img/' + path;
   };
 
+  /* 아이콘 한 벌(선 2px, 24 격자). CSS 쪽 장식 자리는 tokens.css 의 --ico-* 를 쓴다 */
+  var ICONS = {
+    prev: 'M15 6l-6 6 6 6',
+    next: 'M9 6l6 6-6 6',
+    close: 'M6 6l12 12M18 6L6 18',
+    play: 'M8 5.5v13l10-6.5z'
+  };
+  KFL.icon = function (name) {
+    return '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="' + ICONS[name] + '"' +
+      (name === 'play' ? ' fill="currentColor"' : '') + '/></svg>';
+  };
+
   KFL.esc = function (s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];

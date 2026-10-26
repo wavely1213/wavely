@@ -1,48 +1,50 @@
-/* 좌측 사이드바: 최근 경기 결과 · 팀 순위 · TOP5 (K리그 메인 좌측 열) */
-.side-card { background: var(--card); box-shadow: var(--shadow); padding: 16px 20px 20px; min-width: 0; }
-.ball { display: inline-block; width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--text); background: radial-gradient(circle, var(--text) 30%, transparent 32%); }
-.league-name { margin: -4px 0 12px; font-size: var(--fs-xs); color: var(--text-2); text-align: center; }
+/* 좌측 기록 열: 최근 경기 결과 · 팀 순위 · TOP5 */
+.side-card { min-width: 0; }
+.league-name { margin: -4px 0 12px; font-size: var(--fs-xs); color: var(--text-2); }
 .scope-note { margin-bottom: 10px; font-size: var(--fs-xs); color: var(--text-2); }
 
-/* 경기 결과 */
+/* 경기 결과: 가운데 점수판(남색 바탕 + 흰 숫자) */
 .match-day { padding-top: 6px; }
 .match-day + .match-day { border-top: 1px solid var(--line); margin-top: 8px; padding-top: 14px; }
-.match-day h4 { text-align: center; font-size: var(--fs-base); font-weight: 700; font-variant-numeric: tabular-nums; margin-bottom: 4px; }
+.match-day h4 { text-align: center; font-size: var(--fs-sm); font-weight: 700; color: var(--text-2); font-variant-numeric: tabular-nums; margin-bottom: 4px; }
 .match { padding-block: 10px; }
 .match + .match { border-top: 1px dashed var(--line); }
 .match-row { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 8px; }
 .team { font-size: var(--fs-xs); font-weight: 500; text-align: center; overflow-wrap: anywhere; color: var(--text-2); }
 .team.win { color: var(--text); font-weight: 800; }
 .score-box { display: grid; justify-items: center; gap: 4px; }
-.score { min-width: 64px; padding: 4px 8px; border: 1px solid var(--line); background: var(--surface); text-align: center; font-weight: 800; font-size: var(--fs-lg); font-variant-numeric: tabular-nums; }
-.badge { padding: 1px 8px; border-radius: 8px; background: var(--red); color: var(--on-red); font-size: 0.6875rem; font-weight: 700; }
+.score { min-width: 72px; padding: 4px 10px; border-radius: var(--radius); background: var(--court); color: var(--on-court); text-align: center; font-family: var(--font-display); font-weight: var(--fw-display); font-size: var(--fs-xl); line-height: 1.2; font-variant-numeric: tabular-nums; }
+.badge { font-size: var(--fs-xs); font-weight: 500; color: var(--text-2); }
 .match-center {
-  display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px; min-height: var(--tap);
-  background: var(--navy); color: var(--on-navy); font-size: var(--fs-sm); text-decoration: none;
+  display: flex; align-items: center; justify-content: center; gap: 4px; min-height: var(--tap);
+  color: var(--accent); font-size: var(--fs-sm); font-weight: 700; text-decoration: none;
 }
-.match-center:hover { background: var(--navy-2); color: var(--on-navy); }
-.match-center::after { content: "↗"; font-size: 12px; }
+.match-center:hover { text-decoration: underline; }
+/* 원본 사이트 새 창: 바깥 링크 아이콘 */
+.match-center::after { content: ""; width: 1em; height: 1em; background: currentColor; -webkit-mask: var(--ico-ext) center / contain no-repeat; mask: var(--ico-ext) center / contain no-repeat; }
 
 /* 팀 순위: 좁은 표 */
 .mini { width: 100%; border-collapse: collapse; font-size: var(--fs-xs); font-variant-numeric: tabular-nums; }
 .mini th, .mini td { padding: 9px 4px; border-bottom: 1px solid var(--line); text-align: center; }
-.mini thead th { border-top: 1px solid var(--text); background: var(--surface); font-weight: 500; }
+.mini thead th { border-top: 2px solid var(--line-strong); background: var(--surface); font-weight: 500; }
 .mini td.team-cell { text-align: left; font-weight: 500; overflow-wrap: anywhere; }
-.mini tr:nth-child(-n+3) td:first-child { color: var(--red-text); font-weight: 800; }
+.mini tr:nth-child(-n+3) td:first-child { color: var(--hot); font-family: var(--font-display); font-weight: var(--fw-display); font-size: var(--fs-sm); }
 
-/* TOP5: 1위 강조 블록 + 2~5위 줄 */
-.top1 { position: relative; padding: 18px 20px; color: var(--on-navy); background: linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 100%); overflow: hidden; }
-.top1.red { background: linear-gradient(135deg, #c41419 0%, var(--red) 100%); }
-.top1::after { content: ""; position: absolute; right: -30px; top: -30px; width: 140px; height: 140px; border: 18px solid rgb(255 255 255 / 0.08); border-radius: 50%; }
-.top1 .nth { font-style: italic; font-weight: 800; font-size: 2rem; line-height: 1; }
-.top1 .name { margin-top: 6px; font-size: var(--fs-lg); font-weight: 800; }
-.top1 .stat { font-size: var(--fs-sm); }
-.top1 .club { margin-top: 2px; font-size: var(--fs-xs); color: var(--on-navy-2); }
-.top1.red .club { color: #ffe1e2; }
-.top-rest li { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; align-items: center; gap: 8px; margin-top: 8px; padding: 10px 12px; background: var(--surface); font-size: var(--fs-xs); }
-.top-rest .n { font-style: italic; font-weight: 800; font-size: var(--fs-lg); color: var(--navy); }
-:root[data-theme="dark"] .top-rest .n { color: var(--on-navy-2); }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .top-rest .n { color: var(--on-navy-2); } }
+/* TOP5: 1위는 숫자가 주인공(이름 왼쪽, 기록 오른쪽 크게), 2~5위는 1위 대비 막대로 격차를 보인다.
+   득점은 주황 막대, 경고는 경고 카드 노랑 막대 */
+.top1 { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; padding: 4px 0 16px; border-bottom: 2px solid var(--line-strong); }
+.top1 .nth { font-size: var(--fs-sm); font-weight: 700; color: var(--hot); }
+.top1 .name { margin-top: 2px; font-family: var(--font-display); font-weight: var(--fw-display); font-size: var(--fs-2xl); line-height: var(--lh-tight); color: var(--heading); }
+.top1 .club { margin-top: 2px; font-size: var(--fs-xs); color: var(--text-2); }
+.top1-stat { display: flex; align-items: baseline; gap: 4px; color: var(--heading); white-space: nowrap; }
+.top1-stat b { font-family: var(--font-display); font-weight: var(--fw-display); font-size: 3.5rem; line-height: 0.9; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.top1-stat span { font-size: var(--fs-sm); font-weight: 700; }
+.top1.caution .top1-stat span::before { content: ""; display: inline-block; width: 10px; height: 14px; margin-right: 4px; border-radius: 2px; background: var(--mark); vertical-align: -1px; }
+.top-rest li { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; align-items: center; gap: 4px 8px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: var(--fs-xs); }
+.top-rest .n { font-family: var(--font-display); font-weight: var(--fw-display); font-size: var(--fs-md); color: var(--text-2); }
 .top-rest .who { font-weight: 700; font-size: var(--fs-sm); overflow-wrap: anywhere; }
 .top-rest .who small { display: block; font-weight: 400; font-size: var(--fs-xs); color: var(--text-2); }
-.top-rest .v { font-weight: 700; white-space: nowrap; }
+.top-rest .v { font-weight: 700; font-size: var(--fs-sm); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.top-rest .bar { grid-column: 2 / -1; height: 4px; border-radius: 2px; background: var(--surface); overflow: hidden; }
+.top-rest .bar i { display: block; height: 100%; background: var(--hot); }
+#top-foul .top-rest .bar i { background: var(--mark); }

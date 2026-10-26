@@ -4,16 +4,18 @@ body {
   margin: 0;
   font-family: var(--font);
   font-size: var(--fs-base);
-  line-height: 1.6;
+  line-height: var(--lh-body);
   color: var(--text);
   background: var(--bg);
   word-break: keep-all;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 h1, h2, h3, h4, p, ul, dl, dd, figure { margin: 0; }
 ul, ol { padding: 0; list-style: none; }
 img { max-width: 100%; display: block; }
 a { color: inherit; text-underline-offset: 3px; }
-a:hover { color: var(--red-text); }
+a:hover { color: var(--accent); }
 button, input { font: inherit; color: inherit; }
 button { cursor: pointer; }
 address { font-style: normal; }
@@ -35,7 +37,7 @@ address { font-style: normal; }
 .skip {
   position: absolute; left: 16px; top: -100px; z-index: 100;
   padding: 12px 16px; border-radius: 4px;
-  background: var(--navy); color: var(--on-navy); font-weight: 700;
+  background: var(--court); color: var(--on-court); font-weight: 700;
 }
 .skip:focus { top: 12px; }
 
@@ -44,3 +46,6 @@ address { font-style: normal; }
 }
 
 [hidden] { display: none !important; }
+
+/* 아이콘(KFL.icon): 글자 크기에 맞춘 선 아이콘 */
+.ico { width: 1.25em; height: 1.25em; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
