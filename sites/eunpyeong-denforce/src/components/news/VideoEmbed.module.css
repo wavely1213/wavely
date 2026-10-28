@@ -1,0 +1,61 @@
+.wrap {
+  margin: 0 0 28px;
+}
+
+.frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-m);
+  background: var(--c-black);
+}
+
+.frame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* 유튜브 가로 영상 */
+.wide .frame {
+  aspect-ratio: 16 / 9;
+}
+
+/* 유튜브 쇼츠 — 세로 */
+.vertical .frame {
+  max-width: 360px;
+  margin: 0 auto;
+  aspect-ratio: 9 / 16;
+}
+
+/* 인스타그램 임베드 — 세로 영상 + 위아래 계정·좋아요 줄 */
+.instagram .frame {
+  max-width: 400px;
+  height: 760px;
+  margin: 0 auto;
+  background: var(--c-bg);
+  border: 1px solid var(--c-line);
+}
+
+.caption {
+  margin-top: 10px;
+  font-size: 13px;
+  text-align: center;
+}
+
+.caption a {
+  color: var(--c-text-sub);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.caption a:hover {
+  color: var(--c-blue);
+}
+
+@media (max-width: 480px) {
+  .instagram .frame {
+    height: 680px;
+  }
+}

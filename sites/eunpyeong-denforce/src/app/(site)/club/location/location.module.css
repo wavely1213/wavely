@@ -1,0 +1,11 @@
+/* 대중교통/주차 안내 — 한 줄에 하나씩, 앞 이름(지하철/버스/요금 등)은 굵게 */
+.lines {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  margin-right: 8px;
+  font-weight: 700;
+}

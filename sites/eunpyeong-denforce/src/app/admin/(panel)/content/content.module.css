@@ -1,0 +1,306 @@
+/* 관리자 › 홈페이지 내용 (D-046) — 버튼·표·폼 모양은 admin.module.css */
+
+/* 구역 탭 (기본 정보 · 메인 · …) */
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.tab {
+  padding: 8px 16px;
+  border: 1px solid var(--c-line);
+  border-radius: 999px;
+  background: var(--c-bg);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--c-text-sub);
+}
+
+.tab:hover {
+  color: var(--c-text);
+}
+
+.tabActive,
+.tabActive:hover {
+  border-color: var(--c-blue);
+  background: var(--c-blue);
+  color: var(--c-on-dark);
+}
+
+/* 총괄 첫 화면 — 구역 카드 */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 18px 20px;
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-m);
+  background: var(--c-bg);
+}
+
+.card:hover {
+  border-color: var(--c-blue);
+}
+
+.card strong {
+  font-size: 16px;
+}
+
+.card span {
+  font-size: 14px;
+  color: var(--c-text-sub);
+}
+
+/* 폼 안 묶음 */
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+  padding: 16px 0 0;
+  border: 0;
+  border-top: 1px solid var(--c-line);
+}
+
+.group:first-of-type {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.groupTitle {
+  margin-bottom: 4px;
+  padding: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.panelHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.panelHead h2 {
+  margin-bottom: 0;
+}
+
+.note {
+  margin-bottom: 16px;
+  font-size: 14px;
+  color: var(--c-text-sub);
+}
+
+/* 같은 화면의 다른 관리 메뉴 */
+.related {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.related a {
+  color: var(--c-blue);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* 푸터 정보 줄 편집기 (D-048) — 줄마다 상자, 칸은 '이름표 | 값 | 삭제' */
+.mkLines {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mkLine {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-s);
+  background: var(--c-bg-soft);
+}
+
+.mkLineHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.mkTools {
+  display: flex;
+  gap: 4px;
+}
+
+.mkGroup {
+  display: grid;
+  grid-template-columns: minmax(0, 130px) minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: center;
+}
+
+.mkLabel {
+  font-weight: 700;
+}
+
+.mkTool,
+.mkAdd,
+.mkToken {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-s);
+  background: var(--c-bg);
+  color: var(--c-text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.mkTool:hover:not(:disabled),
+.mkAdd:hover,
+.mkToken:hover {
+  border-color: var(--c-blue);
+  color: var(--c-blue);
+}
+
+.mkTool:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.mkAdd {
+  align-self: flex-start;
+  border-style: dashed;
+}
+
+.mkAddLine {
+  align-self: flex-start;
+}
+
+.mkTokens {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mkTokenList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.mkToken {
+  color: var(--c-blue);
+  background: var(--c-blue-tint);
+  border-color: transparent;
+}
+
+.mkHelp {
+  font-size: 13px;
+  color: var(--c-text-sub);
+}
+
+.mkHelp summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.mkHelp ul {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.mkHelp code {
+  font-weight: 700;
+  color: var(--c-text);
+}
+
+/* 미리보기 — 홈페이지 푸터와 같은 검은 바탕 */
+.mkPreview {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: var(--radius-s);
+  background: var(--c-black);
+  color: var(--c-on-dark-sub);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.mkPreviewTitle {
+  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--c-yellow);
+}
+
+.pvGroup {
+  display: inline-block;
+}
+
+.pvGroup:not(:last-child) {
+  margin-right: 14px;
+}
+
+.pvLabel {
+  margin-right: 8px;
+  color: var(--c-on-dark);
+  font-weight: 700;
+}
+
+.pvNowrap {
+  white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+  /* 휴대폰: 이름표 한 줄, 값과 삭제 버튼 다음 줄 */
+  .mkGroup {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .mkLabel {
+    grid-column: 1 / -1;
+  }
+}
+
+/* 구역 머리 — 제목 오른쪽 '이 페이지 보기' */
+.viewLink {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--c-blue);
+  white-space: nowrap;
+}
+
+.viewLink:hover {
+  text-decoration: underline;
+}
+
+/* 색 코드 칸 옆 작은 색 견본 (팀 색상 목록) */
+.swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: 6px;
+  vertical-align: -2px;
+  border: 1px solid var(--c-line);
+  border-radius: 3px;
+}

@@ -1,0 +1,54 @@
+/* 구단소식 글 상세 — 제목 아래 날짜/공유, 글 끝 이전/다음 글 */
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+}
+
+.foot {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* 이전 / 다음 글 — 목록처럼 구분선만 (그림자 없음) */
+.pager {
+  border-top: 2px solid var(--c-black);
+}
+
+.pager li {
+  border-bottom: 1px solid var(--c-line);
+}
+
+.pagerLink {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  padding: 16px 0;
+}
+
+.pagerLabel {
+  flex: none;
+  min-width: 72px;
+  font-weight: 700;
+  color: var(--c-blue);
+}
+
+.pagerTitle {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pagerLink:hover .pagerTitle {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.pagerLink:focus-visible {
+  outline: 2px solid var(--c-blue);
+  outline-offset: 2px;
+}

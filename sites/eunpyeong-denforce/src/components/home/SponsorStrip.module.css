@@ -1,0 +1,85 @@
+/* /sponsors 등급별 카드 격자 — 높은 등급일수록 칸이 넓고 로고가 크다.
+   등급별 값: 칸 최소 폭 / 카드 최소 높이 / 로고 높이(SponsorStrip.tsx LOGO_SIZE 높이와 같게) / 로고 없을 때 이름 글자.
+   .list 의 값 = 서브 스폰서, 다른 등급은 아래 data-tier 에서 바꾼다 */
+.list {
+  --sponsor-col: 220px;
+  --sponsor-min-h: 112px;
+  --sponsor-logo-h: 64px;
+  --sponsor-name: 19px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--sponsor-col), 1fr));
+  gap: 12px;
+}
+
+/* 네이밍 스폰서 — auto-fit: 한 곳이면 카드가 한 줄 전체로 넓어진다 */
+.list[data-tier="naming"] {
+  --sponsor-col: 280px;
+  --sponsor-min-h: 160px;
+  --sponsor-logo-h: 96px;
+  --sponsor-name: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(var(--sponsor-col), 1fr));
+}
+
+.list[data-tier="official"] {
+  --sponsor-col: 260px;
+  --sponsor-min-h: 132px;
+  --sponsor-logo-h: 76px;
+  --sponsor-name: 21px;
+}
+
+.list[data-tier="partner"] {
+  --sponsor-col: 180px;
+  --sponsor-min-h: 96px;
+  --sponsor-logo-h: 52px;
+  --sponsor-name: 17px;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--sponsor-min-h);
+  padding: 16px;
+  background: var(--c-bg-soft);
+  border-radius: var(--radius-m);
+}
+
+/* 로고 + 이름 (링크면 둘 다 누르는 곳) */
+.body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  border-radius: var(--radius-s);
+}
+
+.body:focus-visible {
+  outline: 2px solid var(--c-blue);
+  outline-offset: 4px;
+}
+
+.name {
+  font-size: var(--sponsor-name);
+  font-weight: 700;
+  text-align: center;
+  word-break: keep-all;
+}
+
+/* 로고 높이를 맞춘다 — 네모난 로고(은평구 등)도 이 높이까지는 보이게, 가로로 긴 로고는 칸 폭에 맞춰 줄어든다 */
+.logo {
+  height: var(--sponsor-logo-h);
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.caption {
+  font-size: 13px;
+  color: var(--c-text-sub);
+}
+
+a.body:hover .caption {
+  color: var(--c-text);
+}

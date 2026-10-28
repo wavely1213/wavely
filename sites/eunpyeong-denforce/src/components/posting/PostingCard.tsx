@@ -1,0 +1,41 @@
+import { EmblemFallback } from "@/components/ui/EmblemFallback";
+import { FitImage } from "@/components/ui/FitImage";
+import { POSTING_KIND_LABEL, POSTING_PLATFORM_LABEL } from "@/data/postings";
+import { formatPostDate } from "@/lib/format";
+import { isPreshrunkThumbnail } from "@/lib/postings";
+import type { Posting } from "@/types";
+import styles from "./PostingCard.module.css";
+
+/** 바깥 글 카드 — 누르면 원문을 새 창으로 연다. 구단 포스팅은 출처 배지를 어둡게 구분, FK리그(연맹 영상)는 배지에 FK리그 */
+export function PostingCard({ posting }: { posting: Posting }) {
+  return (
+    <a href={posting.url} target="_blank" rel="noopener noreferrer" className={styles.card}>
+      <div className={styles.thumb}>
+        {posting.thumbnail ? (
+          // 일괄 적재한 사진은 이미 640×480 이라 Vercel 이미지 최적화(무료 한도)를 거치지 않고 Storage 에서 바로 받는다 (D-022).
+          // 세로 사진(릴스 표지 등)은 잘리지 않게 전체를 보인다
+          <FitImage
+            src={posting.thumbnail}
+            sizes="(max-width: 560px) 100vw, (max-width: 960px) 50vw, 300px"
+            unoptimized={isPreshrunkThumbnail(posting.thumbnail)}
+            className={styles.media}
+          />
+        ) : (
+          <EmblemFallback />
+        )}
+        <span className={`${styles.badge} ${posting.kind === "club" ? styles.badgeClub : ""}`}>
+          {/* 연맹 영상은 출처(유튜브) 대신 'FK리그' (D-032) */}
+          {posting.kind === "league" ? POSTING_KIND_LABEL.league : POSTING_PLATFORM_LABEL[posting.platform]}
+        </span>
+      </div>
+      <strong className={styles.title}>
+        {posting.title}
+        <span className="sr-only"> (새 창)</span>
+      </strong>
+      <span className={styles.meta}>
+        <span className={styles.author}>{posting.author}</span>
+        <span className={styles.date}>{formatPostDate(posting.date)}</span>
+      </span>
+    </a>
+  );
+}
