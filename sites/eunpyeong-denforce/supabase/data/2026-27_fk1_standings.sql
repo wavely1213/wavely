@@ -11,7 +11,7 @@ insert into public.standings (season, team, is_us) values
   ('2026-27 FK1리그', '강원FS', false),
   ('2026-27 FK1리그', '고양불스풋살클럽', false),
   ('2026-27 FK1리그', '화성FS', false),
-  ('2026-27 FK1리그', '용인대흥FS', false),
+  ('2026-27 FK1리그', '용인지슬FS', false),  -- 2026-11-05 일정표 표기 (전 용인대흥FS, BR-030)
   ('2026-27 FK1리그', '서울은평 덴포스', true);
 
 commit;
