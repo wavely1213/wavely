@@ -96,3 +96,8 @@ button {
 .site-root [data-surface="blue"] :focus-visible {
   outline-color: var(--c-on-blue);
 }
+
+/* 붙어 있는 헤더에 초점 요소/앵커가 가려지지 않게 (공개 화면만) */
+html:has(.site-root) {
+  scroll-padding-top: var(--header-h);
+}

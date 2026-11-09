@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState, type FocusEvent, type KeyboardEvent, type MouseEvent, type PointerEvent } from "react";
+import { useEffect, useRef, useState, type FocusEvent, type MouseEvent, type PointerEvent } from "react";
 import { SnsIcon } from "@/components/ui/SnsIcon";
 import { StoreIcon } from "@/components/ui/StoreIcon";
 import { NAV, SITE } from "@/config/site";
@@ -34,17 +34,23 @@ function activeChildHref(pathname: string): string | null {
 /**
  * 사이트 헤더 (리디자인 D-067, D-069 1단계).
  * - PC: 1차 메뉴 한 줄(지금 페이지는 노란 2px 밑줄). 마우스를 1차 메뉴에 올리거나 키보드 초점이 메뉴에 오면 MegaMenu(전폭 black-soft, 모든 2차 메뉴).
- *   열림은 상태로 관리한다 — 헤더(바 + 메가) 밖으로 나가면 잠시 뒤 닫히고, 페이지가 바뀌면 닫히고, Esc 로 닫는다(초점은 그 1차 메뉴로).
+ *   열림은 상태로 관리한다 — 헤더(바 + 메가) 밖으로 나가면 잠시 뒤 닫히고(초점이 헤더 안이면 그대로), 페이지가 바뀌면 닫히고,
+ *   Esc 로 닫는다(어디에 초점이 있든, 메가 안이었으면 그 1차 메뉴로).
  * - 휴대폰(960px 이하): 메뉴 버튼 → 전체 화면 메뉴(1차 + 2차, 맨 아래 SNS / MD스토어 / 사이트맵 — D-042). Esc 로 닫으면 메뉴 버튼으로 초점.
  * content: 구단 이름/영문 이름/MD스토어 링크 (관리자 › 홈페이지 내용 › 기본 정보, D-046). pathname 은 활성 메뉴 표시용(모르면 빈 문자열).
  */
 export function Header({ pathname, sns, content }: { pathname: string; sns: SnsLink[]; content: HeaderContent }) {
-  // 열린 '주소'를 기억한다 — 다른 페이지로 가면 저절로 닫힌 상태가 된다
-  const [openPath, setOpenPath] = useState<string | null>(null);
-  const [megaPath, setMegaPath] = useState<string | null>(null);
-  const open = openPath === pathname;
-  const megaOpen = megaPath === pathname;
+  const [open, setOpen] = useState(false);
+  const [megaOpen, setMegaOpen] = useState(false);
+  // 주소가 바뀌면(링크, 뒤로/앞으로 가기) 두 메뉴를 닫는다 — 렌더 중에 이전 주소와 비교 (React 권장 방식)
+  const [shownPath, setShownPath] = useState(pathname);
+  if (shownPath !== pathname) {
+    setShownPath(pathname);
+    setOpen(false);
+    setMegaOpen(false);
+  }
 
+  const headerRef = useRef<HTMLElement>(null);
   const navRef = useRef<HTMLElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const closeTimer = useRef<number | undefined>(undefined);
@@ -57,11 +63,11 @@ export function Header({ pathname, sns, content }: { pathname: string; sns: SnsL
   const cancelClose = () => window.clearTimeout(closeTimer.current);
   const openMega = () => {
     cancelClose();
-    setMegaPath(pathname);
+    setMegaOpen(true);
   };
   const closeMega = () => {
     cancelClose();
-    setMegaPath(null);
+    setMegaOpen(false);
   };
 
   useEffect(() => () => window.clearTimeout(closeTimer.current), []);
@@ -71,16 +77,33 @@ export function Header({ pathname, sns, content }: { pathname: string; sns: SnsL
     if (!open) return;
     const onKey = (e: globalThis.KeyboardEvent) => {
       if (e.key !== "Escape") return;
-      setOpenPath(null);
+      setOpen(false);
       toggleRef.current?.focus();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
+  // PC 메가메뉴: 열려 있으면 어디서든 Esc 로 닫는다 (마우스로 연 경우 포함, WCAG 1.4.13)
+  useEffect(() => {
+    if (!megaOpen) return;
+    const onKey = (e: globalThis.KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      dismissed.current = true;
+      window.clearTimeout(closeTimer.current);
+      setMegaOpen(false);
+      // 메가 안에 초점이 있었으면 그 칸의 1차 메뉴로 돌려준다 (메가가 닫혀 초점이 사라지지 않게)
+      const el = document.activeElement;
+      const top = el instanceof HTMLElement ? el.closest<HTMLElement>("[data-top]")?.dataset.top : undefined;
+      if (top) navRef.current?.querySelector<HTMLElement>(`a[data-top-link="${top}"]`)?.focus();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [megaOpen]);
+
   // 링크를 누르면 메뉴를 닫는다 (같은 페이지 링크도)
   const onLinkClick = (e: MouseEvent<HTMLElement>) => {
-    setOpenPath(null);
+    setOpen(false);
     closeMega();
     e.currentTarget.blur();
   };
@@ -89,10 +112,14 @@ export function Header({ pathname, sns, content }: { pathname: string; sns: SnsL
   const onMenuPointerEnter = (e: PointerEvent) => {
     if (e.pointerType === "mouse" && matches(FINE_HOVER) && matches(DESKTOP)) openMega();
   };
+  // 마우스가 헤더 밖으로 나가면 잠시 뒤 닫는다 — 단, 그때 키보드 초점이 헤더 안에 있으면 닫지 않는다(초점이 사라지지 않게)
   const onHeaderPointerLeave = (e: PointerEvent) => {
-    if (e.pointerType !== "mouse" || !megaOpen) return;
+    if (e.pointerType !== "mouse") return;
     cancelClose();
-    closeTimer.current = window.setTimeout(() => setMegaPath(null), CLOSE_DELAY_MS);
+    closeTimer.current = window.setTimeout(() => {
+      if (headerRef.current?.contains(document.activeElement)) return;
+      setMegaOpen(false);
+    }, CLOSE_DELAY_MS);
   };
   // 키보드 초점(focus-visible)일 때만 연다 — 터치로 링크를 누를 때 생기는 초점으로는 열지 않는다
   const onNavFocus = (e: FocusEvent<HTMLElement>) => {
@@ -104,17 +131,9 @@ export function Header({ pathname, sns, content }: { pathname: string; sns: SnsL
     dismissed.current = false;
     closeMega();
   };
-  const onNavKeyDown = (e: KeyboardEvent<HTMLElement>) => {
-    if (e.key !== "Escape" || !megaOpen) return;
-    dismissed.current = true;
-    closeMega();
-    // 메가 안에 초점이 있었으면 그 칸의 1차 메뉴로 돌려준다 (메가가 닫혀 초점이 사라지지 않게)
-    const top = e.target instanceof HTMLElement ? e.target.closest<HTMLElement>("[data-top]")?.dataset.top : undefined;
-    if (top) navRef.current?.querySelector<HTMLElement>(`a[data-top-link="${top}"]`)?.focus();
-  };
 
   return (
-    <header className={styles.header} data-surface="dark" onPointerLeave={onHeaderPointerLeave}>
+    <header ref={headerRef} className={styles.header} data-surface="dark" onPointerLeave={onHeaderPointerLeave}>
       <div className={`container ${styles.bar}`}>
         <Link href="/" className={styles.brand} onClick={onLinkClick}>
           <Image src={SITE.emblemMark} alt="" width={40} height={51} loading="eager" className={styles.mark} />
@@ -130,7 +149,7 @@ export function Header({ pathname, sns, content }: { pathname: string; sns: SnsL
           className={styles.toggle}
           aria-expanded={open}
           aria-controls="site-nav"
-          onClick={() => setOpenPath(open ? null : pathname)}
+          onClick={() => setOpen((v) => !v)}
         >
           <span className="sr-only">{open ? "메뉴 닫기" : "메뉴 열기"}</span>
           <span className={`${styles.toggleIcon} ${open ? styles.toggleIconClose : ""}`} aria-hidden="true">
@@ -144,7 +163,6 @@ export function Header({ pathname, sns, content }: { pathname: string; sns: SnsL
           ref={navRef}
           id="site-nav"
           className={`${styles.nav} ${open ? styles.navOpen : ""}`}
-          onKeyDown={onNavKeyDown}
           onFocus={onNavFocus}
           onBlur={onNavBlur}
         >
@@ -216,7 +234,7 @@ export function Header({ pathname, sns, content }: { pathname: string; sns: SnsL
             <ul className={styles.mobileSns} aria-label="공식 SNS">
               {sns.map((s) => (
                 <li key={s.label}>
-                  <a href={s.href} target="_blank" rel="noopener noreferrer" onClick={() => setOpenPath(null)}>
+                  <a href={s.href} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)}>
                     <SnsIcon name={s.label} size={20} />
                     <span className="sr-only">{s.label} (새 창)</span>
                   </a>
@@ -229,7 +247,7 @@ export function Header({ pathname, sns, content }: { pathname: string; sns: SnsL
                 target="_blank"
                 rel="noopener noreferrer"
                 className={styles.mobileStore}
-                onClick={() => setOpenPath(null)}
+                onClick={() => setOpen(false)}
               >
                 <StoreIcon size={16} />
                 {content.externalLabel}

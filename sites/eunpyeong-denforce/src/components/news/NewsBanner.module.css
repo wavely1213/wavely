@@ -57,6 +57,11 @@
   overflow: hidden;
 }
 
+/* 배너가 overflow: hidden 이라 초점 링을 안쪽에 그린다 */
+.banner .link:focus-visible {
+  outline-offset: -4px;
+}
+
 .link:hover .title {
   text-decoration: underline;
   text-underline-offset: 4px;

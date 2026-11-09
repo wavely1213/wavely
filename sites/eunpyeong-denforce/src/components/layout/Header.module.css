@@ -176,6 +176,11 @@
     width: 32px;
   }
 
+  /* 로고 링크 누르는 영역 높이 44 */
+  .brand {
+    min-height: 44px;
+  }
+
   /* kfa/m/header-en 10 */
   .brandText small {
     font-size: 10px;
@@ -289,11 +294,13 @@
     display: none;
   }
 
-  /* kfa/m/body 15, on-dark-sub — 항목마다 누르는 영역 높이 44, 옆 간격 16 */
+  /* kfa/m/body 15, on-dark-sub — 누르는 영역은 좌우 padding space/xs 로(높이 44), 보이는 글자 사이는 고르게 16.
+     첫 항목 글자가 1차 메뉴와 줄이 맞게 왼쪽으로 padding 만큼 당긴다 */
   .sub {
     display: flex;
     flex-wrap: wrap;
-    gap: 0 var(--space-m);
+    gap: 0;
+    margin-left: calc(-1 * var(--space-xs));
     font-size: 15px;
     line-height: 1.6;
     color: var(--c-on-dark-sub);
@@ -302,8 +309,10 @@
   .sub a {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     min-width: 44px;
     min-height: 44px;
+    padding: 0 var(--space-xs);
   }
 
   .sub a:hover {
@@ -317,6 +326,7 @@
 
   .mobileExtra {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: var(--space-m);
