@@ -1,3 +1,4 @@
+/* 섹션 제목 (리디자인 D-067) — 노란 마크 24x4 + 제목 kfa/pc/h2 32 (휴대폰 24), 제목과 내용 사이 space/l */
 .section {
   padding: var(--section-gap) 0 0;
 }
@@ -6,15 +7,15 @@
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 24px;
+  gap: var(--space-m);
+  margin-bottom: var(--space-l);
 }
 
 .title {
-  font-size: clamp(24px, 3vw, 32px);
+  font-size: 32px;
   font-weight: 700;
   line-height: 1.2;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 
 .title::before {
@@ -22,11 +23,14 @@
   display: block;
   width: 24px;
   height: 4px;
-  margin-bottom: 12px;
+  margin-bottom: var(--space-s);
   background: var(--c-yellow);
 }
 
 .more {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   font-size: 14px;
   font-weight: 700;
   color: var(--c-text-sub);
@@ -35,4 +39,10 @@
 
 .more:hover {
   color: var(--c-blue);
+}
+
+@media (max-width: 720px) {
+  .title {
+    font-size: 24px;
+  }
 }

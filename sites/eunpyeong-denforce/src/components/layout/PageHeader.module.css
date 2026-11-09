@@ -1,63 +1,151 @@
+/* 하위 페이지 머리 (리디자인 D-067) — 피그마 '경기일정 / PC 1280', 선수 상세(compact).
+   검정 면, 오른쪽에 엠블럼 사선(왼쪽 아래 → 오른쪽 위, 기울기 0.6)으로 잘린 black-soft 면 + 경계 blue 6px.
+   사선 아래 끝은 오른쪽에서 486.4px(휴대폰 132.6px), 높이와 상관없이 같다. 글자는 아래로 붙인다. */
 .wrap {
-  margin-bottom: 40px;
-  border-bottom: 1px solid var(--c-line);
+  --ph-h: 240px;
+  --ph-diag: 486.4px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: var(--space-m);
+  min-height: var(--ph-h);
+  margin-bottom: var(--section-gap);
+  overflow: hidden;
+  background: var(--c-black);
+  color: var(--c-on-dark);
+}
+
+.wrapCompact {
+  --ph-h: 120px;
+  gap: var(--space-xs);
+}
+
+/* 사선 면 — ::before 는 blue 경계(6px), ::after 는 그 오른쪽 black-soft */
+.wrap::before,
+.wrap::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  clip-path: polygon(0 100%, calc(var(--ph-h) * 0.6) 0, 100% 0, 100% 100%);
+  pointer-events: none;
+}
+
+.wrap::before {
+  width: var(--ph-diag);
+  background: var(--c-blue);
+}
+
+.wrap::after {
+  width: calc(var(--ph-diag) - 6px);
+  background: var(--c-black-soft);
+}
+
+.head,
+.tabs {
+  position: relative;
+  z-index: 1;
 }
 
 .head {
-  padding-top: 56px;
-  padding-bottom: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-xs);
 }
 
+/* 2차 탭이 없는 페이지 — 제목 아래 여백 */
+.noTabs {
+  padding-bottom: var(--space-l);
+}
+
+/* 1차 메뉴 이름 — kfa/label 12, 0.08em, yellow */
 .section {
-  display: inline-block;
-  margin-bottom: 8px;
-  padding-bottom: 4px;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
-  color: var(--c-text-sub);
-  border-bottom: 2px solid var(--c-yellow);
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-yellow);
 }
 
+/* kfa/pc/h1 48 (휴대폰 32) */
 .title {
-  font-size: clamp(32px, 5vw, 48px);
+  font-size: 48px;
   font-weight: 700;
-  line-height: 1.1;
-  letter-spacing: -0.01em;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 
-/* 상세 페이지(글/선수) — 이 페이지의 큰 제목은 본문 h1 이라 메뉴 이름은 작게 */
-.headCompact {
-  padding-top: 40px;
-  padding-bottom: 20px;
-}
-
+/* 상세 페이지 — 이 페이지의 큰 제목은 본문 h1 이라 메뉴 이름은 작게 (kfa/pc/h3 24, 휴대폰 kfa/m/h4 16) */
 .titleCompact {
-  font-size: clamp(20px, 2.2vw, 24px);
+  font-size: 24px;
   font-weight: 700;
-  line-height: 1.3;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 
 .tabList {
   display: flex;
-  gap: 28px;
+  gap: var(--space-l);
   overflow-x: auto;
   scrollbar-width: none;
 }
 
+/* 2차 탭 — 높이 44, kfa/pc/h4 16 (휴대폰 kfa/body-s 14), 활성 on-dark + yellow 2px 밑줄 */
 .tab {
   flex: none;
-  padding: 12px 0 14px;
+  display: flex;
+  align-items: center;
+  height: 44px;
+  border-bottom: 2px solid transparent;
+  font-size: 16px;
   font-weight: 700;
-  color: var(--c-text-sub);
-  border-bottom: 3px solid transparent;
-  margin-bottom: -1px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--c-on-dark-sub);
 }
 
 .tab:hover {
-  color: var(--c-text);
+  color: var(--c-on-dark);
 }
 
 .tabActive {
-  color: var(--c-blue);
-  border-bottom-color: var(--c-blue);
+  color: var(--c-on-dark);
+  border-bottom-color: var(--c-yellow);
+}
+
+@media (max-width: 720px) {
+  .wrap {
+    --ph-h: 160px;
+    --ph-diag: 132.6px;
+    gap: var(--space-xs);
+  }
+
+  .wrapCompact {
+    --ph-h: 96px;
+  }
+
+  .title {
+    font-size: 32px;
+  }
+
+  /* 휴대폰 compact — 라벨과 이름을 한 줄에 (baseline) */
+  .wrapCompact .head {
+    flex-direction: row;
+    align-items: baseline;
+  }
+
+  .titleCompact {
+    font-size: 16px;
+  }
+
+  .tab {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.6;
+    letter-spacing: 0;
+  }
 }

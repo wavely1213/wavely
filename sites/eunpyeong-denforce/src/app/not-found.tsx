@@ -11,14 +11,15 @@ import { getClubSettings, getSiteContent } from "@/lib/repo";
 export default async function NotFound() {
   const [settings, content] = await Promise.all([getClubSettings(), getSiteContent()]);
   const sns = snsLinks(settings);
+  // site-root: 공개 화면 공통 초점 표시 범위 ((site)/layout.tsx 와 같게)
   return (
-    <>
+    <div className="site-root">
       <TopBar sns={sns} store={{ label: content["nav.external.label"], href: content["nav.external.href"] }} />
       <Header pathname="" sns={sns} content={headerContent(content)} />
       <main>
         <NotFoundBody />
       </main>
       <Footer />
-    </>
+    </div>
   );
 }
