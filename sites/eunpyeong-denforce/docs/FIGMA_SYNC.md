@@ -81,3 +81,4 @@
 ## 진행 기록
 
 - 2026-11-09 총괄: 피그마 파일 생성, 이 계획서 작성, 기능/디자인 세션 시작.
+- 2026-11-09 디자인: 1단계 01 Foundations — 페이지 6개(00~05) 생성, 변수 컬렉션 `Color`(19개, 모드 Value) · `Radius`(s 6, m 10) · `Layout`(container/gutter/header-h/section-gap, 모드 Desktop/Mobile) 값은 tokens.css 그대로, 이름은 약속 A 경로, WEB 코드 문법 `var(--…)`. 글꼴 스타일 `kfa/<크기> Regular|Bold` 34개. 견본 시트 노드 3:69 (페이지 3:2), 스크린샷 확인. 참고: ① tokens.css 에 간격(space) 토큰이 없어 `Space` 컬렉션은 만들지 않음(값 발명 금지) — tokens.json 에 생기면 추가. ② KFA고딕은 피그마 글꼴 목록에 없음(사이트 로컬 글꼴, Pro 플랜은 팀 글꼴 업로드 불가) → CSS 대체 순서의 `Noto Sans KR` 로 스타일을 만듦. 소유자가 데스크톱 앱에 KFA고딕을 설치하면 스타일 글꼴만 바꾸면 된다(총괄 확인 필요).
