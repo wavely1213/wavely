@@ -1,5 +1,6 @@
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
+import { SiteRootMarker } from "@/components/layout/SiteRootMarker";
 import { NotFoundBody } from "@/components/layout/NotFoundBody";
 import { TopBar } from "@/components/layout/TopBar";
 import { snsLinks } from "@/lib/club";
@@ -14,6 +15,7 @@ export default async function NotFound() {
   // site-root: 공개 화면 공통 초점 표시 범위 ((site)/layout.tsx 와 같게)
   return (
     <div className="site-root">
+      <SiteRootMarker />
       <TopBar sns={sns} store={{ label: content["nav.external.label"], href: content["nav.external.href"] }} />
       <Header pathname="" sns={sns} content={headerContent(content)} />
       <main>

@@ -34,41 +34,40 @@ function activeChildHref(pathname: string): string | null {
 /**
  * 사이트 헤더 (리디자인 D-067, D-069 1단계).
  * - PC: 1차 메뉴 한 줄(지금 페이지는 노란 2px 밑줄). 마우스를 1차 메뉴에 올리거나 키보드 초점이 메뉴에 오면 MegaMenu(전폭 black-soft, 모든 2차 메뉴).
- *   열림은 상태로 관리한다 — 헤더(바 + 메가) 밖으로 나가면 잠시 뒤 닫히고(초점이 헤더 안이면 그대로), 페이지가 바뀌면 닫히고,
- *   Esc 로 닫는다(어디에 초점이 있든, 메가 안이었으면 그 1차 메뉴로).
+ *   열림은 마우스 열림/키보드 열림 두 상태로 관리한다 — 마우스는 헤더(바 + 메가) 밖으로 나가면 잠시 뒤 닫히고, 키보드는 초점이 메뉴 밖으로 나가면 닫힌다.
+ *   페이지가 바뀌면 닫히고, Esc 로 어디서든 닫는다(메뉴 안 초점이면 그 1차 메뉴로).
  * - 휴대폰(960px 이하): 메뉴 버튼 → 전체 화면 메뉴(1차 + 2차, 맨 아래 SNS / MD스토어 / 사이트맵 — D-042). Esc 로 닫으면 메뉴 버튼으로 초점.
  * content: 구단 이름/영문 이름/MD스토어 링크 (관리자 › 홈페이지 내용 › 기본 정보, D-046). pathname 은 활성 메뉴 표시용(모르면 빈 문자열).
  */
 export function Header({ pathname, sns, content }: { pathname: string; sns: SnsLink[]; content: HeaderContent }) {
   const [open, setOpen] = useState(false);
-  const [megaOpen, setMegaOpen] = useState(false);
-  // 주소가 바뀌면(링크, 뒤로/앞으로 가기) 두 메뉴를 닫는다 — 렌더 중에 이전 주소와 비교 (React 권장 방식)
+  // PC 메가메뉴 상태 — 초점 위치(activeElement)는 보지 않는다
+  //  pointerOpen: 마우스가 1차 메뉴에 들어오면 true, 헤더(바 + 메가)에서 나가면 잠시 뒤 false
+  //  keyboardOpen: 메뉴 안 요소가 키보드 초점(:focus-visible)을 받으면 true, 초점이 메뉴 밖으로 나가면 false
+  //  dismissed: 메뉴 안에 초점이 있을 때 Esc 로 닫음 — 초점이 메뉴 밖으로 나가거나, 밖에서 다시 들어오거나, 마우스가 다시 들어오면 풀림
+  const [pointerOpen, setPointerOpen] = useState(false);
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+  const megaOpen = (pointerOpen || keyboardOpen) && !dismissed;
+
+  // 주소가 바뀌면(링크, 뒤로/앞으로 가기) 메뉴 상태를 모두 처음으로 — 렌더 중에 이전 주소와 비교 (React 권장 방식)
   const [shownPath, setShownPath] = useState(pathname);
   if (shownPath !== pathname) {
     setShownPath(pathname);
     setOpen(false);
-    setMegaOpen(false);
+    setPointerOpen(false);
+    setKeyboardOpen(false);
+    setDismissed(false);
   }
 
-  const headerRef = useRef<HTMLElement>(null);
   const navRef = useRef<HTMLElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const closeTimer = useRef<number | undefined>(undefined);
-  /** Esc 로 닫은 뒤에는 초점이 메뉴 밖으로 나갈 때까지 다시 열지 않는다 */
-  const dismissed = useRef(false);
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
   const activeChild = activeChildHref(pathname);
 
   const cancelClose = () => window.clearTimeout(closeTimer.current);
-  const openMega = () => {
-    cancelClose();
-    setMegaOpen(true);
-  };
-  const closeMega = () => {
-    cancelClose();
-    setMegaOpen(false);
-  };
 
   useEffect(() => () => window.clearTimeout(closeTimer.current), []);
 
@@ -89,13 +88,17 @@ export function Header({ pathname, sns, content }: { pathname: string; sns: SnsL
     if (!megaOpen) return;
     const onKey = (e: globalThis.KeyboardEvent) => {
       if (e.key !== "Escape") return;
-      dismissed.current = true;
       window.clearTimeout(closeTimer.current);
-      setMegaOpen(false);
-      // 메가 안에 초점이 있었으면 그 칸의 1차 메뉴로 돌려준다 (메가가 닫혀 초점이 사라지지 않게)
       const el = document.activeElement;
-      const top = el instanceof HTMLElement ? el.closest<HTMLElement>("[data-top]")?.dataset.top : undefined;
-      if (top) navRef.current?.querySelector<HTMLElement>(`a[data-top-link="${top}"]`)?.focus();
+      if (!(el instanceof HTMLElement) || !navRef.current?.contains(el)) {
+        // 초점이 메뉴 밖(마우스로 연 경우) — 마우스 열림만 닫는다
+        setPointerOpen(false);
+        return;
+      }
+      // 초점이 메뉴 안 — 닫고, 메가 안이었으면 그 칸의 1차 메뉴로 초점 (메가가 닫혀 초점이 사라지지 않게)
+      setDismissed(true);
+      const top = el.closest<HTMLElement>("[data-top]")?.dataset.top;
+      if (top) navRef.current.querySelector<HTMLElement>(`a[data-top-link="${top}"]`)?.focus();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -104,36 +107,38 @@ export function Header({ pathname, sns, content }: { pathname: string; sns: SnsL
   // 링크를 누르면 메뉴를 닫는다 (같은 페이지 링크도)
   const onLinkClick = (e: MouseEvent<HTMLElement>) => {
     setOpen(false);
-    closeMega();
+    cancelClose();
+    setPointerOpen(false);
+    setKeyboardOpen(false);
     e.currentTarget.blur();
   };
 
   // ── PC 메가메뉴 열고 닫기 ──
   const onMenuPointerEnter = (e: PointerEvent) => {
-    if (e.pointerType === "mouse" && matches(FINE_HOVER) && matches(DESKTOP)) openMega();
+    if (e.pointerType !== "mouse" || !matches(FINE_HOVER) || !matches(DESKTOP)) return;
+    cancelClose();
+    setPointerOpen(true);
+    setDismissed(false);
   };
-  // 마우스가 헤더 밖으로 나가면 잠시 뒤 닫는다 — 단, 그때 키보드 초점이 헤더 안에 있으면 닫지 않는다(초점이 사라지지 않게)
   const onHeaderPointerLeave = (e: PointerEvent) => {
     if (e.pointerType !== "mouse") return;
     cancelClose();
-    closeTimer.current = window.setTimeout(() => {
-      if (headerRef.current?.contains(document.activeElement)) return;
-      setMegaOpen(false);
-    }, CLOSE_DELAY_MS);
+    closeTimer.current = window.setTimeout(() => setPointerOpen(false), CLOSE_DELAY_MS);
   };
-  // 키보드 초점(focus-visible)일 때만 연다 — 터치로 링크를 누를 때 생기는 초점으로는 열지 않는다
+  // 키보드 초점(focus-visible)일 때만 연다 — 마우스/터치 누름으로 생긴 초점으로는 열지 않는다
   const onNavFocus = (e: FocusEvent<HTMLElement>) => {
-    if (dismissed.current || !matches(DESKTOP)) return;
-    if (e.target instanceof Element && e.target.matches(":focus-visible")) openMega();
+    const fromOutside = !navRef.current?.contains(e.relatedTarget as Node | null);
+    if (fromOutside) setDismissed(false);
+    if (matches(DESKTOP) && e.target instanceof Element && e.target.matches(":focus-visible")) setKeyboardOpen(true);
   };
   const onNavBlur = (e: FocusEvent<HTMLElement>) => {
     if (navRef.current?.contains(e.relatedTarget as Node | null)) return;
-    dismissed.current = false;
-    closeMega();
+    setKeyboardOpen(false);
+    setDismissed(false);
   };
 
   return (
-    <header ref={headerRef} className={styles.header} data-surface="dark" onPointerLeave={onHeaderPointerLeave}>
+    <header className={styles.header} data-surface="dark" onPointerLeave={onHeaderPointerLeave}>
       <div className={`container ${styles.bar}`}>
         <Link href="/" className={styles.brand} onClick={onLinkClick}>
           <Image src={SITE.emblemMark} alt="" width={40} height={51} loading="eager" className={styles.mark} />

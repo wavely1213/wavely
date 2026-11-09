@@ -97,7 +97,7 @@ button {
   outline-color: var(--c-on-blue);
 }
 
-/* 붙어 있는 헤더에 초점 요소/앵커가 가려지지 않게 (공개 화면만) */
-html:has(.site-root) {
+/* 붙어 있는 헤더에 초점 요소/앵커가 가려지지 않게 (공개 화면만 — SiteRootMarker 가 공개 레이아웃이 보일 때만 html 에 붙인다) */
+html.site-html {
   scroll-padding-top: var(--header-h);
 }

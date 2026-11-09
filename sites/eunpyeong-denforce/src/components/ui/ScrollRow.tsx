@@ -69,12 +69,13 @@ export function ScrollRow({
     moved.current = true;
   }, [activeKey]);
 
-  // 키보드로 줄 안의 탭에 초점이 오면 그 탭이 다 보이게 옆으로만 옮긴다 (화면 밖에 반쯤 걸리지 않게)
+  // 키보드로 줄 안의 탭에 초점이 오면 그 탭이 다 보이게 옆으로만 옮긴다 (화면 밖에 반쯤 걸리지 않게).
+  // 마우스/터치로 누를 때 생긴 초점에는 옮기지 않는다 — 누르는 사이 줄이 움직이면 click 이 빗나간다
   const onFocus = (e: FocusEvent<HTMLDivElement>) => {
     rest.onFocus?.(e);
     const el = ref.current;
     const item = e.target instanceof HTMLElement ? e.target : null;
-    if (!el || !item || item === el) return;
+    if (!el || !item || item === el || !item.matches(":focus-visible")) return;
     const row = el.getBoundingClientRect();
     const tab = item.getBoundingClientRect();
     const start = tab.left - row.left + el.scrollLeft;
