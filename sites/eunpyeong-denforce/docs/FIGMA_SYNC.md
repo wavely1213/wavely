@@ -247,7 +247,7 @@
 | Header (Active × Device × State 기본/메뉴 열림 × 버전) | src/components/layout/Header.tsx |
 | MegaMenu (새, PC 메뉴 열림) | src/components/layout/Header.tsx |
 | Footer (Device × 버전) | src/components/layout/Footer.tsx |
-| PageHeader (Type=Default/Compact × Device × 버전, 리디자인=검정 면 + 사선) | src/components/layout/PageHeader.tsx |
+| PageHeader (Type=Default/Compact × Device × 버전, 리디자인=검정 면 + 사선, 불린 '탭 4~6') | src/components/layout/PageHeader.tsx |
 | Chip (새, State 기본/활성/초점) 130:716 | 새 탭/필터 칩 (PageHeader 2차 탭, 경기 필터) |
 | TeamSwitcher (새, 02 한 장만, 기본 숨김) | 새 src/components/layout/TeamSwitcher.tsx |
 | Hero (Device × 사진 있음/없음 × 버전, NextMatchHero 내장) | src/components/home/Hero.tsx, HeroTitle.tsx |
@@ -265,20 +265,23 @@
 | StandingsWidget (Device × State 개막 전/시즌 중 × 버전) | src/components/home/StandingsWidget.tsx |
 | QuickLinks (Device × 버전) | src/components/home/QuickLinks.tsx |
 | PlayersPreview (새 모양, Device pc/m) | src/components/home/PlayersPreview.tsx |
-| PlayerCard (Type 촬영본/WELCOME/사진 없음 × 버전 × State × 면 검정/흰) | src/components/player/PlayerCard.tsx |
+| PlayerCard (Type 촬영본/WELCOME/사진 없음 × 버전 × State × 면 검정/흰, 불린 '기록 줄' = 구분안 2) | src/components/player/PlayerCard.tsx |
 | InstagramGrid (새, Device pc/m) | 새 src/components/home/InstagramGrid.tsx |
 | MatchTable (Device) | src/components/match/MatchTable.tsx |
 | MatchTable Row (새, Kind 머리/일정/일정 다음 경기/결과 × Device) 131:813 | src/components/match/MatchTable.tsx (행) |
 | PlayerHero (새, Device × 합류/기록, 전폭 black-soft 면) 132:816 | src/app/(site)/players/[id] 머리 |
 | StandingsTable (Device × 버전, 리디자인은 팀명 앞 TeamCrest 24) 132:2062 | src/components/match/StandingsTable.tsx |
-| NewsBanner | src/components/news/NewsBanner.tsx |
+| NewsBanner (버전 × Device × Count 여러 장/1장 × State) 145:782 | src/components/news/NewsBanner.tsx |
+| VideoCard (새, Device × State, 9:16) 145:810 | NewsGrid vertical (구단영상, D-061) |
+| SponsorTile (새, Type 네이밍/메인/후원사 × State) 146:712 | 스폰서 페이지 등급 타일 |
+| AchievementStrip (새, Device, 연혁 성과 띠) 146:737 | 연혁 페이지 |
 | NewsGallery | src/components/news/NewsGallery.tsx |
 | ShareButton | src/components/news/ShareButton.tsx |
 | article/Pager | src/app/(site)/news/[category]/[id]/page.tsx (article.module.css) |
-| StaffCard | src/components/player/StaffCard.tsx |
+| StaffCard (버전 × Device × Type 사진/사진 없음 × State) 145:881 | src/components/player/StaffCard.tsx |
 | PostingBoard | src/components/posting/PostingBoard.tsx |
-| PostingCard | src/components/posting/PostingCard.tsx |
-| MoreButton | src/components/ui/MoreButton.tsx |
+| PostingCard (버전 × Device × State) 145:847 | src/components/posting/PostingCard.tsx |
+| MoreButton (버전 × State) 146:744 | src/components/ui/MoreButton.tsx |
 | prose/Button | src/styles/prose.module.css .button |
 | prose/Card | src/styles/prose.module.css .card |
 | (관리자 부품: 04 단계 보류) | src/components/admin/** |
@@ -335,3 +338,5 @@
 - 2026-11-09 디자인: 총괄 2차 검토 반영 — ① MatchTable Row 131:813 PC 3변형: 대진 칸을 홈팀 칸(이름 + 엠블럼, 오른쪽 정렬) / vs 칸(고정 48) / 원정팀 칸(엠블럼 + 이름, 왼쪽 정렬)으로 나눠 모든 행의 vs 가 같은 세로선, HOME 배지는 경기장소 칸 장소 이름 앞(휴대폰 그대로). ② PlayerHero 132:816 를 전폭 black-soft 면으로 다시 만듦(포지션 라벨 kfa/label yellow, 이름 display on-dark, 합류 줄 또는 기록 number-l on-dark '12경기 / 10골' + 출처 줄 on-dark-sub). 선수 상세 4프레임(137:13033, 137:13176, 137:13313, 137:13427)에서 PageHeader 바로 아래로 옮기고, 관련 소식 아래 '이전 선수 / 선수 목록 / 다음 선수' 줄 추가(목록 순서, 이름 + 포지션, 처음/끝은 빈 칸). ③ StandingsTable 리디자인 4변형 팀명 앞 TeamCrest 24(상대 initial, 우리 엠블럼), 휴대폰 긴 팀명 낱말 경계 줄바꿈. ④ 초점 속성 이름 State 로 통일(NewsCard, PlayerCard, NewsTabs, QuickLinks 의 '상태' → State). ⑤ 구분안 2 주석: 출전 1경기 이상만 출전 줄. [변경] 주석 추가. 감사: 맨 색/간격/라운드 0, 스타일 없는 글자 0, 글꼴 Noto Sans KR Regular/Bold 만, 중간점 0, 인스턴스 646개 연결 정상, 프레임 겹침 0. get_screenshot 확인(경기결과 PC, 선수 상세 PC/휴대폰, 순위 표 PC/휴대폰). 총괄 보고 후 멈춤.
 - 2026-11-09 디자인: 총괄 답 반영 — PlayerHero 132:816 합류 줄을 '합류 2026-27 시즌'만으로(포지션은 위 라벨 하나), 선수 상세 합류 2프레임(137:13033, 137:13313) 반영. 기록 선수(김영록)는 라벨 + 이름 + 기록 숫자 + 출처로 포지션 중복 없음 확인. get_screenshot 확인. 멈춤(동명이인 구분안과 2차 승인은 소유자 답 대기).
 - 2026-11-09 총괄: 소유자 2차 묶음(경기일정/결과, 선수 목록/상세, 리그순위, 하위 페이지 머리) **승인**, 동명이인 표시는 **구분안 2**. 디자인 세션에 3차 묶음 지시.
+- 2026-11-09 디자인: 동명이인 구분안 2 적용 — PlayerCard 118:654 에 불린 '기록 줄'(기본 끔, 홈 카드 그대로). 선수 목록 PC 137:11897 / 휴대폰 137:12494 를 구분안 2로(카드 아래 '2025-26 출전 N경기' 출전 1경기 이상 7명, 나머지 같은 높이 빈 줄, 목록 아래 출처 줄), 프레임 이름 '(구분안 2)'. 비교 프레임 137:12278, 137:12846 은 '결정: 구분안 2' 주석만 달고 남김.
+- 2026-11-09 디자인: 리디자인 3차(하위 페이지 4, 5번) — 02 새/변형 부품: NewsBanner 145:782(Count 여러 장/1장, 넘김 44 + 점 + 쪽수 + 멈춤), VideoCard 145:810(9:16), PostingCard 145:847, StaffCard 145:881(사진 없음 = black-soft + 엠블럼), SponsorTile 146:712, AchievementStrip 146:737, MoreButton 146:744, PageHeader 탭 4~6 불린. 03 섹션 `리디자인 시안 3차 (하위 페이지)` 148:15483 (33프레임): 구단소식 전체 PC 배너 여러 장 148:15484, 1장 148:15763 / M 148:16027, 148:16277. 구단영상 PC 149:16417 / M 149:16726. 포스팅 PC 150:16947 / M 150:17391. 기사 상세 PC 151:17695 / M 151:17850 / 사진 크게 보기 열림 151:17976. 구단소개 PC 152:17901 / M 152:18356. 연혁 PC 152:18164 / M 152:18590. 엠블럼/유니폼 PC 엠블럼 탭 154:18327, 유니폼 탭 154:18504 / M 154:18646, 154:18794. 오시는 길 PC 155:18731 / M 155:19053. 코칭스태프 PC 155:18888 / M 155:19181. 스폰서 PC 157:19165 / M 157:19509. 문의 PC 157:19356 / M 157:19671. 사이트맵 PC 158:19633 / M 158:20009. 404 없는 주소 PC 158:19785 / M 158:20132, 없는 글 PC 158:19896 / M 158:20214. 실제 데이터(사이트 캡처의 글과 사진, 유니폼 사진은 사이트 원본을 올림). [변경]/[확인] 주석. 감사: 맨 색/간격/라운드 0, 스타일 없는 글자 0, 글꼴 Noto Sans KR Regular/Bold 만, 중간점 0, 인스턴스 310개 연결 정상, 프레임 겹침 0, 낱말 경계 줄바꿈 68곳. get_screenshot 확인. 총괄 보고 후 멈춤.
