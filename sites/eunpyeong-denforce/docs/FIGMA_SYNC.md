@@ -248,7 +248,7 @@
 | MegaMenu (새, PC 메뉴 열림) | src/components/layout/Header.tsx |
 | Footer (Device × 버전) | src/components/layout/Footer.tsx |
 | PageHeader (Type=Default/Compact × Device × 버전, 리디자인=검정 면 + 사선) | src/components/layout/PageHeader.tsx |
-| Chip (새, 상태 기본/선택/초점) | 새 탭/필터 칩 (PageHeader 2차 탭, 경기 필터) |
+| Chip (새, State 기본/활성/초점) 130:716 | 새 탭/필터 칩 (PageHeader 2차 탭, 경기 필터) |
 | TeamSwitcher (새, 02 한 장만, 기본 숨김) | 새 src/components/layout/TeamSwitcher.tsx |
 | Hero (Device × 사진 있음/없음 × 버전, NextMatchHero 내장) | src/components/home/Hero.tsx, HeroTitle.tsx |
 | NextMatchHero (새, Device pc/m × State 있음/없음/초점, 카운트다운 없음) | 새 src/components/home/NextMatchHero.tsx |
@@ -265,12 +265,12 @@
 | StandingsWidget (Device × State 개막 전/시즌 중 × 버전) | src/components/home/StandingsWidget.tsx |
 | QuickLinks (Device × 버전) | src/components/home/QuickLinks.tsx |
 | PlayersPreview (새 모양, Device pc/m) | src/components/home/PlayersPreview.tsx |
-| PlayerCard (Type 촬영본/WELCOME/사진 없음 × 버전 × 상태 × 면 검정/흰) | src/components/player/PlayerCard.tsx |
+| PlayerCard (Type 촬영본/WELCOME/사진 없음 × 버전 × State × 면 검정/흰) | src/components/player/PlayerCard.tsx |
 | InstagramGrid (새, Device pc/m) | 새 src/components/home/InstagramGrid.tsx |
 | MatchTable (Device) | src/components/match/MatchTable.tsx |
 | MatchTable Row (새, Kind 머리/일정/일정 다음 경기/결과 × Device) 131:813 | src/components/match/MatchTable.tsx (행) |
-| PlayerHero (새, Device × 합류/기록) 132:816 | src/app/(site)/players/[id] 머리 |
-| StandingsTable (Device × 버전) 132:2062 | src/components/match/StandingsTable.tsx |
+| PlayerHero (새, Device × 합류/기록, 전폭 black-soft 면) 132:816 | src/app/(site)/players/[id] 머리 |
+| StandingsTable (Device × 버전, 리디자인은 팀명 앞 TeamCrest 24) 132:2062 | src/components/match/StandingsTable.tsx |
 | NewsBanner | src/components/news/NewsBanner.tsx |
 | NewsGallery | src/components/news/NewsGallery.tsx |
 | ShareButton | src/components/news/ShareButton.tsx |
@@ -332,3 +332,4 @@
 - 2026-11-09 총괄: 소유자 홈 1차 검토 — NextMatchHero 카운트다운 빼고 나머지(경기 3칸 띠, 스폰서 띠 위치, 소식 큰 카드+목록, 순위 7열, 선수단 검정 면, INSTAGRAM, 하위 페이지 머리 검정 면) **모두 승인**. 기준의 카운트다운 부분 삭제.
 - 2026-11-09 디자인: 카운트다운 제거 — NextMatchHero 112:194 상태를 있음/없음(+초점)만 남김(남은 시간/당일/킥오프 지남 변형 삭제). 홈 14프레임의 인스턴스를 State=있음으로 바꾸고 히어로 안 위치 다시 맞춤, 관련 [변경] 주석 정리. 휴대폰 히어로 높이 안에 들어감 확인.
 - 2026-11-09 디자인: 리디자인 2차(하위 페이지) — 02: PageHeader 39:39 에 버전=리디자인(검정 면 + 사선, Default/Compact × pc/m) 130:654, 130:668, 130:682, 130:696, Chip 130:716, TeamSwitcher 130:725(02 한 장만), MatchTable Row 131:813, PlayerHero 132:816, StandingsTable 리디자인 132:2062, PlayerCard 면=흰, Header 활성 메뉴 리디자인 변형 133:2~133:102. 03 섹션 `리디자인 시안 2차` 136:9513 (20프레임): 경기일정 PC 가득 136:9514, 없음 136:9977 / M 가득 136:10098, 없음 136:10528. 경기결과 PC 가득 136:10620, 없음 136:11324 / M 가득 136:11445, 없음 136:12108. 선수 목록 PC 가득(구분안 1) 137:11897, 동명이인 비교 137:12278 / M 137:12494, 137:12846. 선수 상세 PC 합류(임우성) 137:13033, 기록(김영록) 137:13176 / M 137:13313, 137:13427. 리그순위 PC 지금 시즌 138:13329, 지난 시즌 138:13604 / M 138:14414, 138:14661. 실제 데이터, [변경]/[관리자 칸 필요] 주석. 감사: 맨 색/간격/라운드 0, 스타일 없는 글자 0, 글꼴 Noto Sans KR Regular/Bold 만, 중간점 0, 인스턴스 578개 연결 정상. get_screenshot 확인. 총괄 보고 후 멈춤.
+- 2026-11-09 디자인: 총괄 2차 검토 반영 — ① MatchTable Row 131:813 PC 3변형: 대진 칸을 홈팀 칸(이름 + 엠블럼, 오른쪽 정렬) / vs 칸(고정 48) / 원정팀 칸(엠블럼 + 이름, 왼쪽 정렬)으로 나눠 모든 행의 vs 가 같은 세로선, HOME 배지는 경기장소 칸 장소 이름 앞(휴대폰 그대로). ② PlayerHero 132:816 를 전폭 black-soft 면으로 다시 만듦(포지션 라벨 kfa/label yellow, 이름 display on-dark, 합류 줄 또는 기록 number-l on-dark '12경기 / 10골' + 출처 줄 on-dark-sub). 선수 상세 4프레임(137:13033, 137:13176, 137:13313, 137:13427)에서 PageHeader 바로 아래로 옮기고, 관련 소식 아래 '이전 선수 / 선수 목록 / 다음 선수' 줄 추가(목록 순서, 이름 + 포지션, 처음/끝은 빈 칸). ③ StandingsTable 리디자인 4변형 팀명 앞 TeamCrest 24(상대 initial, 우리 엠블럼), 휴대폰 긴 팀명 낱말 경계 줄바꿈. ④ 초점 속성 이름 State 로 통일(NewsCard, PlayerCard, NewsTabs, QuickLinks 의 '상태' → State). ⑤ 구분안 2 주석: 출전 1경기 이상만 출전 줄. [변경] 주석 추가. 감사: 맨 색/간격/라운드 0, 스타일 없는 글자 0, 글꼴 Noto Sans KR Regular/Bold 만, 중간점 0, 인스턴스 646개 연결 정상, 프레임 겹침 0. get_screenshot 확인(경기결과 PC, 선수 상세 PC/휴대폰, 순위 표 PC/휴대폰). 총괄 보고 후 멈춤.
