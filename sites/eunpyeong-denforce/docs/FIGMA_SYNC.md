@@ -122,8 +122,8 @@
 폭 layout/container 1200. 전폭 색 면(Hero, MatchStrip, 선수단, Footer)과 SponsorMarquee는 사이 0, 색 면 안쪽과 흰 면 섹션 위아래는 layout/section-gap(72, 겹치면 한 번).
 1. **TopBar 44**(black, D-042, D-047) + **Header 80**(D-052, 영문 kfa/header-en). **MegaMenu**: 전폭 black-soft, 1차 kfa/label yellow, 2차 kfa/body on-dark('메뉴 열림' 프레임).
 2. **Hero** 640(layout/hero-h): 관리자 사진 + 그라데이션(왼쪽 아래 overlay-strong → 오른쪽 위 overlay-faint). 왼쪽 아래 윗글씨(kfa/label, yellow), 윗줄 kfa/hero-lead, 아랫줄 구단 이름 kfa/display, 두 줄 폭 같게(D-036). 기본 문구는 kfa/hero-lead 그대로. 최대 길이 프레임은 윗줄 크기를 덮어써 폭을 맞추고(체크리스트 4 예외, 'HeroTitle이 화면에서 크기 계산' 주석), 윗줄과 이름은 각 2줄까지(긴 줄끼리 맞춤, 이름이 2줄을 넘으면 display 크기도 덮어씀) [확인 D-036], 휴대폰도 520 안에서 NextMatchHero와 안 겹침.
-3. **NextMatchHero**(히어로 오른쪽 아래 space/2xl): 400(layout/match-hero-w), blue, radius/l, 패딩 space/l, 오른쪽 아래 사선 삼각형 96(line-on-dark). 기본 글자, 숫자, [경기일정] 테두리, 초점은 on-blue. 'NEXT HOME MATCH'(kfa/label, yellow) + CompetitionTag / TeamCrest 56 둘 + 아래 팀 이름(kfa/body-s, 2줄까지, 줄임 금지), 홈팀 왼쪽, 우리 엠블럼은 bg 원 받침 / '12월 5일 (토) 14:00'(kfa/h3), '은평다목적체육관' + HOME / 카운트다운 일 / 시간 / 분(브라우저 계산, kfa/number, line-on-dark 테두리) / 버튼 2개 높이 44: [오시는 길] bg 바탕 blue 글자, [경기일정] 테두리.
-   - 상태: 남은 시간 / 당일('D-DAY' + '킥오프 14:00') / 킥오프 지남(카운트다운만 숨김, 결과 입력 뒤 다음 홈경기로) / 다음 홈경기 없음(숨김). [변경: 히어로 카드 일시만 → 일 / 시간 / 분 카운트다운 추가]
+3. **NextMatchHero**(히어로 오른쪽 아래 space/2xl): 400(layout/match-hero-w), blue, radius/l, 패딩 space/l, 오른쪽 아래 사선 삼각형 96(line-on-dark). 기본 글자, 숫자, [경기일정] 테두리, 초점은 on-blue. 'NEXT HOME MATCH'(kfa/label, yellow) + CompetitionTag / TeamCrest 56 둘 + 아래 팀 이름(kfa/body-s, 2줄까지, 줄임 금지), 홈팀 왼쪽, 우리 엠블럼은 bg 원 받침 / '12월 5일 (토) 14:00'(kfa/h3), '은평다목적체육관' + HOME / 버튼 2개 높이 44: [오시는 길] bg 바탕 blue 글자, [경기일정] 테두리.
+   - 상태: 있음 / 다음 홈경기 없음(숨김). 결과 입력 전까지는 킥오프가 지나도 그 경기가 남는다(BR-003). **카운트다운은 넣지 않는다** (소유자 2026-11-09 "이거까진 필요 없을듯").
 4. **MatchStrip**(black-soft): 섹션 제목(관리자 값) + 링크(예정 있으면 '전체 일정' → 경기일정, 휴식기 '전체 결과' → 경기결과). [지난 경기 | 다음 경기(원정 포함) | 그다음 경기], 칸 사이 line-on-dark. 칸: 라벨, CompetitionTag, 날짜 / TeamCrest 40 + 아래 이름(2줄까지, 줄임 금지), 홈팀 왼쪽 / 스코어나 시각(kfa/number, on-dark) / 지난 경기는 ResultBadge, 득점 줄, 있을 때만 [하이라이트] [다시보기] 새 창 버튼. 대진 줄만 링크. '일부' 예: 8/25 인천ZD스포츠 3 : 3(다시보기만). 빈 칸은 숨기고 남은 칸이 폭을 나눔(3 / 2 / 1칸, 0이면 숨김). 휴식기(예정 0) 프레임은 최근 결과 3칸(라벨 '지난 경기') + '전체 결과'. [변경 D-034: 경기 카드 2장(휴식기 최근 2장) → 3칸 띠(휴식기 최근 결과 3칸)]
 5. **SponsorMarquee**(bg, 높이 96, 로고 40, 10곳 등급순): 마우스, 초점, 움직임 줄이기에서 멈춤 + 멈춤 버튼 44. [변경 D-029: 히어로 바로 아래 → MatchStrip 아래] [변경 I-033: 멈춤 버튼 없음(보류) → 44 멈춤 버튼]
 6. **HomeColumns** 888 + 280(layout/aside-w). 왼쪽 NewsTabs 5탭, 큰 NewsCard 1(520, 16:9) + 목록 행 4(썸네일 120x80) [변경 D-034: 구단 소식 3칸 x 2줄 → 큰 카드 1 + 목록 행 4]. 오른쪽 **StandingsWidget** sticky: 순위, 팀, 경기, 승점, 승, 무, 패, 우리 팀 행 blue-tint 바탕 + text 글자, '자료: 한국풋살연맹', '고양불스풋살클럽' 2줄 넘침 프레임, 개막 전은 순위 '-' + "개막 전 / 팀명 가나다순". [변경 D-034: 순위 위젯 4열 → 7열]
@@ -134,7 +134,7 @@
 
 ### 홈 휴대폰 390
 - Header 60 → Hero 520 → MatchStrip → 스폰서 띠 → 리그 순위 → 구단 소식 → 선수단 → INSTAGRAM → 바로가기 → 푸터. gutter 16, section-gap 48, 간격 규칙은 PC와 같다. [변경 D-034: 휴대폰 리그 순위 구단 소식 뒤 → 스폰서 띠 바로 뒤]
-- **첫 화면**: 60 + 520 = 580px, Safari 보이는 높이(약 660) 안. 히어로 위쪽에 윗글씨와 두 줄 제목, 아래쪽에 NextMatchHero 358(패딩 space/m, TeamCrest 40 + 팀 이름(PC 규칙), 일시 kfa/h4, 카운트다운 kfa/number, 버튼 2개 나란히).
+- **첫 화면**: 60 + 520 = 580px, Safari 보이는 높이(약 660) 안. 히어로 위쪽에 윗글씨와 두 줄 제목, 아래쪽에 NextMatchHero 358(패딩 space/m, TeamCrest 40 + 팀 이름(PC 규칙), 일시 kfa/h4, 버튼 2개 나란히).
 - MatchStrip과 선수단은 스와이프 + 점(옆 카드 24px, 1장이면 전폭). 소식은 ScrollRow 탭 + 썸네일 왼쪽 목록 4줄 + '더 보기'(PC의 D-034 주석). 순위 7열, INSTAGRAM 3x2, 바로가기 2열, 터치 44 이상.
 - **메뉴 열림**: 전체 화면 black, NAV 1차와 2차, 맨 아래 SNS, MD스토어, 사이트맵(D-042).
 
@@ -213,7 +213,7 @@
 
 ### 기본값과 소유자 확인 항목
 1. 구단 색은 사이트 토큰(D-005), 엠블럼 색은 견본만 [확인 구단 색].
-2. 카운트다운은 초 없이, 일정은 대회별 표(월별 아님).
+2. 카운트다운 없음(소유자 결정), 일정은 대회별 표(월별 아님).
 3. 동명이인 구분안 [확인 BR-025], 번호는 확정 전까지 off.
 4. 연혁 성과 띠 "SINCE 2012 / 2018-19 FK리그 2부 우승 / 국가대표 11명 배출". 우승은 1회(2부)뿐이라 '우승 n회'로 쓰지 않는다 [확인 BR-004, BR-019, I-016].
 5. 시즌 중 예시는 2025-26 실제 자료(5위, 2승 3무 10패, 9점), 개막 전은 6팀 모두 0.
@@ -233,7 +233,7 @@
 7. '바꾸지 않는 것' 전부(BR-008은 구분안 2 포함), D-013(메인 프레임은 지금 결과색), D-042, D-045, D-047, D-052, D-053(전화와 메일 링크, 득점 줄, 하이라이트/다시보기, 기사 h1, 공유, 이전/다음 글, 사진 크게 보기, 휴대폰 탭 가로 스크롤과 더 보기, 네이밍 두 칸 폭), D-061, D-068. 부품 지도와 Code Connect 결과 기록.
 
 ### 레퍼런스
-구조와 부품 형태만 참고, 복제 금지(PROJECT_CONTEXT §7). 00 References 캡처: jeonbuk-home-pc, jeonbuk-squad-m(메가메뉴, 3단 매치) / liverpool-home-pc(3칸 매치 띠) / mancity-fixtures-pc, mancity-home-m(숫자 박스 스코어, 뉴스 행) / barca-futsal-schedule-m, barca-futsal-squad-pc(일정 3열, 포지션 칩) / ulsan-home-pc, kleague-home-m(카운트다운, 스와이프 + 점) / lgtwins-home-pc, sk-knights-home-pc(어두운 히어로, 결과 띠) / palma-home-pc.
+구조와 부품 형태만 참고, 복제 금지(PROJECT_CONTEXT §7). 00 References 캡처: jeonbuk-home-pc, jeonbuk-squad-m(메가메뉴, 3단 매치) / liverpool-home-pc(3칸 매치 띠) / mancity-fixtures-pc, mancity-home-m(숫자 박스 스코어, 뉴스 행) / barca-futsal-schedule-m, barca-futsal-squad-pc(일정 3열, 포지션 칩) / ulsan-home-pc, kleague-home-m(스와이프 + 점) / lgtwins-home-pc, sk-knights-home-pc(어두운 히어로, 결과 띠) / palma-home-pc.
 
 **00 References 메모 정정**: REFERENCES.md를 그대로 옮기지 말고 중간점은 '/'로 바꾸고, 스폰서는 10곳 4등급(네이밍 1, 메인 3, 서브 0, 후원사 6), 배번은 0/24(BR-025), 히어로 다음 홈경기는 결함이 아니라 BR-003 설계, 선수 상세는 기존 7명에게 2025-26 출전 기록이 있다(그중 득점 4명)고 고쳐 쓴다.
 
@@ -283,3 +283,4 @@
 - 2026-11-09 기능: 총괄 검토 9건 반영 — ① 루트 .gitignore 예외로 `figma-plugin/dist` 커밋 ② 동명이인: 작별엔 명단 정보 안 붙임, 영입은 제목 포지션 일치 시만, 열쇠는 소식 id (테스트 4개 추가) ③ 이미지 주소 잘못된 %-인코딩 → 400 ④ tokens.css 마지막 선언 세미콜론 없어도 읽음 ⑤ 토큰 가져오기 별칭 덮지 않음 ⑥ B-2 표에서 `isStaff` 빼고 불리언은 레이어용 아님 명시 ⑦ `npm run lint` 에 플러그인 타입 검사 ⑧ CORS `*` 예외를 SECURITY_GUIDELINES/기능 세션 결정에 기록 ⑨ 플러그인 'KFA 글꼴 적용' 버튼 + README 설치 안내.
 - 2026-11-09 총괄: 기능 브랜치 검토(9건 수정) 후 합침(8be8d50). 운영 배포 dpl_B2SXftVcpb7RqwB9j51rzrjoLy9X 로 `/api/figma/feed`, `/api/figma/image` 공개(소유자 승인). 운영 피드 확인: 다음 경기 노원제너FS 11/15, 영입 10, 작별 5, 스폰서 10, 개인정보 없음.
 - 2026-11-09 총괄: '리디자인 기준' 확정(위 섹션). 디자인 세션에 홈 PC 1280 / 휴대폰 390 시안 시작 지시 — 끝나면 보고하고 멈춤.
+- 2026-11-09 총괄: 소유자 홈 1차 검토 — NextMatchHero 카운트다운 빼고 나머지(경기 3칸 띠, 스폰서 띠 위치, 소식 큰 카드+목록, 순위 7열, 선수단 검정 면, INSTAGRAM, 하위 페이지 머리 검정 면) **모두 승인**. 기준의 카운트다운 부분 삭제.
