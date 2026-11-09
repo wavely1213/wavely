@@ -3,12 +3,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { toNewsCardPost } from "@/components/news/NewsCard";
+import { NewsMoreGrid } from "@/components/news/NewsMoreGrid";
 import { EmblemFallback } from "@/components/ui/EmblemFallback";
 import { LEAGUE } from "@/config/league";
 import { POSITION_LABEL } from "@/data/people";
 import { sitePreviewMeta } from "@/lib/og-metadata";
 import { nonEmptyParams } from "@/lib/params";
-import { findPlayerJoin, playerDescription, profileRows } from "@/lib/player-profile";
+import { findPlayerJoin, findPlayerNews, playerDescription, profileRows } from "@/lib/player-profile";
 import { getNews, getPlayer, getPlayers, getSiteContent, isLiveData } from "@/lib/repo";
 import styles from "@/styles/prose.module.css";
 import type { Player } from "@/types";
@@ -17,15 +19,17 @@ export async function generateStaticParams() {
   return nonEmptyParams((await getPlayers()).map((p) => ({ slug: p.slug })), { slug: "none" });
 }
 
-/** 기록 시즌 뒤에 영입된 선수면 그 영입 소식 (구단뉴스 제목으로 찾는다) */
-async function joinOf(player: Player) {
-  const [players, posts] = await Promise.all([getPlayers(), getNews("news")]);
-  return findPlayerJoin({
-    name: player.name,
-    sameNameCount: players.filter((p) => p.name === player.name).length,
-    posts,
-    statsSeason: LEAGUE.statsSeason,
-  });
+/**
+ * 이 선수의 소식 — join: 기록 시즌 뒤에 영입된 선수면 그 영입 소식(구단뉴스 제목으로 찾는다, '합류' 칸에 씀),
+ * related: 아래 '관련 소식' 미리보기 카드(구단뉴스/공지사항, D-068)
+ */
+async function newsOf(player: Player) {
+  const [players, posts] = await Promise.all([getPlayers(), getNews()]);
+  const sameNameCount = players.filter((p) => p.name === player.name).length;
+  return {
+    join: findPlayerJoin({ name: player.name, sameNameCount, posts, statsSeason: LEAGUE.statsSeason }),
+    related: findPlayerNews({ name: player.name, slug: player.slug, sameNameCount, posts }),
+  };
 }
 
 export async function generateMetadata({ params }: PageProps<"/team/players/[slug]">): Promise<Metadata> {
@@ -37,7 +41,7 @@ export async function generateMetadata({ params }: PageProps<"/team/players/[slu
     positionLabel: POSITION_LABEL[player.position],
     clubName: (await getSiteContent())["site.name"],
     statsSeason: LEAGUE.statsSeason,
-    join: await joinOf(player),
+    join: (await newsOf(player)).join,
   });
   return {
     title: player.name,
@@ -50,9 +54,9 @@ export default async function PlayerPage({ params }: PageProps<"/team/players/[s
   const player = await getPlayer((await params).slug);
   if (!player) notFound();
 
-  const join = await joinOf(player);
+  const { join, related } = await newsOf(player);
   const profile = profileRows(player, POSITION_LABEL[player.position], join);
-  // 합류 선수는 출전/득점 칸이 없으니 기록 출처 문구 대신 영입 소식 바로가기
+  // 합류 선수는 출전/득점 칸이 없으니 기록 출처 문구도 없다 ('영입 소식 보기' 버튼은 소유자 지시로 뺌, D-068)
   const joined = profile.some(([k]) => k === "합류");
 
   return (
@@ -81,22 +85,21 @@ export default async function PlayerPage({ params }: PageProps<"/team/players/[s
                 </li>
               ))}
             </ul>
-            {joined && join ? (
-              // 기록 출처 문구와 같은 자리·간격
-              <p className={styles.source}>
-                <Link href={`/news/${join.post.category}/${join.post.id}`} className={styles.button}>
-                  영입 소식 보기
-                </Link>
+            {!joined && isLiveData() && (
+              <p className={`${styles.note} ${styles.source}`}>
+                출전/득점: {LEAGUE.statsSeason} 기록 / 자료: {LEAGUE.source}
               </p>
-            ) : (
-              isLiveData() && (
-                <p className={`${styles.note} ${styles.source}`}>
-                  출전/득점: {LEAGUE.statsSeason} 기록 / 자료: {LEAGUE.source}
-                </p>
-              )
             )}
           </div>
         </div>
+        {related.length > 0 && (
+          <section aria-labelledby="player-news">
+            <h2 id="player-news" className={styles.h2}>
+              관련 소식
+            </h2>
+            <NewsMoreGrid posts={related.map(toNewsCardPost)} />
+          </section>
+        )}
         <p>
           <Link href="/team/players" className={styles.button}>
             선수 목록

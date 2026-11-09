@@ -1,7 +1,7 @@
 // 선수 상세(프로필 칸·시즌 합류·검색 설명) 단위 테스트 — 실행: npm test
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { findPlayerJoin, playerDescription, profileRows, seasonLabel, seasonStartYear, statsSeasonStartYear } from "../src/lib/player-profile.ts";
+import { findPlayerJoin, findPlayerNews, linksToPlayer, mentionsName, playerDescription, profileRows, seasonLabel, seasonStartYear, statsSeasonStartYear } from "../src/lib/player-profile.ts";
 import type { NewsPost, Player } from "../src/types/index.ts";
 
 const post = (id: string, title: string, date: string, category: NewsPost["category"] = "news"): NewsPost => ({
@@ -73,4 +73,47 @@ test("playerDescription: 기록 / 합류 / 둘 다 없음", () => {
     playerDescription({ ...base, player: player({ stats: { apps: 12, goals: 3, assists: 0 } }), join }),
     "강민원 (아라) - 서울은평 덴포스 선수. 2025-26 시즌 12경기 3골",
   );
+});
+
+// ── 관련 소식 (D-068) ─────────────────────
+const withBody = (p: NewsPost, body: string[], summary = ""): NewsPost => ({ ...p, body, summary });
+
+test("mentionsName: 이름이 낱말로 있을 때만 (조사 허용, 앞뒤에 다른 한글이 붙으면 아님)", () => {
+  assert.ok(mentionsName("서울은평 덴포스, '거침없는 질주' 강민원 영입", "강민원"));
+  assert.ok(mentionsName("강민원의 결승골", "강민원"));
+  assert.ok(mentionsName("강민원, 국가대표 발탁", "강민원"));
+  assert.ok(!mentionsName("이상호텔 후원 협약", "이상호"));
+  assert.ok(!mentionsName("김강민원 선수", "강민원"));
+  assert.ok(!mentionsName("", "강민원"));
+});
+
+test("linksToPlayer: 선수 페이지 주소가 있을 때만 (뒤에 다른 슬러그 글자가 이어지면 아님)", () => {
+  assert.ok(linksToPlayer("김종호 프로필\nhttps://eunpyeong-fs.com/team/players/kim-jongho", "kim-jongho"));
+  assert.ok(linksToPlayer("/team/players/kim-jongho?from=news", "kim-jongho"));
+  assert.ok(!linksToPlayer("https://eunpyeong-fs.com/team/players/kim-jongho-2", "kim-jongho"));
+  assert.ok(!linksToPlayer("https://eunpyeong-fs.com/team/players", "kim-jongho"));
+});
+
+test("findPlayerNews: 구단뉴스와 공지사항 중 그 선수 글만, 최근 글 먼저 순서 그대로", () => {
+  const posts = [
+    post("a", "서울은평 덴포스, '거침없는 질주' 강민원 영입", "2026-10-16"),
+    post("b", "서울은평 덴포스, 골레이로 임우성 영입", "2026-10-16"),
+    withBody(post("c", "개막전 안내", "2026-11-10", "notice"), [], "강민원 사인회 안내"),
+    post("d", "강민원 득점 장면", "2026-11-15", "video"),
+    post("e", "강민원 사진", "2026-11-15", "photo"),
+  ];
+  const ids = findPlayerNews({ name: "강민원", slug: "kang-minwon", sameNameCount: 1, posts }).map((p) => p.id);
+  assert.deepEqual(ids, ["a", "c"]);
+  assert.deepEqual(findPlayerNews({ name: "강민원", slug: "kang-minwon", sameNameCount: 1, posts: [] }), []);
+});
+
+test("findPlayerNews: 동명이인(BR-025)은 선수 페이지 주소가 있는 글만 — 이름만으로는 넣지 않는다", () => {
+  const welcome = withBody(post("w", "서울은평 덴포스, '확실한 존재감' 김종호 영입", "2026-10-19"), [
+    "서울은평 덴포스가 김종호를 영입했다.",
+    "김종호 프로필\n등번호: 30\nhttps://eunpyeong-fs.com/team/players/kim-jongho",
+  ]);
+  const other = post("o", "김종호, 국가대표 발탁", "2026-10-01");
+  const posts = [welcome, other];
+  assert.deepEqual(findPlayerNews({ name: "김종호", slug: "kim-jongho", sameNameCount: 2, posts }).map((p) => p.id), ["w"]);
+  assert.deepEqual(findPlayerNews({ name: "김종호", slug: "no-22", sameNameCount: 2, posts }), []);
 });

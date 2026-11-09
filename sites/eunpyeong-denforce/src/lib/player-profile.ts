@@ -1,7 +1,8 @@
 // 선수 상세 — 프로필 칸, '시즌 합류' 표시, 검색 설명 (순수 함수, 테스트: player-profile.test.ts)
-// 기록 시즌(LEAGUE.statsSeason) 뒤에 영입된 선수는 '출전 0경기 / 득점 0골' 대신 'OOOO-OO 시즌 합류 + 영입 소식'을 보인다.
+// 기록 시즌(LEAGUE.statsSeason) 뒤에 영입된 선수는 '출전 0경기 / 득점 0골' 대신 'OOOO-OO 시즌 합류'를 보인다.
+// 아래에는 그 선수 관련 소식(구단뉴스/공지사항) 미리보기 카드 — findPlayerNews (D-068).
 // 오늘 날짜를 쓰지 않는다 — 소식 날짜로 시즌을 정해서, 캐시된 화면도 날이 바뀌어 틀어지지 않게.
-import type { NewsPost, Player } from "@/types";
+import type { NewsCategory, NewsPost, Player } from "@/types";
 import { parseRosterNews } from "./admin/alerts.ts";
 
 /** 이 달부터는 다음 시즌 준비(영입)로 본다 — FK리그는 가을에 시작해 봄에 끝난다 */
@@ -83,4 +84,38 @@ export function playerDescription(input: {
   const year = statsSeasonStartYear(statsSeason);
   const season = year != null ? `${seasonLabel(year)} 시즌 ` : "";
   return `${head} ${season}${apps}경기 ${goals}골`;
+}
+
+/** 선수 상세 '관련 소식'에 넣는 분류 — 구단뉴스와 공지사항만 (소유자 2026-11-09, D-068) */
+const RELATED_CATEGORIES: ReadonlySet<NewsCategory> = new Set<NewsCategory>(["news", "notice"]);
+
+/** 이름 뒤에 붙어도 같은 사람으로 보는 조사 (김종호의, 김종호가 …) */
+const JOSA = "(?:은|는|이|가|을|를|의|과|와|도|에게|에|로|으로|만|까지|부터)?";
+
+function escapeRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** 글에 이 선수 페이지 주소(/team/players/<slug>)가 있는지 — 뒤에 슬러그 글자가 이어지면 다른 선수 */
+export function linksToPlayer(text: string, slug: string): boolean {
+  return new RegExp(`/team/players/${escapeRegExp(slug)}(?![a-z0-9-])`, "i").test(text);
+}
+
+/** 글자 속에 이름이 낱말로 있는지 — 앞에 한글이 붙지 않고, 뒤는 조사만 붙을 수 있다 (이상호 ≠ 이상호텔) */
+export function mentionsName(text: string, name: string): boolean {
+  return new RegExp(`(?<![가-힣])${escapeRegExp(name)}${JOSA}(?![가-힣])`).test(text);
+}
+
+/**
+ * 선수 상세 아래 '관련 소식' — 그 선수에 관한 구단뉴스/공지사항 (최근 글 먼저, posts 순서 그대로).
+ * - 본문/요약에 이 선수 페이지 주소가 있으면 관련 글 (영입 기사 끝의 프로필 주소) — 동명이인도 이것으로 구분
+ * - 같은 이름 선수가 한 명이면 제목이나 요약에 이름이 낱말로 있을 때도 관련 글
+ * - 같은 이름 선수가 둘 이상이면(BR-025) 이름만으로는 누구 글인지 몰라 주소가 있는 글만
+ */
+export function findPlayerNews(input: { name: string; slug: string; sameNameCount: number; posts: NewsPost[] }): NewsPost[] {
+  return input.posts.filter((post) => {
+    if (!RELATED_CATEGORIES.has(post.category)) return false;
+    if (linksToPlayer([post.summary, ...post.body].join("\n"), input.slug)) return true;
+    return input.sameNameCount === 1 && (mentionsName(post.title, input.name) || mentionsName(post.summary, input.name));
+  });
 }
