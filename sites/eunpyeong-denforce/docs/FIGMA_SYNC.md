@@ -247,9 +247,11 @@
 | Header (Active × Device × State 기본/메뉴 열림 × 버전) | src/components/layout/Header.tsx |
 | MegaMenu (새, PC 메뉴 열림) | src/components/layout/Header.tsx |
 | Footer (Device × 버전) | src/components/layout/Footer.tsx |
-| PageHeader (Type=Default/Compact × Device) | src/components/layout/PageHeader.tsx |
+| PageHeader (Type=Default/Compact × Device × 버전, 리디자인=검정 면 + 사선) | src/components/layout/PageHeader.tsx |
+| Chip (새, 상태 기본/선택/초점) | 새 탭/필터 칩 (PageHeader 2차 탭, 경기 필터) |
+| TeamSwitcher (새, 02 한 장만, 기본 숨김) | 새 src/components/layout/TeamSwitcher.tsx |
 | Hero (Device × 사진 있음/없음 × 버전, NextMatchHero 내장) | src/components/home/Hero.tsx, HeroTitle.tsx |
-| NextMatchHero (새, Device pc/m × State 남은 시간/당일/킥오프 지남/없음) | 새 src/components/home/NextMatchHero.tsx |
+| NextMatchHero (새, Device pc/m × State 있음/없음/초점, 카운트다운 없음) | 새 src/components/home/NextMatchHero.tsx |
 | MatchStrip (새, Device pc/m × Count 3/2/1/휴식기) | 새 src/components/home/MatchStrip.tsx |
 | MatchCard (Kind 결과/예정 × Device × 버전, 글자/불린 속성) | src/components/match/MatchCard.tsx |
 | ResultBadge (새, Type badge/box × Result W/D/L) | MatchCard.module.css .result, MatchTable.module.css .score |
@@ -263,10 +265,12 @@
 | StandingsWidget (Device × State 개막 전/시즌 중 × 버전) | src/components/home/StandingsWidget.tsx |
 | QuickLinks (Device × 버전) | src/components/home/QuickLinks.tsx |
 | PlayersPreview (새 모양, Device pc/m) | src/components/home/PlayersPreview.tsx |
-| PlayerCard (Type 촬영본/WELCOME/사진 없음 × 버전, 번호 불린 off) | src/components/player/PlayerCard.tsx |
+| PlayerCard (Type 촬영본/WELCOME/사진 없음 × 버전 × 상태 × 면 검정/흰) | src/components/player/PlayerCard.tsx |
 | InstagramGrid (새, Device pc/m) | 새 src/components/home/InstagramGrid.tsx |
 | MatchTable (Device) | src/components/match/MatchTable.tsx |
-| StandingsTable | src/components/match/StandingsTable.tsx |
+| MatchTable Row (새, Kind 머리/일정/일정 다음 경기/결과 × Device) 131:813 | src/components/match/MatchTable.tsx (행) |
+| PlayerHero (새, Device × 합류/기록) 132:816 | src/app/(site)/players/[id] 머리 |
+| StandingsTable (Device × 버전) 132:2062 | src/components/match/StandingsTable.tsx |
 | NewsBanner | src/components/news/NewsBanner.tsx |
 | NewsGallery | src/components/news/NewsGallery.tsx |
 | ShareButton | src/components/news/ShareButton.tsx |
@@ -326,3 +330,5 @@
 - 2026-11-09 디자인: 총괄 검토 반영 — ① 초점 변형 18개(State 가 있는 세트는 State=초점, 없는 세트는 새 속성 상태=초점): NextMatchHero, Header, SponsorMarquee(멈춤 버튼), MatchCard(영상 버튼), NewsTabs, NewsCard, PlayerCard, QuickLinks. 2px 선, 바깥 2px 간격, 밝은 면 blue / 어두운 면 on-dark / 파랑 면 on-blue. 초점 예시 한 장 126:9950(PC 개막 전 프레임 아래). ② 순위 위젯 숫자 칸 축소(PC 22, 휴대폰 32), PC 는 넘치는 팀 이름을 낱말 경계에서 줄바꿈(서울은평 / 덴포스, 고양불스 / 풋살클럽, 전주시민 / 풋살구단), 휴대폰은 한 줄. 기본 프레임 12개의 여러 줄 글자 27곳과 부품 기본값을 낱말 경계로 줄바꿈(사이트 keep-all 과 같게). ③ 흰 섹션이 이어지는 곳(INSTAGRAM → 바로가기, 휴대폰 리그 순위 → 구단 소식)은 뒤 섹션 위 여백 0 으로 layout/section-gap 한 번만. 인스턴스 396개 연결 정상, 주석 위치 다시 맞춤, get_screenshot 확인.
 - 2026-11-09 디자인: 소유자 "KFA고딕 설치됨, 반영" — 원격 use_figma 환경의 글꼴 목록(1,938 패밀리, 구글 글꼴만)에 'KFAGothic TTF' 없음, loadFontAsync 도 실패. 원격 작업은 소유자 PC 의 로컬 글꼴을 쓸 수 없다. 반영은 소유자 PC 피그마 데스크톱에서 플러그인 'KFA 글꼴 적용'으로 한다(figma-plugin/README.md). 모든 글자가 kfa/ 스타일에 연결돼 있어 버튼 한 번에 바뀐다. 적용 뒤 원격에서 스타일 글꼴 이름으로 결과를 확인할 수 있다(화면 렌더는 원격에서 대체 글꼴).
 - 2026-11-09 총괄: 소유자 홈 1차 검토 — NextMatchHero 카운트다운 빼고 나머지(경기 3칸 띠, 스폰서 띠 위치, 소식 큰 카드+목록, 순위 7열, 선수단 검정 면, INSTAGRAM, 하위 페이지 머리 검정 면) **모두 승인**. 기준의 카운트다운 부분 삭제.
+- 2026-11-09 디자인: 카운트다운 제거 — NextMatchHero 112:194 상태를 있음/없음(+초점)만 남김(남은 시간/당일/킥오프 지남 변형 삭제). 홈 14프레임의 인스턴스를 State=있음으로 바꾸고 히어로 안 위치 다시 맞춤, 관련 [변경] 주석 정리. 휴대폰 히어로 높이 안에 들어감 확인.
+- 2026-11-09 디자인: 리디자인 2차(하위 페이지) — 02: PageHeader 39:39 에 버전=리디자인(검정 면 + 사선, Default/Compact × pc/m) 130:654, 130:668, 130:682, 130:696, Chip 130:716, TeamSwitcher 130:725(02 한 장만), MatchTable Row 131:813, PlayerHero 132:816, StandingsTable 리디자인 132:2062, PlayerCard 면=흰, Header 활성 메뉴 리디자인 변형 133:2~133:102. 03 섹션 `리디자인 시안 2차` 136:9513 (20프레임): 경기일정 PC 가득 136:9514, 없음 136:9977 / M 가득 136:10098, 없음 136:10528. 경기결과 PC 가득 136:10620, 없음 136:11324 / M 가득 136:11445, 없음 136:12108. 선수 목록 PC 가득(구분안 1) 137:11897, 동명이인 비교 137:12278 / M 137:12494, 137:12846. 선수 상세 PC 합류(임우성) 137:13033, 기록(김영록) 137:13176 / M 137:13313, 137:13427. 리그순위 PC 지금 시즌 138:13329, 지난 시즌 138:13604 / M 138:14414, 138:14661. 실제 데이터, [변경]/[관리자 칸 필요] 주석. 감사: 맨 색/간격/라운드 0, 스타일 없는 글자 0, 글꼴 Noto Sans KR Regular/Bold 만, 중간점 0, 인스턴스 578개 연결 정상. get_screenshot 확인. 총괄 보고 후 멈춤.
