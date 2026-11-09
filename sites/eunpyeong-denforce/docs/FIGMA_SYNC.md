@@ -239,34 +239,45 @@
 
 ## 부품 지도 (디자인 세션이 채운다)
 
-| 피그마 컴포넌트 | 코드 |
+> 기존 부품은 변형만 더했다: 세트마다 `버전=현재`(2026-11-09 사이트 캡처) / `버전=리디자인`(D-067). 새 부품은 02 섹션 `리디자인 (D-067)`.
+
+| 피그마 컴포넌트 (변형) | 코드 |
 |---|---|
 | TopBar (Device=Desktop, 휴대폰은 숨김) | src/components/layout/TopBar.tsx |
-| Header (Active × Device) | src/components/layout/Header.tsx |
-| Footer (Device) | src/components/layout/Footer.tsx |
+| Header (Active × Device × State 기본/메뉴 열림 × 버전) | src/components/layout/Header.tsx |
+| MegaMenu (새, PC 메뉴 열림) | src/components/layout/Header.tsx |
+| Footer (Device × 버전) | src/components/layout/Footer.tsx |
 | PageHeader (Type=Default/Compact × Device) | src/components/layout/PageHeader.tsx |
-| Hero (Device) | src/components/home/Hero.tsx |
-| SponsorMarquee | src/components/home/SponsorMarquee.tsx |
+| Hero (Device × 사진 있음/없음 × 버전, NextMatchHero 내장) | src/components/home/Hero.tsx, HeroTitle.tsx |
+| NextMatchHero (새, Device pc/m × State 남은 시간/당일/킥오프 지남/없음) | 새 src/components/home/NextMatchHero.tsx |
+| MatchStrip (새, Device pc/m × Count 3/2/1/휴식기) | 새 src/components/home/MatchStrip.tsx |
+| MatchCard (Kind 결과/예정 × Device × 버전, 글자/불린 속성) | src/components/match/MatchCard.tsx |
+| ResultBadge (새, Type badge/box × Result W/D/L) | MatchCard.module.css .result, MatchTable.module.css .score |
+| HomeAwayBadge (새, Surface white/blue-tint/dark/blue) | MatchCard, MatchTable 의 HOME 표시 |
+| CompetitionTag (새, Surface 4종) | MatchCard, MatchTable 의 대회 줄 |
+| TeamCrest (새, Type us/initial × Size 56/40/24) | 새 src/components/match/TeamCrest.tsx |
+| SponsorMarquee (Device × State 흐름/멈춤 × 버전) | src/components/home/SponsorMarquee.tsx |
 | Section | src/components/ui/Section.tsx |
-| NewsTabs | src/components/home/NewsTabs.tsx (+ Tabs.module.css) |
-| StandingsWidget | src/components/home/StandingsWidget.tsx |
-| QuickLinks | src/components/home/QuickLinks.tsx |
-| MatchCard (State=Result/Upcoming) | src/components/match/MatchCard.tsx |
+| NewsTabs (Device × 버전) | src/components/home/NewsTabs.tsx (+ Tabs.module.css) |
+| NewsCard (Type large/row/vertical × 버전) | src/components/news/NewsCard.tsx |
+| StandingsWidget (Device × State 개막 전/시즌 중 × 버전) | src/components/home/StandingsWidget.tsx |
+| QuickLinks (Device × 버전) | src/components/home/QuickLinks.tsx |
+| PlayersPreview (새 모양, Device pc/m) | src/components/home/PlayersPreview.tsx |
+| PlayerCard (Type 촬영본/WELCOME/사진 없음 × 버전, 번호 불린 off) | src/components/player/PlayerCard.tsx |
+| InstagramGrid (새, Device pc/m) | 새 src/components/home/InstagramGrid.tsx |
 | MatchTable (Device) | src/components/match/MatchTable.tsx |
 | StandingsTable | src/components/match/StandingsTable.tsx |
-| NewsCard | src/components/news/NewsCard.tsx |
 | NewsBanner | src/components/news/NewsBanner.tsx |
 | NewsGallery | src/components/news/NewsGallery.tsx |
 | ShareButton | src/components/news/ShareButton.tsx |
 | article/Pager | src/app/(site)/news/[category]/[id]/page.tsx (article.module.css) |
-| PlayerCard | src/components/player/PlayerCard.tsx |
 | StaffCard | src/components/player/StaffCard.tsx |
 | PostingBoard | src/components/posting/PostingBoard.tsx |
 | PostingCard | src/components/posting/PostingCard.tsx |
 | MoreButton | src/components/ui/MoreButton.tsx |
 | prose/Button | src/styles/prose.module.css .button |
 | prose/Card | src/styles/prose.module.css .card |
-| (관리자 부품: 아래 진행 기록 4단계 참고) | src/components/admin/** |
+| (관리자 부품: 04 단계 보류) | src/components/admin/** |
 
 ## 기능 세션 결정 (총괄이 합칠 때 DECISION_LOG 로 옮겨 주세요)
 
@@ -311,3 +322,4 @@
 - 2026-11-09 기능: 총괄 검토 9건 반영 — ① 루트 .gitignore 예외로 `figma-plugin/dist` 커밋 ② 동명이인: 작별엔 명단 정보 안 붙임, 영입은 제목 포지션 일치 시만, 열쇠는 소식 id (테스트 4개 추가) ③ 이미지 주소 잘못된 %-인코딩 → 400 ④ tokens.css 마지막 선언 세미콜론 없어도 읽음 ⑤ 토큰 가져오기 별칭 덮지 않음 ⑥ B-2 표에서 `isStaff` 빼고 불리언은 레이어용 아님 명시 ⑦ `npm run lint` 에 플러그인 타입 검사 ⑧ CORS `*` 예외를 SECURITY_GUIDELINES/기능 세션 결정에 기록 ⑨ 플러그인 'KFA 글꼴 적용' 버튼 + README 설치 안내.
 - 2026-11-09 총괄: 기능 브랜치 검토(9건 수정) 후 합침(8be8d50). 운영 배포 dpl_B2SXftVcpb7RqwB9j51rzrjoLy9X 로 `/api/figma/feed`, `/api/figma/image` 공개(소유자 승인). 운영 피드 확인: 다음 경기 노원제너FS 11/15, 영입 10, 작별 5, 스폰서 10, 개인정보 없음.
 - 2026-11-09 총괄: '리디자인 기준' 확정(위 섹션). 디자인 세션에 홈 PC 1280 / 휴대폰 390 시안 시작 지시 — 끝나면 보고하고 멈춤.
+- 2026-11-09 디자인: 리디자인 기준 1차(홈) — 01: `Candidates` 컬렉션(Desktop/Mobile, 후보 표 값 그대로 27개: color/on-blue, overlay 4, win/draw/loss-strong, emblem 3, space 9, radius/l, pill, layout 4) + `Font` 컬렉션 font/family='KFAGothic TTF', 글자 단계 kfa/pc/*, kfa/m/* 각 10 + kfa/badge, body-s, caption, label, 견본 110:55. 02: 섹션 `리디자인 (D-067)` 111:2 에 새 부품 TeamCrest 111:15, ResultBadge 111:28, HomeAwayBadge 111:37, CompetitionTag 111:46, NextMatchHero 112:194(8변형), MatchStrip 114:602(8변형), MegaMenu 115:729, PlayersPreview 118:776, InstagramGrid 119:720, 기존 세트에 `버전=리디자인` 변형 추가: Header 39:36, Hero 39:37, Footer 39:38, MatchCard 113:141, SponsorMarquee 119:893, NewsTabs 119:894, NewsCard 116:736, StandingsWidget 119:895, PlayerCard 118:654, QuickLinks 119:896(03 현재 사이트 인스턴스 125개 연결 유지 확인). 03 섹션 `리디자인 시안` 104:3932: PC 1280 — 개막 전 121:3931, 시즌 중 (가득) 121:4619, 휴식기 121:5191, 일부 121:5837, 없음 122:6094, 메뉴 열림 122:6374, 최대 길이 122:6487 / Mobile 390 — 개막 전 124:6888, 시즌 중 (가득) 124:7524, 휴식기 124:8044, 일부 124:8638, 없음 124:9149, 메뉴 열림 124:9397, 최대 길이 124:9449. 데이터는 공개 피드와 사이트 화면(지난 경기 8/25 컵 3:3 다시보기만, 다음 11/15 1R, 11/21 2R 원정, 다음 홈 12/5 화성FS, 2025-26 5위 2승 3무 10패 9점). 주석 115개(프레임 오른쪽 노랑 바탕). 감사: 맨 색/간격/라운드 0, 스타일 없는 글자 0(최대 길이 히어로 4개만 예외), 글꼴 Noto Sans KR Regular/Bold 만, 중간점 0. get_screenshot 확인. 총괄 보고 후 멈춤.
