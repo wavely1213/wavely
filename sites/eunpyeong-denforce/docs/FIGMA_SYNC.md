@@ -58,11 +58,32 @@
 
 | 피그마 컴포넌트 | 코드 |
 |---|---|
-| Header | src/components/layout/Header.tsx |
-| Footer | src/components/layout/Footer.tsx |
-| PageHeader | src/components/layout/PageHeader.tsx |
-| MatchCard | src/components/match/MatchCard.tsx |
-| … | … |
+| TopBar (Device=Desktop, 휴대폰은 숨김) | src/components/layout/TopBar.tsx |
+| Header (Active × Device) | src/components/layout/Header.tsx |
+| Footer (Device) | src/components/layout/Footer.tsx |
+| PageHeader (Type=Default/Compact × Device) | src/components/layout/PageHeader.tsx |
+| Hero (Device) | src/components/home/Hero.tsx |
+| SponsorMarquee | src/components/home/SponsorMarquee.tsx |
+| Section | src/components/ui/Section.tsx |
+| NewsTabs | src/components/home/NewsTabs.tsx (+ Tabs.module.css) |
+| StandingsWidget | src/components/home/StandingsWidget.tsx |
+| QuickLinks | src/components/home/QuickLinks.tsx |
+| MatchCard (State=Result/Upcoming) | src/components/match/MatchCard.tsx |
+| MatchTable (Device) | src/components/match/MatchTable.tsx |
+| StandingsTable | src/components/match/StandingsTable.tsx |
+| NewsCard | src/components/news/NewsCard.tsx |
+| NewsBanner | src/components/news/NewsBanner.tsx |
+| NewsGallery | src/components/news/NewsGallery.tsx |
+| ShareButton | src/components/news/ShareButton.tsx |
+| article/Pager | src/app/(site)/news/[category]/[id]/page.tsx (article.module.css) |
+| PlayerCard | src/components/player/PlayerCard.tsx |
+| StaffCard | src/components/player/StaffCard.tsx |
+| PostingBoard | src/components/posting/PostingBoard.tsx |
+| PostingCard | src/components/posting/PostingCard.tsx |
+| MoreButton | src/components/ui/MoreButton.tsx |
+| prose/Button | src/styles/prose.module.css .button |
+| prose/Card | src/styles/prose.module.css .card |
+| (관리자 부품: 아래 진행 기록 4단계 참고) | src/components/admin/** |
 
 ## 단계와 완료 기준
 
