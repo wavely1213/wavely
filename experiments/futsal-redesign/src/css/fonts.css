@@ -1,0 +1,16 @@
+/* 서체: KFA고딕(대한축구협회 전용서체, 소유자 지정 — 사이트 전체).
+   Regular·Bold 두 벌을 직접 올린다(assets/fonts). 경로는 빌드가 배포 위치로 바꾼다. */
+@font-face {
+  font-family: "KFA Gothic";
+  src: url("../../assets/fonts/KFAGothic-Regular.woff2") format("woff2");
+  font-weight: 100 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "KFA Gothic";
+  src: url("../../assets/fonts/KFAGothic-Bold.woff2") format("woff2");
+  font-weight: 700 900;
+  font-style: normal;
+  font-display: swap;
+}
