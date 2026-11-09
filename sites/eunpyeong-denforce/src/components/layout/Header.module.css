@@ -76,9 +76,15 @@
   transition: color 0.15s ease;
 }
 
-.menuLink:hover,
-.menuItem:focus-within .menuLink {
-  color: var(--c-yellow);
+/* 마우스 hover 는 정확히 가리키는 장치에서만 — 터치에서 누른 뒤 노란 글자가 남지 않게 */
+@media (hover: hover) and (pointer: fine) {
+  .menuLink:hover {
+    color: var(--c-yellow);
+  }
+
+  .megaList a:hover {
+    color: var(--c-yellow);
+  }
 }
 
 .active::after {
@@ -108,9 +114,8 @@
   background: var(--c-black-soft);
 }
 
-.menu:hover + .mega,
-.mega:hover,
-.nav:focus-within .mega {
+/* 열림은 Header.tsx 상태로 (마우스: 헤더 바 + 메가 안, 키보드: 메뉴 초점) */
+.megaOpen {
   display: block;
 }
 
@@ -150,8 +155,8 @@
   color: var(--c-on-dark);
 }
 
-.megaList a:hover,
-.megaActive {
+/* 지금 페이지의 2차 (가장 긴 일치 하나) */
+.megaList a.megaActive {
   color: var(--c-yellow);
 }
 
@@ -197,7 +202,7 @@
     cursor: pointer;
   }
 
-  /* 24px 아이콘, 선 2px — 열리면 X */
+  /* 24px 아이콘, 선 2px, 선 사이 5 (아이콘 높이 12) — 열리면 X */
   .toggleIcon {
     position: relative;
     display: block;
@@ -215,7 +220,7 @@
   }
 
   .toggleIcon span:nth-child(1) {
-    top: 5px;
+    top: 6px;
   }
 
   .toggleIcon span:nth-child(2) {
@@ -223,11 +228,11 @@
   }
 
   .toggleIcon span:nth-child(3) {
-    top: 17px;
+    top: 16px;
   }
 
   .toggleIconClose span:nth-child(1) {
-    transform: translateY(6px) rotate(45deg);
+    transform: translateY(5px) rotate(45deg);
   }
 
   .toggleIconClose span:nth-child(2) {
@@ -235,7 +240,7 @@
   }
 
   .toggleIconClose span:nth-child(3) {
-    transform: translateY(-6px) rotate(-45deg);
+    transform: translateY(-5px) rotate(-45deg);
   }
 
   .nav {
@@ -261,22 +266,21 @@
   .menuItem {
     display: flex;
     flex-direction: column;
-    gap: var(--space-xs);
-    padding: var(--space-m) 0 var(--space-s);
+    align-items: flex-start;
+    padding: var(--space-xs) 0 var(--space-2xs);
     border-bottom: 1px solid var(--c-line-on-dark);
   }
 
-  /* kfa/m/h3 20 */
+  /* kfa/m/h3 20 — 누르는 영역 높이 44 */
   .menuLink {
+    display: inline-flex;
     height: auto;
+    align-items: center;
+    min-width: 44px;
+    min-height: 44px;
     font-size: 20px;
   }
 
-  .menuItem:focus-within .menuLink {
-    color: var(--c-on-dark);
-  }
-
-  .menuLink:hover,
   .active {
     color: var(--c-yellow);
   }
@@ -285,14 +289,21 @@
     display: none;
   }
 
-  /* kfa/m/body 15, on-dark-sub, 사이 4 / 16 */
+  /* kfa/m/body 15, on-dark-sub — 항목마다 누르는 영역 높이 44, 옆 간격 16 */
   .sub {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-2xs) var(--space-m);
+    gap: 0 var(--space-m);
     font-size: 15px;
     line-height: 1.6;
     color: var(--c-on-dark-sub);
+  }
+
+  .sub a {
+    display: inline-flex;
+    align-items: center;
+    min-width: 44px;
+    min-height: 44px;
   }
 
   .sub a:hover {
@@ -300,9 +311,7 @@
   }
 
   .mega,
-  .menu:hover + .mega,
-  .mega:hover,
-  .nav:focus-within .mega {
+  .megaOpen {
     display: none;
   }
 
@@ -368,5 +377,13 @@
 
   .mobileSitemap:hover {
     color: var(--c-on-dark);
+  }
+}
+
+/* 움직임 줄이기 — 메뉴 버튼 X 전환, 글자색 전환 끔 */
+@media (prefers-reduced-motion: reduce) {
+  .menuLink,
+  .toggleIcon span {
+    transition: none;
   }
 }

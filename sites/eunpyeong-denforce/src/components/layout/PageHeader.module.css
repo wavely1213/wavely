@@ -112,6 +112,11 @@
   color: var(--c-on-dark);
 }
 
+/* 탭 줄(ScrollRow)이 넘침을 잘라서 초점 링을 안쪽에 그린다 */
+.tabList .tab:focus-visible {
+  outline-offset: -2px;
+}
+
 .tabActive {
   color: var(--c-on-dark);
   border-bottom-color: var(--c-yellow);
