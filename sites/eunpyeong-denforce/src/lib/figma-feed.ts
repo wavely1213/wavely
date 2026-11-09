@@ -153,10 +153,25 @@ export function toFeedResult(m: Match, clubName: string): FeedResult | null {
   };
 }
 
+/** 제목의 포지션 낱말 → 포지션 ('… 아라 김선빈 영입' 의 '아라') */
+const POSITION_BY_LABEL: Record<string, Position> = Object.fromEntries(
+  (Object.entries(POSITION_LABEL) as Array<[Position, string]>).map(([pos, label]) => [label, pos]),
+);
+
+/** 제목에서 이름 바로 앞의 포지션 낱말 → 포지션. 없으면 null */
+export function titlePositionBefore(title: string, name: string): Position | null {
+  const labels = Object.keys(POSITION_BY_LABEL).join("|");
+  const m = new RegExp(`(${labels})\\s+(?:선수\\s+)?${name}(?![가-힣])`).exec(title);
+  return m ? POSITION_BY_LABEL[m[1]] : null;
+}
+
 /**
- * 구단뉴스 제목(영입/작별)에서 사람 목록. posts 는 아무 순서나 — 최근 소식 먼저로 정렬해서 낸다.
- * 같은 사람 소식이 여럿이면 가장 최근 것 하나만 (떠났다 돌아온 경우 영입만 남는다).
- * 선수 정보(등번호/포지션/사진)는 같은 이름 활동 선수가 딱 한 명일 때만 붙인다 (동명이인 BR-025).
+ * 구단뉴스 제목(영입/작별)에서 사람 목록 — 소식 하나에 한 사람 (열쇠는 소식 id). 최근 소식 먼저.
+ * 같은 이름이 여러 소식에 나와도 모두 남긴다 — 동명이인이 실제로 있어서(BR-025, 김종호/김대현) 이름으로 합치면 다른 사람 소식이 사라진다.
+ * 명단 정보(등번호/포지션/사진)는 '그 소식의 사람'이 확실할 때만 붙인다:
+ * - 작별: 붙이지 않는다 — 떠난 선수는 이미 명단에서 빠졌고, 남은 같은 이름 선수는 다른 사람이다
+ * - 선수 영입: 제목에서 이름 바로 앞 포지션 낱말(골레이로/픽소/아라/피보)이 그 선수 포지션과 같고, 그런 활동 선수가 딱 한 명일 때
+ * - 스태프 영입: 제목에 '이름 직책'이 그대로 있고, 그런 스태프가 딱 한 명일 때
  */
 export function rosterPeople(input: {
   posts: NewsPost[];
@@ -172,11 +187,10 @@ export function rosterPeople(input: {
   const signings: FeedPerson[] = [];
   const farewells: FeedPerson[] = [];
   for (const post of posts) {
+    if (seen.has(post.id)) continue;
+    seen.add(post.id);
     const e = parseRosterNews(post.title);
     if (!e) continue;
-    const key = `${e.staff ? "s" : "p"}:${e.name}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
     const person: FeedPerson = {
       playerName: e.name,
       playerNumber: "",
@@ -189,19 +203,20 @@ export function rosterPeople(input: {
       newsUrl: `${input.siteUrl.replace(/\/$/, "")}/news/${post.category}/${post.id}`,
       newsImage: absoluteUrl(post.thumbnail ?? post.images[0], input.siteUrl),
     };
-    if (e.staff) {
-      const same = input.staff.filter((s) => s.name.trim() === e.name);
+    if (e.kind === "join" && e.staff) {
+      const same = input.staff.filter((s) => s.name.trim() === e.name && post.title.includes(`${e.name} ${s.role.trim()}`));
       if (same.length === 1) {
         person.positionLabel = same[0].role;
         person.playerPhoto = absoluteUrl(same[0].photo, input.siteUrl);
       }
-    } else {
-      const same = input.players.filter((p) => p.name.trim() === e.name);
+    } else if (e.kind === "join") {
+      const pos = titlePositionBefore(post.title, e.name);
+      const same = pos ? input.players.filter((p) => p.name.trim() === e.name && p.position === pos) : [];
       if (same.length === 1) {
         const p = same[0];
         person.playerNumber = p.number == null ? "" : String(p.number);
         person.position = p.position;
-        person.positionLabel = POSITION_LABEL[p.position as Position];
+        person.positionLabel = POSITION_LABEL[p.position];
         person.playerPhoto = absoluteUrl(p.photo, input.siteUrl);
       }
     }

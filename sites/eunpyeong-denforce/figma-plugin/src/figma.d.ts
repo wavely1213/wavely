@@ -68,9 +68,17 @@ interface GeometryNode extends SceneNode {
 interface TextNode extends GeometryNode {
   readonly type: "TEXT";
   characters: string;
-  readonly fontName: FontName | symbol;
+  fontName: FontName | symbol;
   readonly hasMissingFont: boolean;
   getRangeAllFontNames(start: number, end: number): FontName[];
+  getStyledTextSegments(fields: ["fontName"]): Array<{ start: number; end: number; characters: string; fontName: FontName }>;
+  setRangeFontName(start: number, end: number, value: FontName): void;
+}
+
+interface TextStyle {
+  readonly id: string;
+  name: string;
+  fontName: FontName;
 }
 
 interface FrameNode extends GeometryNode, ChildrenMixin {
@@ -119,6 +127,8 @@ interface PluginAPI {
   setCurrentPageAsync(page: PageNode): Promise<void>;
   getNodeByIdAsync(id: string): Promise<BaseNode | null>;
   loadFontAsync(font: FontName): Promise<void>;
+  listAvailableFontsAsync(): Promise<Array<{ fontName: FontName }>>;
+  getLocalTextStylesAsync(): Promise<TextStyle[]>;
   createImage(data: Uint8Array): Image;
   notify(message: string, options?: { error?: boolean; timeout?: number }): void;
 }

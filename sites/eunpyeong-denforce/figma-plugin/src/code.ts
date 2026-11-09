@@ -1,10 +1,13 @@
 // 서울은평 덴포스 피그마 플러그인 — 피그마 쪽 코드 (D-066, docs/FIGMA_SYNC.md 약속 C)
-// 버튼 3개: 포스터 채우기 / 토큰 내보내기 / 토큰 가져오기. 화면(ui.html)이 네트워크를 맡고, 여기서는 문서만 고친다.
-// 빌드: npm run figma:plugin → figma-plugin/dist/code.js (이 파일 + poster.ts + variables.ts + scripts/figma/tokens.ts + design/tokens.json)
+// 버튼 4개: 포스터 채우기 / 토큰 내보내기 / 토큰 가져오기 / KFA 글꼴 적용. 화면(ui.html)이 네트워크를 맡고, 여기서는 문서만 고친다.
+// 빌드: npm run figma:plugin → figma-plugin/dist/code.js (이 파일 + poster.ts + variables.ts + fonts.ts + scripts/figma/tokens.ts + design/tokens.json)
 import type { FigmaFeed } from "../../src/lib/figma-feed.ts";
 import { figmaVariableToPath, MODE_DESKTOP, MODE_MOBILE, type TokensFile } from "../../scripts/figma/tokens.ts";
+import { KFA_FAMILY, KFA_STYLES, missingKfaStyles, swapToKfa } from "./fonts.ts";
 import { peopleFor, planFill, POSTER_PAGE, posterValues, templateKind, type LayerInfo, type PosterKind } from "./poster.ts";
 import {
+  describeFigmaValue,
+  isVariableAlias,
   sameFigmaValue,
   tokensToVariableSpecs,
   variablesToTokens,
@@ -26,7 +29,8 @@ type UiMessage =
   | { type: "fill"; feed: FigmaFeed; kind: PosterKind; index: number | "all" }
   | { type: "images"; requestId: number; images: Record<string, Uint8Array | null>; errors: string[] }
   | { type: "export-tokens" }
-  | { type: "import-tokens"; json?: string };
+  | { type: "import-tokens"; json?: string }
+  | { type: "apply-kfa" };
 
 function report(ok: boolean, message: string, details: string[] = []) {
   figma.ui.postMessage({ type: "result", ok, message, details });
@@ -231,10 +235,19 @@ async function importTokens(tokens: TokensFile) {
         v = figma.variables.createVariable(spec.name, collection, spec.type);
         vars.push(v);
       }
-      const wanted: Array<[string, FigmaValue]> = [[desktopId, spec.desktop]];
-      if (mobileId) wanted.push([mobileId, spec.mobile ?? spec.desktop]);
-      for (const [modeId, value] of wanted) {
-        if (!sameFigmaValue(spec.type, v.valuesByMode[modeId], value)) {
+      const wanted: Array<[string, string, FigmaValue]> = [[desktopId, MODE_DESKTOP, spec.desktop]];
+      if (mobileId) wanted.push([mobileId, MODE_MOBILE, spec.mobile ?? spec.desktop]);
+      for (const [modeId, modeName, value] of wanted) {
+        const current = v.valuesByMode[modeId];
+        // 별칭(다른 변수 참조)은 디자이너가 일부러 이은 것 — 고정값으로 덮지 않는다. 참조 값이 다르면 알려만 준다
+        if (isVariableAlias(current)) {
+          const resolved = await resolveValue(current, modeName);
+          if (!sameFigmaValue(spec.type, resolved, value)) {
+            problems.push(`${spec.name} [${modeName}]: 다른 변수를 참조하는 별칭이라 바꾸지 않았습니다 (참조 값 ${describeFigmaValue(resolved)}, 토큰 ${describeFigmaValue(value)})`);
+          }
+          continue;
+        }
+        if (!sameFigmaValue(spec.type, current, value)) {
           v.setValueForMode(modeId, value);
           changed = true;
         }
@@ -245,6 +258,70 @@ async function importTokens(tokens: TokensFile) {
     }
   }
   report(problems.length === 0, `토큰 가져오기: 새로 ${created}개, 바꿈 ${updated}개, 그대로 ${same}개`, problems);
+}
+
+// ── KFA 글꼴 적용 ───────────────────────────────
+
+const errText = (e: unknown) => (e instanceof Error ? e.message : String(e));
+
+/** 인스턴스 안 레이어인지 — 원본 컴포넌트를 먼저 바꾸면 따라 바뀌므로 나중에 본다 */
+function insideInstance(n: BaseNode): boolean {
+  for (let p = n.parent; p; p = p.parent) if (p.type === "INSTANCE") return true;
+  return false;
+}
+
+async function applyKfaFont() {
+  const available = (await figma.listAvailableFontsAsync()).map((f) => f.fontName);
+  const missing = missingKfaStyles(available);
+  if (missing.length > 0) {
+    return report(false, `글꼴이 설치되어 있지 않습니다: ${KFA_FAMILY} ${missing.join(", ")}`, [
+      "이 컴퓨터에 KFA고딕(Regular, Bold)을 설치하고 피그마 데스크톱을 다시 연 뒤 눌러 주세요. 아무것도 바꾸지 않았습니다.",
+    ]);
+  }
+  for (const style of KFA_STYLES) await figma.loadFontAsync({ family: KFA_FAMILY, style });
+
+  const failures: string[] = [];
+  let styles = 0;
+  for (const st of await figma.getLocalTextStylesAsync()) {
+    const target = swapToKfa(st.fontName);
+    if (!target) continue;
+    try {
+      st.fontName = target;
+      styles++;
+    } catch (e) {
+      failures.push(`글꼴 스타일 '${st.name}': ${errText(e)}`);
+    }
+  }
+
+  let layers = 0;
+  for (const page of figma.root.children) {
+    await page.loadAsync();
+    const texts = page.findAll((n) => n.type === "TEXT") as TextNode[];
+    texts.sort((a, b) => Number(insideInstance(a)) - Number(insideInstance(b)));
+    for (const t of texts) {
+      let changed = false;
+      const segments =
+        t.characters.length > 0
+          ? t.getStyledTextSegments(["fontName"])
+          : typeof t.fontName === "symbol"
+            ? []
+            : [{ start: 0, end: 0, characters: "", fontName: t.fontName }];
+      for (const seg of segments) {
+        const target = swapToKfa(seg.fontName);
+        if (!target) continue;
+        try {
+          await figma.loadFontAsync(seg.fontName).catch(() => undefined); // 옛 글꼴이 없어도 바꿀 수는 있다
+          if (seg.end > seg.start) t.setRangeFontName(seg.start, seg.end, target);
+          else t.fontName = target;
+          changed = true;
+        } catch (e) {
+          failures.push(`${page.name} / ${t.name}: ${errText(e)}`);
+        }
+      }
+      if (changed) layers++;
+    }
+  }
+  report(failures.length === 0, `KFA 글꼴 적용: 글꼴 스타일 ${styles}개, 텍스트 레이어 ${layers}개를 바꿨습니다`, failures.slice(0, 50));
 }
 
 // ── 시작 ────────────────────────────────────────
@@ -260,6 +337,7 @@ figma.ui.onmessage = (raw: unknown) => {
       pendingImages.get(msg.requestId)?.({ images: msg.images, errors: msg.errors });
       pendingImages.delete(msg.requestId);
     } else if (msg.type === "export-tokens") await exportTokens();
+    else if (msg.type === "apply-kfa") await applyKfaFont();
     else if (msg.type === "import-tokens") {
       let tokens = BUNDLED_TOKENS;
       if (msg.json) {

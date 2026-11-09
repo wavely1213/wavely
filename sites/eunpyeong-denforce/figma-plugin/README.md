@@ -6,7 +6,8 @@
 |---|---|
 | 데이터 불러오기 → 포스터 만들기 | `GET /api/figma/feed` 를 읽어 `05 Posters` 의 템플릿(MATCH DAY / 경기결과 / WELCOME / GOOD LUCK)을 복제해 `#필드` 레이어를 채운다. 복제본 이름은 `채움 …`, 템플릿 오른쪽에 놓인다. 이미지는 `/api/figma/image` 중계로 받는다 |
 | 토큰 내보내기 | 로컬 변수(Color/Space/Radius/Layout/Font, 모드 Desktop/Mobile) → tokens.json 모양 JSON. 복사 또는 `figma-variables.json` 저장 |
-| 토큰 가져오기 | tokens.json → 변수 (없으면 만들고, 다르면 고친다). 비워 두면 빌드 때 넣은 `design/tokens.json` |
+| 토큰 가져오기 | tokens.json → 변수 (없으면 만들고, 다르면 고친다). 비워 두면 빌드 때 넣은 `design/tokens.json`. 다른 변수를 참조하는 별칭은 덮지 않고 알려만 준다 |
+| KFA 글꼴 적용 | 파일 전체의 글꼴 스타일과 텍스트 레이어에서 Noto Sans KR 을 KFAGothic TTF 로 바꾼다 (Medium 이하 Regular, SemiBold 이상 Bold). 바꾼 스타일/레이어 수와 실패 목록을 보여 준다 |
 
 필드/템플릿 이름 규칙은 `docs/FIGMA_SYNC.md` B-1 ~ B-3.
 
@@ -27,6 +28,15 @@ npm run figma:plugin    # → figma-plugin/dist/code.js, dist/ui.html
 2. 피그마 데스크톱 › 파일 열기 › 메뉴 Plugins › Development › **Import plugin from manifest…** › `figma-plugin/manifest.json`.
 3. 이후 Plugins › Development › **Eunpyeong Denforce Sync** 로 실행.
 4. 코드가 바뀌면 다시 내려받기만 하면 된다 (같은 manifest 를 다시 불러올 필요 없음).
+
+## KFA 글꼴 설치 ('KFA 글꼴 적용' 전에 한 번)
+
+피그마 원격 작업에서는 KFA고딕을 쓸 수 없어 디자인 세션이 Noto Sans KR 로 임시 스타일을 만들었다. 소유자 컴퓨터에서 바꾼다.
+
+1. 소유자가 가진 KFA고딕 글꼴 파일(Regular, Bold — 데스크톱용 TTF/OTF)을 컴퓨터에 설치한다 (Windows: 파일 오른쪽 클릭 › 설치, Mac: 더블 클릭 › 서체 설치).
+   - 저장소의 `src/fonts/*.woff2` 는 웹용이라 컴퓨터 설치용이 아니다. 글꼴 파일은 이 저장소나 플러그인에 새로 넣지 않는다 — KFA 라이선스상 제3자 배포 금지 (KNOWN_ISSUES I-007).
+2. 피그마 데스크톱 앱을 다시 연다. 글꼴 목록에 패밀리 이름 **KFAGothic TTF** (스타일 Regular, Bold)가 보이면 된다.
+3. 플러그인 › 'KFA 글꼴 적용'. 두 스타일 중 하나라도 없으면 '글꼴이 설치되어 있지 않습니다'라고 알리고 아무것도 바꾸지 않는다.
 
 ## 주의
 

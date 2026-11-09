@@ -100,3 +100,16 @@ export function sameFigmaValue(type: FigmaVarType, a: unknown, b: unknown): bool
   if (type === "FLOAT") return typeof a === "number" && typeof b === "number" && Math.abs(a - b) < 0.005;
   return a === b;
 }
+
+/** 피그마 변수 값이 다른 변수를 가리키는 별칭인지 */
+export function isVariableAlias(v: unknown): v is { type: "VARIABLE_ALIAS"; id: string } {
+  return typeof v === "object" && v !== null && (v as { type?: unknown }).type === "VARIABLE_ALIAS";
+}
+
+/** 보고용 값 글자 — 색은 CSS 표기, 숫자는 px */
+export function describeFigmaValue(v: unknown): string {
+  if (isRgba(v)) return figmaColorToCss(v);
+  if (typeof v === "number") return `${Math.round(v * 100) / 100}px`;
+  if (isVariableAlias(v)) return "(풀 수 없는 별칭)";
+  return String(v);
+}

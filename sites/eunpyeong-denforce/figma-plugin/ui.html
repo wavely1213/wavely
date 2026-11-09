@@ -50,6 +50,10 @@ textarea { height: 96px; font-family: ui-monospace, monospace; font-size: 11px; 
 <textarea id="tokensInput" placeholder="tokens.json 내용 붙여 넣기 (선택)"></textarea>
 <div class="row"><input type="file" id="tokensFile" accept=".json,application/json" /><button id="import">가져오기</button></div>
 
+<h2>KFA 글꼴 적용</h2>
+<p>파일의 글꼴 스타일과 텍스트 레이어에서 Noto Sans KR 을 KFAGothic TTF 로 바꿉니다 (Medium 이하는 Regular, SemiBold 이상은 Bold). 이 컴퓨터에 KFA고딕을 먼저 설치해 주세요.</p>
+<div class="row"><button id="kfa">KFA 글꼴 적용</button></div>
+
 <div id="status" class="box"></div>
 
 <script>
@@ -113,6 +117,11 @@ $("fill").onclick = () => {
   const index = v === "all" ? "all" : Number(v || 0);
   status(true, "만드는 중…");
   parent.postMessage({ pluginMessage: { type: "fill", feed, kind: $("kind").value, index } }, "*");
+};
+
+$("kfa").onclick = () => {
+  status(true, "바꾸는 중…");
+  parent.postMessage({ pluginMessage: { type: "apply-kfa" } }, "*");
 };
 
 $("export").onclick = () => parent.postMessage({ pluginMessage: { type: "export-tokens" } }, "*");

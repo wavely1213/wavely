@@ -1,7 +1,8 @@
 // 피그마 포스터용 공개 데이터 변환 단위 테스트 (D-066, docs/FIGMA_SYNC.md 약속 B) — 실행: npm test
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { absoluteUrl, buildFigmaFeed, rosterPeople, toFeedResult } from "../src/lib/figma-feed.ts";
+import { absoluteUrl, buildFigmaFeed, rosterPeople, titlePositionBefore, toFeedResult } from "../src/lib/figma-feed.ts";
+import { figmaImageSource, isFigmaImageType } from "../src/lib/figma-image.ts";
 import type { Match, NewsPost, Player, Sponsor, Staff } from "../src/types/index.ts";
 
 const SITE_URL = "https://eunpyeong-fs.com";
@@ -72,12 +73,12 @@ test("toFeedResult: 원정 경기는 홈팀(상대) 점수 먼저, 승/무/패 �
   assert.equal(toFeedResult(match({ status: "finished" }), CLUB), null);
 });
 
-test("rosterPeople: 영입/작별을 나누고, 같은 사람은 최근 소식 하나만, 기간 밖 소식은 뺀다", () => {
+test("rosterPeople: 영입/작별을 나누고, 소식마다 한 사람(같은 이름도 합치지 않음), 기간 밖/구단뉴스 아닌 소식은 뺀다", () => {
   const posts = [
     post({ id: "1", title: "서울은평 덴포스, 아라 김선빈 영입", date: "2026-10-20", thumbnail: "/photos/a.jpg" }),
     post({ id: "2", title: "박종현, 이적으로 서울은평 덴포스와 동행 마무리", date: "2026-10-25" }),
     post({ id: "3", title: "서울은평 덴포스, 김기범 수석코치 영입", date: "2026-10-22" }),
-    post({ id: "4", title: "서울은평 덴포스, 아라 김선빈 영입", date: "2026-09-01" }), // 같은 사람 옛 소식
+    post({ id: "4", title: "서울은평 덴포스, 아라 김선빈 영입", date: "2026-09-01" }), // 같은 이름 옛 소식 — 합치지 않는다
     post({ id: "5", title: "서울은평 덴포스, 피보 홍길동 영입", date: "2026-01-01" }), // 기간 밖
     post({ id: "6", title: "서울은평 덴포스, 아라 이몽룡 영입", date: "2026-10-21", category: "notice" }), // 구단뉴스 아님
   ];
@@ -90,6 +91,7 @@ test("rosterPeople: 영입/작별을 나누고, 같은 사람은 최근 소식 �
     [
       ["김기범", true, "2026-10-22"],
       ["김선빈", false, "2026-10-20"],
+      ["김선빈", false, "2026-09-01"],
     ],
   );
   const kim = signings[1];
@@ -107,13 +109,61 @@ test("rosterPeople: 영입/작별을 나누고, 같은 사람은 최근 소식 �
 test("rosterPeople: 같은 이름 활동 선수가 둘이면(BR-025) 선수 정보를 붙이지 않는다", () => {
   const { signings } = rosterPeople({
     posts: [post({ title: "서울은평 덴포스, 피보 김대현 영입" })],
-    players: [player({ id: "a", name: "김대현", number: 8 }), player({ id: "b", name: "김대현", number: 18 })],
+    players: [player({ id: "a", name: "김대현", number: 8, position: "PIVO" }), player({ id: "b", name: "김대현", number: 18, position: "PIVO" })],
     staff: [],
     since: "2026-01-01",
     siteUrl: SITE_URL,
   });
   assert.equal(signings[0].playerNumber, "");
   assert.equal(signings[0].position, "");
+});
+
+test("rosterPeople: 동명이인 중 한 명은 떠남(비활동) — GOOD LUCK 에 남은 다른 사람의 사진/번호를 붙이지 않는다", () => {
+  // 떠난 김종호는 비활동이라 명단(활동 선수만)에 없고, 남은 활동 선수 김종호는 다른 사람
+  const { farewells } = rosterPeople({
+    posts: [post({ id: "f", title: "김종호, 이적으로 서울은평 덴포스와 동행 마무리", thumbnail: "/photos/bye.jpg" })],
+    players: [player({ id: "stay", name: "김종호", number: 11, position: "ALA", photo: "https://x.supabase.co/stay.jpg" })],
+    staff: [],
+    since: "2026-01-01",
+    siteUrl: SITE_URL,
+  });
+  assert.equal(farewells.length, 1);
+  assert.deepEqual([farewells[0].playerNumber, farewells[0].position, farewells[0].playerPhoto], ["", "", null]);
+  assert.equal(farewells[0].newsImage, "https://eunpyeong-fs.com/photos/bye.jpg");
+});
+
+test("rosterPeople: 동명이인 중 옛 선수만 명단에 있음 — 포지션이 다르면 WELCOME 에 옛 선수 정보를 붙이지 않는다", () => {
+  // 새로 온 피보 김대현은 아직 명단에 없고, 명단의 김대현은 아라(다른 사람)
+  const { signings } = rosterPeople({
+    posts: [post({ title: "서울은평 덴포스, 피보 김대현 영입" })],
+    players: [player({ id: "old", name: "김대현", number: 8, position: "ALA", photo: "https://x.supabase.co/old.jpg" })],
+    staff: [],
+    since: "2026-01-01",
+    siteUrl: SITE_URL,
+  });
+  assert.deepEqual([signings[0].playerNumber, signings[0].position, signings[0].playerPhoto], ["", "", null]);
+});
+
+test("rosterPeople: 같은 이름의 영입과 작별이 둘 다 피드에 남는다 (서로 다른 사람일 수 있음)", () => {
+  const { signings, farewells } = rosterPeople({
+    posts: [
+      post({ id: "in", title: "서울은평 덴포스, 아라 김종호 영입", date: "2026-10-19" }),
+      post({ id: "out", title: "김종호, 이적으로 서울은평 덴포스와 동행 마무리", date: "2026-10-01" }),
+    ],
+    players: [player({ name: "김종호", number: 11, position: "ALA" })],
+    staff: [],
+    since: "2026-01-01",
+    siteUrl: SITE_URL,
+  });
+  assert.deepEqual(signings.map((s) => [s.playerName, s.playerNumber]), [["김종호", "11"]]);
+  assert.deepEqual(farewells.map((f) => [f.playerName, f.playerNumber]), [["김종호", ""]]);
+});
+
+test("titlePositionBefore: 이름 바로 앞 포지션 낱말만", () => {
+  assert.equal(titlePositionBefore("서울은평 덴포스, 아라 김선빈 영입", "김선빈"), "ALA");
+  assert.equal(titlePositionBefore("골레이로 선수 박재희 영입", "박재희"), "GK");
+  assert.equal(titlePositionBefore("서울은평 덴포스, 김선빈 영입 (아라)", "김선빈"), null);
+  assert.equal(titlePositionBefore("피보 김선빈아 영입", "김선빈"), null);
 });
 
 test("buildFigmaFeed: 다음 경기는 상태값으로(BR-003) 가장 가까운 예정, 결과는 가장 최근 종료, 개인정보 없음", () => {
@@ -191,7 +241,6 @@ test("buildFigmaFeed: 다음 경기의 날짜/시간 글자 (한국 시간), 라
 
 // ── 이미지 중계 허용 목록 (lib/figma-image.ts) ──
 
-import { figmaImageSource, isFigmaImageType } from "../src/lib/figma-image.ts";
 
 const SB = "https://abcd.supabase.co";
 const ok = (src: string) => figmaImageSource(src, SITE_URL, SB, "media")?.href ?? null;
@@ -201,7 +250,7 @@ test("figmaImageSource: 사이트 public 파일과 Supabase 공개 media 버킷�
   assert.equal(ok(`${SB}/storage/v1/object/public/media/players/a.jpg`), `${SB}/storage/v1/object/public/media/players/a.jpg`);
 });
 
-test("figmaImageSource: 다른 서버/다른 버킷/비공개 저장소/사이트 API·관리자/쿼리/../ 는 거부 (SSRF 방지)", () => {
+test("figmaImageSource: 다른 서버/다른 버킷/비공개 저장소/사이트 API/관리자/쿼리/../ 는 거부 (SSRF 방지)", () => {
   for (const src of [
     "https://evil.example.com/a.png",
     "http://169.254.169.254/latest/meta-data",
@@ -216,6 +265,8 @@ test("figmaImageSource: 다른 서버/다른 버킷/비공개 저장소/사이�
     "https://user:pw@eunpyeong-fs.com/a.png",
     "https://eunpyeong-fs.com:8443/a.png",
     `${SB}/storage/v1/object/public/media/%2e%2e/secret`,
+    `${SB}/storage/v1/object/public/media/%zz.png`, // 잘못된 %-인코딩 — 500 이 아니라 거부
+    "https://eunpyeong-fs.com/photos/%E0%A4%A.jpg",
     "file:///etc/passwd",
     "not a url",
   ]) {

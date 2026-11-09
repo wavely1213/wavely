@@ -4,7 +4,16 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
 import { imageProxyUrl, layerField, planFill, posterValues, templateKind, type PosterValues } from "../figma-plugin/src/poster.ts";
-import { cssToFigmaColor, figmaColorToCss, sameFigmaValue, tokensToVariableSpecs, variablesToTokens } from "../figma-plugin/src/variables.ts";
+import { kfaStyleFor, missingKfaStyles, styleWeight, swapToKfa } from "../figma-plugin/src/fonts.ts";
+import {
+  cssToFigmaColor,
+  describeFigmaValue,
+  figmaColorToCss,
+  isVariableAlias,
+  sameFigmaValue,
+  tokensToVariableSpecs,
+  variablesToTokens,
+} from "../figma-plugin/src/variables.ts";
 import { buildPluginUi, bundlePluginCode, resolvePath } from "../scripts/figma/plugin-bundle.ts";
 import { buildTokens, diffTokens } from "../scripts/figma/tokens.ts";
 import type { FigmaFeed } from "../src/lib/figma-feed.ts";
@@ -171,6 +180,35 @@ test("sameFigmaValue: 색은 표기로, 숫자는 작은 오차 무시", () => {
   assert.equal(sameFigmaValue("STRING", "a", "a"), true);
 });
 
+test("isVariableAlias / describeFigmaValue: 별칭은 덮지 않고 보고용 글자로", () => {
+  assert.equal(isVariableAlias({ type: "VARIABLE_ALIAS", id: "VariableID:1:2" }), true);
+  assert.equal(isVariableAlias({ r: 1, g: 1, b: 1, a: 1 }), false);
+  assert.equal(isVariableAlias(20), false);
+  assert.equal(describeFigmaValue({ r: 1, g: 1, b: 1, a: 1 }), "#ffffff");
+  assert.equal(describeFigmaValue(16), "16px");
+  assert.equal(describeFigmaValue({ type: "VARIABLE_ALIAS", id: "x" }), "(풀 수 없는 별칭)");
+});
+
+test("KFA 글꼴: Medium 이하는 Regular, SemiBold 이상은 Bold", () => {
+  for (const s of ["Thin", "ExtraLight", "Light", "Regular", "Medium", "Medium Italic", "400", "500", ""]) assert.equal(kfaStyleFor(s), "Regular", s);
+  for (const s of ["SemiBold", "Semi Bold", "Bold", "ExtraBold", "Black", "Bold Italic", "600", "900"]) assert.equal(kfaStyleFor(s), "Bold", s);
+  assert.equal(styleWeight("Demi-Bold"), 600);
+  assert.equal(styleWeight("모르는 스타일"), 400);
+});
+
+test("KFA 글꼴: Noto Sans KR 만 바꾸고, 다른 글꼴/이미 KFA 는 그대로", () => {
+  assert.deepEqual(swapToKfa({ family: "Noto Sans KR", style: "Medium" }), { family: "KFAGothic TTF", style: "Regular" });
+  assert.deepEqual(swapToKfa({ family: "Noto Sans KR", style: "SemiBold" }), { family: "KFAGothic TTF", style: "Bold" });
+  assert.equal(swapToKfa({ family: "KFAGothic TTF", style: "Bold" }), null);
+  assert.equal(swapToKfa({ family: "Inter", style: "Regular" }), null);
+});
+
+test("KFA 글꼴: Regular/Bold 가 모두 설치되어 있어야 한다 (하나라도 없으면 아무것도 바꾸지 않음)", () => {
+  assert.deepEqual(missingKfaStyles([]), ["Regular", "Bold"]);
+  assert.deepEqual(missingKfaStyles([{ family: "KFAGothic TTF", style: "Bold" }, { family: "Noto Sans KR", style: "Regular" }]), ["Regular"]);
+  assert.deepEqual(missingKfaStyles([{ family: "KFAGothic TTF", style: "Regular" }, { family: "KFAGothic TTF", style: "Bold" }]), []);
+});
+
 test("resolvePath: 상대 경로 풀기", () => {
   assert.equal(resolvePath("figma-plugin/src/code.ts", "./poster.ts"), "figma-plugin/src/poster.ts");
   assert.equal(resolvePath("figma-plugin/src/code.ts", "../../scripts/figma/tokens.ts"), "scripts/figma/tokens.ts");
@@ -190,7 +228,13 @@ test("manifest: 네트워크는 eunpyeong-fs.com 만, 빌드 결과를 가리킨
 });
 
 test("플러그인 화면/코드에 하드코딩 색 없음 (색은 tokens.css 에서 빌드 때 넣는다)", () => {
-  for (const p of ["figma-plugin/ui.html", "figma-plugin/src/code.ts", "figma-plugin/src/poster.ts", "figma-plugin/src/variables.ts"]) {
+  for (const p of ["figma-plugin/ui.html", "figma-plugin/src/code.ts", "figma-plugin/src/poster.ts", "figma-plugin/src/variables.ts", "figma-plugin/src/fonts.ts"]) {
     assert.equal(/#[0-9a-f]{3,8}\b(?![\w-])|rgba?\(\s*\d/i.test(read(p).replace(/^\s*\/\/.*$/gm, "")), false, p);
+  }
+});
+
+test("플러그인 화면/알림 글에 중간점(·) 없음 (BR-024)", () => {
+  for (const p of ["figma-plugin/ui.html", "figma-plugin/src/code.ts", "figma-plugin/src/poster.ts", "figma-plugin/src/variables.ts", "figma-plugin/src/fonts.ts"]) {
+    assert.equal(read(p).includes("·"), false, p);
   }
 });

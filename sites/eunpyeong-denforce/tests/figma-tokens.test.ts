@@ -49,6 +49,12 @@ test("parseTokensCss: :root 기본 값과 720px 이하 값만 읽고, 주석/다
   assert.deepEqual([...mobile], [["--gutter", "16px"], ["--header-h", "80px"]]);
 });
 
+test("parseTokensCss: 블록 마지막 선언에 세미콜론이 없어도 읽는다", () => {
+  const { base, mobile } = parseTokensCss(":root { --c-a: #fff; --gutter: 20px }\n@media (max-width: 720px) { :root { --gutter: 16px } }");
+  assert.deepEqual([...base], [["--c-a", "#fff"], ["--gutter", "20px"]]);
+  assert.deepEqual([...mobile], [["--gutter", "16px"]]);
+});
+
 test("cssVarToPath / pathToCssVar: 약속 A 이름 규칙과 그 반대", () => {
   const pairs: Array<[string, string]> = [
     ["--c-blue", "color/blue"],

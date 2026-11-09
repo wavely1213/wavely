@@ -33,7 +33,7 @@ const FONT_VAR_NAMES: Record<string, string> = { "--font-kfa": "KFAGothic TTF" }
 /** 블록 안의 `--이름: 값;` 들 (주석 제거 후) */
 function declarations(block: string): Array<[string, string]> {
   const out: Array<[string, string]> = [];
-  const re = /(--[a-z0-9-]+)\s*:\s*([^;]+);/gi;
+  const re = /(--[a-z0-9-]+)\s*:\s*([^;]+?)\s*(?:;|$)/gi; // 블록 마지막 선언은 세미콜론이 없어도 된다
   for (let m = re.exec(block); m; m = re.exec(block)) out.push([m[1], m[2].trim()]);
   return out;
 }

@@ -21,7 +21,13 @@ export function figmaImageSource(src: string, siteUrl: string, supabaseUrl: stri
   }
   if (url.protocol !== "https:" && url.protocol !== "http:") return null;
   if (url.username || url.password || url.search || url.hash) return null;
-  if (/(^|\/)\.\.?(\/|$)/.test(decodeURIComponent(url.pathname))) return null;
+  let path: string;
+  try {
+    path = decodeURIComponent(url.pathname);
+  } catch {
+    return null; // 잘못된 %-인코딩('%zz')
+  }
+  if (/(^|\/)\.\.?(\/|$)/.test(path)) return null;
   const site = new URL(siteUrl);
   if (url.origin === site.origin) {
     return /^\/(api|admin)(\/|$)/.test(url.pathname) || url.pathname === "/" ? null : url;

@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "eslint && tsc --noEmit -p figma-plugin/tsconfig.json",
     "test": "node --experimental-strip-types --no-warnings --test tests/*.test.ts",
     "figma:tokens": "node --experimental-strip-types --no-warnings scripts/figma/build-tokens.ts",
     "figma:check": "node --experimental-strip-types --no-warnings scripts/figma/check-figma.ts",

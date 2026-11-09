@@ -43,6 +43,7 @@
 
 - **Rate limiting**: 로그인·가입·글쓰기 등 남용 가능 엔드포인트에 적용: 로그인은 Supabase Auth 기본 rate limit. 관리자 쓰기는 인증된 소수 계정이라 별도 제한 없음
 - **CORS**: 허용 오리진 명시. `*` 금지.
+  - 예외: 피그마 플러그인용 공개 읽기 전용 API `/api/figma/feed`, `/api/figma/image` 만 `*` (플러그인 화면 출처가 `null` 이라 오리진을 적을 수 없음, 쿠키/로그인 없음, `Access-Control-Allow-Credentials` 안 보냄 — D-066, docs/FIGMA_SYNC.md '기능 세션 결정').
 - **에러 응답**: 내부 정보(스택 트레이스, 쿼리, 경로) 비노출.
 - **의존성 취약점**: `DEPENDENCY_POLICY.md` 참고. audit 경고 발견 시 보고.
 - HTTPS 전제. 쿠키는 secure 플래그.
