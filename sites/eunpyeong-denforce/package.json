@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test": "node --experimental-strip-types --no-warnings --test tests/*.test.ts",
     "figma:tokens": "node --experimental-strip-types --no-warnings scripts/figma/build-tokens.ts",
-    "figma:check": "node --experimental-strip-types --no-warnings scripts/figma/check-figma.ts"
+    "figma:check": "node --experimental-strip-types --no-warnings scripts/figma/check-figma.ts",
+    "figma:plugin": "node --experimental-strip-types --no-warnings scripts/figma/build-plugin.ts"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.7",

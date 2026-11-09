@@ -88,6 +88,13 @@
 - 네트워크는 eunpyeong-fs.com 만 (manifest networkAccess). 비밀 키 없음.
 - 설치: 피그마 데스크톱 › Plugins › Development › Import plugin from manifest (소유자 안내는 총괄이 한다).
 
+## Code Connect 확인 (기능 세션, 2026-11-09)
+
+- 계정은 'mot mot의 팀' **Pro + Full 좌석** (Figma 연결 whoami 로 확인).
+- 피그마 현재 문서: Code Connect 는 Professional 에서도 된다 — 단 **활성 라이브러리 1개, 프레임워크 1개**(우리는 React 하나라 맞음). 예전 포럼 답(Organization 이상만)과 다르다.
+- 실제 연결은 아직 시험하지 못했다: 파일에 컴포넌트가 없고(`get_code_connect_map` 결과 빈 값), 연결을 만드는 것은 피그마 파일을 고치는 일이라 디자인 세션 몫이다.
+- 결정: 아래 **부품 지도 표를 기준으로 계속 쓴다.** 디자인 세션이 Components 를 만든 뒤 한 개(Header)로 Code Connect 를 시험해 되면 그때 더하고, 안 되면 표만 쓴다.
+
 ## 부품 지도 (디자인 세션이 채운다)
 
 | 피그마 컴포넌트 | 코드 |
@@ -97,6 +104,14 @@
 | PageHeader | src/components/layout/PageHeader.tsx |
 | MatchCard | src/components/match/MatchCard.tsx |
 | … | … |
+
+## 기능 세션 결정 (총괄이 합칠 때 DECISION_LOG 로 옮겨 주세요)
+
+- 새 의존성 없음: 피그마 타입은 `figma-plugin/src/figma.d.ts`(쓰는 API 만), 플러그인 묶기는 저장소 typescript 로(`scripts/figma/plugin-bundle.ts`). `@figma/plugin-typings`/esbuild 는 DEPENDENCY_POLICY 승인 대상이라 넣지 않았다.
+- 이미지 중계 `GET /api/figma/image?src=…` 추가: 플러그인 화면 출처가 null 이라 CORS 가 필요하고, networkAccess 가 eunpyeong-fs.com 하나라 Supabase 저장소에 직접 닿지 못한다. 허용 목록은 사이트 public 파일 + Supabase 공개 `media` 버킷만(SSRF 방지), PNG/JPEG/GIF, 10MB.
+- `figma-plugin/dist/` 는 커밋한다 (소유자가 빌드 없이 설치). 테스트가 최신인지 확인.
+- 피그마 변수 이름 = 토큰 경로(`color/blue`), 컬렉션 = Color/Space/Radius/Layout/Font, 모드 Desktop(+휴대폰 값이 있는 컬렉션만 Mobile). 플러그인은 앞부분을 뺀 이름(`blue`)도 같은 변수로 읽는다.
+- 글꼴 토큰은 글꼴 파일 안 이름 `KFAGothic TTF` (피그마 변수에는 첫 글꼴만, 비교도 첫 글꼴만).
 
 ## 단계와 완료 기준
 
@@ -117,3 +132,5 @@
 - 2026-11-09 총괄: 피그마 파일 생성, 이 계획서 작성, 기능/디자인 세션 시작.
 - 2026-11-09 기능: 1단계 토큰 — `scripts/figma/tokens.ts`(변환/비교 순수 함수) + `build-tokens.ts`(`npm run figma:tokens`, `--check`) + `check-figma.ts`(`npm run figma:check <내보낸 JSON>`) → `design/tokens.json` 생성, 테스트 `tests/figma-tokens.test.ts`. tokens.css 에 `--space-*` 가 없어 `space` 그룹은 비어 있음(만들지 않음). 글꼴 이름은 파일 안 이름 `KFAGothic TTF`.
 - 2026-11-09 기능: 2단계 포스터 데이터 — `GET /api/figma/feed`(`src/app/api/figma/feed/route.ts`, 변환 `src/lib/figma-feed.ts`, 테스트 `tests/figma-feed.test.ts`). 응답 모양/필드 이름/템플릿 규칙을 위 B-1~B-3 표로 확정. 로컬 정적 데이터 모드 빌드/응답 확인. **운영 배포 전이라 eunpyeong-fs.com 에는 아직 없음 — 총괄 배포 필요.**
+- 2026-11-09 기능: 3단계 피그마 플러그인 — `figma-plugin/`(manifest, `src/code.ts`, `src/poster.ts`, `src/variables.ts`, `ui.html`, `README.md` 빌드/설치) + 이미지 중계 `/api/figma/image`. `npm run figma:plugin` 으로 `dist/` 생성, 테스트 `tests/figma-plugin.test.ts`. 가짜 피그마 API 로 dist/code.js 를 돌려 가져오기(26개)→다시 가져오기(그대로 26)→내보내기→`figma:check` 차이 0, 포스터 채우기(템플릿 그대로, 복제본 오른쪽) 확인. 실제 피그마 앱 실행은 소유자/총괄 몫(데스크톱 앱 필요).
+- 2026-11-09 기능: 4단계 — 토큰 어긋남 검사는 1단계에 포함(`design/figma-variables.json` 이 생기면 `npm test` 가 비교, `npm run figma:check <파일>`). Code Connect 확인 결과는 위 'Code Connect 확인'. **멈춤/총괄 확인 필요: ① `/api/figma/feed`, `/api/figma/image` 운영 배포 ② 디자인 세션 템플릿 레이어 이름을 B-2 표에 맞춤 ③ 위 '기능 세션 결정' DECISION_LOG 반영.**

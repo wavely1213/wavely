@@ -188,3 +188,47 @@ test("buildFigmaFeed: 다음 경기의 날짜/시간 글자 (한국 시간), 라
   assert.equal(JSON.stringify(feed).includes("·"), false);
   assert.equal(feed.lastResult, null);
 });
+
+// ── 이미지 중계 허용 목록 (lib/figma-image.ts) ──
+
+import { figmaImageSource, isFigmaImageType } from "../src/lib/figma-image.ts";
+
+const SB = "https://abcd.supabase.co";
+const ok = (src: string) => figmaImageSource(src, SITE_URL, SB, "media")?.href ?? null;
+
+test("figmaImageSource: 사이트 public 파일과 Supabase 공개 media 버킷만 허용", () => {
+  assert.equal(ok("https://eunpyeong-fs.com/brand/emblem.png"), "https://eunpyeong-fs.com/brand/emblem.png");
+  assert.equal(ok(`${SB}/storage/v1/object/public/media/players/a.jpg`), `${SB}/storage/v1/object/public/media/players/a.jpg`);
+});
+
+test("figmaImageSource: 다른 서버/다른 버킷/비공개 저장소/사이트 API·관리자/쿼리/../ 는 거부 (SSRF 방지)", () => {
+  for (const src of [
+    "https://evil.example.com/a.png",
+    "http://169.254.169.254/latest/meta-data",
+    `${SB}/storage/v1/object/public/other/a.jpg`,
+    `${SB}/storage/v1/object/sign/media/a.jpg`,
+    `${SB}/storage/v1/object/public/media/`,
+    `${SB}/rest/v1/players`,
+    "https://eunpyeong-fs.com/api/figma/feed",
+    "https://eunpyeong-fs.com/admin",
+    "https://eunpyeong-fs.com/",
+    "https://eunpyeong-fs.com/a.png?x=1",
+    "https://user:pw@eunpyeong-fs.com/a.png",
+    "https://eunpyeong-fs.com:8443/a.png",
+    `${SB}/storage/v1/object/public/media/%2e%2e/secret`,
+    "file:///etc/passwd",
+    "not a url",
+  ]) {
+    assert.equal(ok(src), null, src);
+  }
+  // Supabase 설정이 없으면(정적 모드) 저장소 주소는 모두 거부
+  assert.equal(figmaImageSource(`${SB}/storage/v1/object/public/media/a.jpg`, SITE_URL, "", "media"), null);
+});
+
+test("isFigmaImageType: PNG/JPEG/GIF 만", () => {
+  assert.equal(isFigmaImageType("image/png"), true);
+  assert.equal(isFigmaImageType("image/jpeg; charset=binary"), true);
+  assert.equal(isFigmaImageType("image/webp"), false);
+  assert.equal(isFigmaImageType("text/html"), false);
+  assert.equal(isFigmaImageType(null), false);
+});
