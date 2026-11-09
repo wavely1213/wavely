@@ -76,3 +76,28 @@ button {
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
+
+/* 공개 화면 레이아웃 래퍼 — 상자를 만들지 않아 body 의 세로 배치(main 늘이기)를 그대로 둔다 */
+.site-root {
+  display: contents;
+}
+
+/* 공통 초점 표시 (리디자인 D-067, D-069 1단계) — 키보드 초점일 때 바깥 2px.
+   밝은 면은 blue, 어두운 면(data-surface="dark": TopBar, Header, PageHeader, Footer 등)은 on-dark, 파랑 면은 on-blue */
+.site-root :focus-visible {
+  outline: 2px solid var(--c-blue);
+  outline-offset: 2px;
+}
+
+.site-root [data-surface="dark"] :focus-visible {
+  outline-color: var(--c-on-dark);
+}
+
+.site-root [data-surface="blue"] :focus-visible {
+  outline-color: var(--c-on-blue);
+}
+
+/* 붙어 있는 헤더에 초점 요소/앵커가 가려지지 않게 (공개 화면만 — SiteRootMarker 가 공개 레이아웃이 보일 때만 html 에 붙인다) */
+html.site-html {
+  scroll-padding-top: var(--header-h);
+}

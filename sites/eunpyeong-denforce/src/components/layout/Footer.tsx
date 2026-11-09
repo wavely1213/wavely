@@ -20,8 +20,10 @@ export async function Footer() {
   const legal = renderMarkup(content["footer.legal"], tokens, FOOTER_TOKEN_KINDS)[0] ?? [];
   const copyright = renderPlain(content["footer.copyright"], tokens);
   const markup = { group: styles.group, label: styles.label, nowrap: styles.nowrap };
+  // 맨 아래 사업자 정보는 한 줄에 나란히 (BR-028)
+  const legalMarkup = { group: styles.legalGroup, label: styles.legalLabel, nowrap: styles.nowrap };
   return (
-    <footer className={styles.footer}>
+    <footer className={styles.footer} data-surface="dark">
       <div className={`container ${styles.inner}`}>
         <div className={styles.about}>
           <strong className={styles.name}>{name}</strong>
@@ -34,45 +36,60 @@ export async function Footer() {
             {snsLinks(settings).map((s) => (
               <li key={s.label}>
                 <a href={s.href} target="_blank" rel="noreferrer">
-                  {s.label}
+                  {s.label} <span aria-hidden="true">↗</span>
+                  <span className="sr-only">(새 창)</span>
                 </a>
               </li>
             ))}
           </ul>
         </div>
 
+        {/* 사이트맵 6칸 — 1차 메뉴와 그 아래 2차 (리디자인 D-067) */}
         <nav className={styles.links} aria-label="사이트맵">
           {NAV.map((item) => (
-            <Link key={item.href} href={item.href}>
-              {item.label}
-            </Link>
+            <div key={item.href} className={styles.col}>
+              <Link href={item.href} className={styles.colTitle}>
+                {item.label}
+              </Link>
+              {item.children && (
+                <ul className={styles.colList}>
+                  {item.children.map((c) => (
+                    <li key={c.href}>
+                      <Link href={c.href}>{c.label}</Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           ))}
         </nav>
       </div>
-      <div className={`container ${styles.copy}`}>
-        <span>{copyright}</span>
-        <span className={styles.legal}>
-          {legal.length > 0 && (
-            <span>
-              <MarkupGroups groups={legal} classes={markup} />
-            </span>
-          )}
-          {links.map((l) =>
-            isExternalLink(l.link) ? (
-              <a key={l.id} href={l.link} target="_blank" rel="noreferrer">
-                {l.title}
-              </a>
-            ) : (
-              <Link key={l.id} href={l.link}>
-                {l.title}
-              </Link>
-            ),
-          )}
-          {/* 관리자 대시보드로 가는 작은 버튼 — 로그인 전이면 로그인 화면으로 간다. 방문자마다 미리 받지 않게 prefetch 끔 */}
-          <Link href="/admin" prefetch={false} rel="nofollow" className={styles.admin}>
-            관리자
-          </Link>
-        </span>
+      <div className="container">
+        <div className={styles.copy}>
+          <span>{copyright}</span>
+          <span className={styles.legal}>
+            {legal.length > 0 && (
+              <span>
+                <MarkupGroups groups={legal} classes={legalMarkup} />
+              </span>
+            )}
+            {links.map((l) =>
+              isExternalLink(l.link) ? (
+                <a key={l.id} href={l.link} target="_blank" rel="noreferrer">
+                  {l.title}
+                </a>
+              ) : (
+                <Link key={l.id} href={l.link}>
+                  {l.title}
+                </Link>
+              ),
+            )}
+            {/* 관리자 대시보드로 가는 작은 버튼 — 로그인 전이면 로그인 화면으로 간다. 방문자마다 미리 받지 않게 prefetch 끔 */}
+            <Link href="/admin" prefetch={false} rel="nofollow" className={styles.admin}>
+              관리자
+            </Link>
+          </span>
+        </div>
       </div>
     </footer>
   );

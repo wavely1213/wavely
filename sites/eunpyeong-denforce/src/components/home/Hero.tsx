@@ -9,7 +9,7 @@ import { HeroTitle } from "./HeroTitle";
 /** 메인 최상단: 대표 사진 + 다음 홈경기. 사진·문구는 관리자 › 홈페이지 내용 › 메인 (D-046) */
 export function Hero({ nextHome, content }: { nextHome?: Match; content: HeroContent }) {
   return (
-    <section className={styles.hero}>
+    <section className={styles.hero} data-surface="dark">
       <Image
         src={content.image}
         alt={content.imageAlt}

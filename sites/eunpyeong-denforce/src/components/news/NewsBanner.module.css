@@ -23,6 +23,7 @@
 }
 
 .link {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
   min-height: 380px;
@@ -55,6 +56,26 @@
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* 초점 링 — 배너가 overflow: hidden 이고 링크 안 사진(absolute)이 링을 가려서, 사진 위 오버레이(::after)에 안쪽 링으로 그린다.
+   투명 outline 은 강제 색 모드에서 시스템 색으로 보인다 */
+.link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.banner .link:focus-visible {
+  outline: 2px solid transparent;
+  outline-offset: -2px;
+}
+
+.banner .link:focus-visible::after {
+  box-shadow: inset 0 0 0 2px var(--c-on-dark);
 }
 
 .link:hover .title {

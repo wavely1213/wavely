@@ -10,7 +10,7 @@ import styles from "./TopBar.module.css";
  */
 export function TopBar({ sns, store }: { sns: SnsLink[]; store: { label: string; href: string } }) {
   return (
-    <div className={styles.topBar}>
+    <div className={styles.topBar} data-surface="dark">
       <div className={`container ${styles.inner}`}>
         <ul className={styles.sns} aria-label="공식 SNS">
           {sns.map((s) => (

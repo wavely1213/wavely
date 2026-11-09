@@ -44,6 +44,7 @@ export function NewsBanner({ posts }: { posts: NewsPost[] }) {
 
   return (
     <section
+      data-surface="dark"
       className={styles.banner}
       aria-roledescription="carousel"
       aria-label="메인 소식"
