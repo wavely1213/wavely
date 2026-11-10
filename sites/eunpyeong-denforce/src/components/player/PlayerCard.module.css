@@ -34,6 +34,7 @@
   display: flex;
   align-items: baseline;
   gap: 8px;
+  min-width: 0;
 }
 
 .number {
@@ -42,9 +43,13 @@
   color: var(--c-blue);
 }
 
+/* 긴 이름은 카드 폭 안에서 줄바꿈 (디자인 UX 상태 표 209:2827) */
 .name {
+  min-width: 0;
   font-size: 17px;
   font-weight: 700;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .card:hover .name {

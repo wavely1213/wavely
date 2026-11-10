@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { toNewsCardPost } from "@/components/news/NewsCard";
 import { NewsMoreGrid } from "@/components/news/NewsMoreGrid";
+import { buttonClass } from "@/components/ui/Button";
 import { Placeholder } from "@/components/ui/Placeholder";
 import { NEWS_CATEGORY_LABEL } from "@/data/news";
 import { newsCategoryDescription } from "@/lib/page-descriptions";
@@ -34,7 +36,12 @@ export default async function NewsCategoryPage({ params }: PageProps<"/news/[cat
         {posts.length > 0 ? (
           <NewsMoreGrid posts={posts.map(toNewsCardPost)} vertical={category === "video"} />
         ) : (
-          <Placeholder label={content["news.empty"]} />
+          // 분류에 글이 없으면 안내 + 전체 소식으로 (디자인 UX 상태 표 208:21724)
+          <Placeholder label={content["news.empty"]}>
+            <Link href="/news" className={buttonClass("secondary")}>
+              전체 보기 <span aria-hidden="true">→</span>
+            </Link>
+          </Placeholder>
         )}
       </div>
     </>
