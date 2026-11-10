@@ -36,6 +36,11 @@
   color: var(--c-on-dark-sub);
 }
 
+/* 칸마다 가운데 정렬 (소유자 확정, 피그마 비교안 198:17 / 198:117) — 위 줄(라벨 / 대회)만 양 끝 */
+.date {
+  text-align: center;
+}
+
 /* 대진 줄 — 링크 */
 .teams {
   display: flex;
@@ -96,6 +101,8 @@
 
 .scorers {
   display: flex;
+  justify-content: center;
+  text-align: center;
   gap: var(--space-xs);
   font-size: 12px;
   line-height: 1.6;
@@ -109,6 +116,7 @@
 .videos {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: var(--space-xs);
 }
 
