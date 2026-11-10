@@ -8,6 +8,7 @@
 .button {
   display: inline-flex;
   align-items: center;
+  min-height: 44px;
   gap: 8px;
   padding: 12px 36px;
   border: 1px solid var(--c-line);
@@ -28,8 +29,9 @@
   outline-offset: 2px;
 }
 
+/* 'N개 남음' kfa/caption text-sub */
 .count {
   font-size: 12px;
-  font-weight: 500;
-  opacity: 0.7;
+  font-weight: 400;
+  color: var(--c-text-sub);
 }

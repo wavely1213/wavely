@@ -1,7 +1,7 @@
 // 구단소식 메인 배너 고르기 단위 테스트 — 실행: npm test
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { adjacentPosts, isDeparture, kitLinks, pickBanner } from "../src/lib/news.ts";
+import { adjacentPosts, isDeparture, isProfileBlock, kitLinks, pickBanner } from "../src/lib/news.ts";
 import type { NewsPost } from "../src/types/index.ts";
 
 const n = (id: string, title: string, thumb = true, featured = false): NewsPost => ({
@@ -46,4 +46,11 @@ test("adjacentPosts: 목록(최근 글 먼저)에서 이전 글 = 한 칸 아래
   assert.deepEqual(ids(adjacentPosts(posts, "old")), { older: undefined, newer: "mid" }, "가장 오래된 글은 이전 글 없음");
   assert.deepEqual(adjacentPosts(posts, "none"), {}, "목록에 없는 글");
   assert.deepEqual(ids(adjacentPosts([posts[0]], "new")), { older: undefined, newer: undefined }, "글이 하나뿐");
+});
+
+test("isProfileBlock: 첫 줄이 '○○ 프로필'인 문단만", () => {
+  assert.equal(isProfileBlock("김남석 프로필\n등번호: 27\nhttps://eunpyeong-fs.com/team/players/no-27"), true);
+  assert.equal(isProfileBlock("서울은평 덴포스가 김남석을 영입했다."), false);
+  assert.equal(isProfileBlock("프로필"), false);
+  assert.equal(isProfileBlock("이번 시즌 새로 합류한 선수들의 프로필은 선수 페이지에서 볼 수 있다는 아주 긴 문장의 프로필"), false);
 });

@@ -5,7 +5,7 @@ import type { NewsPost } from "@/types";
 export const BANNER_MAX = 5;
 
 /** 구단소식 목록 처음에 보이는 글 수 — '더 보기'를 누를 때마다 이만큼 더 */
-export const NEWS_PAGE_SIZE = 12;
+export const NEWS_PAGE_SIZE = 16;
 /** 구단영상 탭(세로 카드 — PC 5칸, 태블릿 4칸, 휴대폰 2칸)은 한 번에 20개 — 어느 화면에서도 줄이 꽉 찬다 (D-061) */
 export const VIDEO_PAGE_SIZE = 20;
 
@@ -47,4 +47,10 @@ function latest(posts: NewsPost[], match: (p: NewsPost) => boolean): NewsPost | 
  */
 export function kitLinks(posts: NewsPost[]): { reveal?: NewsPost } {
   return { reveal: latest(posts, (p) => p.category === "news" && /KIT 공개|유니폼 공개/i.test(p.title)) };
+}
+
+/** 기사 본문의 선수 프로필 문단 — 첫 줄이 '○○ 프로필' 로 끝나면 상자로 보인다 (리디자인 3차 기사 상세) */
+export function isProfileBlock(paragraph: string): boolean {
+  const first = paragraph.split("\n")[0]?.trim() ?? "";
+  return first.length > 3 && first.length <= 30 && /프로필$/.test(first);
 }

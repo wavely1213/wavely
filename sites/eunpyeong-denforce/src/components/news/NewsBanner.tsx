@@ -13,8 +13,10 @@ import styles from "./NewsBanner.module.css";
 const INTERVAL_MS = 5000;
 
 /**
- * 구단소식 맨 위 메인 소식 슬라이드 배너 (D-035) — 몇 초마다 옆으로 넘어간다.
- * 마우스를 올리거나 키보드 초점이 있으면 멈추고, 멈춤 버튼·움직임 줄이기 설정으로도 멈춘다.
+ * 구단소식 맨 위 메인 소식 슬라이드 배너 (D-035, 리디자인 3차 NewsBanner 145:782) — 몇 초마다 옆으로 넘어간다.
+ * PC: 왼쪽 글 칸 400(분류, 제목, 요약, 날짜 + 아래 넘김), 오른쪽 사진 16:9. 휴대폰: 사진 위, 글 아래.
+ * 넘김: 이전/다음 44, 점(보기용 — 위치는 '1 / 5' 글자로도 알림), 멈춤 44(이름 고정 + aria-pressed). 1장이면 넘김 숨김.
+ * 마우스를 올리거나 키보드 초점이 있으면 멈추고, 멈춤 버튼/움직임 줄이기 설정으로도 멈춘다.
  */
 export function NewsBanner({ posts }: { posts: NewsPost[] }) {
   const [index, setIndex] = useState(0);
@@ -45,7 +47,7 @@ export function NewsBanner({ posts }: { posts: NewsPost[] }) {
   return (
     <section
       data-surface="dark"
-      className={styles.banner}
+      className={`${styles.banner} ${count > 1 ? styles.multi : ""}`}
       aria-roledescription="carousel"
       aria-label="메인 소식"
       onMouseEnter={() => setHold(true)}
@@ -67,15 +69,15 @@ export function NewsBanner({ posts }: { posts: NewsPost[] }) {
               aria-hidden={i !== index}
             >
               <Link href={newsHref(p)} className={styles.link} tabIndex={i === index ? undefined : -1}>
-                <div className={styles.media}>
-                  {/* 세로 포스터도 머리·제목이 잘리지 않게 전체를 보인다 */}
-                  {p.thumbnail && <FitImage src={p.thumbnail} sizes="(max-width: 900px) 100vw, 720px" priority={i === 0} />}
-                </div>
                 <div className={styles.text}>
                   <span className={styles.category}>{NEWS_CATEGORY_LABEL[p.category]}</span>
                   <strong className={styles.title}>{p.title}</strong>
                   {p.summary && <p className={styles.summary}>{p.summary}</p>}
                   {p.date && <span className={styles.date}>{formatPostDate(p.date)}</span>}
+                </div>
+                <div className={styles.media}>
+                  {/* 세로 포스터도 머리/제목이 잘리지 않게 전체를 보인다 */}
+                  {p.thumbnail && <FitImage src={p.thumbnail} sizes="(max-width: 900px) 100vw, 800px" priority={i === 0} />}
                 </div>
               </Link>
             </div>
@@ -85,28 +87,22 @@ export function NewsBanner({ posts }: { posts: NewsPost[] }) {
       {count > 1 && (
         <div className={styles.controls}>
           <button type="button" className={styles.arrow} onClick={() => go(index - 1)} aria-label="이전 소식">
-            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-              <path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" strokeWidth="2.4" />
-            </svg>
+            <span aria-hidden="true">←</span>
           </button>
-          <div className={styles.dots}>
-            {posts.map((p, i) => (
-              <button
-                key={p.id}
-                type="button"
-                className={`${styles.dot} ${i === index ? styles.dotActive : ""}`}
-                onClick={() => go(i)}
-                aria-label={`${i + 1}번째 소식`}
-                aria-current={i === index}
-              />
-            ))}
-          </div>
           <button type="button" className={styles.arrow} onClick={() => go(index + 1)} aria-label="다음 소식">
-            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-              <path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" strokeWidth="2.4" />
-            </svg>
+            <span aria-hidden="true">→</span>
           </button>
-          <button type="button" className={styles.arrow} onClick={() => setPaused((v) => !v)} aria-label={paused ? "자동 넘김 다시 시작" : "자동 넘김 멈춤"}>
+          <span className={styles.dots} aria-hidden="true">
+            {posts.map((p, i) => (
+              <span key={p.id} className={`${styles.dot} ${i === index ? styles.dotActive : ""}`} />
+            ))}
+          </span>
+          <span className={styles.counter}>
+            <span className="sr-only">현재 </span>
+            {index + 1} / {count}
+          </span>
+          <button type="button" className={styles.arrow} onClick={() => setPaused((v) => !v)} aria-pressed={paused}>
+            <span className="sr-only">자동 넘김 멈춤</span>
             {paused ? (
               <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
                 <path d="M8 5v14l11-7z" fill="currentColor" />
