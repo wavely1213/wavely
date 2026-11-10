@@ -174,8 +174,10 @@ test("parseFarewell / planFarewell / farewellNews: 이적 선수 활동 끄기 +
 });
 
 test("competitionOf: 리그/컵/플레이오프", () => {
-  assert.deepEqual(competitionOf("15라운드", "2026-11-07"), { competition: "2026-27 FK1리그", round: "15R" });
-  assert.deepEqual(competitionOf("FK1 3R", "2026-11-07"), { competition: "2026-27 FK1리그", round: "3R" });
+  assert.deepEqual(competitionOf("15라운드", "2026-11-07"), { competition: "키움증권 2026-27 FK리그1", round: "15R" });
+  assert.deepEqual(competitionOf("FK1 3R", "2026-11-07"), { competition: "키움증권 2026-27 FK리그1", round: "3R" });
+  // 다른 시즌은 후원사 없이 (D-072)
+  assert.deepEqual(competitionOf("3라운드", "2027-11-07"), { competition: "2027-28 FK리그1", round: "3R" });
   assert.deepEqual(competitionOf("2026 FK CUP 3R", "2026-08-25"), { competition: "2026 FK CUP", round: "3R" });
   assert.deepEqual(competitionOf("PLAYOFF", "2026-04-04"), { competition: "2025-26 승강 플레이오프", round: "" });
   assert.deepEqual(competitionOf("FA컵 3라운드", "2026-08-25"), { competition: "2026 FA컵", round: "3R" });
@@ -188,7 +190,7 @@ const MATCHDAY = "🔵MATCH DAY⚪️\n\n15라운드\n🆚 서울은평덴포스
 test("planMatchday: 경기 일정 넣기 (홈 경기장 = 은평), 같은 날 같은 상대는 넣지 않음", () => {
   const p = post(MATCHDAY);
   assert.deepEqual(planMatchday(p, []), {
-    insert: { competition: "2026-27 FK1리그", round: "15R", kickoff: "2026-10-19T13:00:00+09:00", venue: "은평다목적체육관", is_home: true, opponent: "전주시민풋살구단", status: "scheduled" },
+    insert: { competition: "키움증권 2026-27 FK리그1", round: "15R", kickoff: "2026-10-19T13:00:00+09:00", venue: "은평다목적체육관", is_home: true, opponent: "전주시민풋살구단", status: "scheduled" },
     note: null,
   });
   const away = planMatchday(post(MATCHDAY.replace("은평다목적체육관", "단양국민체육센터")), []);

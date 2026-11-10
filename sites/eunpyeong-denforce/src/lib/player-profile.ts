@@ -21,9 +21,9 @@ export function seasonLabel(startYear: number): string {
   return `${startYear}-${String((startYear + 1) % 100).padStart(2, "0")}`;
 }
 
-/** '2025-26 FK1리그' → 2025 (시즌 표기가 없으면 null) */
+/** '2025-26 FK1리그', '키움증권 2026-27 FK리그1' → 시작 연도 (시즌 표기가 없으면 null) */
 export function statsSeasonStartYear(statsSeason: string): number | null {
-  const m = /^(\d{4})-\d{2}/.exec(statsSeason);
+  const m = /(?:^|\s)(\d{4})-\d{2}(?:\s|$)/.exec(statsSeason);
   return m ? Number(m[1]) : null;
 }
 

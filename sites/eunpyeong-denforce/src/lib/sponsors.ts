@@ -37,9 +37,13 @@ export function sortByTier<T extends { tier: SponsorTier }>(items: readonly T[])
 
 /**
  * 스폰서십 문의 상자의 리그 참가 한 줄 — 대회명(LEAGUE.currentCompetition)에서 만든다 (시즌이 바뀌면 따라 바뀜).
- * "2026-27 FK1리그" → "2026-27 시즌 FK리그 1부(FK1) 참가". 시즌 연도/부가 없는 이름(컵대회 등)이면 null (줄을 숨긴다).
+ * "키움증권 2026-27 FK리그1" → "키움증권 2026-27 FK리그1(1부) 참가" (공식 대회명 그대로, D-072),
+ * 예전 표기 "2026-27 FK1리그" → "2026-27 시즌 FK리그 1부(FK1) 참가". 시즌 연도/부가 없는 이름(컵대회 등)이면 null (줄을 숨긴다).
  */
 export function leagueEntryLine(competition: string): string | null {
-  const m = competition.trim().match(/^(\d{4}-\d{2})\s+FK(\d)리그$/);
-  return m ? `${m[1]} 시즌 FK리그 ${m[2]}부(FK${m[2]}) 참가` : null;
+  const name = competition.trim();
+  const old = name.match(/^(\d{4}-\d{2})\s+FK(\d)리그$/);
+  if (old) return `${old[1]} 시즌 FK리그 ${old[2]}부(FK${old[2]}) 참가`;
+  const official = name.match(/(?:^|\s)\d{4}-\d{2}\s+FK리그(\d)$/);
+  return official ? `${name}(${official[1]}부) 참가` : null;
 }

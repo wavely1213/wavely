@@ -107,6 +107,7 @@ test("sortByTier: 정적 목록이면 네이밍(덴포스스포츠) → 메인(�
 test("leagueEntryLine: 지금 시즌 대회명 → 리그 참가 한 줄", () => {
   assert.equal(leagueEntryLine("2026-27 FK1리그"), "2026-27 시즌 FK리그 1부(FK1) 참가");
   assert.equal(leagueEntryLine("2027-28 FK2리그"), "2027-28 시즌 FK리그 2부(FK2) 참가");
+  assert.equal(leagueEntryLine("키움증권 2026-27 FK리그1"), "키움증권 2026-27 FK리그1(1부) 참가");
   // 지금 시즌 설정(config/league.ts)이 이 형식이어야 스폰서 페이지에 줄이 보인다
   assert.ok(leagueEntryLine(LEAGUE.currentCompetition));
 });
