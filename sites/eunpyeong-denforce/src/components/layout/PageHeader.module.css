@@ -162,3 +162,8 @@
     letter-spacing: 0;
   }
 }
+
+/* 바로 밑에 전폭 색 면이 붙는 화면(선수 상세) — 아래 여백 없음 */
+.wrap.flush {
+  margin-bottom: 0;
+}

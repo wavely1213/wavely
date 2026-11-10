@@ -72,6 +72,14 @@
   color: var(--c-text-sub);
 }
 
+/* 출전 줄 (구분안 2) — kfa/caption text-sub, 기록 없는 선수도 같은 높이 */
+.apps {
+  margin-top: var(--space-2xs);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--c-text-sub);
+}
+
 @media (max-width: 720px) {
   .scroll {
     display: flex;

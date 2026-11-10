@@ -119,3 +119,25 @@ export function findPlayerNews(input: { name: string; slug: string; sameNameCoun
     return input.sameNameCount === 1 && (mentionsName(post.title, input.name) || mentionsName(post.summary, input.name));
   });
 }
+
+/**
+ * 선수 상세 머리(PlayerHero)의 기록 줄 — '12경기 / 10골'(득점 0이면 '0골' 그대로), 도움은 0보다 클 때만 '/ 2도움'.
+ * 합류 선수(기록 시즌 뒤 영입, 출전/득점 0)는 null — 대신 '합류 2026-27 시즌'.
+ */
+export function playerRecordLine(player: Pick<Player, "stats">, join: PlayerJoin | null): string | null {
+  const { apps, goals, assists } = player.stats;
+  if (join && apps === 0 && goals === 0) return null;
+  return [`${apps}경기`, `${goals}골`, ...(assists > 0 ? [`${assists}도움`] : [])].join(" / ");
+}
+
+/** 선수 목록 카드 아래 출전 줄(구분안 2, BR-025 동명이인 구분) — 출전 1경기 이상만 '2025-26 출전 9경기', 아니면 null(높이만 비움) */
+export function playerAppsLine(player: Pick<Player, "stats">, statsSeasonLabel: string): string | null {
+  return player.stats.apps > 0 ? `${statsSeasonLabel} 출전 ${player.stats.apps}경기` : null;
+}
+
+/** 목록 순서(포지션 → 번호 → 이름)에서 앞뒤 선수 — 처음/끝이면 null */
+export function playerNeighbors<T extends { slug: string }>(players: T[], slug: string): { prev: T | null; next: T | null } {
+  const i = players.findIndex((p) => p.slug === slug);
+  if (i < 0) return { prev: null, next: null };
+  return { prev: players[i - 1] ?? null, next: players[i + 1] ?? null };
+}

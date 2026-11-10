@@ -1,0 +1,92 @@
+/* 이전 선수 / 선수 목록 / 다음 선수 — 양 끝 + 가운데 버튼. 휴대폰은 이전/다음 한 줄 + 아래 가운데 버튼 */
+.nav {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-m);
+  padding-block: var(--space-2xl);
+}
+
+.side {
+  min-width: 0;
+}
+
+.end {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.link {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  min-height: 44px;
+  min-width: 0;
+}
+
+.linkEnd {
+  align-items: flex-end;
+  text-align: right;
+}
+
+/* kfa/caption text-sub */
+.dir {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--c-text-sub);
+}
+
+.who {
+  font-size: 14px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+/* kfa/m/h4 16 */
+.who strong {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.pos {
+  margin-left: var(--space-2xs);
+  color: var(--c-text-sub);
+}
+
+.link:hover strong {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* [← 선수 목록] — line 테두리, radius/m, 높이 44 */
+.list {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  min-height: 44px;
+  padding: 0 var(--space-l);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-m);
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.list:hover {
+  border-color: var(--c-blue);
+  color: var(--c-blue);
+}
+
+@media (max-width: 720px) {
+  .nav {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--space-l) var(--space-m);
+    padding-block: var(--space-xl);
+  }
+
+  .list {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: center;
+  }
+}

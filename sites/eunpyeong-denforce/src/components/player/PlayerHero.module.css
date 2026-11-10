@@ -1,0 +1,122 @@
+/* 선수 상세 머리 (PlayerHero 132:816) — 전폭 black-soft, 위아래 space/2xl(휴대폰 space/xl), 사진과 정보 사이 space/2xl(휴대폰 세로 space/l) */
+.hero {
+  padding-block: var(--space-2xl);
+  background: var(--c-black-soft);
+  color: var(--c-on-dark);
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xl);
+}
+
+/* 사진 3:4 폭 400 (FitImage: 비율이 다르면 전체 보기 + 흐린 바탕) */
+.photo {
+  position: relative;
+  flex: none;
+  width: 400px;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--radius-m);
+  overflow: hidden;
+  background: var(--c-black-soft);
+}
+
+.info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-m);
+  min-width: 0;
+}
+
+/* kfa/label yellow */
+.position {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-yellow);
+}
+
+/* kfa/pc/display 76 (휴대폰 kfa/m/display 40) */
+.name {
+  font-size: 76px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.number {
+  font-size: 0.5em;
+  color: var(--c-on-dark-sub);
+}
+
+/* kfa/pc/number-l 56 (휴대폰 kfa/m/number-l 40) */
+.record {
+  font-size: 56px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* kfa/pc/h3 24 (휴대폰 kfa/m/h3 20) */
+.join {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+/* kfa/caption on-dark-sub */
+.source {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--c-on-dark-sub);
+}
+
+@media (max-width: 960px) {
+  .photo {
+    width: 320px;
+  }
+
+  .name {
+    font-size: 56px;
+  }
+
+  .record {
+    font-size: 44px;
+  }
+}
+
+@media (max-width: 720px) {
+  .hero {
+    padding-block: var(--space-xl);
+  }
+
+  .inner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-l);
+  }
+
+  .photo {
+    width: 100%;
+  }
+
+  .name {
+    font-size: 40px;
+  }
+
+  .record {
+    font-size: 40px;
+  }
+
+  .join {
+    font-size: 20px;
+  }
+}

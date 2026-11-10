@@ -1,0 +1,11 @@
+/* 선수 목록 화면 — 위는 PageHeader 아래 여백, 아래 section-gap. 출처 줄 kfa/caption text-sub */
+.body {
+  padding-bottom: var(--section-gap);
+}
+
+.note {
+  margin-top: var(--space-xl);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--c-text-sub);
+}

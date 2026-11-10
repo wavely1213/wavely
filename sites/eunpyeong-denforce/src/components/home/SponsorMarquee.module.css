@@ -56,6 +56,14 @@
   padding: 0 var(--space-xl);
 }
 
+/* 로고 링크 — 누르는 영역 높이 44 이상 (로고가 작아도) */
+.item a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+}
+
 /* 같은 상자(160×64) 안에 맞춘다 — 가로로 긴 로고는 폭, 네모난 로고는 높이 기준이라 눈대중 크기가 비슷해진다 */
 .logo {
   width: auto;
