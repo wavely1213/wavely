@@ -28,7 +28,7 @@
 <!-- 최신 항목을 위에 추가. 심각도 '높음'은 발견 즉시 소유자에게 별도 보고 -->
 
 ## I-049 | 2026-11-10 | 인스타 자동 반영 Edge Function 이 아직 옛 대회명('2026-27 FK1리그')으로 돈다 (D-072)
-- **상태**: 열림 (소유자 승인 후 Edge Function 재배포)
+- **상태**: 해결(2026-11-10, 소유자 "함수 재배포해" → instagram-sync 버전 4, verify_jwt=false 유지)
 - **심각도**: 낮음
 - **증상**: 저장소 plan.ts 는 '키움증권 2026-27 FK리그1' 로 바꿨지만, Supabase 에 올라간 instagram-sync(버전 3)는 그대로다. MATCH DAY 글로 새 리그 경기를 넣을 때만 옛 이름이 들어간다. 2026-27 리그 경기 15건은 이미 DB 에 있어 같은 날 경기는 새로 넣지 않으므로, 실제로 생길 일은 드물다.
 - **위치**: supabase/functions/instagram-sync/plan.ts (LEAGUE_COMPETITION, competitionOf)

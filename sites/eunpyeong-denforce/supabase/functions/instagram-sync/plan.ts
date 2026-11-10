@@ -5,7 +5,6 @@ import { josa, nameSlug } from "./korean.ts";
 
 export const ACCOUNT = "eunpyeong_denforce";
 const SITE = "https://eunpyeong-fs.com";
-/** 지금 시즌 리그 대회 이름 — src/config/league.ts 의 LEAGUE.currentCompetition 과 같아야 한다 (테스트로 맞춘다) */
 /** 지금 시즌 공식 대회명 — src/config/league.ts LEAGUE.currentCompetition 과 같아야 한다 (테스트가 확인, D-072) */
 export const LEAGUE_COMPETITION = "키움증권 2026-27 FK리그1";
 /** 기사에 쓰는 리그 이름 */
