@@ -59,9 +59,7 @@ test("TEAM_CRESTS: 이름 겹침 없음, 파일은 실제로 있고 출처와 �
       const png = readFileSync(url);
       assert.deepEqual([png.readUInt32BE(16), png.readUInt32BE(20)], e.pixels, e.file);
       assert.ok(Math.max(...(e.pixels ?? [0])) >= 256, e.file);
-      // 출처는 https 주소, 주소가 없는 공식 채널은 설명(청주팔라시오) — 비어 있으면 안 된다
-      assert.ok((e.source ?? "").trim().length > 0 && /^\d{4}-\d{2}-\d{2}$/.test(e.fetchedAt ?? ""), e.name);
-      if (e.source?.startsWith("http")) assert.ok(e.source.startsWith("https://"), e.name);
+      assert.ok(e.source?.startsWith("https://") && /^\d{4}-\d{2}-\d{2}$/.test(e.fetchedAt ?? ""), e.name);
     } else {
       assert.match(e.note, /^못 구함: /, e.name);
       assert.equal(e.pixels, null, e.name);

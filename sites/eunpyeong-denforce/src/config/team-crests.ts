@@ -12,7 +12,7 @@ export type TeamCrestEntry = {
   file: string | null;
   /** 원본 픽셀 크기 [가로, 세로] — 비율 그대로 보이게. 못 구했으면 null */
   pixels: [number, number] | null;
-  /** 받은 곳 (공식 경로, 주소가 없으면 설명). 못 구했으면 확인한 곳 */
+  /** 받은 곳 (공식 경로). 못 구했으면 확인한 곳 */
   source: string | null;
   /** 받은 날짜 (YYYY-MM-DD) */
   fetchedAt: string | null;
@@ -125,9 +125,9 @@ export const TEAM_CRESTS: TeamCrestEntry[] = [
     aliases: ["청주풋살클럽"],
     file: "/crests/cheongju.png",
     pixels: [371, 475],
-    source: "팔라시오 아카데미 네이버 플레이스 이미지(구단 관계 채널)",
+    source: "https://ldb-phinf.pstatic.net/20251031_41/1761920251242g3kgL_PNG/KakaoTalk_20250805_144018531.png",
     fetchedAt: "2026-11-10",
-    note: "구단 관계 채널 이미지(총괄 반박 검증)",
+    note: "오송 팔라시오 축구 아카데미 네이버 플레이스(구단 관계 채널, m.place.naver.com/place/2070103404)(총괄 반박 검증)",
   },
   {
     name: "제천FS",
