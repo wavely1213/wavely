@@ -1,40 +1,42 @@
-/* 다음 홈경기 카드 — 폭 layout/match-hero-w(400 / 휴대폰 358), blue, radius/l, 패딩 space/l(휴대폰 space/m).
-   오른쪽 아래 사선 삼각형 96(line-on-dark, 엠블럼 사선 각도) */
+/* 다음 홈경기 카드 — 가운데 정렬 (피그마 200:20882 / 200:21341, 부품 지도 'NextMatchHero 가운데 정렬').
+   폭 layout/match-hero-w(456 / 휴대폰 358), black, radius/l, 패딩 space/xl(휴대폰 space/m), 줄 간격 space/m(휴대폰 space/s) */
 .card {
+  --nmh-pad: var(--space-xl);
+  --nmh-col: 168px;
+  --nmh-crest: 96px;
   position: relative;
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: var(--space-m);
   width: var(--match-hero-w);
   max-width: 100%;
-  padding: var(--space-l);
+  padding: var(--nmh-pad);
   border-radius: var(--radius-l);
-  background: var(--c-blue);
-  color: var(--c-on-blue);
+  background: var(--c-black);
+  color: var(--c-on-dark);
+  text-align: center;
   overflow: hidden;
 }
 
-.card::after {
-  content: "";
+/* 큰 E 워터마크 — kfa/poster/score 220(휴대폰 score-s 180), 외곽선 2px line-on-dark, 채움 없음, 오른쪽 아래 일부 잘림 */
+.watermark {
   position: absolute;
-  right: 0;
-  bottom: 0;
-  width: 96px;
-  height: 96px;
-  background: var(--c-line-on-dark);
-  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+  left: 358px;
+  top: 237px;
+  font-size: 220px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: transparent;
+  -webkit-text-stroke: 2px var(--c-line-on-dark);
   pointer-events: none;
-}
-
-.head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-s);
+  user-select: none;
 }
 
 /* kfa/label yellow */
 .label {
+  position: relative;
   font-size: 12px;
   font-weight: 700;
   line-height: 1.2;
@@ -42,74 +44,133 @@
   color: var(--c-yellow);
 }
 
+/* [홈 168 | VS 56 | 원정 168], 칸 사이 space/s (휴대폰 [128 | 40 | 128], space/xs) */
 .teams {
+  position: relative;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-m);
+  align-items: flex-start;
+  gap: var(--space-s);
 }
 
 .team {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-xs);
-  width: 136px;
+  gap: var(--space-s);
+  width: var(--nmh-col);
 }
 
-/* kfa/body-s, 2줄까지, 줄임 없음 */
+/* 홈팀 엠블럼 뒤만 파랑 사선 면 — 카드 왼쪽 끝부터, 엠블럼 위 12 부터 높이 엠블럼 + 24, 아래쪽이 28 짧은 사선 (휴대폰 8 / +16 / 20) */
+.homeTeam::before {
+  content: "";
+  position: absolute;
+  left: calc(-1 * var(--nmh-pad));
+  top: calc(-1 * var(--nmh-blue-gap, 12px));
+  width: var(--nmh-blue-w, 200px);
+  height: calc(var(--nmh-crest) + 2 * var(--nmh-blue-gap, 12px));
+  background: var(--c-blue);
+  clip-path: polygon(0 0, 100% 0, calc(100% - var(--nmh-blue-slope, 28px)) 100%, 0 100%);
+}
+
+/* kfa/pc/h3 24 Bold (휴대폰 kfa/m/h4 16), 2줄까지, 줄임 없음, 낱말 경계 줄바꿈 */
 .teamName {
-  font-size: 14px;
-  line-height: 1.6;
-  text-align: center;
-}
-
-.vs {
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: 0.08em;
-}
-
-.when {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2xs);
-}
-
-/* kfa/pc/h3 24 (휴대폰 kfa/m/h4 16) */
-.date {
+  position: relative;
   font-size: 24px;
   font-weight: 700;
   line-height: 1.2;
   letter-spacing: -0.02em;
+  word-break: keep-all;
 }
 
-.venue {
+/* VS — 칸 가운데, kfa/pc/h4 18 Bold (휴대폰 kfa/label), on-dark-sub */
+.vs {
+  flex: none;
   display: flex;
   align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: var(--nmh-crest);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--c-on-dark-sub);
+}
+
+/* kfa/pc/match-date 28 Bold (휴대폰 kfa/m/match-date 22), lh 1.1 */
+.date {
+  position: relative;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+/* kfa/body-s on-dark-sub + HOME 배지, 간격 space/xs */
+.venue {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
   gap: var(--space-xs);
   font-size: 14px;
   line-height: 1.6;
+  color: var(--c-on-dark-sub);
 }
 
+/* 버튼 각 160x44, 간격 space/xs, 가운데 (휴대폰 카드 폭 나눔) */
 .buttons {
   position: relative;
-  z-index: 1;
   display: flex;
+  justify-content: center;
   gap: var(--space-xs);
+  width: 100%;
 }
 
 .button {
-  flex: 1;
+  width: 160px;
+  min-height: 44px;
 }
 
 @media (max-width: 720px) {
   .card {
-    padding: var(--space-m);
+    --nmh-pad: var(--space-m);
+    --nmh-col: 128px;
+    --nmh-crest: 64px;
+    --nmh-blue-gap: 8px;
+    --nmh-blue-w: 159px;
+    --nmh-blue-slope: 20px;
+    gap: var(--space-s);
+  }
+
+  .watermark {
+    left: 278px;
+    top: 168px;
+    font-size: 180px;
+  }
+
+  .teams {
+    gap: var(--space-xs);
+  }
+
+  .teamName {
+    font-size: 16px;
+  }
+
+  .vs {
+    width: 40px;
+    font-size: 12px;
+    letter-spacing: 0.08em;
   }
 
   .date {
-    font-size: 16px;
+    font-size: 22px;
+  }
+
+  .button {
+    flex: 1;
+    width: auto;
   }
 }

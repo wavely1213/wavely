@@ -9,7 +9,7 @@ import styles from "./MatchCard.module.css";
 
 /**
  * 메인 경기 띠의 한 칸 (리디자인 D-067, 검정 면). 결과: 스코어 + 결과 배지 + 득점 줄 + 있을 때만 영상 버튼(새 창).
- * 예정: 가운데 시각. 홈팀 왼쪽(BR-002), 홈경기만 HOME. 카드 전체가 아니라 대진 줄만 링크(버튼이 든 카드라서).
+ * 예정: 가운데 시각. 칸마다 가운데 정렬(수원식, 피그마 200:21536 / 200:21621): 라벨 → 대회 → 대진 → 날짜 → @경기장 + HOME → 득점 → 영상. 홈팀 왼쪽(BR-002), 홈경기만 HOME. 카드 전체가 아니라 대진 줄만 링크(버튼이 든 카드라서).
  */
 export function MatchCard({ match, label, ourName, divided = false }: { match: Match; label: string; ourName: string; divided?: boolean }) {
   const { date, time } = formatKickoff(match.kickoff);
@@ -24,7 +24,6 @@ export function MatchCard({ match, label, ourName, divided = false }: { match: M
         <span className={styles.label}>{label}</span>
         <CompetitionTag text={matchLabel(match)} surface="dark" />
       </div>
-      <p className={styles.date}>{finished ? `${date} ${time}` : date}</p>
       <Link href={finished ? "/match/results" : "/match/schedule"} className={styles.teams}>
         <span className={styles.team}>
           <TeamCrest team={home} us={match.isHome} size={56} mobileSize={40} />
@@ -47,9 +46,10 @@ export function MatchCard({ match, label, ourName, divided = false }: { match: M
           <span className={styles.teamName}>{away}</span>
         </span>
       </Link>
+      <p className={styles.date}>{finished ? `${date} ${time}` : date}</p>
       {match.venue && (
         <p className={styles.venue}>
-          {match.venue}
+          @{match.venue}
           <HomeAwayBadge isHome={match.isHome} surface="dark" />
         </p>
       )}

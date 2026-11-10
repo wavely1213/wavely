@@ -13,11 +13,13 @@
   border-left: 1px solid var(--c-line-on-dark);
 }
 
+/* 칸 제목(노랑 라벨) → 대회 태그 바로 아래, 간격 space/2xs, 가운데 */
 .top {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-xs);
+  gap: var(--space-2xs);
+  text-align: center;
 }
 
 /* kfa/label yellow */
@@ -36,7 +38,7 @@
   color: var(--c-on-dark-sub);
 }
 
-/* 칸마다 가운데 정렬 (소유자 확정, 피그마 비교안 198:17 / 198:117) — 위 줄(라벨 / 대회)만 양 끝 */
+/* 칸마다 가운데 정렬 (소유자 확정, 피그마 200:21536 / 200:21621) */
 .date {
   text-align: center;
 }
