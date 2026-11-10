@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { SITE } from "@/config/site";
 import { crestImageFor } from "@/lib/crests";
-import { crestInitial } from "@/lib/match";
+import { crestInitial, crestInitialShort } from "@/lib/match";
 import styles from "./MatchParts.module.css";
 
 export type CrestSize = 96 | 88 | 64 | 56 | 40 | 32 | 24;
@@ -61,7 +61,7 @@ export function TeamCrest({ team, us, size, mobileSize }: { team: string; us: bo
   return (
     <span className={`${styles.crest} ${styles.crestFallback} ${sizeClass}`} aria-hidden="true">
       <Shield />
-      <span className={styles.crestText}>{crestInitial(team)}</span>
+      <span className={styles.crestText}>{size === 24 ? crestInitialShort(team) : crestInitial(team)}</span>
     </span>
   );
 }

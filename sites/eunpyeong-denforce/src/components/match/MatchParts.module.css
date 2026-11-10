@@ -94,7 +94,7 @@
   --crest: 40px;
 }
 
-/* 표(경기일정/결과, 순위) 24 — 2차 시안 TeamCrest 24 (글자 kfa/m/header-en 10, 방패 폭 20 이라 자간 0) */
+/* 표(경기일정/결과, 순위) 24 — MatchEmblem 24 (a17af68): 흰 바탕 표 전용. 대체 방패 선 1px text-sub + 글자 1자 kfa/10 Bold text, 우리 팀 바깥선 line(--crest-line) */
 .crest24 {
   --crest: 24px;
   --crest-stroke: 1px;
@@ -102,6 +102,14 @@
   --crest-fw: 700;
   --crest-lh: 1.2;
   --crest-ls: 0;
+}
+
+.crest24.crestFallback {
+  color: var(--c-text);
+}
+
+.crest24 .shield {
+  color: var(--c-text-sub);
 }
 
 .crest32 {

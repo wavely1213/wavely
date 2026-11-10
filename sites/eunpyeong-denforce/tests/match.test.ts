@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { formatKickoffFull } from "../src/lib/format.ts";
-import { crestInitial, teamNameSegments, groupByCompetition, hasMatchDetails, homeMatchItems, matchLabel, matchVideoLinks, scheduleEmptyLinks } from "../src/lib/match.ts";
+import { crestInitial, crestInitialShort, teamNameSegments, groupByCompetition, hasMatchDetails, homeMatchItems, matchLabel, matchVideoLinks, scheduleEmptyLinks } from "../src/lib/match.ts";
 import type { Match } from "../src/types/index.ts";
 
 const m = (id: string, competition: string, round = ""): Match => ({
@@ -89,4 +89,12 @@ test("teamNameSegments: 띄어쓰기 없는 긴 이름은 뒷말 앞에서 나�
   assert.deepEqual(teamNameSegments("서울은평 덴포스"), ["서울은평 덴포스"]);
   assert.deepEqual(teamNameSegments("강원FS"), ["강원", "FS"]);
   assert.deepEqual(teamNameSegments("FS"), ["FS"]);
+});
+
+test("crestInitialShort: 표(24) 대체 방패는 한 글자, 영문이면 대문자", () => {
+  assert.equal(crestInitialShort("경기LBFS"), "경");
+  assert.equal(crestInitialShort("LBFS"), "L");
+  assert.equal(crestInitialShort(" lbfs"), "L");
+  assert.equal(crestInitialShort("인천ZD스포츠"), "인");
+  assert.equal(crestInitialShort(""), "");
 });

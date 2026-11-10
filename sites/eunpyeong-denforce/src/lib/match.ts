@@ -48,6 +48,12 @@ export function crestInitial(team: string): string {
   return Array.from(team.trim()).slice(0, 2).join("");
 }
 
+/** 표(24) 대체 방패 글자 — 한 글자. 영문으로 시작하면 첫 글자 대문자('LBFS' → 'L'), 아니면 첫 글자('경기LBFS' → '경') (MatchEmblem 24, a17af68) */
+export function crestInitialShort(team: string): string {
+  const first = Array.from(team.trim())[0] ?? "";
+  return /[a-z]/i.test(first) ? first.toUpperCase() : first;
+}
+
 /**
  * 경기일정이 비었을 때(시즌 휴식기) 안내 문구 아래 바로가기 — 막다른 화면이 되지 않게.
  * 구단 인스타그램 주소(관리자 › 구단정보)가 없으면 '일정 발표 소식 받기'는 뺀다.
