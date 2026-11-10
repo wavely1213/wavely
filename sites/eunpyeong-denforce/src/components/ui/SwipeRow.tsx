@@ -1,23 +1,26 @@
 "use client";
 
 import { Children, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { swipeMetrics } from "@/lib/swipe";
 import styles from "./SwipeRow.module.css";
 
-/** 한 페이지(보이는 칸 폭 + 칸 사이)만큼 넘긴다 — 줄 안쪽 여백(초점 링 자리)은 빼고 잰다 */
 function measure(el: HTMLElement): { step: number; count: number } {
   const cs = getComputedStyle(el);
   const pad = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
   const gap = parseFloat(cs.columnGap) || 0;
-  const step = Math.max(1, el.clientWidth - pad + gap);
-  const count = Math.max(1, Math.ceil((el.scrollWidth - pad + gap - 2) / step));
-  return { step, count };
+  const cells = el.children;
+  const first = cells[0] as HTMLElement | undefined;
+  const second = cells[1] as HTMLElement | undefined;
+  const itemStep = first && second ? second.offsetLeft - first.offsetLeft : (first?.offsetWidth ?? 0) + gap;
+  return swipeMetrics({ clientWidth: el.clientWidth, pad, gap, itemStep, items: cells.length, scrolls: cs.overflowX !== "visible" });
 }
 
 /**
  * 옆으로 넘기는 카드 줄 (리디자인 D-067) — 스와이프(scroll-snap) + 점(+ 화살표).
- * - perView: 한 화면 칸 수 (PC). 휴대폰(720 이하)은 1칸 + 옆 카드 24px 보임, 칸이 1개면 전폭.
- * - fixedOnDesktop: PC 에서는 넘기지 않고 칸이 폭을 나눈다 (경기 띠). 점/화살표는 넘길 것이 있을 때만.
- * - 점은 '페이지'(한 화면) 단위. 화살표는 arrows 일 때만(휴대폰은 스와이프).
+ * - perView: 한 화면 칸 수 (PC). 휴대폰(720 이하)은 1칸 + 옆 카드, 줄은 화면 오른쪽 끝까지, 칸이 1개면 전폭.
+ * - fixedOnDesktop: PC(901 이상)에서는 넘기지 않고 칸이 폭을 나눈다 (경기 띠). 721~900 은 2칸 + 스와이프.
+ * - 점은 넘길 것이 있을 때만, 누르는 영역 44. 화살표는 arrows 일 때만(휴대폰은 스와이프).
+ *   끝에서 화살표는 disabled 대신 aria-disabled — 초점이 사라지지 않게 (G5).
  */
 export function SwipeRow({
   children,
@@ -49,7 +52,7 @@ export function SwipeRow({
       setPages(count);
       // 끝까지 밀었으면 마지막 페이지
       const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 2;
-      setPage(atEnd ? count - 1 : Math.round(el.scrollLeft / step));
+      setPage(Math.min(count - 1, atEnd ? count - 1 : Math.round(el.scrollLeft / step)));
     };
     update();
     el.addEventListener("scroll", update, { passive: true });
@@ -63,7 +66,7 @@ export function SwipeRow({
 
   const go = (p: number) => {
     const el = ref.current;
-    if (!el) return;
+    if (!el || p < 0 || p > pages - 1) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     el.scrollTo({ left: Math.max(0, p) * measure(el).step, behavior: reduce ? "instant" : "smooth" });
   };
@@ -99,12 +102,12 @@ export function SwipeRow({
           </div>
           {arrows && (
             <div className={styles.arrows}>
-              <button type="button" className={styles.arrow} aria-label="이전" disabled={page === 0} onClick={() => go(page - 1)}>
+              <button type="button" className={styles.arrow} aria-label="이전" aria-disabled={page === 0 ? "true" : undefined} onClick={() => go(page - 1)}>
                 <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" strokeWidth="2" />
                 </svg>
               </button>
-              <button type="button" className={styles.arrow} aria-label="다음" disabled={page >= pages - 1} onClick={() => go(page + 1)}>
+              <button type="button" className={styles.arrow} aria-label="다음" aria-disabled={page >= pages - 1 ? "true" : undefined} onClick={() => go(page + 1)}>
                 <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" strokeWidth="2" />
                 </svg>

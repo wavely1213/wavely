@@ -1,10 +1,11 @@
 /* 메인 탭 줄 (구단 소식 분류, 선수단 포지션) — 리디자인 D-067.
    높이 44, 사이 space/l, 흰 면: 활성 text + text 2px 밑줄 / 검정 면(.dark): 활성 on-dark + yellow 2px 밑줄.
-   탭 좌우 padding space/xs 와 안쪽 초점 링 — 가로 스크롤 줄(ScrollRow)이 링을 자르지 않게 */
+   탭 좌우 padding space/xs 와 안쪽 초점 링 — 가로 스크롤 줄(ScrollRow)이 링을 자르지 않게.
+   글자는 섹션 제목 왼쪽과 맞춘다(G10): 줄을 왼쪽으로 padding 둘만큼 당김. 밑줄은 ::after 로 글자 폭만(좌우 8 안쪽) */
 .tabs {
   display: flex;
   gap: calc(var(--space-l) - 2 * var(--space-xs));
-  margin: 0 calc(-1 * var(--space-xs)) var(--space-l);
+  margin: 0 calc(-2 * var(--space-xs)) var(--space-l);
   padding: 0 var(--space-xs);
   border-bottom: 1px solid var(--c-line);
   overflow-x: auto;
@@ -12,6 +13,7 @@
 }
 
 .tab {
+  position: relative;
   flex: none;
   display: flex;
   align-items: center;
@@ -19,7 +21,6 @@
   margin-bottom: -1px;
   padding: 0 var(--space-xs);
   border: 0;
-  border-bottom: 2px solid transparent;
   background: none;
   color: var(--c-text-sub);
   font-size: 16px;
@@ -36,7 +37,16 @@
 .active,
 .active:hover {
   color: var(--c-text);
-  border-bottom-color: var(--c-text);
+}
+
+.active::after {
+  content: "";
+  position: absolute;
+  left: var(--space-xs);
+  right: var(--space-xs);
+  bottom: 0;
+  height: 2px;
+  background: var(--c-text);
 }
 
 .tabs .tab:focus-visible {
@@ -58,8 +68,8 @@
   color: var(--c-on-dark);
 }
 
-.dark .active {
-  border-bottom-color: var(--c-yellow);
+.dark .active::after {
+  background: var(--c-yellow);
 }
 
 .dark .tab:focus-visible {
@@ -75,4 +85,11 @@
 .dark .empty,
 .emptyDark {
   color: var(--c-on-dark-sub);
+}
+
+/* 휴대폰: 탭 사이를 줄여 390 에서 마지막 탭(구단영상)이 가장자리에 걸려 흐려지지 않게 (G10) — 글자 사이 16 */
+@media (max-width: 720px) {
+  .tabs {
+    gap: 0;
+  }
 }

@@ -33,10 +33,13 @@
   background: var(--c-yellow);
 }
 
+/* 누르는 영역 44 는 지키되 머리 높이는 피그마 34 — 위아래 음수 margin 5 */
 .more {
   display: inline-flex;
   align-items: center;
+  gap: var(--space-2xs);
   min-height: 44px;
+  margin-block: -5px;
   font-size: 12px;
   line-height: 1.6;
   color: var(--c-text-sub);
@@ -86,12 +89,18 @@
 
 .table th:first-child,
 .table td:first-child {
-  width: 28px;
+  width: 24px;
 }
 
 .table th:not(:first-child):not(.team),
 .table td:not(:first-child):not(.team) {
-  width: 26px;
+  width: 22px;
+}
+
+/* 머리글 '승점'(12 x 2글자)은 22 칸에서 줄바꿈하지 않는다 */
+.table th {
+  white-space: nowrap;
+  letter-spacing: -0.04em;
 }
 
 /* 팀 이름은 2줄까지 줄바꿈 (줄임 없음) */
@@ -99,10 +108,20 @@
   padding-left: var(--space-2xs);
   text-align: left;
   word-break: keep-all;
+  /* 띄어쓰기 없는 긴 이름(고양불스풋살클럽)이 숫자 칸을 덮지 않게 — TeamName <wbr> 다음 마지막 수단 */
+  overflow-wrap: anywhere;
 }
 
 /* 우리 팀 행 — blue-tint 바탕 + text 글자 */
 .us td {
   background: var(--c-blue-tint);
   color: var(--c-text);
+}
+
+/* 휴대폰: 숫자 칸 32 */
+@media (max-width: 720px) {
+  .table th:not(:first-child):not(.team),
+  .table td:not(:first-child):not(.team) {
+    width: 32px;
+  }
 }

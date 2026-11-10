@@ -10,10 +10,11 @@ export function HomeColumns({ main, aside }: { main: ReactNode; aside: ReactNode
   if (!aside) return <div className={`container ${styles.single}`}>{main}</div>;
   return (
     <div className={`container ${styles.columns}`}>
-      <div className={styles.main}>{main}</div>
+      {/* 위젯을 먼저 — 좁은 화면에서 보이는 순서(순위 → 소식)와 키보드/낭독 순서가 같게 (G7, WCAG 2.4.3). PC 는 grid 로 자리만 오른쪽 */}
       <aside className={styles.aside} aria-label="위젯">
         <div className={styles.stick}>{aside}</div>
       </aside>
+      <div className={styles.main}>{main}</div>
     </div>
   );
 }

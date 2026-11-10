@@ -99,6 +99,11 @@
 }
 
 @media (max-width: 720px) {
+  /* 휴대폰 목록 행 사이 16 (G11) */
+  .rows {
+    gap: var(--space-m);
+  }
+
   .body {
     grid-template-columns: minmax(0, 1fr);
   }

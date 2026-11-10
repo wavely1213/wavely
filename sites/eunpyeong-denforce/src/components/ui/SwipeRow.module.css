@@ -25,14 +25,22 @@
   scroll-snap-align: start;
 }
 
-/* PC: 넘기지 않고 칸이 폭을 나눔 (경기 띠) */
-.fixed {
-  overflow: visible;
-  scroll-snap-type: none;
+/* PC(901 이상): 넘기지 않고 칸이 폭을 나눔 (경기 띠). 721~900 은 2칸 + 스와이프 (G2: 3칸이 칸 밖으로 넘침) */
+@media (min-width: 901px) {
+  .fixed {
+    overflow: visible;
+    scroll-snap-type: none;
+  }
+
+  .fixed .cell {
+    flex: 1 1 0;
+  }
 }
 
-.fixed .cell {
-  flex: 1 1 0;
+@media (min-width: 721px) and (max-width: 900px) {
+  .fixed .cell {
+    flex: 0 0 calc((100% - var(--gap)) / 2);
+  }
 }
 
 .controls {
@@ -43,15 +51,19 @@
   margin-top: var(--space-l);
 }
 
+/* 점 버튼 사이 0 — 누르는 영역 44 끼리 붙는다 (G4) */
 .dots {
   display: flex;
-  gap: var(--space-2xs);
+  gap: 0;
 }
 
-/* 점 6px — 누르는 영역 24 */
+/* 보이는 점 8px, 누르는 영역 44x44. 켜진 점은 색과 길이(20)로 구분 */
 .dot {
-  width: 24px;
-  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
   padding: 0;
   border: 0;
   background: none;
@@ -61,19 +73,19 @@
 .dot::before {
   content: "";
   display: block;
-  width: 6px;
-  height: 6px;
-  margin: auto;
+  width: 8px;
+  height: 8px;
   border-radius: var(--radius-pill);
-  background: var(--c-line);
+  background: var(--c-text-sub);
 }
 
 .dotActive::before {
+  width: 20px;
   background: var(--c-text);
 }
 
 .dark .dot::before {
-  background: var(--c-line-on-dark);
+  background: var(--c-on-dark-sub);
 }
 
 .dark .dotActive::before {
@@ -105,7 +117,7 @@
   color: var(--c-on-dark);
 }
 
-.arrow:disabled {
+.arrow[aria-disabled="true"] {
   opacity: 0.4;
   cursor: default;
 }
@@ -115,19 +127,20 @@
     --gap: var(--space-m);
   }
 
-  /* 휴대폰: 1칸 + 옆 카드 24px, 칸이 하나면 전폭 */
+  /* 휴대폰: 줄은 화면 오른쪽 끝까지 펼치고(G4), 칸 폭 100% - 24px, 칸이 하나면 전폭 */
+  .row {
+    margin-right: calc(-1 * var(--gutter));
+    padding-right: var(--gutter);
+    scroll-padding-inline-end: var(--gutter);
+  }
+
   .cell,
   .fixed .cell {
-    flex: 0 0 calc(100% - 24px - var(--gap));
+    flex: 0 0 calc(100% - 24px);
   }
 
   .single .cell {
     flex-basis: 100%;
-  }
-
-  .fixed {
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
   }
 
   .controls {

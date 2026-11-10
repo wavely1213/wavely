@@ -25,11 +25,11 @@ export function matchLabel(m: Pick<Match, "competition" | "round">) {
 export function homeMatchItems(finished: Match[], upcoming: Match[], count = 3): Array<{ match: Match; label: string }> {
   if (upcoming.length === 0) return finished.slice(0, count).map((match) => ({ match, label: "지난 경기" }));
   const past = finished.slice(0, Math.min(1, count - 1)).map((match) => ({ match, label: "지난 경기" }));
-  const next = upcoming.slice(0, count - past.length).map((match, i) => ({ match, label: i === 0 ? "다음 경기" : "그다음 경기" }));
+  // 예정은 최대 count - 1 칸(다음 / 그다음) — 지난 경기가 없어도 '그다음 경기'가 두 번 붙지 않게 (G9)
+  const next = upcoming.slice(0, count - 1).map((match, i) => ({ match, label: i === 0 ? "다음 경기" : "그다음 경기" }));
   return [...past, ...next];
 }
 
-/** 팀 엠블럼이 없을 때 원 안 글자 — 팀 이름 앞 2글자 ('고양불스풋살클럽' → '고양', '인천ZD스포츠' → '인천') */
 /**
  * 팀 이름을 줄바꿈 후보 앞에서 나눈 조각 — 띄어쓰기 없는 긴 이름(예: 고양불스풋살클럽)이 칸이 좁을 때
  * '고양불스 / 풋살클럽'처럼 낱말 경계에서 줄바뀌게(화면은 조각 사이에 <wbr>). 띄어쓰기가 있으면 그대로 한 조각.
@@ -43,6 +43,7 @@ export function teamNameSegments(team: string): string[] {
   return [name.slice(0, m.index), name.slice(m.index)];
 }
 
+/** 엠블럼이 없을 때 대체 방패 안 글자 — 팀 이름 앞 2글자 ('고양불스풋살클럽' → '고양', '인천ZD스포츠' → '인천') */
 export function crestInitial(team: string): string {
   return Array.from(team.trim()).slice(0, 2).join("");
 }

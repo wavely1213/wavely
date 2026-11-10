@@ -78,14 +78,14 @@
 }
 
 /* 멈춘 목록 — 실제(복제 아닌) 칸만 가운데 정렬로, 좁으면 여러 줄.
-   ① 키보드로 링크에 들어오면: 흐르던 자리에 따라 링크가 화면 밖이거나 끝에 걸쳐 초점이 안 보일 수 있어서.
+   ① 키보드로 링크에 들어오면(멈춤 버튼 초점은 아님 — G6): 흐르던 자리에 따라 링크가 화면 밖이거나 끝에 걸쳐 초점이 안 보일 수 있어서.
       :focus-visible 이라 마우스로 누른 뒤에는 그대로 흐른다
    ② 움직임 줄이기 설정이면 처음부터 */
-.band:has(:focus-visible) .viewport {
+.band:has(.viewport :focus-visible) .viewport {
   mask-image: none;
 }
 
-.band:has(:focus-visible) .track {
+.band:has(.viewport :focus-visible) .track {
   flex-wrap: wrap;
   justify-content: center;
   width: auto;
@@ -93,11 +93,15 @@
   animation: none;
 }
 
-.band:has(:focus-visible) .item[aria-hidden="true"] {
+.band:has(.viewport :focus-visible) .item[aria-hidden="true"] {
   display: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .pause {
+    display: none;
+  }
+
   .viewport {
     mask-image: none;
   }
@@ -116,8 +120,9 @@
 }
 
 @media (max-width: 560px) {
+  /* 오른쪽 여백 gutter — 멈춤 버튼 초점 링이 화면 끝에서 잘리지 않게 (G6) */
   .band {
-    padding: 20px 0;
+    padding: 20px var(--gutter) 20px 0;
   }
 
   .item {
@@ -127,7 +132,7 @@
 
   .logo {
     max-width: 120px;
-    max-height: 48px;
+    max-height: 40px;
   }
 
   .name {

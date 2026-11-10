@@ -181,9 +181,20 @@
     min-height: 44px;
   }
 
+  /* 로고와 메뉴 버튼 사이 space/xs — 390 에서 영문 줄이 한 줄에 들어가게 */
+  .bar {
+    gap: var(--space-xs);
+  }
+
+  /* 글 칸은 줄어들 수 있고, 좁으면(360 이하) 영문 줄만 두 줄 — 320 가로 넘침 0 */
+  .brandText {
+    min-width: 0;
+  }
+
   /* kfa/m/header-en 10 */
   .brandText small {
     font-size: 10px;
+    white-space: normal;
   }
 
   /* kfa/m/h4 16 */

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { TeamName } from "@/components/match/TeamName";
 import { LEAGUE } from "@/config/league";
 import type { StandingRow } from "@/types";
 import styles from "./StandingsWidget.module.css";
@@ -39,7 +40,9 @@ export function StandingsWidget({ rows, title, live = false }: { rows: StandingR
           {rows.map((r, i) => (
             <tr key={r.id} className={r.isUs ? styles.us : undefined}>
               <td>{r.played === 0 ? "-" : i + 1}</td>
-              <td className={styles.team}>{r.team}</td>
+              <td className={styles.team}>
+                <TeamName name={r.team} />
+              </td>
               <td>{r.played}</td>
               <td className={styles.points}>{r.points}</td>
               <td>{r.win}</td>

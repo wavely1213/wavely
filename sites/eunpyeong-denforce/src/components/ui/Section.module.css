@@ -3,11 +3,13 @@
   padding: var(--section-gap) 0 0;
 }
 
+/* 좁은 화면(320~349)에서 긴 외부 링크(@eunpyeong_denforce ↗)가 넘치지 않게 줄바꿈 (G8) */
 .head {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-end;
   justify-content: space-between;
-  gap: var(--space-m);
+  gap: var(--space-2xs) var(--space-m);
   margin-bottom: var(--space-l);
 }
 
@@ -28,9 +30,11 @@
 }
 
 /* kfa/body-s, text-sub */
+/* 화살표 앞 띄어쓰기는 inline-flex 에서 사라지므로 gap 으로 (G12) */
 .more {
   display: inline-flex;
   align-items: center;
+  gap: var(--space-2xs);
   min-height: 44px;
   font-size: 14px;
   line-height: 1.6;

@@ -27,12 +27,12 @@ test("formatKickoffFull: 연맹 표기 YYYY-MM-DD (요일) + HH:MM, 한국 시�
   assert.deepEqual(formatKickoffFull("2026-08-24T23:30:00Z"), { date: "2026-08-25 (화)", time: "08:30" });
 });
 
-test("homeMatchItems: 지난 1 + 다음 + 그다음 (3칸) / 지난 경기 없으면 예정 2 / 예정 없으면 최근 결과 3", () => {
+test("homeMatchItems: 지난 1 + 다음 + 그다음 (3칸) / 지난 경기 없어도 예정은 최대 2(그다음 경기 한 번) / 예정 없으면 최근 결과 3", () => {
   const f = [{ id: "f1" }, { id: "f2" }, { id: "f3" }, { id: "f4" }] as Match[];
   const u = [{ id: "u1" }, { id: "u2" }, { id: "u3" }] as Match[];
   const ids = (xs: Array<{ match: Match; label: string }>) => xs.map((x) => `${x.match.id}:${x.label}`);
   assert.deepEqual(ids(homeMatchItems(f, u)), ["f1:지난 경기", "u1:다음 경기", "u2:그다음 경기"]);
-  assert.deepEqual(ids(homeMatchItems([], u)), ["u1:다음 경기", "u2:그다음 경기", "u3:그다음 경기"]);
+  assert.deepEqual(ids(homeMatchItems([], u)), ["u1:다음 경기", "u2:그다음 경기"]);
   assert.deepEqual(ids(homeMatchItems(f, [])), ["f1:지난 경기", "f2:지난 경기", "f3:지난 경기"]);
   assert.deepEqual(ids(homeMatchItems(f, u.slice(0, 1))), ["f1:지난 경기", "u1:다음 경기"]);
   assert.deepEqual(homeMatchItems([], []), []);
