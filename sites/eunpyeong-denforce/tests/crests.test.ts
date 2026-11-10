@@ -16,8 +16,27 @@ test("crestFor: 별칭(예전 이름)으로도 같은 항목", () => {
   assert.equal(crestEntryFor("전주매그풋살클럽")?.name, "전주시민풋살구단");
 });
 
+test("crestFor: 8팀과 별칭 모두 찾음 (총괄 863f54b)", () => {
+  const cases: Array<[string, string]> = [
+    ["강원FS", "/crests/gangwon.png"],
+    ["화성FS", "/crests/hwaseong.png"],
+    ["고양불스풋살클럽", "/crests/goyang.png"],
+    ["고양불스", "/crests/goyang.png"],
+    ["용인지솔FS", "/crests/yongin.png"],
+    ["용인대흥FS", "/crests/yongin.png"],
+    ["노원제너FS", "/crests/nowon.png"],
+    ["노원제너 FS", "/crests/nowon.png"],
+    ["노원FS", "/crests/nowon.png"],
+    ["노원HR FS", "/crests/nowon.png"],
+    ["전주시민풋살구단", "/crests/jeonju.png"],
+    ["전주매그풋살클럽", "/crests/jeonju.png"],
+    ["경기LBFS", "/crests/lbfs.png"],
+  ];
+  for (const [name, file] of cases) assert.equal(crestFor(name), file, name);
+});
+
 test("crestFor: 못 구한 팀, 모르는 팀, 빈 이름은 null", () => {
-  assert.equal(crestFor("화성FS"), null);
+  assert.equal(crestFor("인천ZD스포츠"), null);
   assert.equal(crestFor("없는팀"), null);
   assert.equal(crestFor("   "), null);
 });
@@ -45,4 +64,5 @@ test("TEAM_CRESTS: 이름 겹침 없음, 파일은 실제로 있고 출처와 �
 test("crestImageFor: 경로와 원본 크기, 없으면 null", () => {
   assert.deepEqual(crestImageFor("강원 FS"), { src: "/crests/gangwon.png", width: 256, height: 264 });
   assert.equal(crestImageFor("인천ZD스포츠"), null);
+  assert.deepEqual(crestImageFor("경기LBFS"), { src: "/crests/lbfs.png", width: 233, height: 281 });
 });
