@@ -318,7 +318,7 @@
 |---|---|---|---|
 | Type=우리 팀 | 96 / 88 / 64 / 56 / 40 / 32, 폭 = 높이 x 600/829 | public/brand/emblem.png 원본 그대로(흰 바탕 사각형), 검정 바탕에서 테두리가 보이게 1px 바깥선 | 선 color/on-dark 1px OUTSIDE |
 | Type=상대 | 같은 높이, 폭은 원본 비율(강원 256x264) | public/crests/*.png 투명 원본, 선 없음 | - |
-| Type=대체 | 같은 높이, 폭 = 높이 x 0.84 | 방패 윤곽선(64 이상 2px, 그 밑 1.5px) + 팀 이름 앞 2글자 가운데 | 선과 글자 color/on-dark, 글자 96·88 kfa/pc/h3, 64 kfa/m/h4, 56·40 kfa/label, 32 kfa/caption |
+| Type=대체 | 같은 높이, 폭 = 높이 x 0.84 | 방패 윤곽선(64 이상 2px, 그 밑 1.5px) + 팀 이름 앞 2글자 가운데 | 선과 글자 color/on-dark, 글자 96, 88 kfa/pc/h3, 64 kfa/m/h4, 56, 40 kfa/label, 32 kfa/caption |
 | Type=자리표시 | 정사각 | 점선 상자(원본 받기 전 시안용, 사이트에는 안 씀) | color/on-dark-sub |
 
 | MatchStrip 3칸 카드 | PC | 휴대폰 | 비고 |
