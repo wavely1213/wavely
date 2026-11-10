@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PlayerFilter } from "@/components/player/PlayerFilter";
+import { Placeholder } from "@/components/ui/Placeholder";
 import { LEAGUE } from "@/config/league";
 import { POSITION_LABEL } from "@/data/people";
 import { pageMetadata } from "@/lib/page-meta";
@@ -22,7 +23,12 @@ export default async function PlayersPage() {
     <>
       <PageHeader title="선수" current="/team/players" />
       <div className={`container ${styles.body}`}>
-        <PlayerFilter groups={groups} appsSeason={anyApps ? appsSeason : null} />
+        {/* 선수가 없으면 안내 (디자인 UX 상태 표 208:21545) */}
+        {groups.every((g) => g.players.length === 0) ? (
+          <Placeholder label="등록된 선수가 없습니다." />
+        ) : (
+          <PlayerFilter groups={groups} appsSeason={anyApps ? appsSeason : null} />
+        )}
         {live && anyApps && (
           <p className={styles.note}>
             출전: {LEAGUE.statsSeason.split(" ")[0]} 기록 / 자료: {LEAGUE.source}

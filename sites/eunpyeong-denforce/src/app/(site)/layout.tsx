@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { SiteRootMarker } from "@/components/layout/SiteRootMarker";
+import { SkipLink } from "@/components/layout/SkipLink";
 import { HeaderWithPath } from "@/components/layout/HeaderWithPath";
 import { TopBar } from "@/components/layout/TopBar";
 import { snsLinks } from "@/lib/club";
@@ -17,12 +18,16 @@ export default async function SiteLayout({ children }: LayoutProps<"/">) {
   return (
     <div className="site-root">
       <SiteRootMarker />
+      <SkipLink />
       <TopBar sns={sns} store={{ label: header.externalLabel, href: header.externalHref }} />
       {/* 경로를 빌드 때 모르는 페이지에서도 헤더가 prerender 되도록 Suspense 로 감싼다 */}
       <Suspense fallback={<Header pathname="" sns={sns} content={header} />}>
         <HeaderWithPath sns={sns} content={header} />
       </Suspense>
-      <main>{children}</main>
+      {/* '본문 바로가기'(SkipLink)가 오는 곳 — tabIndex -1 이라 링크로 초점을 받을 수 있다 */}
+      <main id="main" tabIndex={-1}>
+        {children}
+      </main>
       <Footer />
     </div>
   );

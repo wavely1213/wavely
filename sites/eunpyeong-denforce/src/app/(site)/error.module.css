@@ -1,0 +1,11 @@
+/* 공개 페이지 오류 — 본문 위아래 section-gap, 버튼 둘 가운데 사이 space/xs */
+.wrap {
+  padding-block: var(--section-gap);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-xs);
+}

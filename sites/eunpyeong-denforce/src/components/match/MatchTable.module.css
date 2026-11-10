@@ -227,6 +227,17 @@
 
 /* 태블릿: 장소 칸을 줄여 대진이 숨 쉴 자리 */
 @media (max-width: 1080px) {
+  /* 대진 vs 칸과 사이를 줄여 엠블럼 + 이름이 칸을 넘지 않게 (721 에서 2px 넘침) */
+  .versus {
+    grid-template-columns: minmax(0, 1fr) 32px minmax(0, 1fr);
+    gap: var(--space-xs);
+  }
+
+  .homeSide,
+  .awaySide {
+    gap: var(--space-xs);
+  }
+
   .venue {
     width: calc(140px + 2 * var(--space-s));
   }

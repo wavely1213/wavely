@@ -77,6 +77,11 @@ button {
   white-space: nowrap;
 }
 
+/* '본문 바로가기'로 초점을 받은 main 은 테두리를 그리지 않는다 (본문 첫 링크부터 링이 보임) */
+#main:focus {
+  outline: none;
+}
+
 /* 공개 화면 레이아웃 래퍼 — 상자를 만들지 않아 body 의 세로 배치(main 늘이기)를 그대로 둔다 */
 .site-root {
   display: contents;

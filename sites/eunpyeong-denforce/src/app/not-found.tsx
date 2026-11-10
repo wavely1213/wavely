@@ -1,6 +1,7 @@
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { SiteRootMarker } from "@/components/layout/SiteRootMarker";
+import { SkipLink } from "@/components/layout/SkipLink";
 import { NotFoundBody } from "@/components/layout/NotFoundBody";
 import { TopBar } from "@/components/layout/TopBar";
 import { snsLinks } from "@/lib/club";
@@ -16,9 +17,10 @@ export default async function NotFound() {
   return (
     <div className="site-root">
       <SiteRootMarker />
+      <SkipLink />
       <TopBar sns={sns} store={{ label: content["nav.external.label"], href: content["nav.external.href"] }} />
       <Header pathname="" sns={sns} content={headerContent(content)} />
-      <main>
+      <main id="main" tabIndex={-1}>
         <NotFoundBody />
       </main>
       <Footer />

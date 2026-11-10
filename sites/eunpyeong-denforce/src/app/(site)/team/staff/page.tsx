@@ -4,6 +4,7 @@ import { StaffGrid } from "@/components/player/StaffCard";
 import { pageMetadata } from "@/lib/page-meta";
 import { getSiteContent, getStaff } from "@/lib/repo";
 import { splitStaff } from "@/lib/staff";
+import { Placeholder } from "@/components/ui/Placeholder";
 import styles from "@/styles/prose.module.css";
 import local from "./staff.module.css";
 
@@ -19,6 +20,8 @@ export default async function StaffPage() {
     <>
       <PageHeader title="코칭스태프" current="/team/staff" />
       <div className={`container ${styles.body}`}>
+        {/* 아무도 없으면 안내 (디자인 UX 상태 표 208:22070, 고정 글 — 관리자 칸은 후보 KNOWN_ISSUES) */}
+        {coaching.length === 0 && front.length === 0 && <Placeholder label="등록된 코칭스태프가 없습니다." />}
         {coaching.length > 0 && (
           <section>
             <h2 className={styles.h2}>{content["staff.section.coaching"]}</h2>
