@@ -9,7 +9,7 @@ import { pastLeagueDescription } from "@/lib/page-descriptions";
 import { descriptionInput } from "@/lib/page-meta";
 import { nonEmptyParams } from "@/lib/params";
 import { getPastLeague, getPastLeagues, getSeasonResults, isLiveData } from "@/lib/repo";
-import styles from "@/styles/prose.module.css";
+import styles from "../standings.module.css";
 
 // 지난 리그 한 시즌: 최종 순위 + 그 시즌 우리 경기 결과 (BR-016)
 
@@ -41,10 +41,15 @@ export default async function PastLeaguePage({ params }: PageProps<"/match/stand
     <>
       <PageHeader title="리그순위" current="/match/standings" />
       <div className={`container ${styles.body}`}>
+        <p>
+          <Link href="/match/standings" className={styles.back}>
+            <span aria-hidden="true">←</span> 지금 시즌 순위
+          </Link>
+        </p>
         <section>
           <h2 className={styles.h2}>{league.season} 최종 순위</h2>
-          <StandingsTable rows={league.rows} />
-          <p className={`${styles.note} ${styles.source}`}>
+          <StandingsTable rows={league.rows} caption={`${league.season} 최종 순위`} />
+          <p className={styles.note}>
             순위 기준: 승점 → 득실차 → 다득점{isLiveData() && ` / 자료: ${LEAGUE.source}`}
           </p>
         </section>
@@ -52,15 +57,10 @@ export default async function PastLeaguePage({ params }: PageProps<"/match/stand
         {results.length > 0 && (
           <section>
             <h2 className={styles.h2}>경기 결과</h2>
-            <MatchTable matches={results} />
+            <MatchTable matches={results} headingLevel={3} />
           </section>
         )}
 
-        <p>
-          <Link href="/match/standings" className={styles.button}>
-            목록
-          </Link>
-        </p>
       </div>
     </>
   );

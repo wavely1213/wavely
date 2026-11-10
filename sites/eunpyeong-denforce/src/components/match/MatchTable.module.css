@@ -1,70 +1,165 @@
+/* 경기일정/결과 표 (리디자인 2차 시안, 피그마 MatchTable Row 131:813).
+   머리: 위 text 2px, 아래 text 1px, 글자 kfa/caption text-sub. 행: 위아래 space/m, 좌우 space/s, 아래 line.
+   PC 칸 폭: 라운드 64 / 경기일정 168 / 대진 나머지 / 경기장소 200 / 결과 96, 칸 사이 space/m */
 .group + .group {
-  margin-top: 48px;
+  margin-top: var(--space-2xl);
 }
 
+/* kfa/pc/h3 24 (휴대폰 kfa/m/h3 20) */
 .title {
-  margin-bottom: 14px;
-  font-size: 18px;
+  margin-bottom: var(--space-s);
+  font-size: 24px;
   font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 
-/* 좁은 화면에서는 표 전체를 가로로 넘겨 본다 (tableWrap). 칸 안에서는 줄을 바꾸지 않는다 */
 .table {
-  min-width: 760px;
+  --crest-line: var(--c-line);
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 14px;
+  line-height: 1.6;
 }
 
-.table td {
-  white-space: nowrap;
-}
-
-.round {
-  width: 72px;
-}
-
-.when {
-  width: 190px;
-}
-
-.venue {
-  width: 200px;
-}
-
-.result {
-  width: 88px;
-}
-
-.versus {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 12px;
+.table th {
+  padding: var(--space-s);
+  border-top: 2px solid var(--c-text);
+  border-bottom: 1px solid var(--c-text);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--c-text-sub);
   text-align: left;
 }
 
-.home {
+.table td {
+  padding: var(--space-m) var(--space-s);
+  border-bottom: 1px solid var(--c-line);
+  vertical-align: middle;
+  text-align: left;
+}
+
+.round {
+  width: calc(64px + 2 * var(--space-s));
+}
+
+.when {
+  width: calc(168px + 2 * var(--space-s));
+}
+
+.venue {
+  width: calc(200px + 2 * var(--space-s));
+}
+
+.table .result {
+  width: calc(96px + 2 * var(--space-s));
+  text-align: center;
+}
+
+.versusHead {
+  text-align: center !important;
+}
+
+/* 다음 경기 행 — blue-tint, 장소/결과 글자도 text */
+.next td {
+  background: var(--c-blue-tint);
+}
+
+.next .venueName,
+.next .noScore {
+  color: var(--c-text);
+}
+
+/* 경기일정: 날짜 kfa/body-s text, 시각 kfa/caption text-sub (아래 줄) */
+.date,
+.time {
+  display: block;
+  white-space: nowrap;
+}
+
+.time {
+  font-size: 12px;
+  color: var(--c-text-sub);
+}
+
+.next .time {
+  color: var(--c-text);
+}
+
+.mRound,
+.mOnly,
+.mVenue {
+  display: none;
+}
+
+/* 대진: [홈 칸 1fr(오른쪽 맞춤) | vs 48 | 원정 칸 1fr] — 모든 행의 vs 가 같은 세로선. 엠블럼 24 와 이름 사이 space/s */
+.versus {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 48px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-s);
+}
+
+.homeSide,
+.awaySide {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+  min-width: 0;
+}
+
+.homeSide {
+  justify-content: flex-end;
   text-align: right;
+}
+
+.teamName {
+  min-width: 0;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .vs {
   font-size: 12px;
   color: var(--c-text-sub);
+  text-align: center;
 }
 
-.us {
-  font-weight: 700;
-  color: var(--c-blue);
+.next .vs {
+  color: var(--c-text);
 }
 
-.score {
-  font-weight: 700;
-  white-space: nowrap;
+/* 경기장소: HOME 배지 + 장소(kfa/body-s text-sub), 사이 space/xs */
+.venueInner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2xs) var(--space-xs);
 }
 
+/* 띄어쓰기 없는 긴 장소(이천LBFS트레이닝센터)도 칸을 넘지 않게 */
+.venueName {
+  min-width: 0;
+  color: var(--c-text-sub);
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.noScore {
+  color: var(--c-text-sub);
+}
+
+/* 결과 상자(ResultBadge box) — kfa/badge 20 Bold, 패딩 space/2xs space/xs, radius/s, D-013 색 */
 .scoreBox {
   display: inline-block;
-  min-width: 60px;
-  padding: 4px 8px;
+  padding: var(--space-2xs) var(--space-xs);
   border-radius: var(--radius-s);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
 }
 
 .W {
@@ -82,49 +177,46 @@
   color: var(--c-loss);
 }
 
-.mobileRound {
-  display: none;
-}
-
-/* 경기결과: 대진 아래 득점자 줄 + 영상 버튼 (details). 표 칸의 nowrap 을 풀어 긴 득점자 줄은 접는다 */
+/* 경기결과: 대진 아래 득점 줄(kfa/caption, '득점' text-sub) + 영상 버튼(높이 44, line 테두리, radius/s), 가운데 */
 .details {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 6px 12px;
-  margin-top: 8px;
-  font-size: 13px;
-  white-space: normal;
+  gap: var(--space-2xs);
+  margin-top: var(--space-2xs);
 }
 
 .scorers {
-  color: var(--c-text-sub);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 var(--space-xs);
+  font-size: 12px;
   overflow-wrap: anywhere;
 }
 
 .scorersLabel {
-  font-weight: 700;
-  color: var(--c-blue);
+  color: var(--c-text-sub);
 }
 
 .videos {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 6px;
+  gap: var(--space-xs);
 }
 
 .video {
-  display: inline-block;
-  padding: 4px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  min-height: 44px;
+  padding: 0 var(--space-s);
   border: 1px solid var(--c-line);
   border-radius: var(--radius-s);
   background: var(--c-bg);
   color: var(--c-text);
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1.5;
+  font-size: 12px;
   white-space: nowrap;
 }
 
@@ -133,94 +225,110 @@
   color: var(--c-blue);
 }
 
-.video:focus-visible {
-  outline: 2px solid var(--c-blue);
-  outline-offset: 2px;
-}
-
-/* 모바일: 가로 스크롤 없이 일정·대진·결과 3칸 */
-@media (max-width: 720px) {
-  .table {
-    min-width: 0;
-    font-size: 14px;
-  }
-
-  .table th,
-  .table td {
-    padding: 12px 6px;
-  }
-
-  .round,
+/* 태블릿: 장소 칸을 줄여 대진이 숨 쉴 자리 */
+@media (max-width: 1080px) {
   .venue {
-    display: none;
+    width: calc(140px + 2 * var(--space-s));
   }
 
   .when {
-    width: 128px;
+    width: calc(120px + 2 * var(--space-s));
+  }
+}
+
+/* 휴대폰 3칸(D-012): 일시 84 / 대진 나머지 / 결과 64, 칸 사이 space/s */
+@media (max-width: 720px) {
+  .title {
+    font-size: 20px;
   }
 
-  .result {
-    width: 64px;
-  }
-
-  .scoreBox {
-    min-width: 52px;
-    padding: 3px 6px;
+  .table th {
+    padding: var(--space-s) var(--space-xs);
   }
 
   .table td {
-    white-space: normal;
+    padding: var(--space-m) var(--space-xs);
+    vertical-align: middle;
   }
 
-  .time,
-  .mobileRound {
-    font-size: 13px;
-    color: var(--c-text-sub);
+  .round,
+  .venue,
+  .pcOnly,
+  .year {
+    display: none;
   }
 
-  .time {
-    display: block;
-  }
-
-  .mobileRound {
+  .mOnly {
     display: inline;
   }
 
+  .when {
+    width: calc(84px + 2 * var(--space-xs));
+  }
+
+  .table .result {
+    width: calc(64px + 2 * var(--space-xs));
+  }
+
+  .versusHead {
+    text-align: left !important;
+  }
+
+  .mRound {
+    display: block;
+    font-size: 12px;
+    color: var(--c-text-sub);
+  }
+
+  .next .mRound {
+    color: var(--c-text);
+  }
+
+  /* 대진: 홈 줄 / 원정 줄(엠블럼 + 이름, 사이 space/xs), 왼쪽 맞춤 */
   .versus {
-    grid-template-columns: 1fr;
-    gap: 2px;
-  }
-
-  .home {
-    text-align: left;
-  }
-
-  .versus > span {
-    min-width: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-2xs);
   }
 
   .vs {
     display: none;
   }
 
-  /* 대진 칸이 왼쪽 정렬이라 득점자/영상 줄도 왼쪽부터. 버튼 두 개가 좁은 칸(390px 기준 약 150px)에 한 줄로 */
-  .details,
-  .videos {
-    justify-content: flex-start;
-  }
-
-  .details {
-    gap: 4px 8px;
-    margin-top: 6px;
-    font-size: 12px;
+  .homeSide {
+    flex-direction: row-reverse;
+    justify-content: flex-end;
     text-align: left;
   }
 
-  .video {
-    padding: 4px 8px;
+  .homeSide,
+  .awaySide {
+    gap: var(--space-xs);
+  }
+
+  .mVenue {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2xs) var(--space-xs);
+    margin-top: var(--space-2xs);
     font-size: 12px;
+    color: var(--c-text-sub);
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+  }
+
+  .next .mVenue {
+    color: var(--c-text);
+  }
+
+  .details,
+  .scorers,
+  .videos {
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+
+  .scoreBox {
+    font-size: 18px;
   }
 }

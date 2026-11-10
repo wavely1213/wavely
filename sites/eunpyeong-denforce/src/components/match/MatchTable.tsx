@@ -1,109 +1,155 @@
+import { HomeAwayBadge } from "@/components/match/HomeAwayBadge";
+import { TeamCrest } from "@/components/match/TeamCrest";
+import { TeamName } from "@/components/match/TeamName";
 import { formatKickoffFull, matchResult, matchSides, RESULT_LABEL } from "@/lib/format";
 import { groupByCompetition, hasMatchDetails, matchVideoLinks } from "@/lib/match";
 import { getSiteContent } from "@/lib/repo";
-import prose from "@/styles/prose.module.css";
 import type { Match } from "@/types";
 import styles from "./MatchTable.module.css";
 
 /**
- * 경기일정·결과 표 — 한국풋살연맹 경기일정 양식(경기번호·일정·대진표·장소·결과).
- * 경기번호 칸은 라운드로 대신한다. 대회별로 표를 나눈다 (BR-011).
- * 모바일은 3칸(일정·대진·결과)으로 줄이고 라운드는 일정 칸에, 홈·원정은 위아래로 놓는다.
- * 우리 팀 이름은 관리자 › 홈페이지 내용 › 기본 정보 '구단 이름' (D-046).
- * details: 경기결과 화면 — 종료 경기 대진 아래에 득점자 줄과 하이라이트/다시보기 버튼(관리자 › 경기에서 입력).
- * 따로 줄(tr)을 두지 않고 대진 칸 안에 둔다: 모바일에서 라운드/장소 칸을 숨겨 colspan 이 맞지 않기 때문.
+ * 경기일정/결과 표 (리디자인 2차 시안, 피그마 MatchTable Row 131:813) — 대회별로 표를 나눈다 (BR-011).
+ * PC 5칸: 라운드 / 경기일정(날짜 + 시각) / 대진표([홈 이름 + 엠블럼 | vs | 엠블럼 + 원정 이름], 모든 행의 vs 가 같은 세로선) / 경기장소(HOME 배지 + 장소) / 결과.
+ * 휴대폰 3칸(D-012): 일시(라운드, 월-일, 시각) / 대진(홈 줄, 원정 줄, 장소 줄 + HOME) / 결과.
+ * 홈팀 왼쪽(위) (BR-002), HOME 배지는 홈경기만. nextId: 경기일정의 다음 경기 행(blue-tint).
+ * details: 경기결과 — 종료 경기 대진 아래 득점 줄과 [하이라이트] [다시보기](있을 때만, 새 창).
+ * 따로 줄(tr)을 두지 않고 대진 칸 안에 둔다: 휴대폰에서 라운드/장소 칸을 숨겨 colspan 이 맞지 않기 때문.
  */
-export async function MatchTable({ matches, details = false }: { matches: Match[]; details?: boolean }) {
+export async function MatchTable({
+  matches,
+  details = false,
+  nextId,
+  headingLevel = 2,
+}: {
+  matches: Match[];
+  details?: boolean;
+  nextId?: string;
+  /** 대회 이름 제목 단계 — 다른 제목('경기 결과') 아래에 둘 때 3 */
+  headingLevel?: 2 | 3;
+}) {
   const ourName = (await getSiteContent())["site.name"];
+  const Heading = headingLevel === 3 ? "h3" : "h2";
   return groupByCompetition(matches).map((g, i) => (
     <section key={`${i}-${g.competition}`} className={styles.group}>
-      <h2 className={styles.title}>{g.competition}</h2>
-      <div className={prose.tableWrap}>
-        <table className={`${prose.table} ${styles.table}`}>
-          <thead>
-            <tr>
-              <th className={styles.round}>라운드</th>
-              <th className={styles.when}>경기일정</th>
-              <th>경기 대진표</th>
-              <th className={styles.venue}>경기장소</th>
-              <th className={styles.result}>결과</th>
-            </tr>
-          </thead>
-          <tbody>
-            {g.matches.map((m) => (
-              <MatchTableRow key={m.id} match={m} ourName={ourName} details={details} />
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <Heading className={styles.title}>{g.competition}</Heading>
+      <table className={styles.table}>
+        <thead>
+          <tr>
+            <th scope="col" className={styles.round}>
+              라운드
+            </th>
+            <th scope="col" className={styles.when}>
+              <span className={styles.pcOnly}>경기일정</span>
+              <span className={styles.mOnly}>일시</span>
+            </th>
+            <th scope="col" className={styles.versusHead}>
+              경기 대진표
+            </th>
+            <th scope="col" className={styles.venue}>
+              경기장소
+            </th>
+            <th scope="col" className={styles.result}>
+              결과
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {g.matches.map((m) => (
+            <MatchTableRow key={m.id} match={m} ourName={ourName} details={details} next={m.id === nextId} />
+          ))}
+        </tbody>
+      </table>
     </section>
   ));
 }
 
-function MatchTableRow({ match, ourName, details }: { match: Match; ourName: string; details: boolean }) {
+function MatchTableRow({ match, ourName, details, next }: { match: Match; ourName: string; details: boolean; next: boolean }) {
   const { date, time } = formatKickoffFull(match.kickoff);
   const { home, away, score } = matchSides(match, ourName);
   const result = matchResult(match);
-  // 홈팀이 왼쪽 (BR-002), 우리 팀 이름은 강조
-  const [homeClass, awayClass] = match.isHome ? [styles.us, undefined] : [undefined, styles.us];
+  // 'YYYY-MM-DD (요일)' — 휴대폰은 연도를 숨겨 'MM-DD (요일)'
+  const [year, rest] = [date.slice(0, 5), date.slice(5)];
 
   return (
-    <tr>
+    <tr className={next ? styles.next : undefined}>
       <td className={styles.round}>{match.round || "-"}</td>
-      <td>
-        {date}{" "}
-        <span className={styles.time}>
-          {time}
-          {match.round && <span className={styles.mobileRound}> / {match.round}</span>}
+      <td className={styles.when}>
+        {next && <span className="sr-only">다음 경기, </span>}
+        {match.round && <span className={styles.mRound}>{match.round}</span>}
+        <span className={styles.date}>
+          <span className={styles.year}>{year}</span>
+          {rest}
         </span>
+        <span className={styles.time}>{time}</span>
       </td>
-      <td>
+      <td className={styles.versusCell}>
         <span className={styles.versus}>
-          <span className={`${styles.home} ${homeClass ?? ""}`}>{home}</span>
-          <span className={styles.vs}>vs</span>
-          <span className={awayClass}>{away}</span>
+          <span className={styles.homeSide}>
+            <TeamName name={home} className={styles.teamName} />
+            <TeamCrest team={home} us={match.isHome} size={24} />
+          </span>
+          <span className={styles.vs} aria-hidden="true">
+            vs
+          </span>
+          <span className="sr-only"> 대 </span>
+          <span className={styles.awaySide}>
+            <TeamCrest team={away} us={!match.isHome} size={24} />
+            <TeamName name={away} className={styles.teamName} />
+          </span>
         </span>
+        {/* 휴대폰: 장소 칸이 숨으므로 대진 아래 장소 줄 + HOME */}
+        {(match.venue || match.isHome) && (
+          <span className={styles.mVenue}>
+            {match.venue}
+            <HomeAwayBadge isHome={match.isHome} surface="tint" />
+          </span>
+        )}
         {details && hasMatchDetails(match) && <MatchDetails match={match} ourName={ourName} />}
       </td>
-      <td className={styles.venue}>{match.venue || "-"}</td>
-      <td className={styles.score}>
+      <td className={styles.venue}>
+        <span className={styles.venueInner}>
+          <HomeAwayBadge isHome={match.isHome} surface="tint" />
+          <span className={styles.venueName}>{match.venue || "-"}</span>
+        </span>
+      </td>
+      <td className={styles.result}>
         {score ? (
-          // 승·무·패를 색 박스로 구분 (색만으로 전달하지 않도록 글자도 숨겨 둔다)
+          // 승/무/패를 색 상자로 구분 (D-013) — 색만으로 전하지 않게 글자도 숨겨 둔다
           <span className={`${styles.scoreBox} ${result ? styles[result] : ""}`}>
             {result && <span className="sr-only">{RESULT_LABEL[result]} </span>}
             {score[0]} : {score[1]}
           </span>
         ) : (
-          "-"
+          <span className={styles.noScore}>-</span>
         )}
       </td>
     </tr>
   );
 }
 
-/** 경기결과: 우리 팀 득점자 한 줄 + 하이라이트/다시보기 버튼 (새 창) */
+/** 경기결과: 우리 팀 득점 줄 + 하이라이트/다시보기 버튼 (있을 때만, 새 창) */
 function MatchDetails({ match, ourName }: { match: Match; ourName: string }) {
   const videos = matchVideoLinks(match, ourName);
   return (
-    <div className={styles.details}>
+    <span className={styles.details}>
       {match.scorers && (
-        <p className={styles.scorers}>
-          {/* 득점자는 우리 팀만 적는다 — 우리 팀 이름과 같은 파랑으로 묶고, 화면 읽기에는 팀 이름을 붙인다 */}
+        <span className={styles.scorers}>
+          {/* 득점자는 우리 팀만 적는다 — 화면 읽기에는 팀 이름을 붙인다 */}
           <span className={styles.scorersLabel}>
             <span className="sr-only">{ourName} </span>득점
-          </span>{" "}
-          {match.scorers}
-        </p>
+          </span>
+          <span>{match.scorers}</span>
+        </span>
       )}
       {videos.length > 0 && (
         <span className={styles.videos}>
           {videos.map((v) => (
             <a key={v.kind} href={v.url} target="_blank" rel="noopener noreferrer" aria-label={v.ariaLabel} className={styles.video}>
-              {v.label}
+              {v.label} <span aria-hidden="true">↗</span>
             </a>
           ))}
         </span>
       )}
-    </div>
+    </span>
   );
 }

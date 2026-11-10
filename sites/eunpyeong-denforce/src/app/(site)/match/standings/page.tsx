@@ -6,7 +6,7 @@ import { Placeholder } from "@/components/ui/Placeholder";
 import { LEAGUE } from "@/config/league";
 import { pageMetadata } from "@/lib/page-meta";
 import { getPastLeagues, getSiteContent, getStandings, isLiveData } from "@/lib/repo";
-import styles from "@/styles/prose.module.css";
+import styles from "./standings.module.css";
 
 export function generateMetadata(): Promise<Metadata> {
   return pageMetadata("리그순위", "/match/standings");
@@ -22,24 +22,28 @@ export default async function StandingsPage() {
       <div className={`container ${styles.body}`}>
         <section>
           {isLiveData() && <h2 className={styles.h2}>{LEAGUE.currentCompetition} 순위</h2>}
-          {rows.length > 0 ? <StandingsTable rows={rows} /> : <Placeholder label={content["standings.empty"]} />}
-          <p className={`${styles.note} ${styles.source}`}>
+          {rows.length > 0 ? <StandingsTable rows={rows} caption={`${LEAGUE.currentCompetition} 순위`} /> : <Placeholder label={content["standings.empty"]} />}
+          <p className={styles.note}>
             {preseason && "개막 전 / 팀명 가나다순 / "}
             {content["standings.basis"]}
             {isLiveData() && ` / 자료: ${LEAGUE.source}`}
           </p>
         </section>
 
+        {/* 지난 리그 — 시즌 칩(BR-016), 0개면 숨김 */}
         {past.length > 0 && (
           <section>
             <h2 className={styles.h2}>{content["standings.section.past"]}</h2>
-            <ul className={`${styles.list} ${styles.listWide}`}>
+            <ul className={styles.past}>
               {past.map((l) => (
                 <li key={l.slug}>
-                  <Link href={`/match/standings/${l.slug}`}>{l.season}</Link>
-                  <span>
-                    {l.us ? `최종 ${l.us.rank}위 / ${l.us.win}승 ${l.us.draw}무 ${l.us.loss}패` : "최종 순위"}
-                  </span>
+                  <Link href={`/match/standings/${l.slug}`} className={styles.pastLink}>
+                    {l.season}
+                    {l.us && <span className="sr-only"> (최종 {l.us.rank}위)</span>}
+                    <span className={styles.arrow} aria-hidden="true">
+                      →
+                    </span>
+                  </Link>
                 </li>
               ))}
             </ul>

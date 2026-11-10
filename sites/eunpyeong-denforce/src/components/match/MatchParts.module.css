@@ -17,16 +17,17 @@
   height: 100%;
 }
 
-/* 우리 팀: emblem.png 흰 바탕 사각형이 검정 면에서 테두리가 보이게 바깥선 on-dark 1px */
+/* 우리 팀: emblem.png 흰 바탕 사각형이 검정 면에서 테두리가 보이게 바깥선 on-dark 1px (흰 면 표는 --crest-line 으로 line) */
 .crestUs .crestImg {
-  outline: 1px solid var(--c-on-dark);
+  outline: 1px solid var(--crest-line, var(--c-on-dark));
 }
 
-/* 대체 방패 폭 = 높이 x 0.84 (81:96). 글자는 방패 위쪽 무게중심(96 기준 글자 가운데 40/96)에 */
+/* 대체 방패 폭 = 높이 x 0.84 (81:96). 글자는 방패 위쪽 무게중심(96 기준 글자 가운데 40/96)에.
+   선과 글자 색은 놓인 면의 글자색(검정 면 on-dark, 흰 면 text) */
 .crestFallback {
   aspect-ratio: 81 / 96;
   padding-bottom: calc(var(--crest) * 0.16);
-  color: var(--c-on-dark);
+  color: inherit;
 }
 
 .shield {
@@ -91,6 +92,16 @@
 
 .crest40 {
   --crest: 40px;
+}
+
+/* 표(경기일정/결과, 순위) 24 — 2차 시안 TeamCrest 24 (글자 kfa/m/header-en 10, 방패 폭 20 이라 자간 0) */
+.crest24 {
+  --crest: 24px;
+  --crest-stroke: 1px;
+  --crest-fs: 10px;
+  --crest-fw: 700;
+  --crest-lh: 1.2;
+  --crest-ls: 0;
 }
 
 .crest32 {
