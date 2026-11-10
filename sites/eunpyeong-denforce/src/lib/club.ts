@@ -28,3 +28,10 @@ export function infoLines(text: string): InfoLine[] {
       return m ? { label: m[1].trim(), text: m[2].trim() } : { label: null, text: line };
     });
 }
+
+/** 인스타그램 주소 → '@계정' (https://www.instagram.com/eunpyeong_denforce/ → @eunpyeong_denforce). 계정을 못 읽으면 null */
+export function instagramHandle(url: string | null): string | null {
+  if (!url) return null;
+  const m = /instagram\.com\/([A-Za-z0-9._]+)\/?(?:[?#].*)?$/i.exec(url.trim());
+  return m ? `@${m[1]}` : null;
+}

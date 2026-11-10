@@ -18,15 +18,20 @@ export function matchLabel(m: Pick<Match, "competition" | "round">) {
 }
 
 /**
- * 메인 '경기' 카드 2장 (오른쪽 위젯 옆이라 2칸, D-034):
- * 지난 경기 1 + 다음 경기 1, 지난 경기가 없으면 예정 2, 시즌 휴식기(예정 없음)에는 최근 결과 2.
- * finished 는 최근 먼저, upcoming 은 가까운 순.
+ * 메인 경기 띠(MatchStrip, D-034 → 리디자인 D-067): [지난 경기 | 다음 경기 | 그다음 경기] 최대 3칸.
+ * 지난 경기가 없으면 예정만(남은 칸이 폭을 나눔), 시즌 휴식기(예정 없음)에는 최근 결과 3칸.
+ * finished 는 최근 먼저, upcoming 은 가까운 순. 다음 경기는 원정 포함.
  */
-export function homeMatchItems(finished: Match[], upcoming: Match[], count = 2): Array<{ match: Match; label: string }> {
+export function homeMatchItems(finished: Match[], upcoming: Match[], count = 3): Array<{ match: Match; label: string }> {
   if (upcoming.length === 0) return finished.slice(0, count).map((match) => ({ match, label: "지난 경기" }));
   const past = finished.slice(0, Math.min(1, count - 1)).map((match) => ({ match, label: "지난 경기" }));
-  const next = upcoming.slice(0, count - past.length).map((match, i) => ({ match, label: i === 0 ? "다음 경기" : "예정" }));
+  const next = upcoming.slice(0, count - past.length).map((match, i) => ({ match, label: i === 0 ? "다음 경기" : "그다음 경기" }));
   return [...past, ...next];
+}
+
+/** 팀 엠블럼이 없을 때 원 안 글자 — 팀 이름 앞 2글자 ('고양불스풋살클럽' → '고양', '인천ZD스포츠' → '인천') */
+export function crestInitial(team: string): string {
+  return Array.from(team.trim()).slice(0, 2).join("");
 }
 
 /**

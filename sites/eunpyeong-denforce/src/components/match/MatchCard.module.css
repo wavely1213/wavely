@@ -1,125 +1,136 @@
-/* 카드 수만큼 같은 폭으로 (메인은 2장, D-034) */
-.list {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(0, 1fr);
-  gap: 16px;
-}
-
+/* 경기 띠 한 칸 (검정 면 black-soft 위) — 패딩 space/l, 줄 사이 space/s */
 .card {
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  padding: 22px 22px 20px;
-  border: 1px solid var(--c-line);
-  border-radius: var(--radius-m);
-  transition: border-color 0.15s ease;
+  gap: var(--space-s);
+  height: 100%;
+  padding: var(--space-l);
+  color: var(--c-on-dark);
 }
 
-.card:hover {
-  border-color: var(--c-blue);
+/* 칸 사이 line-on-dark 1px (PC) */
+.divided {
+  border-left: 1px solid var(--c-line-on-dark);
 }
 
 .top {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  gap: var(--space-xs);
 }
 
+/* kfa/label yellow */
 .label {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--c-text-sub);
-}
-
-.result {
-  padding: 2px 8px;
-  border-radius: 4px;
   font-size: 12px;
   font-weight: 700;
-  color: var(--c-on-dark);
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  color: var(--c-yellow);
 }
 
-.W {
-  background: var(--c-win);
+.date,
+.venue {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--c-on-dark-sub);
 }
 
-.D {
-  background: var(--c-draw);
-}
-
-.L {
-  background: var(--c-loss);
-}
-
-/* 팀 이름 칸은 같은 너비로 두어 스코어가 가운데에 오게 한다. 긴 이름은 칸 안에서만 줄바꿈 */
+/* 대진 줄 — 링크 */
 .teams {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 16px;
-  font-weight: 700;
-  text-align: center;
-  overflow-wrap: anywhere;
+  justify-content: space-between;
+  gap: var(--space-s);
+  border-radius: var(--radius-m);
 }
 
-.score {
-  font-size: 28px;
-  color: var(--c-blue);
+.team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+  width: 112px;
+}
+
+/* kfa/body-s, 2줄까지 줄임 없음 */
+.teamName {
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.teams:hover .teamName {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+/* kfa/pc/number 32 (휴대폰 24), 숫자도 Bold */
+.number {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
   white-space: nowrap;
 }
 
-.vs {
-  font-size: 16px;
-  color: var(--c-text-sub);
+.venue {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
 }
 
-.meta {
-  font-size: 13px;
-  color: var(--c-text-sub);
-  text-align: center;
+.scorers {
+  display: flex;
+  gap: var(--space-xs);
+  font-size: 12px;
+  line-height: 1.6;
 }
 
-@media (max-width: 860px) {
-  .list {
-    display: flex;
-    gap: 12px;
-    margin: 0 calc(var(--gutter) * -1);
-    padding: 0 var(--gutter);
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scroll-padding: 0 var(--gutter);
-    scrollbar-width: none;
-  }
+.scorersLabel {
+  flex: none;
+  color: var(--c-yellow);
+}
 
+.videos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+/* 영상 버튼 — 높이 44, line-on-dark 테두리, radius/m */
+.video {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--space-m);
+  border: 1px solid var(--c-line-on-dark);
+  border-radius: var(--radius-m);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.video:hover {
+  border-color: var(--c-on-dark);
+}
+
+@media (max-width: 720px) {
   .card {
-    flex: 0 0 84%;
-    scroll-snap-align: start;
+    padding: var(--space-m);
   }
 
-  .teams {
-    gap: 8px;
-    font-size: 14px;
+  .divided {
+    border-left: 0;
   }
 
-  .score {
+  .number {
     font-size: 24px;
-  }
-}
-
-/* 작은 휴대폰(360px 등)에서 긴 팀 이름이 단어 중간에서 끊기지 않도록 */
-@media (max-width: 400px) {
-  .card {
-    padding: 18px 16px 16px;
-  }
-
-  .teams {
-    gap: 6px;
-    font-size: 13px;
-  }
-
-  .score {
-    font-size: 22px;
   }
 }

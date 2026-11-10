@@ -1,11 +1,37 @@
+/* 높이 96, bg, 로고 40 — 오른쪽 끝 멈춤 버튼 44 (리디자인 D-067) */
 .band {
-  padding: 28px 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-m);
+  min-height: 96px;
+  padding-right: var(--gutter);
   border-bottom: 1px solid var(--c-line);
   background: var(--c-bg);
 }
 
+.pause {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-pill);
+  background: var(--c-bg);
+  color: var(--c-text);
+  cursor: pointer;
+}
+
+.paused .track {
+  animation-play-state: paused;
+}
+
 /* 양 끝을 흐리게 — 띠가 화면 밖에서 들어오고 나가는 느낌 */
 .viewport {
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
   mask-image: linear-gradient(90deg, transparent, var(--c-black) 6%, var(--c-black) 94%, transparent);
 }
@@ -27,7 +53,7 @@
   align-items: center;
   justify-content: center;
   height: 64px;
-  padding: 0 40px;
+  padding: 0 var(--space-xl);
 }
 
 /* 같은 상자(160×64) 안에 맞춘다 — 가로로 긴 로고는 폭, 네모난 로고는 높이 기준이라 눈대중 크기가 비슷해진다 */
@@ -35,7 +61,7 @@
   width: auto;
   height: auto;
   max-width: 160px;
-  max-height: 64px;
+  max-height: 40px;
 }
 
 .name {

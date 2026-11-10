@@ -4,10 +4,11 @@ import type { StandingRow } from "@/types";
 import styles from "./StandingsWidget.module.css";
 
 /**
- * 메인 오른쪽 '리그 순위' 위젯 (D-034) — 지금 시즌 표를 순위·팀·경기·승점만 줄여 보여 준다.
- * rows 는 이미 BR-001 순서. 경기가 없는 팀(개막 전)은 순위 대신 '-' (BR-016, 리그순위 페이지와 같음).
+ * 메인 '리그 순위' 위젯 (리디자인 D-067, D-034 변경: 4열 → 7열) — 순위, 팀, 경기, 승점, 승, 무, 패 (BR-012 순서).
+ * rows 는 이미 BR-001 순서. 경기가 없는 팀(개막 전)은 순위 대신 '-' 와 '개막 전 / 팀명 가나다순' (BR-016).
+ * live: 실데이터일 때만 '자료: 한국풋살연맹' (BR-008).
  */
-export function StandingsWidget({ rows, title }: { rows: StandingRow[]; title: string }) {
+export function StandingsWidget({ rows, title, live = false }: { rows: StandingRow[]; title: string; live?: boolean }) {
   const beforeKickoff = rows.every((r) => r.played === 0);
   return (
     <section className={styles.widget} aria-labelledby="standings-widget-title">
@@ -16,7 +17,7 @@ export function StandingsWidget({ rows, title }: { rows: StandingRow[]; title: s
           {title}
         </h2>
         <Link href="/match/standings" className={styles.more}>
-          전체보기<span className="sr-only"> {title}</span>
+          전체보기<span className="sr-only"> {title}</span> <span aria-hidden="true">→</span>
         </Link>
       </div>
       <p className={styles.season}>{LEAGUE.currentCompetition}</p>
@@ -29,6 +30,9 @@ export function StandingsWidget({ rows, title }: { rows: StandingRow[]; title: s
             </th>
             <th scope="col">경기</th>
             <th scope="col">승점</th>
+            <th scope="col">승</th>
+            <th scope="col">무</th>
+            <th scope="col">패</th>
           </tr>
         </thead>
         <tbody>
@@ -38,11 +42,19 @@ export function StandingsWidget({ rows, title }: { rows: StandingRow[]; title: s
               <td className={styles.team}>{r.team}</td>
               <td>{r.played}</td>
               <td className={styles.points}>{r.points}</td>
+              <td>{r.win}</td>
+              <td>{r.draw}</td>
+              <td>{r.loss}</td>
             </tr>
           ))}
         </tbody>
       </table>
-      {beforeKickoff && <p className={styles.note}>개막 전 / 팀명 가나다순</p>}
+      {(beforeKickoff || live) && (
+        <div className={styles.foot}>
+          {beforeKickoff && <p className={styles.note}>개막 전 / 팀명 가나다순</p>}
+          {live && <p className={styles.note}>자료: 한국풋살연맹</p>}
+        </div>
+      )}
     </section>
   );
 }

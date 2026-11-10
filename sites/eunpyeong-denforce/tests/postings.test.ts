@@ -1,7 +1,7 @@
 // 포스팅 목록 도우미 단위 테스트 — 실행: npm test
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { byPostedDesc, countByKind, filterPostings, isPreshrunkThumbnail, platformCounts } from "../src/lib/postings.ts";
+import { byPostedDesc, countByKind, filterPostings, instagramTiles, isPreshrunkThumbnail, platformCounts } from "../src/lib/postings.ts";
 import type { Posting } from "../src/types/index.ts";
 
 const p = (id: string, kind: Posting["kind"], platform: Posting["platform"], date: string, title = id): Posting => ({
@@ -67,4 +67,11 @@ test("isPreshrunkThumbnail: 일괄 적재 사진(url 해시 16자 .jpg)만 true,
   assert.equal(isPreshrunkThumbnail(`${base}0b6f2a4e-1c2d-4e5f-8a9b-0c1d2e3f4a5b.jpg`), false);
   assert.equal(isPreshrunkThumbnail(`${base}f204c86537b82aa3.png`), false);
   assert.equal(isPreshrunkThumbnail("https://x.supabase.co/storage/v1/object/public/media/news/f204c86537b82aa3.jpg"), false);
+});
+
+test("instagramTiles: 구단 인스타그램 게시물 중 표지 있는 것만, 순서대로 최대 6", () => {
+  const p = (id: string, over: Partial<Posting> = {}): Posting => ({ id, kind: "club", platform: "instagram", title: id, author: "", url: "https://www.instagram.com/p/x/", thumbnail: "/t.jpg", date: "2026-11-01", ...over });
+  const list = [p("a"), p("b", { thumbnail: null }), p("c", { platform: "naver_blog" }), p("d", { kind: "fan" }), p("e"), p("f"), p("g"), p("h"), p("i"), p("j")];
+  assert.deepEqual(instagramTiles(list).map((x) => x.id), ["a", "e", "f", "g", "h", "i"]);
+  assert.deepEqual(instagramTiles([]), []);
 });

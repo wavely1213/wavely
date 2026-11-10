@@ -48,3 +48,14 @@ export function platformCounts(list: Posting[], kind: PostingKind | null): Array
     .filter((c) => c.count > 0)
     .sort((a, b) => b.count - a.count || POSTING_PLATFORMS.indexOf(a.platform) - POSTING_PLATFORMS.indexOf(b.platform));
 }
+
+/** 메인 INSTAGRAM 칸 수 (PC 6칸, 휴대폰 3x2 — 리디자인 D-067) */
+export const INSTAGRAM_TILES = 6;
+
+/**
+ * 메인 INSTAGRAM 칸 — 구단 포스팅 중 인스타그램 게시물(자동 반영으로 저장된 표지가 있는 것)만, 최근 것부터 max 개.
+ * list 는 최근 글 먼저(getPostings 순서).
+ */
+export function instagramTiles(list: Posting[], max = INSTAGRAM_TILES): Posting[] {
+  return list.filter((p) => p.kind === "club" && p.platform === "instagram" && p.thumbnail).slice(0, max);
+}

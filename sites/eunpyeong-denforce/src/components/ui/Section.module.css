@@ -27,18 +27,44 @@
   background: var(--c-yellow);
 }
 
+/* kfa/body-s, text-sub */
 .more {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
   font-size: 14px;
-  font-weight: 700;
+  line-height: 1.6;
   color: var(--c-text-sub);
   white-space: nowrap;
 }
 
 .more:hover {
   color: var(--c-blue);
+}
+
+/* 전폭 색 면 — 위아래 section-gap, 다음 섹션과 사이 0 */
+.black,
+.blackSoft {
+  padding-bottom: var(--section-gap);
+  color: var(--c-on-dark);
+}
+
+.black {
+  background: var(--c-black);
+}
+
+.blackSoft {
+  background: var(--c-black-soft);
+}
+
+.black .more,
+.blackSoft .more {
+  color: var(--c-on-dark-sub);
+}
+
+.black .more:hover,
+.blackSoft .more:hover {
+  color: var(--c-on-dark);
 }
 
 @media (max-width: 720px) {

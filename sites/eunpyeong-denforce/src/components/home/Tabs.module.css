@@ -1,7 +1,11 @@
+/* 메인 탭 줄 (구단 소식 분류, 선수단 포지션) — 리디자인 D-067.
+   높이 44, 사이 space/l, 흰 면: 활성 text + text 2px 밑줄 / 검정 면(.dark): 활성 on-dark + yellow 2px 밑줄.
+   탭 좌우 padding space/xs 와 안쪽 초점 링 — 가로 스크롤 줄(ScrollRow)이 링을 자르지 않게 */
 .tabs {
   display: flex;
-  gap: 22px;
-  margin-bottom: 24px;
+  gap: calc(var(--space-l) - 2 * var(--space-xs));
+  margin: 0 calc(-1 * var(--space-xs)) var(--space-l);
+  padding: 0 var(--space-xs);
   border-bottom: 1px solid var(--c-line);
   overflow-x: auto;
   scrollbar-width: none;
@@ -9,14 +13,19 @@
 
 .tab {
   flex: none;
-  padding: 0 0 12px;
+  display: flex;
+  align-items: center;
+  height: 44px;
   margin-bottom: -1px;
+  padding: 0 var(--space-xs);
   border: 0;
-  border-bottom: 3px solid transparent;
+  border-bottom: 2px solid transparent;
   background: none;
   color: var(--c-text-sub);
   font-size: 16px;
   font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
   cursor: pointer;
 }
 
@@ -26,12 +35,44 @@
 
 .active,
 .active:hover {
-  color: var(--c-blue);
-  border-bottom-color: var(--c-blue);
+  color: var(--c-text);
+  border-bottom-color: var(--c-text);
+}
+
+.tabs .tab:focus-visible {
+  outline: 2px solid transparent;
+  outline-offset: -2px;
+  box-shadow: inset 0 0 0 2px var(--c-blue);
+}
+
+.dark {
+  border-bottom-color: var(--c-line-on-dark);
+}
+
+.dark .tab {
+  color: var(--c-on-dark-sub);
+}
+
+.dark .tab:hover,
+.dark .active {
+  color: var(--c-on-dark);
+}
+
+.dark .active {
+  border-bottom-color: var(--c-yellow);
+}
+
+.dark .tab:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--c-on-dark);
 }
 
 .empty {
-  padding: 40px 0;
+  padding: var(--space-2xl) 0;
   text-align: center;
   color: var(--c-text-sub);
+}
+
+.dark .empty,
+.emptyDark {
+  color: var(--c-on-dark-sub);
 }

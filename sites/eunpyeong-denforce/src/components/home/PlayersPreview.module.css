@@ -1,0 +1,35 @@
+/* 메인 선수 카드 (검정 면) — 사진 3:4 radius/m, 이름 kfa/pc/h4 18 on-dark, 포지션 kfa/caption on-dark-sub */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  border-radius: var(--radius-m);
+  color: var(--c-on-dark);
+}
+
+.photo {
+  position: relative;
+  display: block;
+  aspect-ratio: 3 / 4;
+  margin-bottom: var(--space-s);
+  overflow: hidden;
+  border-radius: var(--radius-m);
+  background: var(--c-black-soft);
+}
+
+.name {
+  font-size: 18px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.card:hover .name {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.position {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--c-on-dark-sub);
+}

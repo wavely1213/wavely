@@ -6,10 +6,11 @@ import { PlayersPreview } from "@/components/home/PlayersPreview";
 import { QuickLinks } from "@/components/home/QuickLinks";
 import { SponsorMarquee } from "@/components/home/SponsorMarquee";
 import { StandingsWidget } from "@/components/home/StandingsWidget";
-import { MatchCards } from "@/components/match/MatchCard";
+import { InstagramGrid } from "@/components/home/InstagramGrid";
+import { MatchStrip } from "@/components/home/MatchStrip";
 import { Section } from "@/components/ui/Section";
 import { SITE } from "@/config/site";
-import { snsLinks } from "@/lib/club";
+import { instagramHandle, snsLinks } from "@/lib/club";
 import { contentLines } from "@/lib/content/values";
 import { heroContent } from "@/lib/content/views";
 import {
@@ -19,14 +20,17 @@ import {
   getNews,
   getNextHomeMatch,
   getPlayersByPosition,
+  getPostings,
   getSiteContent,
   getSponsors,
   getStandings,
   getUpcomingMatches,
+  isLiveData,
 } from "@/lib/repo";
 import { homeMatchItems } from "@/lib/match";
 import { sitePreviewMeta } from "@/lib/og-metadata";
 import { clubJsonLd, jsonLdString } from "@/lib/seo";
+import { instagramTiles } from "@/lib/postings";
 import { sortByTier } from "@/lib/sponsors";
 
 /** 홈페이지 주소 미리보기 제목·설명 — 관리자 화면에서 정한 문구, 비우면 사이트 이름·설명 (D-038) */
@@ -35,10 +39,10 @@ export async function generateMetadata(): Promise<Metadata> {
   return sitePreviewMeta({ title: ogTitle, description: ogDescription });
 }
 
-// 메인 섹션 순서: 히어로(다음 홈경기) → 스폰서 띠(한 줄 자동 흐름, D-029) → [경기 → 구단 소식 | 오른쪽 리그 순위 위젯] (D-034) → 선수단 → 바로가기
-// 구단 영상 섹션은 영상 콘텐츠가 생기면 추가한다 (빈 섹션은 노출하지 않음).
+// 메인 섹션 순서 (리디자인 D-067): 히어로(+ 다음 홈경기) → 경기 띠 → 스폰서 띠(D-029) → [구단 소식 | 리그 순위 위젯]
+// → 선수단(검정 면) → INSTAGRAM → 바로가기. 휴대폰은 리그 순위가 구단 소식보다 먼저(HomeColumns). 빈 섹션은 숨긴다.
 export default async function HomePage() {
-  const [nextHome, finished, upcoming, news, groups, sponsors, settings, standings, c, quickLinks] = await Promise.all([
+  const [nextHome, finished, upcoming, news, groups, sponsors, settings, standings, c, quickLinks, postings] = await Promise.all([
     getNextHomeMatch(),
     getFinishedMatches(),
     getUpcomingMatches(),
@@ -49,6 +53,7 @@ export default async function HomePage() {
     getStandings(),
     getSiteContent(),
     getContentList("home.quicklinks"),
+    getPostings(),
   ]);
 
   // 검색엔진용 구단 정보 — 공식 홈페이지·다른 이름·SNS 연결 (D-027)
@@ -64,32 +69,45 @@ export default async function HomePage() {
   });
 
   const matchItems = homeMatchItems(finished, upcoming);
+  const ourName = c["site.name"];
+  const instagram = instagramTiles(postings);
+  const handle = instagramHandle(settings.instagramUrl);
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(jsonLd) }} />
-      <Hero nextHome={nextHome} content={heroContent(c)} />
+      <Hero nextHome={nextHome} content={heroContent(c)} ourName={ourName} />
+
+      {matchItems.length > 0 && (
+        <Section
+          title={c["home.section.matches"]}
+          band="black-soft"
+          more={upcoming.length > 0 ? { href: "/match/schedule", label: "전체 일정" } : { href: "/match/results", label: "전체 결과" }}
+        >
+          <MatchStrip items={matchItems} ourName={ourName} />
+        </Section>
+      )}
+
       {sponsors.length > 0 && <SponsorMarquee sponsors={sortByTier(sponsors)} />}
 
       <HomeColumns
         main={
-          <>
-            {matchItems.length > 0 && (
-              <Section title={c["home.section.matches"]} contained={false} more={{ href: upcoming.length > 0 ? "/match/schedule" : "/match/results" }}>
-                <MatchCards items={matchItems} />
-              </Section>
-            )}
-            <Section title={c["home.section.news"]} contained={false} more={{ href: "/news" }}>
-              <NewsTabs posts={news} limit={6} columns={3} />
-            </Section>
-          </>
+          <Section title={c["home.section.news"]} contained={false} more={{ href: "/news" }}>
+            <NewsTabs posts={news} />
+          </Section>
         }
-        aside={standings.length > 0 ? <StandingsWidget rows={standings} title={c["home.section.standings"]} /> : null}
+        aside={standings.length > 0 ? <StandingsWidget rows={standings} title={c["home.section.standings"]} live={isLiveData()} /> : null}
       />
 
-      <Section title={c["home.section.players"]} more={{ href: "/team/players" }}>
+      <Section title={c["home.section.players"]} band="black" more={{ href: "/team/players" }}>
         <PlayersPreview groups={groups} />
       </Section>
+
+      {instagram.length > 0 && (
+        <Section title="INSTAGRAM" more={settings.instagramUrl && handle ? { href: settings.instagramUrl, label: handle, external: true } : undefined}>
+          <InstagramGrid posts={instagram} />
+        </Section>
+      )}
 
       {quickLinks.length > 0 && (
         <Section title={c["home.section.quicklinks"]}>

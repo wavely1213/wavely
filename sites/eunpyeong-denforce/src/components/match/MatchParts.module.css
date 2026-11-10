@@ -1,0 +1,125 @@
+/* 경기 작은 부품 (리디자인 D-067) — TeamCrest, HomeAwayBadge, CompetitionTag, ResultBadge. 놓인 면(surface)에 따라 색이 바뀐다 */
+
+/* ── TeamCrest: 우리 = 엠블럼(bg 원 받침), 상대 = 이름 앞 2글자(bg-soft 원) ── */
+.crest {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--crest);
+  height: var(--crest);
+  border-radius: var(--radius-pill);
+  background: var(--c-bg-soft);
+  color: var(--c-text);
+  font-weight: 700;
+  line-height: 1.2;
+  overflow: hidden;
+}
+
+.crestUs {
+  background: var(--c-bg);
+}
+
+.crestUs img {
+  width: auto;
+  height: 78%;
+}
+
+.crest56 {
+  --crest: 56px;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+}
+
+.crest40 {
+  --crest: 40px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+.crest24 {
+  --crest: 24px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+/* ── HomeAwayBadge (HOME 만): kfa/label, radius/s, 패딩 2xs/xs ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-2xs) var(--space-xs);
+  border: 1px solid transparent;
+  border-radius: var(--radius-s);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+}
+
+.badgeLight {
+  border-color: var(--c-blue);
+  color: var(--c-blue);
+}
+
+.badgeTint {
+  background: var(--c-blue);
+  color: var(--c-on-dark);
+}
+
+.badgeDark {
+  border-color: var(--c-on-dark);
+  color: var(--c-on-dark);
+}
+
+.badgeBlue {
+  border-color: var(--c-on-blue);
+  color: var(--c-on-blue);
+}
+
+/* ── CompetitionTag: kfa/caption 글자만 ── */
+.tag {
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.tagLight {
+  color: var(--c-text-sub);
+}
+
+.tagTint {
+  color: var(--c-text);
+}
+
+.tagDark {
+  color: var(--c-on-dark-sub);
+}
+
+.tagBlue {
+  color: var(--c-on-blue);
+}
+
+/* ── ResultBadge(badge): kfa/badge 20, 흰 글자 + D-013 결과색 ── */
+.result {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2xs) var(--space-xs);
+  border-radius: var(--radius-s);
+  color: var(--c-on-dark);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.W {
+  background: var(--c-win);
+}
+
+.D {
+  background: var(--c-draw);
+}
+
+.L {
+  background: var(--c-loss);
+}

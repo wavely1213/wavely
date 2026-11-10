@@ -1,0 +1,140 @@
+/* 옆으로 넘기는 카드 줄 — 칸 사이 space/l(휴대폰 space/m), 점/화살표는 오른쪽 아래 */
+.wrap {
+  --gap: var(--space-l);
+}
+
+/* 스크롤 칸 위아래 4px 여유 — 카드 초점 링(바깥 2px)이 잘리지 않게 */
+.row {
+  display: flex;
+  gap: var(--gap);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  padding: var(--space-2xs);
+  margin: calc(-1 * var(--space-2xs));
+  scroll-padding-inline: var(--space-2xs);
+}
+
+.row::-webkit-scrollbar {
+  display: none;
+}
+
+.cell {
+  flex: 0 0 calc((100% - var(--gap) * (var(--per-view) - 1)) / var(--per-view));
+  min-width: 0;
+  scroll-snap-align: start;
+}
+
+/* PC: 넘기지 않고 칸이 폭을 나눔 (경기 띠) */
+.fixed {
+  overflow: visible;
+  scroll-snap-type: none;
+}
+
+.fixed .cell {
+  flex: 1 1 0;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-m);
+  margin-top: var(--space-l);
+}
+
+.dots {
+  display: flex;
+  gap: var(--space-2xs);
+}
+
+/* 점 6px — 누르는 영역 24 */
+.dot {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.dot::before {
+  content: "";
+  display: block;
+  width: 6px;
+  height: 6px;
+  margin: auto;
+  border-radius: var(--radius-pill);
+  background: var(--c-line);
+}
+
+.dotActive::before {
+  background: var(--c-text);
+}
+
+.dark .dot::before {
+  background: var(--c-line-on-dark);
+}
+
+.dark .dotActive::before {
+  background: var(--c-on-dark);
+}
+
+.arrows {
+  display: flex;
+  gap: var(--space-m);
+}
+
+/* 화살표 44 원, 아이콘 24 선 2px */
+.arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--c-text);
+  cursor: pointer;
+}
+
+.dark .arrow {
+  border-color: var(--c-line-on-dark);
+  color: var(--c-on-dark);
+}
+
+.arrow:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+@media (max-width: 720px) {
+  .wrap {
+    --gap: var(--space-m);
+  }
+
+  /* 휴대폰: 1칸 + 옆 카드 24px, 칸이 하나면 전폭 */
+  .cell,
+  .fixed .cell {
+    flex: 0 0 calc(100% - 24px - var(--gap));
+  }
+
+  .single .cell {
+    flex-basis: 100%;
+  }
+
+  .fixed {
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+  }
+
+  .controls {
+    justify-content: center;
+  }
+
+  .arrows {
+    display: none;
+  }
+}

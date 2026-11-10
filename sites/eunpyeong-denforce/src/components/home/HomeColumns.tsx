@@ -7,7 +7,7 @@ import styles from "./HomeColumns.module.css";
  * 위젯이 없으면 본문만 한 칸.
  */
 export function HomeColumns({ main, aside }: { main: ReactNode; aside: ReactNode | null }) {
-  if (!aside) return <div className="container">{main}</div>;
+  if (!aside) return <div className={`container ${styles.single}`}>{main}</div>;
   return (
     <div className={`container ${styles.columns}`}>
       <div className={styles.main}>{main}</div>
