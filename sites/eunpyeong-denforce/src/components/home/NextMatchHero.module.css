@@ -2,7 +2,7 @@
    폭 layout/match-hero-w(456 / 휴대폰 358), black, radius/l, 패딩 space/xl(휴대폰 space/m), 줄 간격 space/m(휴대폰 space/s) */
 .card {
   --nmh-pad: var(--space-xl);
-  --nmh-col: 168px;
+  --nmh-col: 160px;
   --nmh-crest: 96px;
   position: relative;
   display: flex;
@@ -29,12 +29,12 @@
   color: var(--c-yellow);
 }
 
-/* [홈 168 | VS 56 | 원정 168], 칸 사이 space/s (휴대폰 [128 | 40 | 128], space/xs) */
+/* [홈 160 | VS 56 | 원정 160], 칸 사이 space/xs (휴대폰 [128 | 48 | 128], 같은 간격) — 디자인 a2f9253 */
 .teams {
   position: relative;
   display: flex;
   align-items: flex-start;
-  gap: var(--space-s);
+  gap: var(--space-xs);
 }
 
 .team {
@@ -70,7 +70,7 @@
   overflow-wrap: anywhere;
 }
 
-/* VS — 칸 가운데, 크게 40 Bold (휴대폰 28, 소유자 피드백 '40 안팎 / 28 안팎' — 디자인 표 오면 맞춤), on-dark-sub */
+/* VS — 칸 가운데, kfa/pc/vs 40 Bold (휴대폰 kfa/m/vs 28), lh 1, ls -2%, on-dark (디자인 a2f9253) */
 .vs {
   flex: none;
   display: flex;
@@ -80,9 +80,9 @@
   height: var(--nmh-crest);
   font-size: 40px;
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1;
   letter-spacing: -0.02em;
-  color: var(--c-on-dark-sub);
+  color: var(--c-on-dark);
 }
 
 /* kfa/pc/match-date 28 Bold (휴대폰 kfa/m/match-date 22), lh 1.1 */
@@ -132,16 +132,12 @@
     gap: var(--space-s);
   }
 
-  .teams {
-    gap: var(--space-xs);
-  }
-
   .teamName {
     font-size: 16px;
   }
 
   .vs {
-    width: 40px;
+    width: 48px;
     font-size: 28px;
   }
 
