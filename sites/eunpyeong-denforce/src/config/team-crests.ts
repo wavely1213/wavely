@@ -12,7 +12,7 @@ export type TeamCrestEntry = {
   file: string | null;
   /** 원본 픽셀 크기 [가로, 세로] — 비율 그대로 보이게. 못 구했으면 null */
   pixels: [number, number] | null;
-  /** 받은 곳 (공식 경로). 못 구했으면 확인한 곳 */
+  /** 받은 곳 (공식 경로, 주소가 없으면 설명). 못 구했으면 확인한 곳 */
   source: string | null;
   /** 받은 날짜 (YYYY-MM-DD) */
   fetchedAt: string | null;
@@ -92,5 +92,50 @@ export const TEAM_CRESTS: TeamCrestEntry[] = [
     source: null,
     fetchedAt: null,
     note: "못 구함: 지금 엠블럼인지 확인되지 않았고 흰 글자 표식이라 흰 바탕에서 안 보임 — 대체 방패로 둔다(총괄 2026-11-10)",
+  },
+  {
+    name: "구미FS",
+    aliases: [],
+    file: "/crests/gumi.png",
+    pixels: [262, 303],
+    source: "https://i.ytimg.com/vi/4bYF_J0EcZI/maxresdefault.jpg",
+    fetchedAt: "2026-11-10",
+    note: "연맹 유튜브 중계 썸네일에서 잘라냄(총괄 반박 검증)",
+  },
+  {
+    name: "대구FS",
+    aliases: [],
+    file: "/crests/daegu.png",
+    pixels: [493, 493],
+    source: "https://www.youtube.com/@daegu_fs",
+    fetchedAt: "2026-11-10",
+    note: "구단 유튜브 프로필(총괄 반박 검증)",
+  },
+  {
+    name: "드림허브군산FS",
+    aliases: ["군산FS"],
+    file: "/crests/gunsan.png",
+    pixels: [277, 367],
+    source: "https://i.ytimg.com/vi/Z70lMVxoq8Q/maxresdefault.jpg",
+    fetchedAt: "2026-11-10",
+    note: "연맹 유튜브 중계 썸네일, 방패만(총괄 반박 검증)",
+  },
+  {
+    name: "청주팔라시오FS",
+    aliases: ["청주풋살클럽"],
+    file: "/crests/cheongju.png",
+    pixels: [371, 475],
+    source: "팔라시오 아카데미 네이버 플레이스 이미지(구단 관계 채널)",
+    fetchedAt: "2026-11-10",
+    note: "구단 관계 채널 이미지(총괄 반박 검증)",
+  },
+  {
+    name: "제천FS",
+    aliases: [],
+    file: null,
+    pixels: null,
+    source: null,
+    fetchedAt: null,
+    note: "못 구함: 후보(제천시민축구단 방패)가 풋살팀 엠블럼인지 확인되지 않음 — 대체 방패로 둔다(총괄 2026-11-10, I-051)",
   },
 ];

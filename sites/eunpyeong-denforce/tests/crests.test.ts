@@ -16,7 +16,7 @@ test("crestFor: 별칭(예전 이름)으로도 같은 항목", () => {
   assert.equal(crestEntryFor("전주매그풋살클럽")?.name, "전주시민풋살구단");
 });
 
-test("crestFor: 8팀과 별칭 모두 찾음 (총괄 863f54b)", () => {
+test("crestFor: 12팀과 별칭 모두 찾음 (총괄 863f54b, 58ed10d)", () => {
   const cases: Array<[string, string]> = [
     ["강원FS", "/crests/gangwon.png"],
     ["화성FS", "/crests/hwaseong.png"],
@@ -31,12 +31,19 @@ test("crestFor: 8팀과 별칭 모두 찾음 (총괄 863f54b)", () => {
     ["전주시민풋살구단", "/crests/jeonju.png"],
     ["전주매그풋살클럽", "/crests/jeonju.png"],
     ["경기LBFS", "/crests/lbfs.png"],
+    ["구미FS", "/crests/gumi.png"],
+    ["대구FS", "/crests/daegu.png"],
+    ["드림허브군산FS", "/crests/gunsan.png"],
+    ["군산FS", "/crests/gunsan.png"],
+    ["청주팔라시오FS", "/crests/cheongju.png"],
+    ["청주풋살클럽", "/crests/cheongju.png"],
   ];
   for (const [name, file] of cases) assert.equal(crestFor(name), file, name);
 });
 
 test("crestFor: 못 구한 팀, 모르는 팀, 빈 이름은 null", () => {
   assert.equal(crestFor("인천ZD스포츠"), null);
+  assert.equal(crestFor("제천FS"), null);
   assert.equal(crestFor("없는팀"), null);
   assert.equal(crestFor("   "), null);
 });
@@ -52,7 +59,9 @@ test("TEAM_CRESTS: 이름 겹침 없음, 파일은 실제로 있고 출처와 �
       const png = readFileSync(url);
       assert.deepEqual([png.readUInt32BE(16), png.readUInt32BE(20)], e.pixels, e.file);
       assert.ok(Math.max(...(e.pixels ?? [0])) >= 256, e.file);
-      assert.ok(e.source?.startsWith("https://") && /^\d{4}-\d{2}-\d{2}$/.test(e.fetchedAt ?? ""), e.name);
+      // 출처는 https 주소, 주소가 없는 공식 채널은 설명(청주팔라시오) — 비어 있으면 안 된다
+      assert.ok((e.source ?? "").trim().length > 0 && /^\d{4}-\d{2}-\d{2}$/.test(e.fetchedAt ?? ""), e.name);
+      if (e.source?.startsWith("http")) assert.ok(e.source.startsWith("https://"), e.name);
     } else {
       assert.match(e.note, /^못 구함: /, e.name);
       assert.equal(e.pixels, null, e.name);
