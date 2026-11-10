@@ -38,8 +38,13 @@ export default async function StandingsPage() {
               {past.map((l) => (
                 <li key={l.slug}>
                   <Link href={`/match/standings/${l.slug}`} className={styles.pastLink}>
-                    {l.season}
-                    {l.us && <span className="sr-only"> (최종 {l.us.rank}위)</span>}
+                    <span className={styles.pastText}>
+                      <span>{l.season}</span>
+                      {/* BR-016: 우리 팀 최종 성적을 칩 안에 작게 */}
+                      <span className={styles.pastMeta}>
+                        {l.us ? `최종 ${l.us.rank}위 / ${l.us.win}승 ${l.us.draw}무 ${l.us.loss}패` : "최종 순위"}
+                      </span>
+                    </span>
                     <span className={styles.arrow} aria-hidden="true">
                       →
                     </span>

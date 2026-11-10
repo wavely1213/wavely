@@ -26,7 +26,7 @@ async function newsOf(player: Player) {
   const [players, posts] = await Promise.all([getPlayers(), getNews()]);
   const sameNameCount = players.filter((p) => p.name === player.name).length;
   return {
-    join: findPlayerJoin({ name: player.name, sameNameCount, posts, statsSeason: LEAGUE.statsSeason }),
+    join: findPlayerJoin({ name: player.name, slug: player.slug, sameNameCount, posts, statsSeason: LEAGUE.statsSeason }),
     related: findPlayerNews({ name: player.name, slug: player.slug, sameNameCount, posts }),
   };
 }

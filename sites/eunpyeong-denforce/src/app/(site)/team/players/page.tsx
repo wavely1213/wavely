@@ -6,6 +6,7 @@ import { LEAGUE } from "@/config/league";
 import { POSITION_LABEL } from "@/data/people";
 import { pageMetadata } from "@/lib/page-meta";
 import { getPlayersByPosition, isLiveData } from "@/lib/repo";
+import { seasonYear } from "@/lib/standings";
 import styles from "./players.module.css";
 
 export function generateMetadata(): Promise<Metadata> {
@@ -16,8 +17,9 @@ export function generateMetadata(): Promise<Metadata> {
 export default async function PlayersPage() {
   const groups = (await getPlayersByPosition()).map(([position, players]) => ({ position, label: POSITION_LABEL[position], players }));
   const live = isLiveData();
-  // 'YYYY-YY FK1리그' → 'YYYY-YY'
-  const appsSeason = live ? LEAGUE.statsSeason.split(" ")[0] : null;
+  // 대회명 어디에 있든 시즌 'YYYY-YY' (D-072 '키움증권 2026-27 FK리그1' 형식도) — 모르면 출전 줄과 출처 줄을 숨긴다
+  const statsYear = seasonYear(LEAGUE.statsSeason);
+  const appsSeason = live ? statsYear : null;
   const anyApps = groups.some((g) => g.players.some((p) => p.stats.apps > 0));
   return (
     <>
@@ -29,9 +31,9 @@ export default async function PlayersPage() {
         ) : (
           <PlayerFilter groups={groups} appsSeason={anyApps ? appsSeason : null} />
         )}
-        {live && anyApps && (
+        {appsSeason && anyApps && (
           <p className={styles.note}>
-            출전: {LEAGUE.statsSeason.split(" ")[0]} 기록 / 자료: {LEAGUE.source}
+            출전: {appsSeason} 기록 / 자료: {LEAGUE.source}
           </p>
         )}
       </div>

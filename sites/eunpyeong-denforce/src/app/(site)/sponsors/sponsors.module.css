@@ -21,3 +21,12 @@
   text-underline-offset: 3px;
   overflow-wrap: anywhere;
 }
+
+/* 휴대폰: 문의 상자 안 인스타그램 링크 누르는 영역 44 (검토 #24) */
+@media (max-width: 720px) {
+  .facts a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+}

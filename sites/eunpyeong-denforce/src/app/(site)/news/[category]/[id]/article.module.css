@@ -5,7 +5,8 @@
   flex-direction: column;
   gap: var(--space-xl);
   max-width: calc(800px + 2 * var(--gutter));
-  padding-bottom: var(--section-gap);
+  /* 아래 여백은 Footer margin-top(section-gap) 한 번만 (검토 #27) */
+  padding-bottom: 0;
 }
 
 .head {
@@ -157,6 +158,13 @@
 @media (max-width: 720px) {
   .title {
     font-size: 24px;
+  }
+
+  /* 프로필 상자 안 '선수 소개 보기' 링크(따로 한 줄) 누르는 영역 44 (검토 #24) */
+  .profile a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
   }
 
   .body {

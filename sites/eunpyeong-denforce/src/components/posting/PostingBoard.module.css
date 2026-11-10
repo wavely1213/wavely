@@ -112,16 +112,8 @@
 }
 
 @media (max-width: 560px) {
-  .filters {
-    justify-content: center;
-  }
-
-  .tabs {
-    justify-content: center;
-  }
-
+  /* 분류 탭은 왼쪽부터 가로 넘김(가운데 정렬이면 왼쪽이 잘려 '전체'를 못 누름, 검토 #8), 글자 + 밑줄 그대로 */
   .tab {
-    padding: 9px 16px;
     font-size: 14px;
   }
 

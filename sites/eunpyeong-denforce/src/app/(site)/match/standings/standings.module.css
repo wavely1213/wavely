@@ -3,7 +3,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2xl);
-  padding-bottom: var(--section-gap);
+  /* 아래 여백은 Footer margin-top(section-gap) 한 번만 (검토 #27) */
+  padding-bottom: 0;
 }
 
 .h2 {
@@ -12,6 +13,11 @@
   font-weight: 700;
   line-height: 1.2;
   letter-spacing: -0.02em;
+}
+
+/* 지난 시즌 '경기 결과' — 첫 대회 제목(h3)과 사이 space/l */
+.h2Results {
+  margin-bottom: var(--space-l);
 }
 
 /* 표 아래 메모 — kfa/caption text-sub */
@@ -40,6 +46,18 @@
   font-size: 14px;
   line-height: 1.6;
   color: var(--c-text);
+}
+
+.pastText {
+  display: flex;
+  flex-direction: column;
+  padding-block: var(--space-xs);
+}
+
+/* 우리 팀 최종 성적 — kfa/caption text-sub */
+.pastMeta {
+  font-size: 12px;
+  color: var(--c-text-sub);
 }
 
 .pastLink:hover {

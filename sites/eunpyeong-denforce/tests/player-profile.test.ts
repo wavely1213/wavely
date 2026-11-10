@@ -140,3 +140,12 @@ test("playerNeighbors: 목록 순서 앞뒤, 처음/끝은 null", () => {
   assert.deepEqual(playerNeighbors(ps, "c"), { prev: { slug: "b" }, next: null });
   assert.deepEqual(playerNeighbors(ps, "x"), { prev: null, next: null });
 });
+
+test("findPlayerJoin: 동명이인 — 본문에 이 선수 주소가 있는 영입 글이면 합류, 없으면 null (BR-025, BR-031)", () => {
+  const withLink = { ...post("a", "서울은평 덴포스, '확실한 존재감' 김종호 영입", "2026-10-19"), body: ["김종호 프로필\nhttps://eunpyeong-fs.com/team/players/kim-jongho"] };
+  assert.deepEqual(findPlayerJoin({ name: "김종호", slug: "kim-jongho", sameNameCount: 2, posts: [withLink], statsSeason: STATS }), { season: "2026-27", post: withLink });
+  // 다른 김종호 페이지에서는 이 글이 자기 소식이 아니다
+  assert.equal(findPlayerJoin({ name: "김종호", slug: "no-30", sameNameCount: 2, posts: [withLink], statsSeason: STATS }), null);
+  const noLink = post("b", "서울은평 덴포스, '확실한 존재감' 김종호 영입", "2026-10-19");
+  assert.equal(findPlayerJoin({ name: "김종호", slug: "kim-jongho", sameNameCount: 2, posts: [noLink], statsSeason: STATS }), null);
+});

@@ -1,17 +1,18 @@
 import { TeamCrest } from "@/components/match/TeamCrest";
 import { TeamName } from "@/components/match/TeamName";
+import { ScrollRegion } from "@/components/ui/ScrollRegion";
 import type { StandingRow } from "@/types";
 import styles from "./StandingsTable.module.css";
 
 /**
  * 리그순위 표 (리디자인 2차 시안, 피그마 StandingsTable 132:1618 / 132:1914) — 연맹 양식 10열(BR-012). rows 는 이미 BR-001 순서.
  * 경기가 없는 팀(개막 전)은 순위 대신 '-' (BR-016). 팀명 앞 엠블럼 24, 우리 팀 행 blue-tint.
- * 휴대폰: 순위와 팀명은 고정, 나머지는 가로 스크롤(키보드로도 넘길 수 있게 스크롤 칸에 초점).
+ * 휴대폰: 순위와 팀명은 고정, 나머지는 가로 스크롤(넘칠 때만 스크롤 칸에 초점, ScrollRegion).
  * caption: 표 이름(화면 읽기) — 예: '2026-27 FK1리그 순위'.
  */
 export function StandingsTable({ rows, caption }: { rows: StandingRow[]; caption: string }) {
   return (
-    <div className={styles.wrap} role="region" aria-label={`${caption} (옆으로 넘겨 보기)`} tabIndex={0}>
+    <ScrollRegion className={styles.wrap} label={caption}>
       <table className={styles.table}>
         <caption className="sr-only">{caption}</caption>
         <thead>
@@ -54,6 +55,6 @@ export function StandingsTable({ rows, caption }: { rows: StandingRow[]; caption
           ))}
         </tbody>
       </table>
-    </div>
+    </ScrollRegion>
   );
 }

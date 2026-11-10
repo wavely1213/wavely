@@ -17,3 +17,10 @@ test("achievementItems: 창단 연도 / 가장 최근 리그 우승(준우승 �
 test("achievementItems: 데이터가 없는 칸은 숨김 (컵 우승은 리그 우승 아님)", () => {
   assert.deepEqual(achievementItems({ foundedDate: null, history: [h("2025", "FK CUP 우승")], alumniCount: 0 }), []);
 });
+
+test("achievementItems: 조각 안에서만 '리그'와 '우승'을 함께 본다", () => {
+  // 컵 우승 + 리그 잔류 — 리그 우승 아님
+  assert.deepEqual(achievementItems({ foundedDate: null, history: [h("2025", "FK CUP 우승 / FK리그 1부 잔류")], alumniCount: 0 }), []);
+  // 둘째 조각이 리그 우승이면 그 조각
+  assert.deepEqual(achievementItems({ foundedDate: null, history: [h("2020", "FK CUP 3위 / FK리그 2부 우승")], alumniCount: 0 }), [{ label: "FK리그 2부 우승", value: "2020" }]);
+});

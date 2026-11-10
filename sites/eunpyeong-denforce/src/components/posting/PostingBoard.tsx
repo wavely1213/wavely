@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MoreButton } from "@/components/ui/MoreButton";
 import { POSTING_KIND_LABEL, POSTING_PLATFORM_LABEL } from "@/data/postings";
 import { countByKind, filterPostings, platformCounts, POSTING_KINDS, POSTINGS_PAGE_SIZE } from "@/lib/postings";
@@ -19,6 +19,21 @@ export function PostingBoard({ postings, emptyText }: { postings: Posting[]; emp
   const scopedTotal = kind ? kindCounts[kind] : kindCounts.all;
   const list = filterPostings(postings, { kind, platform });
   const shown = list.slice(0, limit);
+  const grid = useRef<HTMLDivElement>(null);
+  const focusAt = useRef<number | null>(null);
+
+  // '더 보기' 뒤 새로 보인 첫 카드로 초점 — 마지막에 버튼이 사라져도 초점이 body 로 가지 않게 (검토 #15, NewsMoreGrid 와 같게)
+  useEffect(() => {
+    const i = focusAt.current;
+    if (i === null) return;
+    focusAt.current = null;
+    grid.current?.querySelectorAll<HTMLElement>(":scope > a")[i]?.focus();
+  }, [limit]);
+
+  const showMore = () => {
+    focusAt.current = limit;
+    setLimit(limit + POSTINGS_PAGE_SIZE);
+  };
 
   const pickKind = (k: PostingKind | null) => {
     setKind(k);
@@ -40,7 +55,11 @@ export function PostingBoard({ postings, emptyText }: { postings: Posting[]; emp
               type="button"
               className={`${styles.tab} ${k === kind ? styles.tabActive : ""}`}
               aria-pressed={k === kind}
-              onClick={() => pickKind(k)}
+              onClick={(e) => {
+                pickKind(k);
+                // 휴대폰에서 가로로 넘친 탭 줄 — 누른 탭이 보이게 (검토 #8)
+                e.currentTarget.scrollIntoView({ inline: "nearest", block: "nearest" });
+              }}
             >
               {k ? POSTING_KIND_LABEL[k] : "전체"}
               <span className={styles.count}>{k ? kindCounts[k] : kindCounts.all}</span>
@@ -63,7 +82,7 @@ export function PostingBoard({ postings, emptyText }: { postings: Posting[]; emp
       </div>
 
       {shown.length > 0 ? (
-        <div className={styles.grid}>
+        <div ref={grid} className={styles.grid}>
           {shown.map((p) => (
             <PostingCard key={p.id} posting={p} />
           ))}
@@ -73,7 +92,7 @@ export function PostingBoard({ postings, emptyText }: { postings: Posting[]; emp
       )}
 
       {list.length > shown.length && (
-        <MoreButton remaining={list.length - shown.length} onClick={() => setLimit((n) => n + POSTINGS_PAGE_SIZE)} />
+        <MoreButton remaining={list.length - shown.length} onClick={showMore} />
       )}
     </>
   );

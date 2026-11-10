@@ -32,17 +32,22 @@ export type PlayerJoin = { season: string; post: NewsPost };
 /**
  * 선수 이름 → 기록 시즌 뒤의 영입 소식. 없으면 null.
  * - 구단뉴스(news) 제목만 본다. 그 이름의 가장 최근 인사 소식이 영입(선수)일 때만 — 이적 소식이 더 최근이면 null
- * - 같은 이름 선수가 둘 이상이면(김대현처럼, BR-025) 누구 소식인지 몰라 null
+ * - 같은 이름 선수가 둘 이상이면(김대현, 김종호처럼, BR-025) 본문/요약에 이 선수 페이지 주소(slug)가 있는 영입 글만 본다
+ *   (관련 소식 BR-031 과 같은 규칙). slug 를 모르면 null
  * posts 는 최근 글 먼저(목록 순서).
  */
-export function findPlayerJoin(input: { name: string; sameNameCount: number; posts: NewsPost[]; statsSeason: string }): PlayerJoin | null {
-  if (input.sameNameCount !== 1) return null;
+export function findPlayerJoin(input: { name: string; slug?: string; sameNameCount: number; posts: NewsPost[]; statsSeason: string }): PlayerJoin | null {
+  if (input.sameNameCount < 1) return null;
+  const sameName = input.sameNameCount > 1;
+  if (sameName && !input.slug) return null;
   const statsYear = statsSeasonStartYear(input.statsSeason);
   if (statsYear == null) return null;
   for (const post of input.posts) {
     if (post.category !== "news") continue;
     const e = parseRosterNews(post.title);
     if (!e || e.staff || e.name !== input.name) continue;
+    // 동명이인이면 이 선수 주소가 있는 글만 이 선수 소식
+    if (sameName && !linksToPlayer([post.summary, ...post.body].join("\n"), input.slug ?? "")) continue;
     // 가장 최근 인사 소식 하나만 본다
     if (e.kind !== "join") return null;
     const year = seasonStartYear(post.date);

@@ -26,7 +26,7 @@
   outline-offset: 3px;
 }
 
-/* 사진 한 장이면 한 칸 (썸네일만 있는 글) — 16:9 칸, radius/l */
+/* 사진 한 장이면 한 칸 (썸네일만 있는 글) — PC 4:3(800x600), 휴대폰 358:430 (총괄 결정, 세로 포스터 글자가 읽히게), radius/l */
 .single {
   grid-template-columns: 1fr;
 }
@@ -34,7 +34,7 @@
 .frame {
   position: relative;
   display: block;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 4 / 3;
   border-radius: var(--radius-l);
   overflow: hidden;
   background: var(--c-black-soft);
@@ -155,5 +155,11 @@
   .grid {
     grid-template-columns: 1fr;
     gap: 12px;
+  }
+}
+
+@media (max-width: 720px) {
+  .frame {
+    aspect-ratio: 358 / 430;
   }
 }

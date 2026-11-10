@@ -58,16 +58,27 @@
   gap: var(--space-xs);
 }
 
+/* 팀 이름은 낱말 경계에서만 (TeamName <wbr>) */
 .teamName {
   min-width: 0;
   word-break: keep-all;
-  overflow-wrap: anywhere;
 }
 
 /* 우리 팀 행 — blue-tint 바탕, 글자는 text 그대로 */
 .us th,
 .us td {
   background: var(--c-blue-tint);
+}
+
+/* 태블릿(1080 이하): 숫자 칸 56, 최소 폭 없음 — 팀 칸이 줄지 않게 (검토 #21) */
+@media (max-width: 1080px) {
+  .table {
+    min-width: 0;
+  }
+
+  .table thead th:not(.rank):not(.team) {
+    width: 56px;
+  }
 }
 
 /* 휴대폰: 순위 36 + 팀명 132 고정, 숫자 52 가로 스크롤 */

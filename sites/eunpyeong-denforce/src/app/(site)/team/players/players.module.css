@@ -1,6 +1,7 @@
 /* 선수 목록 화면 — 위는 PageHeader 아래 여백, 아래 section-gap. 출처 줄 kfa/caption text-sub */
 .body {
-  padding-bottom: var(--section-gap);
+  /* 아래 여백은 Footer margin-top(section-gap) 한 번만 (검토 #27) */
+  padding-bottom: 0;
 }
 
 .note {

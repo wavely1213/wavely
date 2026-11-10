@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { isPreshrunkThumbnail } from "@/lib/postings";
+import { isPreshrunkThumbnail, plainText } from "@/lib/postings";
 import type { Posting } from "@/types";
 import styles from "./InstagramGrid.module.css";
 
@@ -16,7 +16,7 @@ export function InstagramGrid({ posts }: { posts: Posting[] }) {
             {/* 표지는 정사각 칸을 채운다 — 인스타그램 피드와 같은 잘림 */}
             <Image
               src={p.thumbnail!}
-              alt={p.title}
+              alt={plainText(p.title)}
               fill
               sizes="(max-width: 720px) 33vw, 184px"
               unoptimized={isPreshrunkThumbnail(p.thumbnail!)}

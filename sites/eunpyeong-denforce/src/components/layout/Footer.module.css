@@ -159,3 +159,22 @@
     align-items: flex-start;
   }
 }
+
+/* 휴대폰: 링크 누르는 영역 높이 44 — 세로 간격은 그 높이로 대신한다 (검토 #24) */
+@media (max-width: 720px) {
+  .about a,
+  .sns a,
+  .colTitle,
+  .colList a,
+  .admin {
+    display: inline-flex;
+    align-items: center;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .col,
+  .colList {
+    gap: 0;
+  }
+}

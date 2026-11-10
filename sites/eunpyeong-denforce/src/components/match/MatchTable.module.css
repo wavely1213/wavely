@@ -5,13 +5,21 @@
   margin-top: var(--space-2xl);
 }
 
-/* kfa/pc/h3 24 (휴대폰 kfa/m/h3 20) */
+/* kfa/pc/h3 24 (휴대폰 kfa/m/h3 20). 다른 제목 아래(h3, 지난 시즌 화면)는 kfa/pc/h4 18 (휴대폰 16) */
 .title {
   margin-bottom: var(--space-s);
   font-size: 24px;
   font-weight: 700;
   line-height: 1.2;
   letter-spacing: -0.02em;
+}
+
+h3.title {
+  font-size: 18px;
+}
+
+.group:has(h3.title) + .group {
+  margin-top: var(--space-xl);
 }
 
 .table {
@@ -114,10 +122,10 @@
   text-align: right;
 }
 
+/* 팀 이름은 낱말 경계에서만 (TeamName <wbr>: 고양불스 / 풋살클럽) — 글자 단위로 끊지 않는다 */
 .teamName {
   min-width: 0;
   word-break: keep-all;
-  overflow-wrap: anywhere;
 }
 
 .vs {
@@ -245,12 +253,41 @@
   .when {
     width: calc(120px + 2 * var(--space-s));
   }
+
+  .table .result {
+    width: calc(80px + 2 * var(--space-s));
+  }
+}
+
+/* 태블릿 721~900: 라운드 칸을 숨기고 일시 칸 위에 라운드(휴대폰처럼), 장소 136 — 대진 칸 폭 확보 (검토 #16) */
+@media (min-width: 721px) and (max-width: 900px) {
+  .round {
+    display: none;
+  }
+
+  .mRound {
+    display: block;
+    font-size: 12px;
+    color: var(--c-text-sub);
+  }
+
+  .next .mRound {
+    color: var(--c-text);
+  }
+
+  .venue {
+    width: calc(136px + 2 * var(--space-s));
+  }
 }
 
 /* 휴대폰 3칸(D-012): 일시 84 / 대진 나머지 / 결과 64, 칸 사이 space/s */
 @media (max-width: 720px) {
   .title {
     font-size: 20px;
+  }
+
+  h3.title {
+    font-size: 16px;
   }
 
   .table th {
@@ -339,7 +376,8 @@
     justify-content: flex-start;
   }
 
+  /* 휴대폰도 20 Bold — 무/패 상자 글자 대비가 큰 글자 기준(3:1)을 넘게 (검토 #1), 칸에 맞게 좌우 padding 만 줄임 */
   .scoreBox {
-    font-size: 18px;
+    padding-inline: var(--space-2xs);
   }
 }

@@ -41,3 +41,14 @@
     gap: 28px;
   }
 }
+
+/* 휴대폰: 링크 누르는 영역 44 (검토 #24) */
+@media (max-width: 720px) {
+  .title a,
+  .list a {
+    display: inline-flex;
+    align-items: center;
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

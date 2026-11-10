@@ -103,6 +103,9 @@
   flex: none;
   display: flex;
   align-items: center;
+  justify-content: center;
+  /* 두 글자 탭(연혁, 전체)도 누르는 폭 44 (검토 #24) */
+  min-width: 44px;
   height: 44px;
   padding: 0 var(--space-xs);
   border-bottom: 2px solid transparent;

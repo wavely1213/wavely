@@ -59,3 +59,11 @@ export const INSTAGRAM_TILES = 6;
 export function instagramTiles(list: Posting[], max = INSTAGRAM_TILES): Posting[] {
   return list.filter((p) => p.kind === "club" && p.platform === "instagram" && p.thumbnail).slice(0, max);
 }
+
+/**
+ * 글자 꾸밈을 보통 글자로 — 인스타그램 글의 수학 굵은 문자(𝑾𝑬𝑳𝑪𝑶𝑴𝑬)는 화면 읽기가 글자마다 따로 읽어서
+ * 대체 글/링크 이름/카드 제목에는 NFKC 로 바꾼다 (검토 #7). 한글/이모지는 그대로.
+ */
+export function plainText(text: string): string {
+  return text.normalize("NFKC");
+}

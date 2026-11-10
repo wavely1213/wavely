@@ -21,7 +21,10 @@ const INTERVAL_MS = 5000;
 export function NewsBanner({ posts }: { posts: NewsPost[] }) {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false); // 사용자가 멈춤 버튼으로 멈춤
-  const [hold, setHold] = useState(false); // 마우스·초점이 배너 안에 있음
+  // 마우스가 배너 위 / 초점이 배너 안 — 따로 둔다: 마우스가 나가도 초점이 있으면 계속 멈춤 (검토 #10)
+  const [hoverHold, setHoverHold] = useState(false);
+  const [focusHold, setFocusHold] = useState(false);
+  const hold = hoverHold || focusHold;
   const [reduced, setReduced] = useState(false);
   const count = posts.length;
 
@@ -42,7 +45,8 @@ export function NewsBanner({ posts }: { posts: NewsPost[] }) {
   }, [index, count, paused, hold, reduced, go]);
 
   if (count === 0) return null;
-  const autoplay = count > 1 && !paused && !reduced;
+  // 실제로 흐르는 중일 때만 알림을 끈다 — 멈춰 있으면(마우스/초점/멈춤/움직임 줄이기) 넘길 때 '현재 3 / 5' 를 읽는다 (검토 #9)
+  const autoplay = count > 1 && !paused && !reduced && !hold;
 
   return (
     <section
@@ -50,15 +54,15 @@ export function NewsBanner({ posts }: { posts: NewsPost[] }) {
       className={`${styles.banner} ${count > 1 ? styles.multi : ""}`}
       aria-roledescription="carousel"
       aria-label="메인 소식"
-      onMouseEnter={() => setHold(true)}
-      onMouseLeave={() => setHold(false)}
-      onFocus={() => setHold(true)}
+      onMouseEnter={() => setHoverHold(true)}
+      onMouseLeave={() => setHoverHold(false)}
+      onFocus={() => setFocusHold(true)}
       onBlur={(e) => {
-        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setHold(false);
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setFocusHold(false);
       }}
     >
       <div className={styles.viewport}>
-        <div className={styles.track} style={{ transform: `translateX(-${index * 100}%)` }} aria-live={autoplay ? "off" : "polite"}>
+        <div className={styles.track} style={{ transform: `translateX(-${index * 100}%)` }}>
           {posts.map((p, i) => (
             <div
               key={p.id}
@@ -97,22 +101,25 @@ export function NewsBanner({ posts }: { posts: NewsPost[] }) {
               <span key={p.id} className={`${styles.dot} ${i === index ? styles.dotActive : ""}`} />
             ))}
           </span>
-          <span className={styles.counter}>
+          <span className={styles.counter} aria-live={autoplay ? "off" : "polite"} aria-atomic="true">
             <span className="sr-only">현재 </span>
             {index + 1} / {count}
           </span>
-          <button type="button" className={styles.arrow} onClick={() => setPaused((v) => !v)} aria-pressed={paused}>
-            <span className="sr-only">자동 넘김 멈춤</span>
-            {paused ? (
-              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-                <path d="M8 5v14l11-7z" fill="currentColor" />
-              </svg>
-            ) : (
-              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-                <path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor" />
-              </svg>
-            )}
-          </button>
+          {/* 움직임 줄이기면 흐르지 않으므로 멈춤 버튼을 숨긴다 (SponsorMarquee 와 같게, 검토 #11) */}
+          {!reduced && (
+            <button type="button" className={styles.arrow} onClick={() => setPaused((v) => !v)} aria-pressed={paused}>
+              <span className="sr-only">자동 넘김 멈춤</span>
+              {paused ? (
+                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                  <path d="M8 5v14l11-7z" fill="currentColor" />
+                </svg>
+              ) : (
+                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                  <path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor" />
+                </svg>
+              )}
+            </button>
+          )}
         </div>
       )}
     </section>

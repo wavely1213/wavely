@@ -56,7 +56,7 @@ export default async function PastLeaguePage({ params }: PageProps<"/match/stand
 
         {results.length > 0 && (
           <section>
-            <h2 className={styles.h2}>경기 결과</h2>
+            <h2 className={`${styles.h2} ${styles.h2Results}`}>경기 결과</h2>
             <MatchTable matches={results} headingLevel={3} />
           </section>
         )}

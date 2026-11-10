@@ -96,6 +96,7 @@ export default async function NewsPostPage({ params }: PageProps<"/news/[categor
                 <span className={article.pagerLabel}>다음 글</span>
                 {newer ? (
                   <Link href={newsHref(newer)} className={article.pagerLink}>
+                    <span className="sr-only">다음 글: </span>
                     {newer.title}
                   </Link>
                 ) : (
@@ -106,6 +107,7 @@ export default async function NewsPostPage({ params }: PageProps<"/news/[categor
                 <span className={article.pagerLabel}>이전 글</span>
                 {older ? (
                   <Link href={newsHref(older)} className={article.pagerLink}>
+                    <span className="sr-only">이전 글: </span>
                     {older.title}
                   </Link>
                 ) : (

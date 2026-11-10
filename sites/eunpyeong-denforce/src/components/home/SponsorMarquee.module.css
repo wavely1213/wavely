@@ -91,6 +91,8 @@
    ② 움직임 줄이기 설정이면 처음부터 */
 .band:has(.viewport :focus-visible) .viewport {
   mask-image: none;
+  /* 펼친 목록의 링크 초점 링 위아래가 잘리지 않게 (검토 #5) */
+  padding-block: var(--space-2xs);
 }
 
 .band:has(.viewport :focus-visible) .track {
@@ -112,6 +114,7 @@
 
   .viewport {
     mask-image: none;
+    padding-block: var(--space-2xs);
   }
 
   .track {

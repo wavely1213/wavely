@@ -1,7 +1,7 @@
 // 포스팅 목록 도우미 단위 테스트 — 실행: npm test
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { byPostedDesc, countByKind, filterPostings, instagramTiles, isPreshrunkThumbnail, platformCounts } from "../src/lib/postings.ts";
+import { byPostedDesc, countByKind, filterPostings, instagramTiles, isPreshrunkThumbnail, plainText, platformCounts } from "../src/lib/postings.ts";
 import type { Posting } from "../src/types/index.ts";
 
 const p = (id: string, kind: Posting["kind"], platform: Posting["platform"], date: string, title = id): Posting => ({
@@ -74,4 +74,9 @@ test("instagramTiles: 구단 인스타그램 게시물 중 표지 있는 것만,
   const list = [p("a"), p("b", { thumbnail: null }), p("c", { platform: "naver_blog" }), p("d", { kind: "fan" }), p("e"), p("f"), p("g"), p("h"), p("i"), p("j")];
   assert.deepEqual(instagramTiles(list).map((x) => x.id), ["a", "e", "f", "g", "h", "i"]);
   assert.deepEqual(instagramTiles([]), []);
+});
+
+test("plainText: 수학 굵은 문자를 보통 글자로, 한글/이모지는 그대로", () => {
+  assert.equal(plainText("𝑾𝑬𝑳𝑪𝑶𝑴𝑬 🤝 서울은평덴포스"), "WELCOME 🤝 서울은평덴포스");
+  assert.equal(plainText("유니폼 어디서 사셨어요?"), "유니폼 어디서 사셨어요?");
 });

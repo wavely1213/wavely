@@ -98,6 +98,21 @@
   width: 100%;
 }
 
+/* 위젯 옆 좁은 PC(1081~1150): 목록 행 썸네일 96x64 — 제목 칸 175 이상 (검토 #23) */
+@media (min-width: 1081px) and (max-width: 1150px) {
+  .rowThumb {
+    width: 96px;
+    height: 64px;
+  }
+}
+
+/* 태블릿(721~900): 목록 행을 큰 카드 아래 전폭으로 쌓는다 (검토 #23) */
+@media (min-width: 721px) and (max-width: 900px) {
+  .body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 @media (max-width: 720px) {
   /* 휴대폰 목록 행 사이 16 (G11) */
   .rows {

@@ -1,6 +1,6 @@
 "use client";
 
-import { Children, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { Children, useEffect, useRef, useState, type CSSProperties, type FocusEvent, type ReactNode } from "react";
 import { swipeMetrics } from "@/lib/swipe";
 import styles from "./SwipeRow.module.css";
 
@@ -64,6 +64,21 @@ export function SwipeRow({
     };
   }, [items.length]);
 
+  // 키보드 초점이 다 안 보이는 칸으로 가면 그 칸이 보이게 줄을 민다 (검토 #3, 마우스/터치 초점은 그대로)
+  const onFocus = (e: FocusEvent<HTMLDivElement>) => {
+    const el = ref.current;
+    const target = e.target as HTMLElement;
+    if (!el || !target.matches(":focus-visible")) return;
+    const cell = target.closest<HTMLElement>(`.${styles.cell}`);
+    if (!cell || cell.parentElement !== el) return;
+    const pad = parseFloat(getComputedStyle(el).paddingLeft) || 0;
+    const left = cell.offsetLeft - el.offsetLeft;
+    const visible = left >= el.scrollLeft && left + cell.offsetWidth <= el.scrollLeft + el.clientWidth;
+    if (visible) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    el.scrollTo({ left: Math.max(0, left - pad), behavior: reduce ? "instant" : "smooth" });
+  };
+
   const go = (p: number) => {
     const el = ref.current;
     if (!el || p < 0 || p > pages - 1) return;
@@ -79,6 +94,7 @@ export function SwipeRow({
         style={{ "--per-view": perView } as CSSProperties}
         role="group"
         aria-label={label}
+        onFocus={onFocus}
       >
         {items.map((item, i) => (
           <div key={i} className={styles.cell}>
