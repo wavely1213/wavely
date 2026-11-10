@@ -1,7 +1,7 @@
 // 리그순위 정렬·시즌 묶기 단위 테스트 — 실행: npm test
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { byRank, pastLeagues, seasonSlug, seasonYear } from "../src/lib/standings.ts";
+import { byRank, leagueDivision, pastLeagues, seasonSlug, seasonYear } from "../src/lib/standings.ts";
 import type { StandingRow } from "../src/types/index.ts";
 
 const row = (season: string, team: string, w = 0, d = 0, l = 0, gf = 0, ga = 0, isUs = false): StandingRow => ({
@@ -39,13 +39,33 @@ test("seasonSlug: 주소용 이름", () => {
   assert.equal(seasonSlug("2025-26 FK1리그"), "2025-26-fk1");
   assert.equal(seasonSlug("2026-27 FK2리그"), "2026-27-fk2");
   assert.equal(seasonSlug("2017-18 드림리그"), encodeURIComponent("2017-18 드림리그"));
+  // 공식 대회명(후원사 + FK리그1) 도 같은 주소 모양, 후원사 이름은 주소에 넣지 않는다 (D-072)
+  assert.equal(seasonSlug("키움증권 2026-27 FK리그1"), "2026-27-fk1");
+  assert.equal(seasonSlug("키움증권 2026-27 FK리그2"), "2026-27-fk2");
+  assert.equal(seasonSlug("2025-26 승강 플레이오프"), encodeURIComponent("2025-26 승강 플레이오프"));
+});
+
+test("leagueDivision: FK1리그 / FK리그1 모두, 부 표기가 없으면 null", () => {
+  assert.equal(leagueDivision("2025-26 FK1리그"), 1);
+  assert.equal(leagueDivision("키움증권 2026-27 FK리그1"), 1);
+  assert.equal(leagueDivision("키움증권 2026-27 FK리그2"), 2);
+  assert.equal(leagueDivision("2026 FK CUP"), null);
+  assert.equal(leagueDivision("2025-26 승강 플레이오프"), null);
 });
 
 test("seasonYear: 시즌 연도 범위만 (연도 하나짜리 컵대회는 null)", () => {
   assert.equal(seasonYear("2025-26 FK1리그"), "2025-26");
   assert.equal(seasonYear("2025-26 승강 플레이오프"), "2025-26");
   assert.equal(seasonYear("2026 FK CUP"), null);
-  assert.equal(seasonYear("FK리그 2026-27"), null);
+  // 앞에 후원사/리그 이름이 붙어도 시즌 연도를 읽는다 (D-072)
+  assert.equal(seasonYear("키움증권 2026-27 FK리그1"), "2026-27");
+  assert.equal(seasonYear("FK리그 2026-27"), "2026-27");
+  assert.equal(seasonYear("2026-2027"), null);
+});
+
+test("pastLeagues: 지금 시즌이 공식 대회명이면 그 시즌은 빼고, 예전 표기 시즌은 지난 리그로", () => {
+  const past = pastLeagues([row("2025-26 FK1리그", "서울은평 덴포스", 2, 3, 10, 34, 89, true), row("키움증권 2026-27 FK리그1", "서울은평 덴포스", 0, 0, 0, 0, 0, true)], "키움증권 2026-27 FK리그1");
+  assert.deepEqual(past.map((p) => [p.season, p.slug]), [["2025-26 FK1리그", "2025-26-fk1"]]);
 });
 
 test("pastLeagues: 지금 시즌 제외, 최근 시즌 먼저, 우리 팀 최종 성적 (BR-016)", () => {

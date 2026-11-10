@@ -24,6 +24,7 @@ test("seasonStartYear / seasonLabel / statsSeasonStartYear", () => {
   assert.equal(seasonLabel(2099), "2099-00");
   assert.equal(statsSeasonStartYear(STATS), 2025);
   assert.equal(statsSeasonStartYear("FK1리그"), null);
+  assert.equal(statsSeasonStartYear("키움증권 2026-27 FK리그1"), 2026);
 });
 
 test("findPlayerJoin: 기록 시즌 뒤 영입 소식 → 시즌 + 글", () => {

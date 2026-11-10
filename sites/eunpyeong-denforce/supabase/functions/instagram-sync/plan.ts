@@ -6,7 +6,8 @@ import { josa, nameSlug } from "./korean.ts";
 export const ACCOUNT = "eunpyeong_denforce";
 const SITE = "https://eunpyeong-fs.com";
 /** 지금 시즌 리그 대회 이름 — src/config/league.ts 의 LEAGUE.currentCompetition 과 같아야 한다 (테스트로 맞춘다) */
-export const LEAGUE_COMPETITION = "2026-27 FK1리그";
+/** 지금 시즌 공식 대회명 — src/config/league.ts LEAGUE.currentCompetition 과 같아야 한다 (테스트가 확인, D-072) */
+export const LEAGUE_COMPETITION = "키움증권 2026-27 FK리그1";
 /** 기사에 쓰는 리그 이름 */
 export const LEAGUE_LABEL = "FK리그 1부(FK1)";
 
@@ -293,7 +294,8 @@ export function competitionOf(heading: string, date: string): { competition: str
   if (/FK\s*CUP/i.test(heading)) return { competition: `${year} FK CUP`, round: r };
   if (/FA\s*컵/i.test(heading)) return { competition: `${year} FA컵`, round: r };
   if (/PLAY\s*OFF|플레이오프/i.test(heading)) return { competition: `${season} 승강 플레이오프`, round: "" };
-  if (round) return { competition: `${season} ${LEAGUE_COMPETITION.split(" ").slice(1).join(" ")}`, round: r };
+  // 리그 라운드: 지금 시즌이면 공식 대회명 그대로, 다른 시즌이면 후원사 없이 '{시즌} FK리그1'
+  if (round) return { competition: LEAGUE_COMPETITION.includes(` ${season} `) || LEAGUE_COMPETITION.startsWith(`${season} `) ? LEAGUE_COMPETITION : `${season} FK리그1`, round: r };
   return { competition: cut(heading || "경기", 60), round: "" };
 }
 
