@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CompetitionTag, HomeAwayBadge } from "@/components/match/HomeAwayBadge";
 import { ResultBadge } from "@/components/match/ResultBadge";
 import { TeamCrest } from "@/components/match/TeamCrest";
+import { TeamName } from "@/components/match/TeamName";
 import { formatKickoff, matchResult, matchSides } from "@/lib/format";
 import { matchLabel, matchVideoLinks } from "@/lib/match";
 import type { Match } from "@/types";
@@ -27,7 +28,7 @@ export function MatchCard({ match, label, ourName, divided = false }: { match: M
       <Link href={finished ? "/match/results" : "/match/schedule"} className={styles.teams}>
         <span className={styles.team}>
           <TeamCrest team={home} us={match.isHome} size={56} mobileSize={40} />
-          <span className={styles.teamName}>{home}</span>
+          <TeamName name={home} className={styles.teamName} />
         </span>
         <span className={styles.center}>
           {score ? (
@@ -43,7 +44,7 @@ export function MatchCard({ match, label, ourName, divided = false }: { match: M
         </span>
         <span className={styles.team}>
           <TeamCrest team={away} us={!match.isHome} size={56} mobileSize={40} />
-          <span className={styles.teamName}>{away}</span>
+          <TeamName name={away} className={styles.teamName} />
         </span>
       </Link>
       <p className={styles.date}>{finished ? `${date} ${time}` : date}</p>

@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { formatKickoffFull } from "../src/lib/format.ts";
-import { crestInitial, groupByCompetition, hasMatchDetails, homeMatchItems, matchLabel, matchVideoLinks, scheduleEmptyLinks } from "../src/lib/match.ts";
+import { crestInitial, teamNameSegments, groupByCompetition, hasMatchDetails, homeMatchItems, matchLabel, matchVideoLinks, scheduleEmptyLinks } from "../src/lib/match.ts";
 import type { Match } from "../src/types/index.ts";
 
 const m = (id: string, competition: string, round = ""): Match => ({
@@ -79,4 +79,14 @@ test("scheduleEmptyLinks: 리그순위 / 지난 경기 결과 / 인스타그램(
     { label: "일정 발표 소식 받기", href: "https://www.instagram.com/eunpyeong_denforce", external: true },
   ]);
   assert.deepEqual(scheduleEmptyLinks(null).map((l) => l.label), ["리그순위", "지난 경기 결과"]);
+});
+
+test("teamNameSegments: 띄어쓰기 없는 긴 이름은 뒷말 앞에서 나눔, 띄어쓰기 있거나 짧으면 그대로", () => {
+  assert.deepEqual(teamNameSegments("고양불스풋살클럽"), ["고양불스", "풋살클럽"]);
+  assert.deepEqual(teamNameSegments("전주시민풋살구단"), ["전주시민", "풋살구단"]);
+  assert.deepEqual(teamNameSegments("인천ZD스포츠"), ["인천ZD", "스포츠"]);
+  assert.deepEqual(teamNameSegments("용인지솔FS"), ["용인지솔", "FS"]);
+  assert.deepEqual(teamNameSegments("서울은평 덴포스"), ["서울은평 덴포스"]);
+  assert.deepEqual(teamNameSegments("강원FS"), ["강원", "FS"]);
+  assert.deepEqual(teamNameSegments("FS"), ["FS"]);
 });

@@ -68,6 +68,8 @@
   letter-spacing: -0.02em;
   text-align: center;
   word-break: keep-all;
+  /* 긴 이름은 TeamName 의 <wbr>(고양불스 / 풋살클럽)에서 끊는다. 그래도 넘치면 마지막 수단으로 글자 사이 */
+  overflow-wrap: anywhere;
 }
 
 .teams:hover .teamName {

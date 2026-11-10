@@ -30,6 +30,19 @@ export function homeMatchItems(finished: Match[], upcoming: Match[], count = 3):
 }
 
 /** 팀 엠블럼이 없을 때 원 안 글자 — 팀 이름 앞 2글자 ('고양불스풋살클럽' → '고양', '인천ZD스포츠' → '인천') */
+/**
+ * 팀 이름을 줄바꿈 후보 앞에서 나눈 조각 — 띄어쓰기 없는 긴 이름(예: 고양불스풋살클럽)이 칸이 좁을 때
+ * '고양불스 / 풋살클럽'처럼 낱말 경계에서 줄바뀌게(화면은 조각 사이에 <wbr>). 띄어쓰기가 있으면 그대로 한 조각.
+ */
+const NAME_SUFFIX = /(풋살클럽|풋살구단|풋살단|스포츠|FS|FC)$/i;
+export function teamNameSegments(team: string): string[] {
+  const name = team.trim();
+  if (/\s/.test(name)) return [name];
+  const m = name.match(NAME_SUFFIX);
+  if (!m || m.index === undefined || m.index < 2) return [name];
+  return [name.slice(0, m.index), name.slice(m.index)];
+}
+
 export function crestInitial(team: string): string {
   return Array.from(team.trim()).slice(0, 2).join("");
 }
