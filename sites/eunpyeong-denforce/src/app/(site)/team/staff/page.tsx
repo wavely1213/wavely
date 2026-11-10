@@ -5,6 +5,7 @@ import { pageMetadata } from "@/lib/page-meta";
 import { getSiteContent, getStaff } from "@/lib/repo";
 import { splitStaff } from "@/lib/staff";
 import styles from "@/styles/prose.module.css";
+import local from "./staff.module.css";
 
 export function generateMetadata(): Promise<Metadata> {
   return pageMetadata("코칭스태프", "/team/staff");
@@ -27,14 +28,15 @@ export default async function StaffPage() {
         {front.length > 0 && (
           <section>
             <h2 className={styles.h2}>{content["staff.section.front"]}</h2>
-            <ul className={`${styles.list} ${styles.listWide}`}>
+            {/* 프런트 — 3열 격자(휴대폰 1열), 직책 kfa/caption text-sub + 이름 Bold (리디자인 3차 155:18888) */}
+            <dl className={local.front}>
               {front.map((s) => (
-                <li key={s.id}>
-                  <span>{s.role}</span>
-                  <span>{s.name}</span>
-                </li>
+                <div key={s.id} className={local.frontItem}>
+                  <dt>{s.role}</dt>
+                  <dd>{s.name}</dd>
+                </div>
               ))}
-            </ul>
+            </dl>
           </section>
         )}
       </div>

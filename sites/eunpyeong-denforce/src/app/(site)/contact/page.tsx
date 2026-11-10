@@ -5,7 +5,6 @@ import { mailDraftHref, snsHandle, telHref, topicSubject } from "@/lib/contact";
 import { contentLines } from "@/lib/content/values";
 import { pageMetadata } from "@/lib/page-meta";
 import { getClubSettings, getSiteContent } from "@/lib/repo";
-import styles from "@/styles/prose.module.css";
 import local from "./contact.module.css";
 
 export function generateMetadata(): Promise<Metadata> {
@@ -22,47 +21,73 @@ export default async function ContactPage() {
   return (
     <>
       <PageHeader title="문의" current="/contact" />
-      <div className={`container ${styles.body}`}>
-        <ul className={styles.list}>
+      <div className={`container ${local.body}`}>
+        {/* 연락처 2 x 2 카드 (리디자인 3차 157:19356) — 링크는 카드 전체가 누르는 곳 */}
+        <ul className={local.info}>
           <li>
-            <span>이메일</span>
-            {email ? <a href={`mailto:${email}`}>{email}</a> : <span>준비 중</span>}
+            {email ? (
+              <a href={`mailto:${email}`} className={local.infoCard}>
+                <span className={local.infoLabel}>이메일</span>
+                <span className={local.infoValue}>{email}</span>
+              </a>
+            ) : (
+              <div className={local.infoCard}>
+                <span className={local.infoLabel}>이메일</span>
+                <span className={`${local.infoValue} ${local.plain}`}>준비 중</span>
+              </div>
+            )}
           </li>
           <li>
-            <span>전화</span>
-            {tel ? <a href={tel}>{phone}</a> : <span>{phone ?? "준비 중"}</span>}
+            {tel ? (
+              <a href={tel} className={local.infoCard}>
+                <span className={local.infoLabel}>전화</span>
+                <span className={local.infoValue}>{phone}</span>
+              </a>
+            ) : (
+              <div className={local.infoCard}>
+                <span className={local.infoLabel}>전화</span>
+                <span className={`${local.infoValue} ${local.plain}`}>{phone ?? "준비 중"}</span>
+              </div>
+            )}
           </li>
           {settings.contactAddress && (
             <li>
-              <span>주소</span>
-              <span>{settings.contactAddress}</span>
+              <div className={local.infoCard}>
+                <span className={local.infoLabel}>주소</span>
+                <span className={`${local.infoValue} ${local.plain}`}>{settings.contactAddress}</span>
+              </div>
             </li>
           )}
           {snsLinks(settings).map((s) => (
             <li key={s.label}>
-              <span>{s.label}</span>
               {/* 인스타그램 주소는 '@계정'으로 짧게 보이고 링크는 주소 그대로 */}
-              <a href={s.href} target="_blank" rel="noreferrer">
-                {snsHandle(s.href) ?? s.href}
-                <span className="sr-only"> (새 창)</span>
+              <a href={s.href} target="_blank" rel="noreferrer" className={local.infoCard}>
+                <span className={local.infoLabel}>{s.label}</span>
+                <span className={local.infoValue}>
+                  {snsHandle(s.href) ?? s.href} <span aria-hidden="true">↗</span>
+                  <span className="sr-only"> (새 창)</span>
+                </span>
               </a>
             </li>
           ))}
         </ul>
         <section>
-          <h2 className={styles.h2}>{content["contact.section.topics"]}</h2>
-          <div className={styles.cards}>
+          <h2 className={local.h2}>{content["contact.section.topics"]}</h2>
+          <div className={local.topics}>
             {topics.map((t) =>
               // 문의 메일이 있으면 카드를 누를 때 제목이 채워진 메일 쓰기 창이 열린다
               email ? (
-                <a key={t} href={mailDraftHref(email, topicSubject(t))} className={`${styles.card} ${local.topic}`}>
-                  <h3>{t}</h3>
-                  <p className={styles.note}>누르면 {topicSubject(t)} 제목으로 메일 쓰기 창이 열립니다.</p>
+                <a key={t} href={mailDraftHref(email, topicSubject(t))} className={local.topic}>
+                  <h3 className={local.topicTitle}>{t}</h3>
+                  <p className={local.topicNote}>누르면 {topicSubject(t)} 제목으로 메일 쓰기 창이 열립니다.</p>
+                  <span className={local.topicMore}>
+                    메일 쓰기 <span aria-hidden="true">→</span>
+                  </span>
                 </a>
               ) : (
-                <div key={t} className={styles.card}>
-                  <h3>{t}</h3>
-                  <p className={styles.note}>이메일 제목에 {topicSubject(t)}를 적어 보내주세요.</p>
+                <div key={t} className={local.topic}>
+                  <h3 className={local.topicTitle}>{t}</h3>
+                  <p className={local.topicNote}>이메일 제목에 {topicSubject(t)}를 적어 보내주세요.</p>
                 </div>
               ),
             )}

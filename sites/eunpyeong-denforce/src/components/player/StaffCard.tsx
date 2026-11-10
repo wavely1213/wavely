@@ -11,7 +11,7 @@ export function StaffCard({ staff }: { staff: Staff }) {
         {staff.photo ? (
           <Image src={staff.photo} alt="" fill sizes="(max-width: 720px) 45vw, 220px" />
         ) : (
-          // 사진이 없으면 빈 회색 칸 대신 파란 브랜드 카드
+          // 사진이 없으면 빈 칸 대신 black-soft + 엠블럼 (D-016 변경)
           <div className={styles.brand} aria-hidden>
             <Image src={SITE.emblemMark} alt="" width={67} height={86} />
           </div>
