@@ -14,3 +14,10 @@ export function crestEntryFor(name: string, list: TeamCrestEntry[] = TEAM_CRESTS
 export function crestFor(name: string, list: TeamCrestEntry[] = TEAM_CRESTS): string | null {
   return crestEntryFor(name, list)?.file ?? null;
 }
+
+/** 엠블럼 그림 (경로 + 원본 픽셀 크기). 못 구한 팀, 모르는 팀은 null */
+export function crestImageFor(name: string, list: TeamCrestEntry[] = TEAM_CRESTS): { src: string; width: number; height: number } | null {
+  const e = crestEntryFor(name, list);
+  if (!e?.file || !e.pixels) return null;
+  return { src: e.file, width: e.pixels[0], height: e.pixels[1] };
+}

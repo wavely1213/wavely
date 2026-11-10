@@ -1,24 +1,64 @@
 import Image from "next/image";
 import { SITE } from "@/config/site";
+import { crestImageFor } from "@/lib/crests";
 import { crestInitial } from "@/lib/match";
 import styles from "./MatchParts.module.css";
 
+export type CrestSize = 96 | 88 | 64 | 56 | 40 | 32;
+
+const SIZE_CLASS: Record<CrestSize, string> = {
+  96: styles.crest96,
+  88: styles.crest88,
+  64: styles.crest64,
+  56: styles.crest56,
+  40: styles.crest40,
+  32: styles.crest32,
+};
+
+/** 대체 방패 (피그마 MatchEmblem 190:734 '대체') — 81:96, 선 2px(크기와 상관없이).
+ * 피그마는 안쪽 선 4(마스크) — 여기선 마스크 id 가 겹치지 않게 svg 를 1px 안으로 넣고 가운데 선 2px 로 같은 모양을 낸다 */
+function Shield() {
+  return (
+    <svg className={styles.shield} viewBox="0 0 81 96" preserveAspectRatio="none" fill="none" overflow="visible" aria-hidden="true" focusable="false">
+      <path
+        d="M0 0H81V55.68C81 78.72 58.32 89.28 40.5 96C22.68 89.28 0 78.72 0 55.68V0Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
+  );
+}
+
 /**
- * 팀 엠블럼 원 (리디자인 D-067). 우리 팀은 구단 엠블럼(bg 원 받침), 상대는 엠블럼 자료가 없어 이름 앞 2글자(bg-soft 원).
- * 팀 이름은 옆/아래 글자로 따로 보이므로 그림은 읽지 않게 숨긴다.
+ * 팀 엠블럼 (피그마 MatchEmblem 190:734, 원 받침 없음). size 는 높이(px), 가로는 원본 비율.
+ * - 우리 팀: emblem.png 원본(흰 바탕 사각형 그대로)
+ * - 상대: 받은 투명 원본(crestFor, src/config/team-crests.ts)
+ * - 원본이 없는 상대: 대체 방패(선 윤곽 + 이름 앞 2글자, 색은 놓인 면의 글자색)
+ * 팀 이름은 옆 글자로 따로 보이므로 그림은 읽지 않게 숨긴다.
  */
-export function TeamCrest({ team, us, size }: { team: string; us: boolean; size: 56 | 40 | 24 }) {
-  const sizeClass = size === 56 ? styles.crest56 : size === 40 ? styles.crest40 : styles.crest24;
+export function TeamCrest({ team, us, size }: { team: string; us: boolean; size: CrestSize }) {
+  const sizeClass = SIZE_CLASS[size];
   if (us) {
     return (
-      <span className={`${styles.crest} ${styles.crestUs} ${sizeClass}`} aria-hidden="true">
-        <Image src={SITE.emblemMark} alt="" width={134} height={171} />
+      <span className={`${styles.crest} ${sizeClass}`} aria-hidden="true">
+        <Image src={SITE.emblem} alt="" width={600} height={829} className={styles.crestImg} />
+      </span>
+    );
+  }
+  const img = crestImageFor(team);
+  if (img) {
+    return (
+      <span className={`${styles.crest} ${sizeClass}`} aria-hidden="true">
+        <Image src={img.src} alt="" width={img.width} height={img.height} className={styles.crestImg} />
       </span>
     );
   }
   return (
-    <span className={`${styles.crest} ${sizeClass}`} aria-hidden="true">
-      {crestInitial(team)}
+    <span className={`${styles.crest} ${styles.crestFallback} ${sizeClass}`} aria-hidden="true">
+      <Shield />
+      <span className={styles.crestText}>{crestInitial(team)}</span>
     </span>
   );
 }
