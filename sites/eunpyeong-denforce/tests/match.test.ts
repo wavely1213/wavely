@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { formatKickoffFull } from "../src/lib/format.ts";
-import { crestInitial, crestInitialShort, teamNameSegments, groupByCompetition, hasMatchDetails, homeMatchItems, matchLabel, matchVideoLinks, scheduleEmptyLinks } from "../src/lib/match.ts";
+import { crestInitial, crestInitialShort, teamNameSegments, venueNameSegments, groupByCompetition, hasMatchDetails, homeMatchItems, matchLabel, matchVideoLinks, scheduleEmptyLinks } from "../src/lib/match.ts";
 import type { Match } from "../src/types/index.ts";
 
 const m = (id: string, competition: string, round = ""): Match => ({
@@ -97,4 +97,14 @@ test("crestInitialShort: 표(24) 대체 방패는 한 글자, 영문이면 대�
   assert.equal(crestInitialShort(" lbfs"), "L");
   assert.equal(crestInitialShort("인천ZD스포츠"), "인");
   assert.equal(crestInitialShort(""), "");
+});
+
+test("venueNameSegments: 끝말(체육관/경기장/트레이닝센터 등) 앞에서 나눔, 없거나 짧으면 그대로 (재검증 #10)", () => {
+  assert.deepEqual(venueNameSegments("노원월계구민체육관"), ["노원월계구민", "체육관"]);
+  assert.deepEqual(venueNameSegments("전주매그풋살경기장"), ["전주매그풋살", "경기장"]);
+  assert.deepEqual(venueNameSegments("경기LBFS트레이닝센터"), ["경기LBFS", "트레이닝센터"]);
+  assert.deepEqual(venueNameSegments("은평구민체육센터"), ["은평구민체육", "센터"]);
+  assert.deepEqual(venueNameSegments("체육관"), ["체육관"]);
+  assert.deepEqual(venueNameSegments("고양시 실내풋살장"), ["고양시 실내", "풋살장"]);
+  assert.deepEqual(venueNameSegments("미정"), ["미정"]);
 });

@@ -43,6 +43,18 @@ export function teamNameSegments(team: string): string[] {
   return [name.slice(0, m.index), name.slice(m.index)];
 }
 
+/**
+ * 경기장 이름을 끝말 앞에서 나눈 조각 — 좁은 칸(320 휴대폰 표)에서 '노원월계구민체육|관'처럼 한 글자만 떨어지지 않게
+ * '노원월계구민 / 체육관'으로 줄바뀌게(화면은 조각 사이에 <wbr>) (재검증 #10). 끝말이 없거나 앞이 2글자 미만이면 그대로.
+ */
+const VENUE_SUFFIX = /(트레이닝센터|체육관|경기장|풋살장|센터)$/;
+export function venueNameSegments(venue: string): string[] {
+  const name = venue.trim();
+  const m = name.match(VENUE_SUFFIX);
+  if (!m || m.index === undefined || m.index < 2) return [name];
+  return [name.slice(0, m.index), name.slice(m.index)];
+}
+
 /** 엠블럼이 없을 때 대체 방패 안 글자 — 팀 이름 앞 2글자 ('고양불스풋살클럽' → '고양', '인천ZD스포츠' → '인천') */
 export function crestInitial(team: string): string {
   return Array.from(team.trim()).slice(0, 2).join("");

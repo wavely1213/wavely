@@ -7,8 +7,8 @@ import styles from "./ScrollRow.module.css";
 /** 양 끝 흐림 폭 — ScrollRow.module.css 의 --fade 와 같게 */
 const FADE_PX = 32;
 
-/** 고른 탭 — 메뉴 링크(aria-current) 또는 탭 버튼(aria-selected) */
-const ACTIVE_SELECTOR = '[aria-current="page"], [aria-selected="true"]';
+/** 고른 탭 — 메뉴 링크(aria-current), 탭 버튼(aria-selected) 또는 토글 버튼(aria-pressed, 포스팅 분류) */
+const ACTIVE_SELECTOR = '[aria-current="page"], [aria-selected="true"], [aria-pressed="true"]';
 
 /**
  * 가로로 넘치는 탭 줄 — 휴대폰에서 고른 탭이 화면 밖에 있으면 처음 열 때 옆으로만 옮겨 보이게 하고

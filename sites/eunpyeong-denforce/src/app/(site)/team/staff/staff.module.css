@@ -22,7 +22,9 @@
   color: var(--c-text-sub);
 }
 
+/* dd 기본 margin-inline-start 40 없앰 — 직책 96 + 사이 space/m 만 (재검증 #9 와 같은 원인) */
 .frontItem dd {
+  margin: 0;
   min-width: 0;
   font-size: 16px;
   font-weight: 700;

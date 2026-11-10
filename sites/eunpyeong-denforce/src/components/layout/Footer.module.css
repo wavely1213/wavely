@@ -162,7 +162,27 @@
 
 /* 휴대폰: 링크 누르는 영역 높이 44 — 세로 간격은 그 높이로 대신한다 (검토 #24) */
 @media (max-width: 720px) {
-  .about a,
+  /* 문단 안 메일/전화 링크는 inline 그대로(줄 간격 고르게) — 누름 영역만 위아래로 넓힌다 (재검증 #4) */
+  .about p a {
+    position: relative;
+  }
+
+  /* 글자 높이(12)와 상관없이 가운데 기준 높이 44 */
+  .about p a::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 0;
+    left: 0;
+    height: 44px;
+    transform: translateY(-50%);
+  }
+
+  /* inline-flex 는 글자와 '↗' 사이 공백 노드를 버리므로 column-gap 으로 띄운다 (재검증 #3) */
+  .sns a {
+    column-gap: var(--space-2xs);
+  }
+
   .sns a,
   .colTitle,
   .colList a,

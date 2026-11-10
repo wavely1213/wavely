@@ -1,6 +1,7 @@
 import { HomeAwayBadge } from "@/components/match/HomeAwayBadge";
 import { TeamCrest } from "@/components/match/TeamCrest";
 import { TeamName } from "@/components/match/TeamName";
+import { VenueName } from "@/components/match/VenueName";
 import { formatKickoffFull, matchResult, matchSides, RESULT_LABEL } from "@/lib/format";
 import { groupByCompetition, hasMatchDetails, matchVideoLinks } from "@/lib/match";
 import { getSiteContent } from "@/lib/repo";
@@ -100,7 +101,7 @@ function MatchTableRow({ match, ourName, details, next }: { match: Match; ourNam
         {/* 휴대폰: 장소 칸이 숨으므로 대진 아래 장소 줄 + HOME */}
         {(match.venue || match.isHome) && (
           <span className={styles.mVenue}>
-            {match.venue}
+            {match.venue && <VenueName name={match.venue} />}
             <HomeAwayBadge isHome={match.isHome} surface="tint" />
           </span>
         )}
@@ -109,7 +110,7 @@ function MatchTableRow({ match, ourName, details, next }: { match: Match; ourNam
       <td className={styles.venue}>
         <span className={styles.venueInner}>
           <HomeAwayBadge isHome={match.isHome} surface="tint" />
-          <span className={styles.venueName}>{match.venue || "-"}</span>
+          {match.venue ? <VenueName name={match.venue} className={styles.venueName} /> : <span className={styles.venueName}>-</span>}
         </span>
       </td>
       <td className={styles.result}>

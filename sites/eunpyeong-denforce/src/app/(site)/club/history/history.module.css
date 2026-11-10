@@ -39,7 +39,9 @@
   word-break: keep-all;
 }
 
+/* dd 기본 margin-inline-start 40 을 없애 라벨과 같은 세로선 (재검증 #9) */
 .value {
+  margin: 0;
   font-size: 32px;
   font-weight: 700;
   line-height: 1.2;

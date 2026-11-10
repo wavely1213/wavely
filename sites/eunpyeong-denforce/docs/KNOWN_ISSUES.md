@@ -27,6 +27,13 @@
 
 <!-- 최신 항목을 위에 추가. 심각도 '높음'은 발견 즉시 소유자에게 별도 보고 -->
 
+## I-053 | 2026-11-10 | Edge Function instagram-sync plainText 도 전체 NFKC — 자동 생성 소식 제목의 'ㅣ' 등이 바뀔 수 있음
+- **상태**: 열림 (기능 세션은 배포 금지라 코드/배포는 총괄 판단)
+- **심각도**: 낮음
+- **증상/내용**: 사이트 쪽 plainText 는 수학 영숫자 블록만 NFKC 로 고쳤다(재검증 #1). Edge Function `plainText` 는 아직 caption 전체에 NFKC 를 걸어, 영입/릴스 소식 제목을 만들 때 구분자 'ㅣ'(U+3163) → U+1175, '③' → '3', '…' → '...' 로 바뀔 수 있다. 머리말 판정(`embed.ts` 의 head NFKC)은 비교용이라 화면에 안 나와 괜찮다.
+- **위치**: `supabase/functions/instagram-sync/plan.ts` plainText
+- **해결 방향**: `.normalize("NFKC")` 를 `.replace(/[\u{1D400}-\u{1D7FF}]/gu, (c) => c.normalize("NFKC"))` 로 바꾸고 instagram-sync 테스트에 'ㅣ' 경우 추가 → Edge Function 재배포(총괄).
+
 ## I-052 | 2026-11-10 | [관리자 칸 후보] 선수/코칭스태프/스폰서 빈 상태 문구와 오류 문구가 고정 글
 - **상태**: 열림 (총괄 기본값: 지금은 고정 글)
 - **심각도**: 낮음

@@ -12,6 +12,9 @@
   border-bottom: 1px solid var(--c-line);
   overflow-x: auto;
   scrollbar-width: none;
+  /* 끝 탭이 소수점 폭으로 줄 끝을 넘어 반쯤 가리지 않게 끝 여백 (재검증 #7) */
+  padding-inline-end: var(--space-xs);
+  scroll-padding-inline: var(--space-xs);
 }
 
 .tab {

@@ -56,7 +56,10 @@ export function NewsBanner({ posts }: { posts: NewsPost[] }) {
       aria-label="메인 소식"
       onMouseEnter={() => setHoverHold(true)}
       onMouseLeave={() => setHoverHold(false)}
-      onFocus={() => setFocusHold(true)}
+      // 키보드 초점일 때만 멈춘다 — 마우스로 버튼을 누르면 초점이 남아 자동 넘김이 영영 멈추던 것 (재검증 #2, SwipeRow 와 같게)
+      onFocus={(e) => {
+        if ((e.target as HTMLElement).matches(":focus-visible")) setFocusHold(true);
+      }}
       onBlur={(e) => {
         if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setFocusHold(false);
       }}

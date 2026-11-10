@@ -4,7 +4,8 @@
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: var(--space-m);
-  padding-block: var(--space-2xl);
+  /* 아래 여백은 푸터 margin-top(section-gap 72/48) 한 번만 (재검증 #8) */
+  padding-top: var(--space-2xl);
 }
 
 .side {
@@ -81,7 +82,7 @@
   .nav {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: var(--space-l) var(--space-m);
-    padding-block: var(--space-xl);
+    padding-top: var(--space-xl);
   }
 
   .list {

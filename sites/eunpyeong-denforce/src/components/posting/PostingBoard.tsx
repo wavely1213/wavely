@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { MoreButton } from "@/components/ui/MoreButton";
+import { ScrollRow } from "@/components/ui/ScrollRow";
 import { POSTING_KIND_LABEL, POSTING_PLATFORM_LABEL } from "@/data/postings";
 import { countByKind, filterPostings, platformCounts, POSTING_KINDS, POSTINGS_PAGE_SIZE } from "@/lib/postings";
 import type { Posting, PostingKind, PostingPlatform } from "@/types";
@@ -48,24 +49,21 @@ export function PostingBoard({ postings, emptyText }: { postings: Posting[]; emp
   return (
     <>
       <div className={styles.filters}>
-        <div className={styles.tabs} role="group" aria-label="분류">
+        {/* 휴대폰에서 넘치면 가려진 쪽 끝을 흐리게 + 누른/키보드 초점 탭이 다 보이게 (재검증 #7, 다른 탭 줄과 같은 ScrollRow) */}
+        <ScrollRow className={styles.tabs} role="group" aria-label="분류" activeKey={kind ?? "all"}>
           {[null, ...POSTING_KINDS].map((k) => (
             <button
               key={k ?? "all"}
               type="button"
               className={`${styles.tab} ${k === kind ? styles.tabActive : ""}`}
               aria-pressed={k === kind}
-              onClick={(e) => {
-                pickKind(k);
-                // 휴대폰에서 가로로 넘친 탭 줄 — 누른 탭이 보이게 (검토 #8)
-                e.currentTarget.scrollIntoView({ inline: "nearest", block: "nearest" });
-              }}
+              onClick={() => pickKind(k)}
             >
               {k ? POSTING_KIND_LABEL[k] : "전체"}
               <span className={styles.count}>{k ? kindCounts[k] : kindCounts.all}</span>
             </button>
           ))}
-        </div>
+        </ScrollRow>
         <div className={styles.chips} role="group" aria-label="출처">
           {[{ platform: null, count: scopedTotal }, ...platforms].map((c) => (
             <button

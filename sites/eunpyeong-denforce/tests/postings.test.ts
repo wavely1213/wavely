@@ -79,4 +79,7 @@ test("instagramTiles: 구단 인스타그램 게시물 중 표지 있는 것만,
 test("plainText: 수학 굵은 문자를 보통 글자로, 한글/이모지는 그대로", () => {
   assert.equal(plainText("𝑾𝑬𝑳𝑪𝑶𝑴𝑬 🤝 서울은평덴포스"), "WELCOME 🤝 서울은평덴포스");
   assert.equal(plainText("유니폼 어디서 사셨어요?"), "유니폼 어디서 사셨어요?");
+  // 수학 영숫자 밖은 그대로 — 구분자 'ㅣ'(U+3163), 호환 자모, 원문자, 말줄임표 (재검증 #1)
+  assert.equal(plainText("GOALㅣflex 2024-25 FK LEAGUE1ㅣ…"), "GOALㅣflex 2024-25 FK LEAGUE1ㅣ…");
+  assert.equal(plainText("ㅎㅎ ③ 𝐆𝐎𝐀𝐋"), "ㅎㅎ ③ GOAL");
 });
