@@ -1,6 +1,7 @@
 /* 경기 작은 부품 (리디자인 D-067) — TeamCrest, HomeAwayBadge, CompetitionTag, ResultBadge. 놓인 면(surface)에 따라 색이 바뀐다 */
 
-/* ── TeamCrest (피그마 MatchEmblem 190:734): 원 받침 없음. --crest 는 높이, 가로는 원본 비율 ── */
+/* ── TeamCrest (피그마 MatchEmblem 190:734, 부품 지도 표): 원 받침 없음. --crest 는 높이, 가로는 원본 비율 ──
+   크기마다 대체 방패의 선 굵기와 글자 스타일이 바뀐다 (64 이상 선 2px, 그 밑 1.5px) */
 .crest {
   position: relative;
   flex: none;
@@ -8,7 +9,6 @@
   align-items: center;
   justify-content: center;
   height: var(--crest);
-  line-height: 1.2;
 }
 
 .crestImg {
@@ -17,27 +17,46 @@
   height: 100%;
 }
 
-/* 대체 방패 81:96 — 글자는 방패 위쪽 무게중심(피그마 96 기준 글자 가운데 40/96)에 */
+/* 우리 팀: emblem.png 흰 바탕 사각형이 검정 면에서 테두리가 보이게 바깥선 on-dark 1px */
+.crestUs .crestImg {
+  outline: 1px solid var(--c-on-dark);
+}
+
+/* 대체 방패 폭 = 높이 x 0.84 (81:96). 글자는 방패 위쪽 무게중심(96 기준 글자 가운데 40/96)에 */
 .crestFallback {
   aspect-ratio: 81 / 96;
   padding-bottom: calc(var(--crest) * 0.16);
-  color: inherit;
+  color: var(--c-on-dark);
 }
 
 .shield {
   position: absolute;
-  inset: 1px;
-  width: calc(100% - 2px);
-  height: calc(100% - 2px);
+  inset: calc(var(--crest-stroke) / 2);
+  width: calc(100% - var(--crest-stroke));
+  height: calc(100% - var(--crest-stroke));
 }
 
-/* kfa/pc/h3 비율(96 에서 24, -0.02em) — 크기 단계마다 1/4 */
+.shield path {
+  stroke-width: var(--crest-stroke);
+}
+
 .crestText {
   position: relative;
-  font-size: calc(var(--crest) / 4);
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-size: var(--crest-fs);
+  font-weight: var(--crest-fw);
+  line-height: var(--crest-lh);
+  letter-spacing: var(--crest-ls);
   white-space: nowrap;
+}
+
+/* 글자: 96, 88 kfa/pc/h3 / 64 kfa/m/h4 / 56, 40 kfa/label / 32 kfa/caption */
+.crest96,
+.crest88 {
+  --crest-stroke: 2px;
+  --crest-fs: 24px;
+  --crest-fw: 700;
+  --crest-lh: 1.2;
+  --crest-ls: -0.02em;
 }
 
 .crest96 {
@@ -50,6 +69,20 @@
 
 .crest64 {
   --crest: 64px;
+  --crest-stroke: 2px;
+  --crest-fs: 16px;
+  --crest-fw: 700;
+  --crest-lh: 1.2;
+  --crest-ls: -0.02em;
+}
+
+.crest56,
+.crest40 {
+  --crest-stroke: 1.5px;
+  --crest-fs: 12px;
+  --crest-fw: 700;
+  --crest-lh: 1.2;
+  --crest-ls: 0.08em;
 }
 
 .crest56 {
@@ -62,6 +95,41 @@
 
 .crest32 {
   --crest: 32px;
+  --crest-stroke: 1.5px;
+  --crest-fs: 12px;
+  --crest-fw: 400;
+  --crest-lh: 1.6;
+  --crest-ls: 0;
+}
+
+/* 휴대폰(720 이하)에서 다른 크기 — 위 크기 단계를 덮는다 */
+@media (max-width: 720px) {
+  .m64 {
+    --crest: 64px;
+    --crest-stroke: 2px;
+    --crest-fs: 16px;
+    --crest-fw: 700;
+    --crest-lh: 1.2;
+    --crest-ls: -0.02em;
+  }
+
+  .m40 {
+    --crest: 40px;
+    --crest-stroke: 1.5px;
+    --crest-fs: 12px;
+    --crest-fw: 700;
+    --crest-lh: 1.2;
+    --crest-ls: 0.08em;
+  }
+
+  .m32 {
+    --crest: 32px;
+    --crest-stroke: 1.5px;
+    --crest-fs: 12px;
+    --crest-fw: 400;
+    --crest-lh: 1.6;
+    --crest-ls: 0;
+  }
 }
 
 /* ── HomeAwayBadge (HOME 만): kfa/label, radius/s, 패딩 2xs/xs ── */

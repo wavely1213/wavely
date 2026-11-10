@@ -27,7 +27,7 @@ export function MatchCard({ match, label, ourName, divided = false }: { match: M
       <p className={styles.date}>{finished ? `${date} ${time}` : date}</p>
       <Link href={finished ? "/match/results" : "/match/schedule"} className={styles.teams}>
         <span className={styles.team}>
-          <TeamCrest team={home} us={match.isHome} size={40} />
+          <TeamCrest team={home} us={match.isHome} size={56} mobileSize={40} />
           <span className={styles.teamName}>{home}</span>
         </span>
         <span className={styles.center}>
@@ -43,7 +43,7 @@ export function MatchCard({ match, label, ourName, divided = false }: { match: M
           )}
         </span>
         <span className={styles.team}>
-          <TeamCrest team={away} us={!match.isHome} size={40} />
+          <TeamCrest team={away} us={!match.isHome} size={56} mobileSize={40} />
           <span className={styles.teamName}>{away}</span>
         </span>
       </Link>

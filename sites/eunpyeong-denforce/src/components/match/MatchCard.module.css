@@ -53,11 +53,14 @@
   width: 112px;
 }
 
-/* kfa/body-s, 2줄까지 줄임 없음 */
+/* kfa/m/h4 16 Bold, 2줄까지 줄임 없음, 낱말 경계 줄바꿈 (부품 지도 MatchStrip 표) */
 .teamName {
-  font-size: 14px;
-  line-height: 1.6;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
   text-align: center;
+  word-break: keep-all;
 }
 
 .teams:hover .teamName {
@@ -81,10 +84,14 @@
   white-space: nowrap;
 }
 
+/* 경기장 줄 — 대진 바로 아래 가운데 (소유자 피드백: 왼쪽 치우침) */
 .venue {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: center;
   gap: var(--space-xs);
+  text-align: center;
 }
 
 .scorers {
