@@ -17,8 +17,10 @@
   height: 100%;
 }
 
-/* 우리 팀: emblem.png 흰 바탕 사각형이 검정 면에서 테두리가 보이게 바깥선 on-dark 1px (흰 면 표는 --crest-line 으로 line) */
+/* 우리 팀: emblem.png 흰 바탕 사각형이 검정 면에서 테두리가 보이게 바깥선 on-dark 1px (흰 면 표는 --crest-line 으로 line).
+   원본의 'SINCE 2012' 줄과 모서리 틈은 투명이라, 흰 바탕을 깔아 파랑/검정 면 위에서도 흰 사각형으로 보이게 한다 (공식 원본 파일은 그대로) */
 .crestUs .crestImg {
+  background: var(--c-bg);
   outline: 1px solid var(--crest-line, var(--c-on-dark));
 }
 
