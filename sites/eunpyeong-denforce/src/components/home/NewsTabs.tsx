@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { newsHref } from "@/components/news/NewsCard";
+import { NewsLink } from "@/components/news/NewsLink";
 import { buttonClass } from "@/components/ui/Button";
 import { FitImage } from "@/components/ui/FitImage";
 import { ScrollRow } from "@/components/ui/ScrollRow";
@@ -40,26 +40,26 @@ export function NewsTabs({ posts }: { posts: NewsPost[] }) {
       </ScrollRow>
       {lead ? (
         <div className={news.body} role="tabpanel">
-          <Link href={newsHref(lead)} className={`${news.lead} ${news.desktopOnly}`}>
+          <NewsLink post={lead} className={`${news.lead} ${news.desktopOnly}`}>
             <span className={news.leadThumb}>{lead.thumbnail && <FitImage src={lead.thumbnail} sizes="520px" />}</span>
             <span className={news.text}>
               <span className={news.category}>{NEWS_CATEGORY_LABEL[lead.category]}</span>
               <strong className={news.leadTitle}>{lead.title}</strong>
               <span className={news.date}>{formatPostDate(lead.date)}</span>
             </span>
-          </Link>
+          </NewsLink>
           <ul className={news.rows}>
             {/* 휴대폰은 큰 카드 없이 목록 행 4 (첫 글 포함) */}
             {[lead, ...rows].map((p, i) => (
               <li key={p.id} className={i === 0 ? news.mobileOnly : i === SHOWN - 1 ? news.desktopOnly : undefined}>
-                <Link href={newsHref(p)} className={news.row}>
+                <NewsLink post={p} className={news.row}>
                   <span className={news.rowThumb}>{p.thumbnail && <FitImage src={p.thumbnail} sizes="120px" />}</span>
                   <span className={news.text}>
                     <span className={news.category}>{NEWS_CATEGORY_LABEL[p.category]}</span>
                     <strong className={news.rowTitle}>{p.title}</strong>
                     <span className={news.date}>{formatPostDate(p.date)}</span>
                   </span>
-                </Link>
+                </NewsLink>
               </li>
             ))}
           </ul>

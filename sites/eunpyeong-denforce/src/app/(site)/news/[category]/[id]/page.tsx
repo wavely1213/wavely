@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { newsHref } from "@/components/news/NewsCard";
 import { NewsGallery } from "@/components/news/NewsGallery";
 import { ShareButton } from "@/components/news/ShareButton";
-import { VideoEmbed } from "@/components/news/VideoEmbed";
+import { VideoCover } from "@/components/news/VideoCover";
 import { LinkifiedText } from "@/components/ui/LinkifiedText";
 import { NEWS_CATEGORY_LABEL } from "@/data/news";
 import { formatPostDate } from "@/lib/format";
@@ -72,8 +72,8 @@ export default async function NewsPostPage({ params }: PageProps<"/news/[categor
             </span>
           </div>
         </header>
-        {/* 구단영상은 영상을 맨 위에서 재생, 사진은 그 아래 (D-035) */}
-        {post.videoUrl && <VideoEmbed url={post.videoUrl} title={post.title} />}
+        {/* 구단영상은 맨 위에 표지 + 원본 재생 버튼(새 창), 사진은 그 아래 (D-035, D-074) */}
+        {post.videoUrl && <VideoCover url={post.videoUrl} thumbnail={post.thumbnail} />}
         {photos.length > 0 && <NewsGallery images={photos} title={post.title} />}
         <div className={article.body}>
           {post.body.map((p) =>

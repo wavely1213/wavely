@@ -81,7 +81,7 @@ export function NewsGallery({ images, title }: { images: string[]; title: string
               {count === 1 ? (
                 // 한 장이면 PC 4:3 / 휴대폰 358:430 칸(총괄 결정) — 어떤 비율이든 늘 전체 + 흐린 바탕 (재검증 #5)
                 <span className={styles.frame}>
-                  <FitImage src={src} alt={`${title} 사진 ${i + 1}`} sizes="(max-width: 720px) 100vw, 800px" priority contain />
+                  <FitImage src={src} alt={`${title} 사진 ${i + 1}`} sizes="(max-width: 720px) 100vw, 800px" priority fit="contain" />
                 </span>
               ) : (
                 <Image
