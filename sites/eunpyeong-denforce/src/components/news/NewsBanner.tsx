@@ -54,12 +54,23 @@ export function NewsBanner({ posts }: { posts: NewsPost[] }) {
       className={`${styles.banner} ${count > 1 ? styles.multi : ""}`}
       aria-roledescription="carousel"
       aria-label="메인 소식"
-      onMouseEnter={() => setHoverHold(true)}
-      onMouseLeave={() => setHoverHold(false)}
+      // 마우스만 올려 둔 동안 멈춤 — 터치 탭의 흉내 mouseenter 로 멈춘 채 남지 않게 (재검증 2차 #2)
+      onPointerEnter={(e) => {
+        if (e.pointerType === "mouse") setHoverHold(true);
+      }}
+      onPointerLeave={(e) => {
+        if (e.pointerType === "mouse") setHoverHold(false);
+      }}
       // 키보드 초점일 때만 멈춘다 — 마우스로 버튼을 누르면 초점이 남아 자동 넘김이 영영 멈추던 것 (재검증 #2, SwipeRow 와 같게)
       onFocus={(e) => {
         if ((e.target as HTMLElement).matches(":focus-visible")) setFocusHold(true);
       }}
+      // 입력 방식이 섞일 때: 마우스로 누른 버튼을 키보드로 이어 쓰면 멈추고, 키보드로 온 뒤 마우스/터치로 누르면 풀린다 (재검증 2차 #3)
+      onKeyDown={(e) => {
+        const active = document.activeElement;
+        if (active instanceof HTMLElement && e.currentTarget.contains(active) && active.matches(":focus-visible")) setFocusHold(true);
+      }}
+      onPointerDown={() => setFocusHold(false)}
       onBlur={(e) => {
         if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setFocusHold(false);
       }}

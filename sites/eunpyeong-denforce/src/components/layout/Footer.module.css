@@ -178,9 +178,17 @@
     transform: translateY(-50%);
   }
 
-  /* inline-flex 는 글자와 '↗' 사이 공백 노드를 버리므로 column-gap 으로 띄운다 (재검증 #3) */
+  /* inline-flex 는 글자와 '↗' 사이 공백 노드를 버리므로 column-gap 으로 띄운다 (재검증 #3).
+     위 문단 링크의 넓힌 누름 영역(::after)이 덮지 않게 위로 올린다 (재검증 2차 #4) */
   .sns a {
+    position: relative;
+    z-index: 1;
     column-gap: var(--space-2xs);
+  }
+
+  /* 문단과 SNS 줄 사이 16 (about gap 8 + 8) */
+  .sns {
+    margin-top: var(--space-xs);
   }
 
   .sns a,

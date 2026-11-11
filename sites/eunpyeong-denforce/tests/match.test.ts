@@ -105,6 +105,8 @@ test("venueNameSegments: 끝말(체육관/경기장/트레이닝센터 등) 앞�
   assert.deepEqual(venueNameSegments("경기LBFS트레이닝센터"), ["경기LBFS", "트레이닝센터"]);
   assert.deepEqual(venueNameSegments("은평구민체육센터"), ["은평구민체육", "센터"]);
   assert.deepEqual(venueNameSegments("체육관"), ["체육관"]);
-  assert.deepEqual(venueNameSegments("고양시 실내풋살장"), ["고양시 실내", "풋살장"]);
+  // 띄어쓰기가 있으면 나누지 않는다 — 공백에서 줄바뀜 (재검증 2차 #5)
+  assert.deepEqual(venueNameSegments("고양시 실내풋살장"), ["고양시 실내풋살장"]);
+  assert.deepEqual(venueNameSegments("단양군 국민체육센터"), ["단양군 국민체육센터"]);
   assert.deepEqual(venueNameSegments("미정"), ["미정"]);
 });

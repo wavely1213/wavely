@@ -49,8 +49,8 @@ export function PostingBoard({ postings, emptyText }: { postings: Posting[]; emp
   return (
     <>
       <div className={styles.filters}>
-        {/* 휴대폰에서 넘치면 가려진 쪽 끝을 흐리게 + 누른/키보드 초점 탭이 다 보이게 (재검증 #7, 다른 탭 줄과 같은 ScrollRow) */}
-        <ScrollRow className={styles.tabs} role="group" aria-label="분류" activeKey={kind ?? "all"}>
+        {/* 휴대폰에서 넘치면 가려진 쪽 끝을 흐리게(64: 390 에서도 앞 탭 끝이 흐림에 또렷이 걸려 넘김 단서가 보이게, 재검증 2차 #1) + 누른/키보드 초점 탭이 다 보이게 */}
+        <ScrollRow className={styles.tabs} role="group" aria-label="분류" activeKey={kind ?? "all"} fade={64}>
           {[null, ...POSTING_KINDS].map((k) => (
             <button
               key={k ?? "all"}

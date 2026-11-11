@@ -64,7 +64,9 @@ export function instagramTiles(list: Posting[], max = INSTAGRAM_TILES): Posting[
  * 글자 꾸밈을 보통 글자로 — 인스타그램 글의 수학 굵은 문자(𝑾𝑬𝑳𝑪𝑶𝑴𝑬)는 화면 읽기가 글자마다 따로 읽어서
  * 대체 글/링크 이름/카드 제목에는 NFKC 로 바꾼다 (검토 #7). 수학 영숫자 블록(U+1D400~1D7FF)에만 건다 —
  * 전체에 걸면 구분자 'ㅣ'(호환 자모), '③', '…' 까지 바뀐다 (재검증 #1). 한글/이모지는 그대로.
+ * 수학 블록의 빈자리 글자(ℎ ℂ ℍ ℯ 등)는 Letterlike 블록에 있어 따로 더한다 — 블록 전체는 아님(℃ № ™ 보존, 재검증 2차 #6).
  */
+const MATH_ALNUM = /[\u{1D400}-\u{1D7FF}ℂℊ-ℎℐ-ℒℕℙ-ℝℤℨℬℭℯ-ℱℳℴ]/gu;
 export function plainText(text: string): string {
-  return text.replace(/[\u{1D400}-\u{1D7FF}]/gu, (c) => c.normalize("NFKC"));
+  return text.replace(MATH_ALNUM, (c) => c.normalize("NFKC"));
 }

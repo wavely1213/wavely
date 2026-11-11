@@ -45,11 +45,13 @@ export function teamNameSegments(team: string): string[] {
 
 /**
  * 경기장 이름을 끝말 앞에서 나눈 조각 — 좁은 칸(320 휴대폰 표)에서 '노원월계구민체육|관'처럼 한 글자만 떨어지지 않게
- * '노원월계구민 / 체육관'으로 줄바뀌게(화면은 조각 사이에 <wbr>) (재검증 #10). 끝말이 없거나 앞이 2글자 미만이면 그대로.
+ * '노원월계구민 / 체육관'으로 줄바뀌게(화면은 조각 사이에 <wbr>) (재검증 #10). 띄어쓰기가 있거나, 끝말이 없거나 앞이 2글자 미만이면 그대로.
  */
 const VENUE_SUFFIX = /(트레이닝센터|체육관|경기장|풋살장|센터)$/;
 export function venueNameSegments(venue: string): string[] {
   const name = venue.trim();
+  // 띄어쓰기가 있으면 공백이 이미 줄바꿈 후보 — '단양군 / 국민체육센터'가 되게 그대로 (재검증 2차 #5)
+  if (/\s/.test(name)) return [name];
   const m = name.match(VENUE_SUFFIX);
   if (!m || m.index === undefined || m.index < 2) return [name];
   return [name.slice(0, m.index), name.slice(m.index)];

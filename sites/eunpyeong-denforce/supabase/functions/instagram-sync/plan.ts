@@ -35,10 +35,16 @@ export function siteCaption(caption: string): string {
   return caption.replace(/ · /g, " / ").replace(/·/g, "/");
 }
 
+/**
+ * 수학 영숫자(꾸밈 글자) — 블록 U+1D400~1D7FF + Letterlike 블록의 빈자리 글자(ℎ ℂ ℍ ℯ 등).
+ * 이것만 NFKC 로 바꾼다: 전체에 걸면 'ㅣ'(호환 자모) '③' '…' 도 바뀐다 (I-053, 사이트 src/lib/postings.ts 와 같은 규칙)
+ */
+const MATH_ALNUM = /[\u{1D400}-\u{1D7FF}ℂℊ-ℎℐ-ℒℕℙ-ℝℤℨℬℭℯ-ℱℳℴ]/gu;
+
 /** 이모지·꾸밈 글자 빼기 (𝑾𝑬𝑳𝑪𝑶𝑴𝑬 → WELCOME) */
 export function plainText(s: string): string {
   return s
-    .normalize("NFKC")
+    .replace(MATH_ALNUM, (c) => c.normalize("NFKC"))
     .replace(/[\p{Extended_Pictographic}\u{FE0F}\u{200D}\u{20E3}]/gu, "")
     .replace(/\s+/g, " ")
     .trim();

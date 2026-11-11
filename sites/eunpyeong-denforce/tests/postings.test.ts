@@ -82,4 +82,8 @@ test("plainText: 수학 굵은 문자를 보통 글자로, 한글/이모지는 �
   // 수학 영숫자 밖은 그대로 — 구분자 'ㅣ'(U+3163), 호환 자모, 원문자, 말줄임표 (재검증 #1)
   assert.equal(plainText("GOALㅣflex 2024-25 FK LEAGUE1ㅣ…"), "GOALㅣflex 2024-25 FK LEAGUE1ㅣ…");
   assert.equal(plainText("ㅎㅎ ③ 𝐆𝐎𝐀𝐋"), "ㅎㅎ ③ GOAL");
+  // 수학 빈자리 글자(Letterlike)도 보통 글자로, 같은 블록의 ℃ № ™ 는 그대로 (재검증 2차 #6)
+  assert.equal(plainText("𝑡ℎ𝑒"), "the");
+  assert.equal(plainText("ℂ𝕆𝕄𝔼"), "COME");
+  assert.equal(plainText("25℃ №1 ™"), "25℃ №1 ™");
 });

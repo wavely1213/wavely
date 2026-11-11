@@ -61,6 +61,8 @@ test("captionLines/plainText: 해시태그 줄 빼기, 꾸밈 글자/이모지 �
   assert.equal(plainText("𝑾𝑬𝑳𝑪𝑶𝑴𝑬 🤝"), "WELCOME");
   assert.equal(plainText("No.77 김영록의 추가골🔥"), "No.77 김영록의 추가골");
   assert.equal(plainText("⚽️ 김영록"), "김영록");
+  // 꾸밈 글자만 바꾸고 'ㅣ' '③' '…' ℃ 는 그대로 (I-053)
+  assert.equal(plainText("GOALㅣflex ③ … 25℃ 𝑡ℎ𝑒"), "GOALㅣflex ③ … 25℃ the");
 });
 
 test("postingDraft: 머리말 글은 둘째 줄까지, 나머지는 첫 줄", () => {
