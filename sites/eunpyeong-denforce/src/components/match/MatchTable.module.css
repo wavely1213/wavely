@@ -23,7 +23,6 @@ h3.title {
 }
 
 .table {
-  --crest-line: var(--c-line);
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;

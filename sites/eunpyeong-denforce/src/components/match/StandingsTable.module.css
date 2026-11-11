@@ -11,7 +11,6 @@
 }
 
 .table {
-  --crest-line: var(--c-line);
   width: 100%;
   min-width: 760px;
   border-collapse: separate;

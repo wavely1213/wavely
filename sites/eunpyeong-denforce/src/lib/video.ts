@@ -1,4 +1,4 @@
-// 구단영상 주소 → 재생(embed) 정보 — 순수 함수 (테스트: video.test.ts, D-035)
+// 구단영상 주소 → 원본 재생 링크 — 순수 함수 (테스트: video.test.ts, D-035, D-074)
 
 export type VideoRef =
   | { provider: "youtube"; id: string; vertical: boolean }
@@ -38,13 +38,6 @@ export function parseVideoUrl(raw: string | null | undefined): VideoRef | null {
   return null;
 }
 
-/** 사이트 안에서 재생하는 iframe 주소 */
-export function embedSrc(v: VideoRef): string {
-  return v.provider === "youtube"
-    ? `https://www.youtube-nocookie.com/embed/${v.id}?rel=0`
-    : `https://www.instagram.com/p/${v.code}/embed/`;
-}
-
 /** 원본에서 보기 */
 export function watchUrl(v: VideoRef): string {
   if (v.provider === "instagram") return `https://www.instagram.com/p/${v.code}/`;
@@ -52,3 +45,20 @@ export function watchUrl(v: VideoRef): string {
 }
 
 export const VIDEO_PROVIDER_LABEL: Record<VideoRef["provider"], string> = { youtube: "유튜브", instagram: "인스타그램" };
+
+/**
+ * 구단영상은 사이트 안에서 재생하지 않고 원본(인스타그램, 유튜브)으로 보낸다 (소유자 2026-11-11, D-074).
+ * 카드와 상세 버튼이 같이 쓴다. 주소를 읽을 수 없으면 null — 그때는 사이트 상세로 간다.
+ */
+export function externalPlay(raw: string | null | undefined): { href: string; label: string } | null {
+  const v = parseVideoUrl(raw);
+  return v ? { href: watchUrl(v), label: `${VIDEO_PROVIDER_LABEL[v.provider]}에서 재생` } : null;
+}
+
+/**
+ * 목록 카드를 원본으로 보낼지 — 구단영상 분류만 (관리자 폼은 모든 분류에서 영상 주소를 받는다).
+ * 공지, 구단뉴스 등은 영상 주소가 있어도 상세로 가고, 상세의 표지 버튼으로 원본에 간다 (D-074, 총괄 최종 확인)
+ */
+export function videoCardPlay(post: { category: string; videoUrl: string | null }): { href: string; label: string } | null {
+  return post.category === "video" ? externalPlay(post.videoUrl) : null;
+}
