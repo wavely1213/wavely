@@ -4,14 +4,16 @@ import { crestImageFor } from "@/lib/crests";
 import { crestInitial, crestInitialShort } from "@/lib/match";
 import styles from "./MatchParts.module.css";
 
-export type CrestSize = 96 | 88 | 64 | 56 | 40 | 32 | 24;
-type MobileCrestSize = 64 | 40 | 32;
+export type CrestSize = 112 | 96 | 88 | 72 | 64 | 56 | 40 | 32 | 24;
+type MobileCrestSize = 72 | 64 | 40 | 32;
 
-const MOBILE_CLASS: Record<MobileCrestSize, string> = { 64: styles.m64, 40: styles.m40, 32: styles.m32 };
+const MOBILE_CLASS: Record<MobileCrestSize, string> = { 72: styles.m72, 64: styles.m64, 40: styles.m40, 32: styles.m32 };
 
 const SIZE_CLASS: Record<CrestSize, string> = {
+  112: styles.crest112,
   96: styles.crest96,
   88: styles.crest88,
+  72: styles.crest72,
   64: styles.crest64,
   56: styles.crest56,
   40: styles.crest40,
@@ -36,7 +38,7 @@ function Shield() {
 
 /**
  * 팀 엠블럼 (피그마 MatchEmblem 190:734, 원 받침 없음). size 는 높이(px), 가로는 원본 비율.
- * - 우리 팀: emblem.png 원본(흰 바탕 사각형 그대로) + on-dark 1px 바깥선
+ * - 우리 팀: emblem-mark.png(SINCE 줄 없음, 600x766) 테두리와 바탕 없이 (NMH v2, 모든 크기 공통)
  * - 상대: 받은 투명 원본(crestFor, src/config/team-crests.ts)
  * - 원본이 없는 상대: 대체 방패(선 윤곽 + 이름 앞 2글자, 놓인 면의 글자색)
  * 팀 이름은 옆 글자로 따로 보이므로 그림은 읽지 않게 숨긴다.
@@ -45,8 +47,8 @@ export function TeamCrest({ team, us, size, mobileSize }: { team: string; us: bo
   const sizeClass = `${SIZE_CLASS[size]} ${mobileSize ? MOBILE_CLASS[mobileSize] : ""}`;
   if (us) {
     return (
-      <span className={`${styles.crest} ${styles.crestUs} ${sizeClass}`} aria-hidden="true">
-        <Image src={SITE.emblem} alt="" width={600} height={829} className={styles.crestImg} />
+      <span className={`${styles.crest} ${sizeClass}`} aria-hidden="true">
+        <Image src={SITE.emblemMark} alt="" width={600} height={766} className={styles.crestImg} />
       </span>
     );
   }

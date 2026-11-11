@@ -1,9 +1,13 @@
-/* 다음 홈경기 카드 — 가운데 정렬 (피그마 200:20882 / 200:21341, 부품 지도 'NextMatchHero 가운데 정렬').
+/* 다음 홈경기 카드 — v2 ② 좌우 분할 (피그마 223:24911 / 223:25069, 부품 지도 'NextMatchHero v2 ② 좌우 분할').
    폭 layout/match-hero-w(456 / 휴대폰 358), black, radius/l, 패딩 space/xl(휴대폰 space/m), 줄 간격 space/m(휴대폰 space/s) */
 .card {
   --nmh-pad: var(--space-xl);
   --nmh-col: 160px;
-  --nmh-crest: 96px;
+  --nmh-vs: 56px;
+  --nmh-crest: 112px;
+  /* 파랑 반쪽 경계 사선: 위 x = 50% + 16, 아래 x = 50% - 40 (휴대폰 +10 / -30) — VS 가운데를 지난다 */
+  --nmh-split-top: 16px;
+  --nmh-split-bottom: 40px;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -19,17 +23,36 @@
   overflow: hidden;
 }
 
-/* kfa/label yellow */
+/* 카드 왼쪽 반 파랑, 전체 높이, 카드 라운드로 잘림 (overflow hidden) */
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--c-blue);
+  clip-path: polygon(
+    0 0,
+    calc(50% + var(--nmh-split-top)) 0,
+    calc(50% - var(--nmh-split-bottom)) 100%,
+    0 100%
+  );
+}
+
+/* 모든 내용(대회 태그 포함)을 파랑 면 위에 */
+.card > * {
+  position: relative;
+}
+
+/* NEXT HOME MATCH — kfa/m/h3 20 Bold (휴대폰 kfa/m/h4 16), yellow (소유자 '작게 두지 말고') */
 .label {
   position: relative;
-  font-size: 12px;
+  font-size: 20px;
   font-weight: 700;
   line-height: 1.2;
-  letter-spacing: 0.08em;
+  letter-spacing: -0.02em;
   color: var(--c-yellow);
 }
 
-/* [홈 160 | VS 56 | 원정 160], 칸 사이 space/xs (휴대폰 [128 | 48 | 128], 같은 간격) — 디자인 a2f9253 */
+/* [홈 160 | VS 56 | 원정 160], 칸 사이 space/xs (휴대폰 [135 | 40 | 135], 같은 간격) */
 .teams {
   position: relative;
   display: flex;
@@ -50,20 +73,7 @@
   min-width: 0;
 }
 
-/* 홈팀 엠블럼 뒤만 파랑 사선 면 — 카드 왼쪽 끝부터, 엠블럼 위 12 부터 높이 엠블럼 + 24, 아래쪽이 28 짧은 사선 (휴대폰 8 / +16 / 20) */
-.homeTeam::before {
-  content: "";
-  position: absolute;
-  left: calc(-1 * var(--nmh-pad));
-  top: calc(-1 * var(--nmh-blue-gap, 12px));
-  /* 카드 왼쪽 끝 ~ 홈 칸 오른쪽 + 8(휴대폰 15) — 칸이 줄어들면 같이 줄어 VS 를 가리지 않는다 (PC 200, 휴대폰 390 에서 159) */
-  width: calc(100% + var(--nmh-pad) + var(--nmh-blue-extra, 8px));
-  height: calc(var(--nmh-crest) + 2 * var(--nmh-blue-gap, 12px));
-  background: var(--c-blue);
-  clip-path: polygon(0 0, 100% 0, calc(100% - var(--nmh-blue-slope, 28px)) 100%, 0 100%);
-}
-
-/* kfa/pc/h3 24 Bold (휴대폰 kfa/m/h4 16), 2줄까지, 줄임 없음, 낱말 경계 줄바꿈 */
+/* kfa/pc/h3 24 Bold (휴대폰 kfa/m/h3 20), 2줄까지, 줄임 없음, 낱말 경계 줄바꿈 */
 .teamName {
   position: relative;
   font-size: 24px;
@@ -81,7 +91,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 56px;
+  width: var(--nmh-vs);
   height: var(--nmh-crest);
   font-size: 40px;
   font-weight: 700;
@@ -129,20 +139,23 @@
 @media (max-width: 720px) {
   .card {
     --nmh-pad: var(--space-m);
-    --nmh-col: 128px;
-    --nmh-crest: 64px;
-    --nmh-blue-gap: 8px;
-    --nmh-blue-extra: 15px;
-    --nmh-blue-slope: 20px;
+    --nmh-col: 135px;
+    --nmh-vs: 40px;
+    --nmh-crest: 72px;
+    --nmh-split-top: 10px;
+    --nmh-split-bottom: 30px;
     gap: var(--space-s);
   }
 
-  .teamName {
+  .label {
     font-size: 16px;
   }
 
+  .teamName {
+    font-size: 20px;
+  }
+
   .vs {
-    width: 48px;
     font-size: 28px;
   }
 
@@ -153,5 +166,21 @@
   .button {
     flex: 1;
     width: auto;
+  }
+}
+
+/* 390 미만 좁은 휴대폰(375 SE/mini 포함): 팀 이름 kfa/m/h4 16, 엠블럼 칸 64 — 첫 화면 580 안 (디자인 d162b69, 768831c).
+   320 은 두 줄이 될 수 있고 첫 화면을 조금 넘는 것을 받아들인다 */
+@media (max-width: 389px) {
+  .card {
+    --nmh-crest: 64px;
+  }
+
+  .team > span:first-child {
+    --crest: 64px;
+  }
+
+  .teamName {
+    font-size: 16px;
   }
 }

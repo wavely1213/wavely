@@ -1,12 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { FitImage } from "@/components/ui/FitImage";
 import { NEWS_CATEGORY_LABEL } from "@/data/news";
 import { formatPostDate } from "@/lib/format";
 import type { NewsPost } from "@/types";
-import { newsHref } from "./NewsCard";
+import { videoCardPlay } from "@/lib/video";
+import { NewsLink } from "./NewsLink";
+import { PlayMark } from "./PlayMark";
 import styles from "./NewsBanner.module.css";
 
 /** 자동으로 넘어가는 간격 */
@@ -90,7 +91,7 @@ export function NewsBanner({ posts }: { posts: NewsPost[] }) {
               aria-label={`${i + 1} / ${count}`}
               aria-hidden={i !== index}
             >
-              <Link href={newsHref(p)} className={styles.link} tabIndex={i === index ? undefined : -1}>
+              <NewsLink post={p} className={styles.link} tabIndex={i === index ? undefined : -1}>
                 <div className={styles.text}>
                   <span className={styles.category}>{NEWS_CATEGORY_LABEL[p.category]}</span>
                   <strong className={styles.title}>{p.title}</strong>
@@ -100,8 +101,9 @@ export function NewsBanner({ posts }: { posts: NewsPost[] }) {
                 <div className={styles.media}>
                   {/* 세로 포스터도 머리/제목이 잘리지 않게 전체를 보인다 */}
                   {p.thumbnail && <FitImage src={p.thumbnail} sizes="(max-width: 900px) 100vw, 800px" priority={i === 0} />}
+                  {videoCardPlay(p) && <PlayMark />}
                 </div>
-              </Link>
+              </NewsLink>
             </div>
           ))}
         </div>

@@ -1,10 +1,14 @@
-import Link from "next/link";
 import { EmblemFallback } from "@/components/ui/EmblemFallback";
 import { FitImage } from "@/components/ui/FitImage";
 import { NEWS_CATEGORY_LABEL } from "@/data/news";
 import { formatPostDate } from "@/lib/format";
+import { videoCardPlay } from "@/lib/video";
 import type { NewsPost } from "@/types";
 import styles from "./NewsCard.module.css";
+import { NewsLink } from "./NewsLink";
+import { PlayMark } from "./PlayMark";
+
+export { newsHref } from "./NewsLink";
 
 /** 목록 카드에 쓰는 칸만 — 클라이언트 목록(더 보기)으로 넘길 때 본문까지 보내지 않게 */
 export type NewsCardPost = Pick<NewsPost, "id" | "category" | "title" | "date" | "thumbnail" | "videoUrl">;
@@ -13,35 +17,25 @@ export function toNewsCardPost({ id, category, title, date, thumbnail, videoUrl 
   return { id, category, title, date, thumbnail, videoUrl };
 }
 
-export function newsHref(post: Pick<NewsPost, "id" | "category">) {
-  return `/news/${post.category}/${post.id}`;
-}
-
 export function NewsCard({ post, sizes = "(max-width: 720px) 80vw, 300px" }: { post: NewsCardPost; sizes?: string }) {
+  const video = videoCardPlay(post) !== null;
   return (
-    <Link href={newsHref(post)} className={styles.card}>
+    <NewsLink post={post} className={styles.card}>
       <div className={styles.thumb}>
         {post.thumbnail ? (
-          // 세로 포스터도 잘리지 않게 (제목 글자·머리) — 가로 사진은 꽉 채운다
-          <FitImage src={post.thumbnail} sizes={sizes} className={styles.media} />
+          // 세로 포스터도 잘리지 않게 (제목 글자·머리) — 가로 사진은 꽉 채운다. 영상 표지는 빈 공간 없이 꽉 채움 (D-074)
+          <FitImage src={post.thumbnail} sizes={sizes} className={styles.media} fit={video ? "cover" : "auto"} />
         ) : (
           <EmblemFallback />
         )}
-        {post.videoUrl && (
-          <span className={styles.play} aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="18" height="18">
-              <path d="M8 5v14l11-7z" fill="currentColor" />
-            </svg>
-          </span>
-        )}
+        {video && <PlayMark />}
       </div>
       <span className={styles.category}>{NEWS_CATEGORY_LABEL[post.category]}</span>
       <strong className={styles.title}>
         {post.title}
-        {post.videoUrl && <span className="sr-only"> (영상)</span>}
       </strong>
       {post.date && <span className={styles.date}>{formatPostDate(post.date)}</span>}
-    </Link>
+    </NewsLink>
   );
 }
 

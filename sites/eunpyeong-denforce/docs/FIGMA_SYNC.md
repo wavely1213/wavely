@@ -96,6 +96,7 @@
 - 계정은 'mot mot의 팀' **Pro + Full 좌석** (Figma 연결 whoami 로 확인).
 - 피그마 현재 문서: Code Connect 는 Professional 에서도 된다 — 단 **활성 라이브러리 1개, 프레임워크 1개**(우리는 React 하나라 맞음). 예전 포럼 답(Organization 이상만)과 다르다.
 - 실제 연결은 아직 시험하지 못했다: 파일에 컴포넌트가 없고(`get_code_connect_map` 결과 빈 값), 연결을 만드는 것은 피그마 파일을 고치는 일이라 디자인 세션 몫이다.
+- 디자인 세션 시험(2026-11-09): Header 세트(39:36) ↔ src/components/layout/Header.tsx 를 add_code_connect_map 으로 연결 시도 → 거절 "Code connections can only be made in libraries that are in Organization or Enterprise plans." 지금 Pro 플랜에서는 안 된다. **부품 지도 표만 쓴다.**
 - 결정: 아래 **부품 지도 표를 기준으로 계속 쓴다.** 디자인 세션이 Components 를 만든 뒤 한 개(Header)로 Code Connect 를 시험해 되면 그때 더하고, 안 되면 표만 쓴다.
 
 ## 리디자인 기준 (총괄, 2026-11-09 — D-067)
@@ -239,13 +240,183 @@
 
 ## 부품 지도 (디자인 세션이 채운다)
 
-| 피그마 컴포넌트 | 코드 |
+> 기존 부품은 변형만 더했다: 세트마다 `버전=현재`(2026-11-09 사이트 캡처) / `버전=리디자인`(D-067). 새 부품은 02 섹션 `리디자인 (D-067)`.
+
+| 피그마 컴포넌트 (변형) | 코드 |
 |---|---|
-| Header | src/components/layout/Header.tsx |
-| Footer | src/components/layout/Footer.tsx |
-| PageHeader | src/components/layout/PageHeader.tsx |
-| MatchCard | src/components/match/MatchCard.tsx |
-| … | … |
+| TopBar (Device=Desktop, 휴대폰은 숨김) | src/components/layout/TopBar.tsx |
+| Header (Active × Device × State 기본/메뉴 열림 × 버전) | src/components/layout/Header.tsx |
+| MegaMenu (새, PC 메뉴 열림) | src/components/layout/Header.tsx |
+| Footer (Device × 버전) | src/components/layout/Footer.tsx |
+| PageHeader (Type=Default/Compact × Device × 버전, 리디자인=검정 면 + 사선, 불린 '탭 4~6') | src/components/layout/PageHeader.tsx |
+| Chip (새, State 기본/활성/초점) 130:716 | 새 탭/필터 칩 (PageHeader 2차 탭, 경기 필터) |
+| TeamSwitcher (새, 02 한 장만, 기본 숨김) | 새 src/components/layout/TeamSwitcher.tsx |
+| Hero (Device × 사진 있음/없음 × 버전, NextMatchHero 내장) | src/components/home/Hero.tsx, HeroTitle.tsx |
+| NextMatchHero (새, Device pc/m × State 있음/없음/초점, 카운트다운 없음) | 새 src/components/home/NextMatchHero.tsx |
+| MatchStrip (새, Device pc/m × Count 3/2/1/휴식기) | 새 src/components/home/MatchStrip.tsx |
+| MatchCard (Kind 결과/예정 × Device × 버전, 글자/불린 속성) | src/components/match/MatchCard.tsx |
+| ResultBadge (새, Type badge/box × Result W/D/L) | MatchCard.module.css .result, MatchTable.module.css .score |
+| HomeAwayBadge (새, Surface white/blue-tint/dark/blue) | MatchCard, MatchTable 의 HOME 표시 |
+| CompetitionTag (새, Surface 4종) | MatchCard, MatchTable 의 대회 줄 |
+| TeamCrest (새, Type us/initial × Size 56/40/24) | 새 src/components/match/TeamCrest.tsx |
+| MatchEmblem (새, Type 우리 팀/자리표시/대체 × Size 96/88/64/40/32, 원 받침 없음) 190:734 | NextMatchHero, MatchStrip 엠블럼 (2026-11-10 다시 그리기) |
+| SponsorMarquee (Device × State 흐름/멈춤 × 버전) | src/components/home/SponsorMarquee.tsx |
+| Section | src/components/ui/Section.tsx |
+| NewsTabs (Device × 버전) | src/components/home/NewsTabs.tsx (+ Tabs.module.css) |
+| NewsCard (Type large/row/vertical × 버전) | src/components/news/NewsCard.tsx |
+| StandingsWidget (Device × State 개막 전/시즌 중 × 버전) | src/components/home/StandingsWidget.tsx |
+| QuickLinks (Device × 버전) | src/components/home/QuickLinks.tsx |
+| PlayersPreview (새 모양, Device pc/m) | src/components/home/PlayersPreview.tsx |
+| PlayerCard (Type 촬영본/WELCOME/사진 없음 × 버전 × State × 면 검정/흰, 불린 '기록 줄' = 구분안 2) | src/components/player/PlayerCard.tsx |
+| InstagramGrid (새, Device pc/m) | 새 src/components/home/InstagramGrid.tsx |
+| MatchTable (Device) | src/components/match/MatchTable.tsx |
+| MatchTable Row (새, Kind 머리/일정/일정 다음 경기/결과 × Device) 131:813 | src/components/match/MatchTable.tsx (행) |
+| PlayerHero (새, Device × 합류/기록, 전폭 black-soft 면) 132:816 | src/app/(site)/players/[id] 머리 |
+| StandingsTable (Device × 버전, 리디자인은 팀명 앞 TeamCrest 24) 132:2062 | src/components/match/StandingsTable.tsx |
+| NewsBanner (버전 × Device × Count 여러 장/1장 × State) 145:782 | src/components/news/NewsBanner.tsx |
+| VideoCard (새, Device × State, 9:16) 145:810 | NewsGrid vertical (구단영상, D-061) |
+| SponsorTile (새, Type 네이밍/메인/후원사 × State) 146:712 | 스폰서 페이지 등급 타일 |
+| AchievementStrip (새, Device, 연혁 성과 띠) 146:737 | 연혁 페이지 |
+| NewsGallery | src/components/news/NewsGallery.tsx |
+| ShareButton | src/components/news/ShareButton.tsx |
+| article/Pager | src/app/(site)/news/[category]/[id]/page.tsx (article.module.css) |
+| StaffCard (버전 × Device × Type 사진/사진 없음 × State) 145:881 | src/components/player/StaffCard.tsx |
+| PostingBoard | src/components/posting/PostingBoard.tsx |
+| PostingCard (버전 × Device × State) 145:847 | src/components/posting/PostingCard.tsx |
+| MoreButton (버전 × State) 146:744 | src/components/ui/MoreButton.tsx |
+| prose/Button | src/styles/prose.module.css .button |
+| prose/Card | src/styles/prose.module.css .card |
+| (관리자 부품: 04 단계 보류) | src/components/admin/** |
+
+### NextMatchHero 가운데 정렬 (소유자 확정 2026-11-10, 기준 원본)
+
+피그마: 섹션 `NextMatchHero 가운데 정렬 (2026-11-10 확정)` 200:20880. 레퍼런스: 인천유나이티드 'NEXT MATCH', 수원삼성 'NEXT / LAST MATCH' (위→아래 가운데). 이전 섹션 192:20163(A/B/C)은 '[보관]'.
+상태 프레임: PC 엠블럼 있음(강원FS 12/12) 200:20882 / 없음(화성FS 방패 12/5) 200:20985 / 긴 이름(고양불스풋살클럽 12/26) 200:21089 / 다음 홈경기 없음(카드 숨김) 200:21193, 휴대폰 200:21267 / 200:21341 / 200:21416 / 200:21491. MatchStrip PC 200:21536 / 휴대폰 200:21621.
+
+| NextMatchHero 카드 | PC 1280 | 휴대폰 390 | 토큰 / 스타일 |
+|---|---|---|---|
+| 자리 | 히어로(640) 사진 위 오른쪽 아래: 오른쪽 40, 아래 48 | 히어로(520) 사진 위, 문구 아래: 좌우 16, 아래 16 | - |
+| 히어로 문구(D-036) | 원래 자리 그대로 | 그대로 | - |
+| 카드 | 폭 456, 높이 내용(약 410), 안쪽 여백 32, 줄 간격 16, 모두 가운데 | 폭 358, 안쪽 여백 16, 줄 간격 12 | color/black, radius/l |
+| 1 라벨 | 'NEXT HOME MATCH' | 같음 | kfa/label, color/yellow |
+| 2 대진 줄 | [우리 칸 160 \| VS 칸 56 \| 상대 칸 160], 칸 사이 8(space/xs), 엠블럼 자리 160x96(아래 맞춤) | [128 \| 48 \| 128], 사이 8, 엠블럼 자리 128x64 | - |
+| 엠블럼 | 96 (우리 = 흰 1px 바깥선, 상대 = 원본 선 없음, 없음 = 대체 방패) | 64 | MatchEmblem 190:734 |
+| VS | 칸 가운데, 크게 Bold | 같음 | kfa/pc/vs (40 Bold) / kfa/m/vs (28 Bold), color/on-dark (새 스타일, Candidates 기록) |
+| 3 팀 이름 | 각 엠블럼 아래 12(space/s), 가운데, 2줄까지, 줄임 없음, 낱말 경계 줄바꿈 | 같음 | kfa/pc/h3 (24 Bold) / kfa/m/h4 (16 Bold), color/on-dark |
+| 4 대회명 | 예: '2026-27 FK1리그 / 5R' | 같음 | CompetitionTag Surface=dark |
+| 5 날짜와 시각 | 예: '12월 12일 (토) 14:00' | 같음 | kfa/pc/match-date (28 Bold) / kfa/m/match-date (22 Bold), color/on-dark |
+| 6 경기장 | '@은평다목적체육관' + HOME 배지, 간격 8 | 같음 | kfa/body-s color/on-dark-sub, HomeAwayBadge Surface=dark |
+| 7 버튼 | [오시는 길] [경기일정] 각 160x44, 간격 8, 가운데 | 두 버튼 같은 폭(카드 폭 나눔), 높이 44 | 오시는 길: color/bg 바탕 + color/blue 글자, 경기일정: 1px color/on-dark 선 + 글자, radius/m, kfa/m/h4 |
+| 파랑 사선 면 | 우리(왼쪽) 칸 뒤만: 카드 왼쪽 끝부터 우리 칸 오른쪽 + 12 까지, 엠블럼 위 12 부터 높이 120, 오른쪽 아래로 28 기울기 | 높이 80, 기울기 20, 여백 8 | color/blue, 그라데이션 없음, 파랑 1곳 |
+| 큰 E 워터마크 | 없음(잘려서 깨진 선처럼 보여 뺌, 총괄 2026-11-10) | 없음 | - |
+| 다음 홈경기 없음 | 카드 숨김, 문구 그대로 | 같음 | - |
+| 빼는 것 | 카드 전체 링크, 카운트다운, 넘김 화살표, AWAY 배지, 원 받침 | 같음 | - |
+
+| MatchStrip 칸 (수원식 가운데) | PC | 휴대폰 | 토큰 / 스타일 |
+|---|---|---|---|
+| 순서 | 칸 제목(노랑 라벨) → 대회 태그(바로 아래, 간격 4) → [홈 엠블럼 \| 스코어 또는 시각 \| 원정 엠블럼] + 각 아래 팀 이름 → 날짜 → @경기장 + HOME → (지난 경기만) 득점 줄 → 하이라이트/다시보기, 모두 가운데 | 같음 | 기존 MatchStrip 간격 그대로 |
+| 엠블럼 | 56 | 40 | MatchEmblem (원 없음) |
+| 홈팀 | 왼쪽(BR-002, 원정 경기는 상대가 왼쪽) | 같음 | - |
+| 결과 배지 | 스코어 아래 가운데 | 같음 | ResultBadge |
+| 팀 이름 | Bold, 2줄까지, 낱말 경계 | 같음 | kfa/m/h4 (16 Bold) |
+| 경기장 | '@' + 이름 + HOME 배지(이름 옆) | 같음 | - |
+
+### NextMatchHero C '와이드 매치데이 띠' (보관: 위 '가운데 정렬'로 대체됨)
+
+피그마: 섹션 `NextMatchHero 다시 그리기 (2026-11-10)` 192:20163 의 'C 최종' 줄. A, B 는 '[보관: 선택 안 됨]'.
+상태 프레임: PC 엠블럼 있음 197:20635 / 없음(방패) 197:20672 / 긴 이름 197:20709 / 다음 홈경기 없음 197:20886, 휴대폰 197:20746 / 197:20772 / 197:20798 / 197:20960.
+
+| 부분 | PC 1280 | 휴대폰 390 | 토큰 / 스타일 |
+|---|---|---|---|
+| 띠 자리 | 히어로(640) 아래쪽 안, 전체 폭, 높이 208 고정, 히어로 아래 끝에 붙음 | 히어로(520) 아래쪽 안, 전체 폭, 높이 내용만큼(기본 274, 긴 이름 293), 아래 끝에 붙음 | 바탕 color/black |
+| 히어로 문구(D-036) | 띠 때문에 위로: 히어로 안 y 200(원래 405), 문구 아래와 띠 위 사이 45 이상. 폭 맞춤 그대로 | 그대로(히어로 안 y 32, 높이 111, 띠와 103 떨어짐) | - |
+| 사진 덮개 | 바꾸지 않음(Hero 의 그라데이션 그대로, 아래쪽 진한 덮개는 띠 뒤로 들어감) | 그대로 | color/overlay-* |
+| 첫 화면 | TopBar 45 + Header 80 + Hero 640 = 765 ≤ 800 (1280x800 에서 띠 전체 + 버튼 2개 보임) | Header 60 + Hero 520 = 580 ≤ 약 660(Safari 390x844) | - |
+| 홈 쪽 파랑 사선 면 | 꼭짓점 (0,0) (520,0) (460,208) (0,208), 엠블럼 사선 각도 | 팀 줄 뒤만: 위 폭 200, 아래 폭 172, 팀 줄 위아래 8 더 | color/blue (그라데이션 없음, 파랑 큰 면 1곳) |
+| 사선 글자 | 'SEOUL EUNPYEONG FUTSAL TEAM', 사선 경계 따라 73도 | 없음 | kfa/caption, color/on-blue |
+| 큰 E 워터마크 | 'E' 글자형, 외곽선 2px, 채움 없음, x 560 | 없음 | kfa/poster/score, color/line-on-dark |
+| 홈 쪽 묶음 | x 40, y 24, 세로 간격 12: 라벨 줄(간격 12) + 팀 줄(간격 16) | 띠 안 세로 묶음(안쪽 여백 16, 간격 12): 라벨 줄(양끝) → 팀 줄(양끝) → 일시 → 버튼 | space/s, space/m |
+| 라벨 'NEXT HOME MATCH' | 홈 쪽 묶음 맨 위 | 맨 위 왼쪽 | kfa/label, color/yellow |
+| 대회 태그 | 라벨 옆 | 맨 위 오른쪽 | CompetitionTag (PC Surface=blue, 휴대폰 Surface=dark) |
+| 우리 엠블럼 | 96, 이름 오른쪽 | 64, 이름 위 | MatchEmblem Type=우리 팀 (흰 1px 바깥선) |
+| 우리 이름 | 폭 200, 2줄까지, 줄임 없음 | 폭 140, 가운데, 2줄까지 | kfa/pc/h3 (24 Bold) / kfa/m/h4 (16 Bold), color/on-blue |
+| 가운데 일시 | 폭 290, x 500, 세로 가운데, 간격 4: 'VS' → 날짜 → 장소 + HOME | 'VS' 는 팀 사이, 일시는 팀 줄 아래 가운데(간격 4) | VS kfa/label on-dark-sub, 날짜 kfa/pc/match-date (28 Bold) / kfa/m/match-date (22 Bold) on-dark, 장소 kfa/body-s on-dark-sub, HomeAwayBadge Surface=dark |
+| 상대 묶음 | 이름(폭 180, 오른쪽 맞춤, 2줄) + 엠블럼 96, 간격 16, 끝 x 1056 | 엠블럼 64 + 이름(폭 140, 가운데, 2줄) | kfa/pc/h3 / kfa/m/h4, color/on-dark |
+| 상대 엠블럼 | 있으면 원본(선 없음), 없으면 방패 윤곽선 + 앞 2글자 | 같음 | MatchEmblem Type=상대 / Type=대체 |
+| 버튼 | 세로 2개 160x44, 간격 8, x 1080(오른쪽 여백 40), 세로 가운데 | 가로 2개 같은 폭, 높이 44, 간격 8 | [오시는 길] color/bg 바탕 + color/blue 글자, [경기일정] 1px color/on-dark 선 + on-dark 글자, radius/m, 글자 kfa/m/h4 |
+| 다음 홈경기 없음 | 띠 숨김, 문구 원래 자리(y 405) | 띠 숨김 | - |
+| 빼는 것 | 카드 전체 링크, 카운트다운, AWAY 배지, 원 받침 | 같음 | - |
+
+| MatchEmblem 190:734 | 크기(높이) | 모양 | 토큰 |
+|---|---|---|---|
+| Type=우리 팀 | 96 / 88 / 64 / 56 / 40 / 32, 폭 = 높이 x 600/829 | public/brand/emblem.png 원본 그대로(흰 바탕 사각형), 검정 바탕에서 테두리가 보이게 1px 바깥선 | 선 color/on-dark 1px OUTSIDE |
+| Type=상대 | 같은 높이, 폭은 원본 비율(강원 256x264) | public/crests/*.png 투명 원본, 선 없음 | - |
+| Type=대체 | 같은 높이, 폭 = 높이 x 0.84 | 방패 윤곽선(64 이상 2px, 그 밑 1.5px) + 팀 이름 앞 2글자 가운데 | 선과 글자 color/on-dark, 글자 96, 88 kfa/pc/h3, 64 kfa/m/h4, 56, 40 kfa/label, 32 kfa/caption |
+| Type=자리표시 | 정사각 | 점선 상자(원본 받기 전 시안용, 사이트에는 안 씀) | color/on-dark-sub |
+| Size=24 (표 전용, 2026-11-10 추가) | 우리 팀 211:24754 (17x24) / 대체 211:24756 (20x24) / 상대 211:24759 (폭은 원본 비율, 기본 23x24) | 경기일정/결과 표(MatchTable Row 131:813), 리그순위 표(StandingsTable 132:2062)의 팀 칸. 두 부품의 TeamCrest 24 를 이것으로 바꿨다. 흰 바탕이라 색이 다르다. | 우리 팀 바깥선 color/line 1px. 대체 방패 선 color/text-sub 1px, 글자 color/text |
+| 대체 글자 기준 | 96, 88, 64, 56, 40, 32: 앞 2글자 / 24: 앞 1글자 | 2글자는 24 칸(방패 안쪽 약 16)에 들어가지 않아 1글자로 줄였다. 영문으로 시작하면 첫 대문자 1자(예: LBFS → L). 글자 크기는 24 에서 kfa/10 Bold, 가운데 정렬 | 56 글자 스타일이 빠져 있던 것을 kfa/14 Bold/lh auto 로 연결 |
+
+상대 엠블럼 원본(투명 PNG, 기능 863f54b `public/crests/`): 화성FS hwaseong, 고양불스 goyang, 용인지솔FS yongin, 노원제너FS nowon, 전주시민 jeonju, 경기LBFS lbfs, 강원FS gangwon. 원본이 없는 팀(지금 인천ZD스포츠, 제주서귀포)은 대체 방패를 쓴다. 피그마의 03 Screens 표 행 284곳, 가운데 정렬 카드, MatchStrip 의 상대를 모두 원본으로 바꿨다. '엠블럼 없음' 상태 프레임(200:20985 / 200:21341)은 대체 방패 예시를 남기려고 상대를 인천ZD스포츠로 바꿨다.
+
+| MatchStrip 3칸 카드 | PC | 휴대폰 | 비고 |
+|---|---|---|---|
+| 엠블럼 | 56 (원 없음, 대체 방패도 56) | 40 | MatchEmblem |
+| 팀 이름 | Bold, 2줄까지, 낱말 경계 줄바꿈 | 같음 | kfa/m/h4 (16 Bold) |
+| 경기장 줄 | 대진 바로 아래 가운데(HOME 배지는 이름 옆) | 같음 | 소유자 2026-11-10 |
+| 프레임 | 194:20766 (비교: 날짜, 득점, 버튼도 가운데 198:17) | 194:20932 (비교 198:117) | 나머지(라벨, 스코어, 버튼)는 기존 MatchStrip 그대로, 비교안은 소유자가 고름 |
+
+### UX 상태 표 (기능 3~6단계용, 2026-11-10)
+
+피그마 섹션 `UX 상태 (기능 3~6단계용, 2026-11-10)` 208:21342 (03 Screens — Site). 새 시각 요소 없이 기존 부품만 썼다. 빈 상자는 경기일정 '없음'의 bg-soft 상자(136:10032)를 그대로 복제했다. 문구는 코드의 관리자 수정 글(`src/lib/content/fields.ts`) 기본값을 따랐고, 코드에 없는 것은 '제안'으로 표시했다.
+
+**모든 페이지 공통**
+
+| 상태 | 시안 | 규칙 |
+| --- | --- | --- |
+| 불러오는 중 | PC 208:21343 / 휴대폰 208:21408 | 머리, PageHeader, 탭은 바로 보이고 본문 자리에만 빈 상자 '불러오는 중입니다.'(링크 없음)를 둔다. 뼈대 화면이나 빙글이는 새로 만들지 않는다. 지금 코드에는 `loading.tsx` 가 없다(서버에서 다 그린 뒤 보냄). |
+| 오류 | PC 208:21444 / 휴대폰 208:21509 | 같은 빈 상자에 '(무엇) 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'와 링크 '다시 시도 →'(같은 주소 새로 불러오기)를 둔다. 머리와 탭은 남겨 다른 페이지로 갈 수 있게 한다. 지금 코드에는 `(site)/error.tsx` 가 없다. |
+| 없는 글이나 선수 | 404 '없는 글' PC 158:19896 / 휴대폰 158:20214 | 기존 시안 그대로. |
+| 초점 | 각 부품의 State=초점 변형 + 홈 예시 126:9950 | 고리는 2px color/blue, 바깥 간격 2(코드 outline 2px + offset 2). 순서는 공통 머리(로고 → 메뉴 → MD스토어 → 사이트맵) → PageHeader 탭(왼쪽→오른쪽) → 본문 → 푸터. 제안: 맨 앞 '본문 바로가기' 링크(초점 받을 때만 보임). 지금 코드에 없다. |
+| 휴대폰 가로 넘침 | 밀린 뒤 209:3222 / 비교(밀기 전) 209:3588 | PageHeader 탭 줄은 옆으로 넘치게 두고, 처음 열 때 고른 탭이 보이게 옆으로만 민다. 가려진 쪽 끝은 32 흐림(코드 `ScrollRow` 그대로). 포스팅 분류 탭과 출처 칩은 줄바꿈하고 가운데 정렬한다(코드 그대로). 원래 시안 150:17391 의 분류 탭 한 줄 잘림은 코드가 맞다. |
+
+**페이지별**
+
+| 페이지 | 빈 상태, 데이터 없음, 이미지 없음 | 긴 이름과 긴 제목 | 휴대폰 넘침 | 초점 순서(본문) |
+| --- | --- | --- | --- | --- |
+| 경기일정 | 136:9977 / 136:10528 (schedule.empty + '경기결과 보기 →'). 상대 엠블럼 없음은 대체 방패(MatchEmblem). | 결과와 같은 행 부품. 209:1503 / 209:2211 참고 | 탭 3개라 넘침 없음 | 탭 → 행마다 (하이라이트 → 다시보기) → 경기결과 보기 |
+| 경기결과 | 136:11324 / 136:12108 (results.empty) | 209:1503 / 209:2211: 팀 이름과 경기장은 칸 안에서 낱말 경계로 줄바꿈하고 줄임은 없다. 점수 칸은 고정이다. | 같음 | 탭 → 대회별 행 (하이라이트 → 다시보기) |
+| 리그순위 | 개막 전 138:13329 / 138:14414 (0경기, 가나다순). 팀이 없으면 standings.empty 빈 상자. | 휴대폰 긴 팀명은 낱말 경계 줄바꿈(StandingsTable 리디자인) | 표는 넘치지 않게 칸을 줄임 | 탭 → 지난 시즌 링크 |
+| 선수 목록 | 없음 208:21545 / 208:21649 (제안 '등록된 선수가 없습니다.' 지금 코드는 빈 화면). 사진 없음은 PlayerCard Type=사진 없음(209:2827 / 209:3039 둘째 카드). | 209:2827 / 209:3039: 이름은 카드 폭 안에서 낱말 경계로 줄바꿈. PlayerCard 부품 고침(아래 기록). | 포지션 칩 5개는 한 줄에 들어감 | 탭 → 포지션 칩 → 카드(포지션 순, 왼쪽→오른쪽) |
+| 선수 상세 | 사진 없음은 PlayerHero 합류형과 같은 면, 기록 없음은 합류 줄(137:13033 / 137:13313). 없는 선수는 404. | 이름은 display 2줄까지 | 없음 | 탭 → 관련 소식 → 이전 선수 / 선수 목록 / 다음 선수 |
+| 구단소식 (전체, 분류) | 분류에 글 없음 208:21724 / 208:21812 (news.empty + '구단소식 전체 보기 →'). 배너 0장이면 배너 줄을 숨긴다. 사진 없는 카드는 썸네일 자리에 엠블럼 대체 그림(코드 EmblemFallback). | NewsCard 제목은 2줄에서 줄임(…, 코드 line-clamp 2), 배너 제목은 3줄 | 탭 6개 넘침, 209:3222 규칙 | 탭 → 배너(이전/다음) → 카드 → 더 보기(누르면 새로 보인 첫 카드로 초점, 코드 그대로) |
+| 기사 상세 | 사진 없음 209:1346 / 209:1439: 사진 칸을 통째로 뺀다(빈 칸이나 대체 그림 없음, BR-015). | 같은 프레임: h1 은 줄임 없이 여러 줄, 이전/다음 글 제목은 줄바꿈 | 탭 넘침 같음 | 공유 → 사진 크게 보기 → 본문 링크 → 다음 글 → 이전 글 → 목록. 크게 보기는 닫기 버튼으로 초점, 닫으면 연 버튼으로 돌아감(코드 그대로) |
+| 구단영상 | 208:21724 / 208:21812 와 같은 빈 상자 | VideoCard 제목 2줄 줄임 | 같음 | 탭 → 카드 → 더 보기 |
+| 포스팅 | 고른 분류나 출처에 글 없음 208:21871 / 208:21985 (posting.empty + '전체 보기 →'). 분류 탭과 칩은 남긴다. | PostingCard 제목 2줄 줄임 | 분류 탭과 칩은 줄바꿈 가운데 | 탭 → 분류 탭 → 출처 칩 → 카드 → 더 보기 |
+| 구단소개, 연혁, 엠블럼/유니폼, 오시는 길 | 내용이 없는 블록은 숨김(코드 그대로). 오시는 길 지도를 못 불러오면 주소 상자(코드 VenueMap fallback), 값이 없으면 '준비 중'. | 연혁 한 줄 글은 줄바꿈 | 탭 4개, 휴대폰에서 넘치면 209:3222 규칙 | 탭 → 본문 링크 → (엠블럼) 엠블럼/유니폼 탭 |
+| 코칭스태프 | 없음 208:22070 / 208:22158 (제안. 지금 코드는 섹션째 숨겨 빈 화면). 사진 없음은 StaffCard Type=사진 없음(155:18888 / 155:19181). | 직함과 이름은 줄바꿈 | 탭 2개 | 탭 → 카드 순서 |
+| 스폰서 | 없음 208:22217 / 208:22306 (제안 '등록된 스폰서가 없습니다.' + 스폰서십 문의 상자는 남김) | 이름이 길면 SponsorTile 아래 이름 줄바꿈 | 없음 | 로고(링크) 등급 순 → 스폰서십 문의 버튼 |
+| 문의 | 값이 없으면 '준비 중'(코드 그대로) | 없음 | 없음 | 메일 → 전화 |
+| 사이트맵 | 고정 | 없음 | 없음 | 묶음 순서, 위→아래 |
+| 404 | 고정 | 없음 | 없음 | 구단소식 목록 → 메인으로 |
+
+'제안'은 시안만 있고 코드에는 없는 동작이다. 넣을지는 기능 세션과 총괄이 정한다.
+
+### NextMatchHero v2 ② 좌우 분할 (소유자 확정 2026-11-11, 기준 원본)
+
+피그마 섹션 223:24706. 확정 프레임: PC 223:24911, PC 제천FS 대체 223:24989, PC 긴 이름 227:187, 휴대폰 223:25069, 휴대폰 긴 이름 227:263, 휴대폰 제천FS 227:310. ①, ③ 은 '[보관: 선택 안 됨]'. 캡처는 docs/figma-captures/nmh-v2/2-*.jpg. 아래에 없는 값(버튼, 대회 태그, 날짜, 장소 + HOME, 가운데 정렬 순서)은 위 '가운데 정렬' 표 그대로다.
+
+| 부분 | PC (카드 456) | 휴대폰 (카드 358) | 토큰 |
+|---|---|---|---|
+| 카드 | 검정, 라운드 16, 안쪽 여백 32, 줄 간격 16. 히어로 아래 끝에서 32 위에 붙인다(아래 맞춤) | 안쪽 여백 16, 줄 간격 12. 화면 580 에서 12 위에 아래 맞춤(카드와 버튼이 첫 화면 안) | color/black, radius/l |
+| 파랑 반쪽 | 카드 왼쪽, 전체 높이, 카드 라운드로 잘림. 경계 사선 위 x = 50% + 16, 아래 x = 50% - 40(VS 가운데를 지남) | 위 50% + 10, 아래 50% - 30 | color/blue, 그라데이션 없음, 카드에 딸린 면이라 '떠 있는 박스'가 아님 |
+| 라벨 NEXT HOME MATCH | 20 Bold (12 에서 키움, 소유자 2026-11-11 '작게 두지 말고') | 16 Bold | kfa/m/h3 / kfa/m/h4, color/yellow |
+| 대진 줄 | [160 \| 56 \| 160] 사이 8, 엠블럼 칸 높이 112 | [135 \| 40 \| 135] 사이 8, 칸 높이 72 | - |
+| 우리 엠블럼 | MatchEmblem 우리 팀 112 (88x112) | 72 (56x72) | emblem-mark.png, 테두리 없음, 바탕 없음 |
+| 상대 엠블럼 | MatchEmblem 상대 112 (원본 비율, 높이 112) / 원본 없으면 대체 112 | 72 | public/crests/*.png / 방패 선 color/on-dark |
+| 팀 이름 | 24 Bold, 2줄까지, 낱말 경계 줄바꿈(word-break: keep-all) | 20 Bold (16 에서 키움) | kfa/pc/h3 / kfa/m/h3, color/on-dark |
+| VS | 40 Bold | 28 Bold | kfa/pc/vs / kfa/m/vs, color/on-dark |
+
+**우리 엠블럼 규칙(모든 곳 공통, 17ddf61 의 흰 바탕을 대신함)**: public/brand/emblem-mark.png(SINCE 2012 줄 없음)를 테두리와 바탕 없이 그대로 쓴다. 깃발의 검은 외곽선이 어두운 면, 파랑 면, 흰 면 모두에서 경계가 된다. MatchEmblem 190:734 우리 팀 9크기(112, 96, 88, 72, 64, 56, 40, 32, 24)를 이 파일로 바꾸고 바깥선을 지웠다. 그래서 경기 3칸 띠(200:21536 / 200:21621)와 경기표, 순위표 24 에도 그대로 이어진다. 파랑 반쪽은 이 카드에만 쓰고, 띠와 표 바탕은 지금 그대로다.
 
 ## 기능 세션 결정 (총괄이 합칠 때 DECISION_LOG 로 옮겨 주세요)
 
@@ -275,6 +446,13 @@
 ## 진행 기록
 
 - 2026-11-09 총괄: 피그마 파일 생성, 이 계획서 작성, 기능/디자인 세션 시작.
+- 2026-11-09 디자인: 1단계 01 Foundations — 페이지 6개(00~05) 생성, 변수 컬렉션 `Color`(19개, 모드 Value) · `Radius`(s 6, m 10) · `Layout`(container/gutter/header-h/section-gap, 모드 Desktop/Mobile) 값은 tokens.css 그대로, 이름은 약속 A 경로, WEB 코드 문법 `var(--…)`. 글꼴 스타일 `kfa/<크기> Regular|Bold` 34개. 견본 시트 노드 3:69 (페이지 3:2), 스크린샷 확인. 참고: ① tokens.css 에 간격(space) 토큰이 없어 `Space` 컬렉션은 만들지 않음(값 발명 금지) — tokens.json 에 생기면 추가. ② KFA고딕은 피그마 글꼴 목록에 없음(사이트 로컬 글꼴, Pro 플랜은 팀 글꼴 업로드 불가) → CSS 대체 순서의 `Noto Sans KR` 로 스타일을 만듦. 소유자가 데스크톱 앱에 KFA고딕을 설치하면 스타일 글꼴만 바꾸면 된다(총괄 확인 필요).
+- 2026-11-09 디자인: 2단계 02 Components (사이트 부품) — 실제 사이트(eunpyeong-fs.com)를 Playwright 로 렌더한 DOM 을 html_to_figma 로 옮겨 1:1 재현, 컴포넌트로 변환. 색은 Color 변수에 자동 결합(채움/선 584 중 562, 나머지 22개는 코드 CSS 의 rgba 리터럴 오버레이로 토큰에 없음), 글자는 kfa 스타일, 라운드 6/10 은 radius 변수. 세트: Header(Active 없음/구단/구단소식/선수단/경기/스폰서/문의 × Device) 39:36, TopBar 39:35(휴대폰은 사이트에서 숨김), Hero 39:37, Footer 39:38, PageHeader(Default/Compact × Device) 39:39, MatchTable 39:40, MatchCard(Result/Upcoming) 39:41 외 단일 18종. 페이지 3:3, 스크린샷 확인.
+- 2026-11-09 디자인: 3단계 03 Screens — Site — 공개 페이지 25개 × PC 1280 / Mobile 390 = 프레임 50개 (페이지 3:4, PC 47:2~71:2, Mobile 72:2~96:2). 사이트 캡처와 스크린샷 대조 확인. TopBar/Header/Footer 는 02 컴포넌트 인스턴스. 남은 차이: ① 영상 글의 인스타그램/유튜브 임베드와 오시는 길 네이버 지도는 iframe/스크립트라 빈 자리 상자 ② 글꼴은 Noto Sans KR 대체. 변환기 보정: 표 셀 max-width:0(말줄임) 폭, 휴대폰 홈 가로 스크롤 카드 폭을 사이트 값으로 맞춤.
+- 2026-11-09 디자인: 5단계 05 Posters — 템플릿 컴포넌트 8개 (페이지 3:6): `MATCH DAY / 1080x1350` 98:2, `경기결과 / 1080x1350` 98:34, `WELCOME / 1080x1350` 98:64, `GOOD LUCK / 1080x1350` 98:81, 같은 이름의 `/ 1080x1080` 98:95, 98:127, 98:157, 98:174. 레이어 이름은 기능 세션이 확정한 B-2 필드 그대로(`#clubName` `#clubNameEn` `#clubEmblem` `#clubUrl` `#competition` `#round` `#matchLabel` `#homeTeam` `#awayTeam` `#homeAway` `#date` `#time` `#venue` `#score` `#resultLabel` `#scorers` `#playerName` `#playerNumber` `#positionLabel` `#playerPhoto` `#sponsorLogo`×5). 이미지 필드는 사각형(채우기 color/bg-soft). 색은 Color 변수만. 형식은 구단 인스타 WELCOME/GOOD LUCK 이미지를 참고. 스크린샷 확인. 참고: 경기결과 배지는 승(color/win) 색으로 만들어 둠 — 무/패 색 자동 전환은 플러그인 쪽 판단(기능 세션).
+- 2026-11-09 디자인: 총괄 멈춤 지시 받음 (02:58 발송, 이 세션에는 03:40 도착 — 그 전에 03 Screens Site 와 05 Posters, 00 안내는 이미 만들어 둠). 지시에 따라 04 Screens Admin 은 시작 전에 중단(관리자 화면 구조 명세만 세션 임시 폴더에 있음, 파일에는 없음). 이미 만든 03/05/00 은 지우지 않고 그대로 둠 — 방향 확정 뒤 유지/삭제/수정은 총괄 판단. 01 Foundations, 02 Components 는 완료 상태. 다음 지시 대기.
+- 2026-11-09 디자인: 글꼴 결정(KFA고딕 하나) 반영 — `listAvailableFontsAsync` 에 'KFAGothic TTF' 없음(피그마 클라우드는 이 컨테이너에서 글꼴을 설치할 수 없고, Pro 플랜은 팀 글꼴 업로드 불가). 그래서 Noto Sans KR Regular/Bold 두 굵기만 임시로 쓰고, 파일 안의 모든 글자(02 365, 03 2460, 05 76, 00, 01 구간)를 글꼴 스타일에 연결함(스타일 없는 글자 0, Black/Medium 굵기 제거). 사이트 줄간격/자간을 지키려고 스타일 이름에 `/lh 숫자`, `/ls 숫자` 꼬리를 붙인 변형 스타일이 있음(총 112개, 모두 kfa/ 로 시작). 이전 단계에서 줄간격을 덮어써 스타일 연결이 풀렸던 문제도 이것으로 바로잡음. 소유자 지시 "KFA고딕 받아서 진행": 저장소 src/fonts 의 woff2 를 TTF 로 바꿔(패밀리 'KFAGothic TTF') 소유자에게 전달 — 소유자 PC 에 설치하고 피그마 데스크톱 앱에서 이 파일을 연 뒤 알려 주면 112개 스타일의 글꼴을 한 번에 KFAGothic TTF 로 바꾼다(또는 플러그인 'KFA 글꼴 적용'). TTF 는 사용 조건 미확인(I-007)이라 저장소에 커밋하지 않음.
+- 2026-11-09 디자인: 총괄 결정 반영 — 기존 결과물 모두 유지. 03 페이지의 50프레임을 섹션 `현재 사이트 (2026-11-09)`(104:3931, 기준선)로 묶고, 그 오른쪽에 빈 섹션 `리디자인 시안`(104:3932)을 만들어 둠. 02 부품 25종, 부품 지도, 05 포스터, 00 안내 유지. 04 Admin 보류. 리디자인 기준(FIGMA_SYNC.md) 대기.
 - 2026-11-09 기능: 1단계 토큰 — `scripts/figma/tokens.ts`(변환/비교 순수 함수) + `build-tokens.ts`(`npm run figma:tokens`, `--check`) + `check-figma.ts`(`npm run figma:check <내보낸 JSON>`) → `design/tokens.json` 생성, 테스트 `tests/figma-tokens.test.ts`. tokens.css 에 `--space-*` 가 없어 `space` 그룹은 비어 있음(만들지 않음). 글꼴 이름은 파일 안 이름 `KFAGothic TTF`.
 - 2026-11-09 기능: 2단계 포스터 데이터 — `GET /api/figma/feed`(`src/app/api/figma/feed/route.ts`, 변환 `src/lib/figma-feed.ts`, 테스트 `tests/figma-feed.test.ts`). 응답 모양/필드 이름/템플릿 규칙을 위 B-1~B-3 표로 확정. 로컬 정적 데이터 모드 빌드/응답 확인. **운영 배포 전이라 eunpyeong-fs.com 에는 아직 없음 — 총괄 배포 필요.**
 - 2026-11-09 기능: 3단계 피그마 플러그인 — `figma-plugin/`(manifest, `src/code.ts`, `src/poster.ts`, `src/variables.ts`, `ui.html`, `README.md` 빌드/설치) + 이미지 중계 `/api/figma/image`. `npm run figma:plugin` 으로 `dist/` 생성, 테스트 `tests/figma-plugin.test.ts`. 가짜 피그마 API 로 dist/code.js 를 돌려 가져오기(26개)→다시 가져오기(그대로 26)→내보내기→`figma:check` 차이 0, 포스터 채우기(템플릿 그대로, 복제본 오른쪽) 확인. 실제 피그마 앱 실행은 소유자/총괄 몫(데스크톱 앱 필요).
@@ -283,8 +461,31 @@
 - 2026-11-09 기능: 총괄 검토 9건 반영 — ① 루트 .gitignore 예외로 `figma-plugin/dist` 커밋 ② 동명이인: 작별엔 명단 정보 안 붙임, 영입은 제목 포지션 일치 시만, 열쇠는 소식 id (테스트 4개 추가) ③ 이미지 주소 잘못된 %-인코딩 → 400 ④ tokens.css 마지막 선언 세미콜론 없어도 읽음 ⑤ 토큰 가져오기 별칭 덮지 않음 ⑥ B-2 표에서 `isStaff` 빼고 불리언은 레이어용 아님 명시 ⑦ `npm run lint` 에 플러그인 타입 검사 ⑧ CORS `*` 예외를 SECURITY_GUIDELINES/기능 세션 결정에 기록 ⑨ 플러그인 'KFA 글꼴 적용' 버튼 + README 설치 안내.
 - 2026-11-09 총괄: 기능 브랜치 검토(9건 수정) 후 합침(8be8d50). 운영 배포 dpl_B2SXftVcpb7RqwB9j51rzrjoLy9X 로 `/api/figma/feed`, `/api/figma/image` 공개(소유자 승인). 운영 피드 확인: 다음 경기 노원제너FS 11/15, 영입 10, 작별 5, 스폰서 10, 개인정보 없음.
 - 2026-11-09 총괄: '리디자인 기준' 확정(위 섹션). 디자인 세션에 홈 PC 1280 / 휴대폰 390 시안 시작 지시 — 끝나면 보고하고 멈춤.
+- 2026-11-09 디자인: 리디자인 기준 1차(홈) — 01: `Candidates` 컬렉션(Desktop/Mobile, 후보 표 값 그대로 27개: color/on-blue, overlay 4, win/draw/loss-strong, emblem 3, space 9, radius/l, pill, layout 4) + `Font` 컬렉션 font/family='KFAGothic TTF', 글자 단계 kfa/pc/*, kfa/m/* 각 10 + kfa/badge, body-s, caption, label, 견본 110:55. 02: 섹션 `리디자인 (D-067)` 111:2 에 새 부품 TeamCrest 111:15, ResultBadge 111:28, HomeAwayBadge 111:37, CompetitionTag 111:46, NextMatchHero 112:194(8변형), MatchStrip 114:602(8변형), MegaMenu 115:729, PlayersPreview 118:776, InstagramGrid 119:720, 기존 세트에 `버전=리디자인` 변형 추가: Header 39:36, Hero 39:37, Footer 39:38, MatchCard 113:141, SponsorMarquee 119:893, NewsTabs 119:894, NewsCard 116:736, StandingsWidget 119:895, PlayerCard 118:654, QuickLinks 119:896(03 현재 사이트 인스턴스 125개 연결 유지 확인). 03 섹션 `리디자인 시안` 104:3932: PC 1280 — 개막 전 121:3931, 시즌 중 (가득) 121:4619, 휴식기 121:5191, 일부 121:5837, 없음 122:6094, 메뉴 열림 122:6374, 최대 길이 122:6487 / Mobile 390 — 개막 전 124:6888, 시즌 중 (가득) 124:7524, 휴식기 124:8044, 일부 124:8638, 없음 124:9149, 메뉴 열림 124:9397, 최대 길이 124:9449. 데이터는 공개 피드와 사이트 화면(지난 경기 8/25 컵 3:3 다시보기만, 다음 11/15 1R, 11/21 2R 원정, 다음 홈 12/5 화성FS, 2025-26 5위 2승 3무 10패 9점). 주석 115개(프레임 오른쪽 노랑 바탕). 감사: 맨 색/간격/라운드 0, 스타일 없는 글자 0(최대 길이 히어로 4개만 예외), 글꼴 Noto Sans KR Regular/Bold 만, 중간점 0. get_screenshot 확인. 총괄 보고 후 멈춤.
+- 2026-11-09 디자인: 총괄 검토 반영 — ① 초점 변형 18개(State 가 있는 세트는 State=초점, 없는 세트는 새 속성 상태=초점): NextMatchHero, Header, SponsorMarquee(멈춤 버튼), MatchCard(영상 버튼), NewsTabs, NewsCard, PlayerCard, QuickLinks. 2px 선, 바깥 2px 간격, 밝은 면 blue / 어두운 면 on-dark / 파랑 면 on-blue. 초점 예시 한 장 126:9950(PC 개막 전 프레임 아래). ② 순위 위젯 숫자 칸 축소(PC 22, 휴대폰 32), PC 는 넘치는 팀 이름을 낱말 경계에서 줄바꿈(서울은평 / 덴포스, 고양불스 / 풋살클럽, 전주시민 / 풋살구단), 휴대폰은 한 줄. 기본 프레임 12개의 여러 줄 글자 27곳과 부품 기본값을 낱말 경계로 줄바꿈(사이트 keep-all 과 같게). ③ 흰 섹션이 이어지는 곳(INSTAGRAM → 바로가기, 휴대폰 리그 순위 → 구단 소식)은 뒤 섹션 위 여백 0 으로 layout/section-gap 한 번만. 인스턴스 396개 연결 정상, 주석 위치 다시 맞춤, get_screenshot 확인.
+- 2026-11-09 디자인: 소유자 "KFA고딕 설치됨, 반영" — 원격 use_figma 환경의 글꼴 목록(1,938 패밀리, 구글 글꼴만)에 'KFAGothic TTF' 없음, loadFontAsync 도 실패. 원격 작업은 소유자 PC 의 로컬 글꼴을 쓸 수 없다. 반영은 소유자 PC 피그마 데스크톱에서 플러그인 'KFA 글꼴 적용'으로 한다(figma-plugin/README.md). 모든 글자가 kfa/ 스타일에 연결돼 있어 버튼 한 번에 바뀐다. 적용 뒤 원격에서 스타일 글꼴 이름으로 결과를 확인할 수 있다(화면 렌더는 원격에서 대체 글꼴).
 - 2026-11-09 총괄: 소유자 홈 1차 검토 — NextMatchHero 카운트다운 빼고 나머지(경기 3칸 띠, 스폰서 띠 위치, 소식 큰 카드+목록, 순위 7열, 선수단 검정 면, INSTAGRAM, 하위 페이지 머리 검정 면) **모두 승인**. 기준의 카운트다운 부분 삭제.
+- 2026-11-09 디자인: 카운트다운 제거 — NextMatchHero 112:194 상태를 있음/없음(+초점)만 남김(남은 시간/당일/킥오프 지남 변형 삭제). 홈 14프레임의 인스턴스를 State=있음으로 바꾸고 히어로 안 위치 다시 맞춤, 관련 [변경] 주석 정리. 휴대폰 히어로 높이 안에 들어감 확인.
+- 2026-11-09 디자인: 리디자인 2차(하위 페이지) — 02: PageHeader 39:39 에 버전=리디자인(검정 면 + 사선, Default/Compact × pc/m) 130:654, 130:668, 130:682, 130:696, Chip 130:716, TeamSwitcher 130:725(02 한 장만), MatchTable Row 131:813, PlayerHero 132:816, StandingsTable 리디자인 132:2062, PlayerCard 면=흰, Header 활성 메뉴 리디자인 변형 133:2~133:102. 03 섹션 `리디자인 시안 2차` 136:9513 (20프레임): 경기일정 PC 가득 136:9514, 없음 136:9977 / M 가득 136:10098, 없음 136:10528. 경기결과 PC 가득 136:10620, 없음 136:11324 / M 가득 136:11445, 없음 136:12108. 선수 목록 PC 가득(구분안 1) 137:11897, 동명이인 비교 137:12278 / M 137:12494, 137:12846. 선수 상세 PC 합류(임우성) 137:13033, 기록(김영록) 137:13176 / M 137:13313, 137:13427. 리그순위 PC 지금 시즌 138:13329, 지난 시즌 138:13604 / M 138:14414, 138:14661. 실제 데이터, [변경]/[관리자 칸 필요] 주석. 감사: 맨 색/간격/라운드 0, 스타일 없는 글자 0, 글꼴 Noto Sans KR Regular/Bold 만, 중간점 0, 인스턴스 578개 연결 정상. get_screenshot 확인. 총괄 보고 후 멈춤.
+- 2026-11-09 디자인: 총괄 2차 검토 반영 — ① MatchTable Row 131:813 PC 3변형: 대진 칸을 홈팀 칸(이름 + 엠블럼, 오른쪽 정렬) / vs 칸(고정 48) / 원정팀 칸(엠블럼 + 이름, 왼쪽 정렬)으로 나눠 모든 행의 vs 가 같은 세로선, HOME 배지는 경기장소 칸 장소 이름 앞(휴대폰 그대로). ② PlayerHero 132:816 를 전폭 black-soft 면으로 다시 만듦(포지션 라벨 kfa/label yellow, 이름 display on-dark, 합류 줄 또는 기록 number-l on-dark '12경기 / 10골' + 출처 줄 on-dark-sub). 선수 상세 4프레임(137:13033, 137:13176, 137:13313, 137:13427)에서 PageHeader 바로 아래로 옮기고, 관련 소식 아래 '이전 선수 / 선수 목록 / 다음 선수' 줄 추가(목록 순서, 이름 + 포지션, 처음/끝은 빈 칸). ③ StandingsTable 리디자인 4변형 팀명 앞 TeamCrest 24(상대 initial, 우리 엠블럼), 휴대폰 긴 팀명 낱말 경계 줄바꿈. ④ 초점 속성 이름 State 로 통일(NewsCard, PlayerCard, NewsTabs, QuickLinks 의 '상태' → State). ⑤ 구분안 2 주석: 출전 1경기 이상만 출전 줄. [변경] 주석 추가. 감사: 맨 색/간격/라운드 0, 스타일 없는 글자 0, 글꼴 Noto Sans KR Regular/Bold 만, 중간점 0, 인스턴스 646개 연결 정상, 프레임 겹침 0. get_screenshot 확인(경기결과 PC, 선수 상세 PC/휴대폰, 순위 표 PC/휴대폰). 총괄 보고 후 멈춤.
+- 2026-11-09 디자인: 총괄 답 반영 — PlayerHero 132:816 합류 줄을 '합류 2026-27 시즌'만으로(포지션은 위 라벨 하나), 선수 상세 합류 2프레임(137:13033, 137:13313) 반영. 기록 선수(김영록)는 라벨 + 이름 + 기록 숫자 + 출처로 포지션 중복 없음 확인. get_screenshot 확인. 멈춤(동명이인 구분안과 2차 승인은 소유자 답 대기).
 - 2026-11-09 총괄: 소유자 2차 묶음(경기일정/결과, 선수 목록/상세, 리그순위, 하위 페이지 머리) **승인**, 동명이인 표시는 **구분안 2**. 디자인 세션에 3차 묶음 지시.
+- 2026-11-09 디자인: 동명이인 구분안 2 적용 — PlayerCard 118:654 에 불린 '기록 줄'(기본 끔, 홈 카드 그대로). 선수 목록 PC 137:11897 / 휴대폰 137:12494 를 구분안 2로(카드 아래 '2025-26 출전 N경기' 출전 1경기 이상 7명, 나머지 같은 높이 빈 줄, 목록 아래 출처 줄), 프레임 이름 '(구분안 2)'. 비교 프레임 137:12278, 137:12846 은 '결정: 구분안 2' 주석만 달고 남김.
+- 2026-11-09 디자인: 리디자인 3차(하위 페이지 4, 5번) — 02 새/변형 부품: NewsBanner 145:782(Count 여러 장/1장, 넘김 44 + 점 + 쪽수 + 멈춤), VideoCard 145:810(9:16), PostingCard 145:847, StaffCard 145:881(사진 없음 = black-soft + 엠블럼), SponsorTile 146:712, AchievementStrip 146:737, MoreButton 146:744, PageHeader 탭 4~6 불린. 03 섹션 `리디자인 시안 3차 (하위 페이지)` 148:15483 (33프레임): 구단소식 전체 PC 배너 여러 장 148:15484, 1장 148:15763 / M 148:16027, 148:16277. 구단영상 PC 149:16417 / M 149:16726. 포스팅 PC 150:16947 / M 150:17391. 기사 상세 PC 151:17695 / M 151:17850 / 사진 크게 보기 열림 151:17976. 구단소개 PC 152:17901 / M 152:18356. 연혁 PC 152:18164 / M 152:18590. 엠블럼/유니폼 PC 엠블럼 탭 154:18327, 유니폼 탭 154:18504 / M 154:18646, 154:18794. 오시는 길 PC 155:18731 / M 155:19053. 코칭스태프 PC 155:18888 / M 155:19181. 스폰서 PC 157:19165 / M 157:19509. 문의 PC 157:19356 / M 157:19671. 사이트맵 PC 158:19633 / M 158:20009. 404 없는 주소 PC 158:19785 / M 158:20132, 없는 글 PC 158:19896 / M 158:20214. 실제 데이터(사이트 캡처의 글과 사진, 유니폼 사진은 사이트 원본을 올림). [변경]/[확인] 주석. 감사: 맨 색/간격/라운드 0, 스타일 없는 글자 0, 글꼴 Noto Sans KR Regular/Bold 만, 중간점 0, 인스턴스 310개 연결 정상, 프레임 겹침 0, 낱말 경계 줄바꿈 68곳. get_screenshot 확인. 총괄 보고 후 멈춤.
+- 2026-11-09 디자인: 3차 검토 답 반영 — 구단소식 격자 주석 [변경: 12개씩 → 16개씩], 'PARTNERSHIP' [소유자 확인], 사이트 안 404 '구단소식 목록' 버튼 [변경](총괄 승인) 주석 정리.
+- 2026-11-09 디자인: 4차 — ① 05 Posters: 섹션 `포스터 (리디자인 D-067)` 에 새 템플릿 8개(MATCH DAY 161:18 / 161:38, 경기결과 161:58 / 161:82, WELCOME 162:2 / 162:22, GOOD LUCK 162:42 / 162:60, 각 1080x1350 / 1080x1080). black 바탕, 사선 blue 면 하나(일시/스코어/이름), 노랑은 라벨만, 아래 bg 띠 180 에 #sponsorLogo 4칸, #clubEmblem 은 bg 원 받침, #homeAway 없음, #playerNumber 빈 값 기본(이름과 같은 줄), WELCOME 은 #playerPhoto 2(흐림) + #newsImage + #playerPhoto(빈 템플릿). 글자 스타일 kfa/poster/* 14개 새로 만듦. 공개 피드 값 예시 5장(163:22 MATCH DAY 1R 노원제너FS, 163:66 FK CUP 3R 인천ZD스포츠 3:3, 163:110 WELCOME 김남석(사진 없음 → 소식 사진), 163:150 WELCOME 임우성(그래픽이 #playerPhoto), 163:188 GOOD LUCK 박영완). 옛 8개는 섹션 `이전 (1차 템플릿)` 으로 옮기고 이름 앞에 '이전 /'(플러그인이 템플릿으로 안 씀). ② 04 Screens Admin: 섹션 164:2 에 지금 관리자 화면 그대로 8프레임 — 대시보드 165:2 / 169:2, 구단소식 목록 166:2 / 170:2, 경기 수정 167:2 / 171:2, 인스타 자동 반영 168:2 / 172:2 (PC / 휴대폰). 로그인 없이 코드 마크업(admin 명세) + 실제 admin CSS 로 그려 html_to_figma 로 옮김. 공개 데이터는 실제 값, 알림과 인스타 기록 일부는 [예시 값] 주석. 코드에 있는 토큰 밖 값(휴대폰 메뉴 버튼 테두리 rgba(255,255,255,0.24), 라운드 4px, px 간격)은 지금 화면 그대로 둠. ③ 00 안내 새로 씀(175:2, 옛 안내는 옆에 '이전 안내'): 파일 구성, 승인 상태, 주석 읽는 법, KFA 글꼴 적용, 포스터 만들기, 코드 위치, 동기화 날짜. ④ Code Connect: Pro 플랜이라 거절(위 'Code Connect 확인'). 감사: 포스터와 안내는 맨 색/간격/라운드 0, 스타일 없는 글자 0, 중간점 0, 글꼴 Noto Sans KR Regular/Bold 만. get_screenshot 확인. 총괄 보고 후 멈춤.
+- 2026-11-09 디자인: 총괄 4차 검토 반영 — 경기결과(FULL TIME) 템플릿 161:58 / 161:82 와 예시 163:66: 결과 글자를 대회 줄에서 빼서 스코어 바로 아래(득점 줄 위) '결과 배지'(yellow 바탕 + black 글자, radius/s, 파랑 면 위, 가운데 줄)로 옮김. 레이어 이름 #resultLabel 그대로, 템플릿 글자 '무승부'. **기능 세션 확인 필요**: 피드 resultLabel 은 '승/무/패' — 포스터에 '승리/무승부/패배'로 보이려면 피드에 새 필드를 더하거나 플러그인이 바꿔야 함. get_screenshot 확인. 멈춤.
+- 2026-11-10 디자인: NextMatchHero 다시 그리기(총괄 전달, 소유자 피드백) — 02: 새 부품 MatchEmblem 190:734(원 받침 없음: 우리 팀 = emblem.png 원본 사각형, 자리표시 = 상대 원본 받기 전 [엠블럼 교체 예정] 점선 상자, 대체 = 엠블럼 없는 상대 방패 윤곽선 + 앞 2글자), 글자 스타일 kfa/pc/match-date 28 / kfa/m/match-date 22 Bold. 03 섹션 `NextMatchHero 다시 그리기 (2026-11-10)` 192:20163: 시안 A '사선 분할' PC 192:20165 / M 192:20268 / 대체 카드 192:20342, 시안 B '이중 테두리' PC 194:20239 / M 194:20347 / 대체 194:20426, 시안 C '와이드 매치데이 띠' PC 194:20464 / M 194:20577 / 대체 194:20650, MatchStrip 엠블럼 원 없음 PC 194:20766(40) / M 194:20932(32, 팀 이름 Bold). 3안 공통: 엠블럼 88 / 64(C 96), 팀 이름 24 / 16 Bold, 날짜 28 / 22 Bold, 파랑은 사선 면/띠 한 곳, 그라데이션 없음, 버튼 2개, 카운트다운 없음. 다음 홈경기 상대 화성FS 는 자리표시 [엠블럼 교체 예정]. 감사: 맨 색/간격/라운드 0, 스타일 없는 글자 0, Noto Sans KR Regular/Bold 만, 중간점 0. get_screenshot 확인. 총괄 보고 후 대기.
+- 2026-11-10 디자인: NextMatchHero 시안에 엠블럼 있음/없음 두 상태 — MatchEmblem 190:734 에 Type=상대(받은 투명 원본, 비율 그대로) 5크기 추가(강원FS gangwon.png 256x264, 기능 a353898). 3안의 화성FS 는 '엠블럼 없음(대체 모양: 방패 윤곽선 + 앞 2글자 Bold)'으로 바꿈(A 192:20165 / 192:20268, B 194:20239 / 194:20347, C 194:20464 / 194:20577), 같은 3안을 '강원FS 엠블럼 있음(5R 12월 12일)' 예시로 복제(A 195:20475 / 195:20555, B 195:20606 / 195:20691, C 195:20747 / 195:20828). MatchStrip 194:20766 / 194:20932 상대도 대체 모양. get_screenshot 확인. 총괄 보고 후 대기.
+- 2026-11-10 디자인: NextMatchHero C 확정(소유자 선택) 마무리 — 우리 엠블럼 흰 1px 바깥선(MatchEmblem 우리 팀), MatchEmblem Size=56 추가, MatchStrip 엠블럼 PC 56 / 휴대폰 40(194:20766 / 194:20932), A/B '[보관: 선택 안 됨]', C 상태 프레임 8개(PC 197:20635 / 197:20672 / 197:20709 / 197:20886, 휴대폰 197:20746 / 197:20772 / 197:20798 / 197:20960), 띠는 히어로 아래 끝에 붙임, 첫 화면 PC 765 ≤ 800 / 휴대폰 580 확인. 부품 지도에 C 띠 / MatchEmblem / MatchStrip 표 추가. get_screenshot 확인.
+- 2026-11-10 디자인: MatchStrip 경기장 줄 가운데(소유자 피드백) — 194:20766 / 194:20932 의 '장소' 줄을 대진 바로 아래 가운데로(HOME 배지 이름 옆). 비교 프레임 198:17 / 198:117: 날짜, 득점 줄, 하이라이트/다시보기 버튼까지 가운데. NextMatchHero 히어로 배치(문구 위치, 띠 높이, 상태 프레임)는 총괄 지시로 소유자 확인까지 멈춤. get_screenshot 확인.
+- 2026-11-10 디자인: NextMatchHero 가운데 정렬 확정(소유자, 인천/수원 레퍼런스) — 새 섹션 200:20880. 히어로 사진 위 카드(PC 오른쪽 아래, 휴대폰 문구 아래), 위→아래 가운데: 라벨 → 엠블럼 96/64 + VS → 팀 이름 24/16 Bold → 대회명 → 날짜 28/22 Bold → @경기장 + HOME → 버튼 2개. 검정 카드 + 우리 엠블럼 뒤 파랑 사선 면 + 큰 E 워터마크. 상태 프레임 8개(PC 200:20882 / 200:20985 / 200:21089 / 200:21193, 휴대폰 200:21267 / 200:21341 / 200:21416 / 200:21491). MatchStrip 칸마다 가운데(PC 200:21536, 휴대폰 200:21621). 이전 섹션 '[보관]'. 부품 지도에 표 추가, C 띠 표는 보관 표시. get_screenshot 확인.
+- 2026-11-10 디자인: 가운데 정렬 NextMatchHero 카드에서 큰 E 워터마크 뺌(6장, 노드 ID 그대로). 은평 요소는 우리 엠블럼 뒤 파랑 사선 면 하나. get_screenshot 확인.
+- 2026-11-10 디자인: 소유자 피드백 반영 — VS 를 크게(kfa/pc/vs 40 Bold, kfa/m/vs 28 Bold, color/on-dark, 새 스타일), 대진 줄 PC [160 | 56 | 160] 사이 8 로 다시 나눔('서울은평 덴포스' 24 Bold 폭 157 이 156 칸에서 2줄로 꺾이던 것 고침, PC 3장 + 비교 3장). 파랑 사선 면 질감 비교 3장(PC, 강원FS 엠블럼 있음): (가) 사선 핀스트라이프 202:363 — blue-hover 1px, 8 간격, 면 기울기 그대로, 면 모양으로 마스크 + 검정 쪽 black-soft 1px 14 간격 아주 약한 사선 줄(이 안에만) / (나) 깊이감 202:535 — 면을 blue → blue-hover 선형 그라데이션(양 끝 변수 연결, 면적 그대로) / (다) 구단 사진 듀오톤 202:607 — 히어로 사진 흑백 + 대비 0.2 를 면 모양으로 마스크해 파랑 위에 곱하기. 휴대폰 추천안 (가) 203:370(blue-hover 1px 6 간격, 검정 쪽 14 간격). 감사: 맨 색 0, 스타일 없는 글자 0, Noto Sans KR 만, 중간점 0. get_screenshot 확인. 소유자 선택 대기.
+- 2026-11-10 디자인: 가운데 정렬 표 '팀 이름은 엠블럼 아래 8' 을 노드 값 12(space/s)로 고침(기능 지적, PC/휴대폰 모두 12).
+- 2026-11-10 디자인: 우선순위 변경(총괄): 질감 3안은 나중에(그려 둔 202:363 / 202:535 / 202:607 / 203:370 은 그대로 둠). UX 상태 표를 부품 지도에 추가하고, 새 섹션 208:21342 에 빠진 상태 22프레임(불러오는 중, 오류, 선수/구단소식 분류/포스팅/코칭스태프/스폰서 없음, 기사 사진 없음 + 긴 제목, 경기결과 긴 팀 이름, 선수 긴 이름 + 사진 없음, 휴대폰 탭 넘침 전후)을 기존 부품만으로 그림. 찾아서 고친 것: PlayerCard 리디자인 9변형의 이름이 한 줄 고정이라 긴 이름이 옆 카드를 덮던 것을 카드 폭 줄바꿈으로 고침(다른 화면 64장 이름 높이 그대로 확인). 코드 확인 메모(고치지 않음): (site) 에 loading.tsx, error.tsx, 본문 바로가기 링크가 없음. 선수, 코칭스태프, 스폰서 목록은 빈 상태 글이 없음. 포스팅 분류 탭은 휴대폰 시안(한 줄 잘림)과 코드(줄바꿈 가운데)가 다른데, 코드가 맞음. 감사: 맨 색 0, 스타일 없는 글자 0, Noto Sans KR 만, 중간점 0, 깨진 인스턴스 0. get_screenshot 확인.
+- 2026-11-10 디자인: 총괄 요청 2건. ① MatchEmblem Size=24 추가: 우리 팀 211:24754, 대체 211:24756, 상대 211:24759. 표의 흰 바탕용으로 바깥선 color/line, 방패 color/text-sub, 글자 color/text. 대체 글자는 24 에서 앞 1글자, kfa/10 Bold. MatchTable Row(8변형)와 StandingsTable 의 TeamCrest 24 를 MatchEmblem 24 로 바꾸고, 03 Screens 의 표 행마다 팀 이름에 맞춰 원본 엠블럼을 넣음(TeamCrest 24 남은 것 0). 상대 엠블럼 원본 6개(기능 863f54b)를 피그마에 올려 가운데 정렬 카드와 MatchStrip 의 대체 방패를 원본으로 바꿈. '엠블럼 없음' 상태는 인천ZD스포츠로 바꿔 대체 방패 예시를 남김. ② D-072 대회명: '2026-27 FK1리그' 를 '키움증권 2026-27 FK리그1' 로, 스폰서 줄을 '키움증권 2026-27 FK리그1(1부) 참가' 로 바꿈(부품, 리디자인 화면, 포스터 템플릿과 예시, 글자 38곳, 레이어 이름 2곳). '현재 사이트' 캡처, '[보관]', 포스터 '이전' 섹션은 그대로 둠. 지난 시즌 '2025-26 FK1리그' 표기는 그대로 둠. 대회 태그 폭이 162 로 늘었지만 넘치는 곳은 없음(카드, 띠, 표 제목, 홈 위젯 넓이 확인). MatchEmblem 56 글자 스타일 빠짐을 고치고, 직접 만든 벡터 38개에 남아 있던 기본 검정 선을 지움. 감사: 맨 색 0, 스타일 없는 글자 0, 중간점 0, 깨진 인스턴스 0. get_screenshot 확인(경기결과 PC, 휴대폰 카드, MatchStrip).
+- 2026-11-10 디자인: TeamCrest 이니셜 원을 모두 없앰(총괄 요청). MatchCard 113:141 과 이전 NextMatchHero 112:194 부품 안의 TeamCrest 40/56 20개, 화면에서 덮어쓴 인스턴스까지 140개를 MatchEmblem 으로 바꿈. 우리 팀은 우리 팀, 상대는 팀 이름(카드의 홈팀/원정팀 속성 또는 같은 칸 글자)에 맞는 원본, 원본이 없는 팀(인천ZD스포츠, 제주서귀포)은 대체 방패. 부품 TeamCrest 111:15 는 지우지 않고 '[보관] TeamCrest' 로 이름과 설명을 바꿈. 남은 TeamCrest 인스턴스 0(전체 페이지). 감사: MatchCard, NextMatchHero, MatchStrip, 포스터 맨 색 0, 스타일 없는 글자 0, 깨진 인스턴스 0. get_screenshot 확인(MatchStrip 부품). 별도 메모: 리디자인 시안의 '최대 길이' Hero(떼어 낸 것) 글자 4개 123:6923, 123:6924, 124:9939, 124:9940 에 글자 스타일이 없음(이번 변경 전부터, 고치지 않음).
 - 2026-11-09 총괄: 소유자 3차, 4차 묶음 **승인** — 시안 전체 승인. 코드 반영은 단계별 운영 배포(D-069). 기능 세션에 1단계(공통) 지시.
 - 2026-11-09 기능: 리디자인 1단계(공통, D-069) — 토큰(on-blue, overlay 4, space 9단계, radius l/pill, topbar-h/hero-h/aside-w/match-hero-w) tokens.css 반영 + tokens.json 갱신, TopBar/Header(활성 노란 2px 밑줄)/PC MegaMenu/휴대폰 전체 화면 메뉴/Footer(사이트맵 6칸 + 정보 줄)/PageHeader(검정 면 + 사선 black-soft + blue 6px, 240/160, compact 120/96)/공통 초점 표시(공개 화면만)/Section 제목/버튼 기본형(Button.tsx). 운영 데이터(공개 키, 읽기만)로 빌드해 PC 1280/휴대폰 390 캡처 비교, 가로 넘침 0, 중간점 0. 판단 필요: container 폭(피그마 내용 1200 vs 사이트 1160), 721~960px 구간 기준.
 - 2026-11-09 총괄: 소유자 결정 — 포스터는 구단 공식 그래픽을 쓰므로 피그마 포스터 템플릿과 '포스터 만들기'는 보관, 더 다듬지 않음(D-070). 기능 1단계(공통) 받음(ebb45aa), 미리보기 배포 dpl_7a6E4BtBsD2u8cRrLBzkqEYPSQsE, 총괄 검토 중.
@@ -320,3 +521,11 @@
 - 2026-11-11 기능: 배포 전 3건 — (1) Edge Function plainText: NFC → 수학 글자(MATH_ALNUM) NFKC → 전각(U+FF01~FF5E) NFKC, 이모지 빼기에서 ™ ℹ 제외. parseWelcome 등번호 No/№. 테스트 '№10' 'No.１０' NFD 한글 'FUTSAL™' + I-053 경우. (2) 배너 focusHold 해제를 onPointerDown → onClick(detail > 0, 실제로 누른 경우만) — 키보드 초점 + 손가락 스크롤에도 멈춤 유지, A~E 그대로. (3) ScrollRow 주석 64. 테스트 271.
 - 2026-11-11 기능: 운영 이미지 402 대응(D-073) — next.config.ts images.unoptimized true(원본 그대로). 운영 데이터 빌드에서 홈, /news, /news/posting, /team/players, 기사 상세, 선수 상세 1280/390: /_next/image 요청 0, 깨진 사진 0, FitImage 판정 어긋남 0, 가로 넘침 0. 22페이지 x 12폭 전수 ALL CLEAN.
 - 2026-11-11 총괄: 2~6단계 + D-072 대회명 + D-073 이미지 운영 배포 — dpl_J1ZZ5urgzfJoLrEazDXXrVKtuXKy(커밋 34221cc), instagram-sync 버전 5. 운영 20쪽 x 1280/390 전부 정상(200, 넘침/중간점/깨진 사진/402 0). 디자인 다듬기는 I-050, I-054, 파랑 면 질감 후보 202:363/202:535/202:607 로 남김.
+- 2026-11-11 디자인: tender-keller 17ddf61 merge(진행 기록 충돌은 양쪽 줄 모두 남김). Next Home Match v2 시안(소유자 '박스' 지적: 우리 쪽에만 붙은 파랑 사선 면 + 엠블럼 흰 1px 테두리). 새 섹션 223:24706, 기존 승인 프레임은 그대로. 공통: 우리 엠블럼은 emblem-mark.png(SINCE 줄 없음)를 테두리와 바탕 없이, 상대 원본도 같은 칸 높이(PC 112 / 휴대폰 72)로 같은 무게, 휴대폰 이름 kfa/m/h3 20 Bold(칸 [135 | 40 | 135]), 데이터 화성FS / 12월 5일 (토) 14:00 / 키움증권 2026-27 FK리그1 / 4R / 은평다목적체육관 / HOME, 대체 방패 예시는 제천FS. ① 무테 대칭(검정 카드, 장식 없음) PC 223:24707 / 제천 223:24784 / 휴대폰 223:24863. ② 좌우 분할(카드 왼쪽 반 color/blue 전체 높이, VS 를 지나는 사선) 223:24911 / 223:24989 / 223:25069. ③ 밝은 카드(color/bg, 라벨과 VS blue, 버튼 blue 면 + line 테두리) 223:25118 / 223:25198 / 223:25280. 캡처 docs/figma-captures/nmh-v2/*.jpg. PC 카드 아래 끝 733 ≤ 히어로 765, 휴대폰 카드와 버튼 580 안. 감사: 맨 색 0, 스타일 없는 글자 0, 중간점 0. get_screenshot 확인. 소유자 선택 대기.
+- 2026-11-11 디자인: 소유자 ② 좌우 분할 확정, 'NEXT HOME MATCH 도 작게 두지 말고' 반영. MatchEmblem: 우리 팀 9크기를 emblem-mark.png, 테두리 없음으로 바꾸고 Size=112, 72(우리 팀, 상대, 대체) 추가. ② 프레임 3장의 엠블럼을 부품 인스턴스로 바꾸고 라벨을 PC 20 / 휴대폰 16 Bold 로 키움. 카드는 아래 맞춤(PC 아래 32, 휴대폰 아래 12). 긴 이름 PC 227:187 / 휴대폰 227:263, 휴대폰 제천FS 227:310 추가. ①, ③ 은 '[보관: 선택 안 됨]'. 부품 지도에 '### NextMatchHero v2 ② 좌우 분할' 표. 캡처 2-*.jpg 6장. 감사: ② 프레임과 MatchEmblem 맨 색 0, 스타일 없는 글자 0(보관 ①, ③ 의 크기 바꾼 대체 방패 글자 2개는 그대로), 중간점 0. get_screenshot 확인(PC, 휴대폰 긴 이름, 휴대폰 제천FS, 경기 3칸 띠).
+- 2026-11-11 기능: NextMatchHero v2 ② 좌우 분할(소유자 'ㄱㄱ', 디자인 09ede90 merge) — 카드 ::before 왼쪽 반 blue 전체 높이, 사선 위 50%+16 / 아래 50%-40(휴대폰 +10 / -30), 카드 안 내용은 모두 위로(대회 태그가 가려지던 것 확인 후 고침). 라벨 20/16 Bold yellow, 엠블럼 칸 112/72(TeamCrest 112, 72, m72 추가), 대진 [160|56|160] / [135|40|135], 휴대폰 이름 20. 우리 엠블럼은 모든 곳 emblem-mark.png(600x766) 테두리와 바탕 없이 — 17ddf61 흰 바탕과 --crest-line 제거. 히어로 아래 맞춤: PC 카드 아래 32(문구는 48 그대로), 휴대폰 12. 실측: PC 456x439, 엠블럼 88x112 / 112x112, 아래 32, 390 358x331 아래 12(첫 화면 580 안), 320/360 은 이름 두 줄로 히어로 602. 22페이지 x 12폭 ALL CLEAN.
+- 2026-11-11 기능: 카드 v2 좁은 휴대폰(디자인 d162b69) — 375 미만 팀 이름 16, 엠블럼 칸 64. 히어로: 360 580(한 줄), 374 580, 320 584(두 줄, 받아들임). 375 는 규칙 밖이라 20 그대로 두 줄, 히어로 602.
+- 2026-11-11 기능: 카드 v2 좁은 휴대폰 경계 390 미만으로(디자인 768831c). 히어로: 389/375/360 580(한 줄), 390 580(20 한 줄), 320 584(두 줄, 받아들임).
+- 2026-11-11 기능: 구단영상 원본 링크(D-074) — NewsLink(영상이면 원본 새 창, 아니면 상세)를 NewsCard, 홈 NewsTabs, NewsBanner 에 씀. 영상 표지 FitImage fit cover(contain prop 은 fit 으로 합침). 상세는 VideoEmbed(iframe) 를 지우고 VideoCover(표지 꽉 채움 + 원본 재생 버튼). lib/video externalPlay + 테스트, embedSrc 삭제. 실측 1280/390: 영상 카드 20/20 새 창 + noopener, 클릭/Enter 모두 instagram.com/p/… 새 창, 초점 링 blue 2px, 상세 iframe 0 / 표지 360x640, 358x636 cover / 버튼 44. 22페이지 x 12폭 ALL CLEAN. 테스트 272.
+- 2026-11-11 기능: 총괄 검토 — 휴대폰(720 이하) 히어로 .inner gap space/xs(8). 상대 이름이 두 줄이어도 카드가 위로 올라가 580 안. 피그마 227:263 은 문구와 카드 사이 11 — 코드는 토큰 space/xs 8 을 씀(디자인 세션이 맞춰 주세요). 실측 390/375/360/320 x 화성FS/고양불스풋살클럽 8조합 모두 히어로 580, 카드 아래 568, 버튼 아래 552(320 도 580 으로 줄어듦).
+- 2026-11-11 기능: 총괄 최종 확인 3건 — (1) PlayMark 부품(aria-hidden, 36 / 작은 칸 28)을 NewsCard, 홈 소식 탭(큰 카드 + 행), 배너에 같이 씀. 표지 맞춤은 홈/배너 auto 그대로. (2) lib/video videoCardPlay: 구단영상 분류만 원본 새 창, 공지/구단뉴스는 영상 주소가 있어도 상세(테스트). (3) 관리자 영상 주소 안내, actions.ts, types 주석을 '카드는 원본 새 창'으로. 실측 1280/390: 배너 영상 3장, 홈 탭 영상 3개 모두 재생 표시 + 새 창, 일반 글은 상세. 22페이지 x 12폭 ALL CLEAN. 테스트 273.
