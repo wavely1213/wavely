@@ -168,3 +168,19 @@
     width: auto;
   }
 }
+
+/* 375 미만 좁은 휴대폰: 팀 이름 kfa/m/h4 16, 엠블럼 칸 64 — 360 에서 '서울은평 덴포스' 한 줄 (디자인 d162b69).
+   320 은 두 줄이 될 수 있고 첫 화면을 조금 넘는 것을 받아들인다 */
+@media (max-width: 374px) {
+  .card {
+    --nmh-crest: 64px;
+  }
+
+  .team > span:first-child {
+    --crest: 64px;
+  }
+
+  .teamName {
+    font-size: 16px;
+  }
+}
