@@ -48,3 +48,25 @@ export function platformCounts(list: Posting[], kind: PostingKind | null): Array
     .filter((c) => c.count > 0)
     .sort((a, b) => b.count - a.count || POSTING_PLATFORMS.indexOf(a.platform) - POSTING_PLATFORMS.indexOf(b.platform));
 }
+
+/** 메인 INSTAGRAM 칸 수 (PC 6칸, 휴대폰 3x2 — 리디자인 D-067) */
+export const INSTAGRAM_TILES = 6;
+
+/**
+ * 메인 INSTAGRAM 칸 — 구단 포스팅 중 인스타그램 게시물(자동 반영으로 저장된 표지가 있는 것)만, 최근 것부터 max 개.
+ * list 는 최근 글 먼저(getPostings 순서).
+ */
+export function instagramTiles(list: Posting[], max = INSTAGRAM_TILES): Posting[] {
+  return list.filter((p) => p.kind === "club" && p.platform === "instagram" && p.thumbnail).slice(0, max);
+}
+
+/**
+ * 글자 꾸밈을 보통 글자로 — 인스타그램 글의 수학 굵은 문자(𝑾𝑬𝑳𝑪𝑶𝑴𝑬)는 화면 읽기가 글자마다 따로 읽어서
+ * 대체 글/링크 이름/카드 제목에는 NFKC 로 바꾼다 (검토 #7). 수학 영숫자 블록(U+1D400~1D7FF)에만 건다 —
+ * 전체에 걸면 구분자 'ㅣ'(호환 자모), '③', '…' 까지 바뀐다 (재검증 #1). 한글/이모지는 그대로.
+ * 수학 블록의 빈자리 글자(ℎ ℂ ℍ ℯ 등)는 Letterlike 블록에 있어 따로 더한다 — 블록 전체는 아님(℃ № ™ 보존, 재검증 2차 #6).
+ */
+const MATH_ALNUM = /[\u{1D400}-\u{1D7FF}ℂℊ-ℎℐ-ℒℕℙ-ℝℤℨℬℭℯ-ℱℳℴ]/gu;
+export function plainText(text: string): string {
+  return text.replace(MATH_ALNUM, (c) => c.normalize("NFKC"));
+}

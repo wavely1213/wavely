@@ -1,0 +1,27 @@
+/* 선수 목록 — 칩 아래 space/xl, 묶음 사이 space/2xl, 묶음 제목 kfa/pc/h3 24 (휴대폰 20) + 영문 text-sub */
+.chips {
+  margin-bottom: var(--space-xl);
+}
+
+.group + .group {
+  margin-top: var(--space-2xl);
+}
+
+.h2 {
+  margin-bottom: var(--space-m);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.en {
+  font-size: 0.75em;
+  color: var(--c-text-sub);
+}
+
+@media (max-width: 720px) {
+  .h2 {
+    font-size: 20px;
+  }
+}

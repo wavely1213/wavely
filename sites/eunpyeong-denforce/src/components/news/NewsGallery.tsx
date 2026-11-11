@@ -2,10 +2,11 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState, type KeyboardEvent, type TouchEvent } from "react";
+import { FitImage } from "@/components/ui/FitImage";
 import { stepIndex, swipeStep } from "@/lib/viewer";
 import styles from "./NewsGallery.module.css";
 
-// 구단소식 상세 사진 (D-017) — 자르지 않고 원본 비율로, PC 두 칸 / 모바일 한 칸.
+// 구단소식 상세 사진 (D-017) — 자르지 않고 원본 비율로, PC 두 칸 / 모바일 한 칸. 한 장이면 PC 4:3 / 휴대폰 358:430 칸에 전체 + 흐린 바탕(FitImage).
 // width·height 는 로드 전 자리 비율(인스타그램 4:5)일 뿐, 로드 후에는 실제 비율로 보인다.
 // 사진을 누르면 화면 가득 크게 보기 — 이전/다음 버튼, 'n / N', 닫기(Esc), 좌우 화살표 키, 휴대폰은 옆으로 밀기.
 
@@ -65,7 +66,7 @@ export function NewsGallery({ images, title }: { images: string[]; title: string
 
   return (
     <>
-      <ul className={styles.grid}>
+      <ul className={`${styles.grid} ${count === 1 ? styles.single : ""}`}>
         {images.map((src, i) => (
           <li key={`${i}:${src}`}>
             <button
@@ -77,14 +78,24 @@ export function NewsGallery({ images, title }: { images: string[]; title: string
               onClick={() => setIndex(i)}
               aria-label={`사진 ${i + 1} 크게 보기`}
             >
-              <Image
-                src={src}
-                alt={`${title} 사진 ${i + 1}`}
-                width={1080}
-                height={1350}
-                sizes="(max-width: 720px) 100vw, (max-width: 1200px) 50vw, 600px"
-                className={styles.image}
-              />
+              {count === 1 ? (
+                // 한 장이면 PC 4:3 / 휴대폰 358:430 칸(총괄 결정) — 어떤 비율이든 늘 전체 + 흐린 바탕 (재검증 #5)
+                <span className={styles.frame}>
+                  <FitImage src={src} alt={`${title} 사진 ${i + 1}`} sizes="(max-width: 720px) 100vw, 800px" priority contain />
+                </span>
+              ) : (
+                <Image
+                  src={src}
+                  alt={`${title} 사진 ${i + 1}`}
+                  width={1080}
+                  height={1350}
+                  sizes="(max-width: 720px) 100vw, (max-width: 1200px) 50vw, 600px"
+                  className={styles.image}
+                />
+              )}
+              <span className={styles.zoom} aria-hidden="true">
+                크게 보기 ↗
+              </span>
             </button>
           </li>
         ))}

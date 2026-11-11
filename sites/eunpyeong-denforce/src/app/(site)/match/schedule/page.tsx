@@ -4,9 +4,11 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { MatchTable } from "@/components/match/MatchTable";
 import { Placeholder } from "@/components/ui/Placeholder";
 import { SnsIcon } from "@/components/ui/SnsIcon";
+import { LEAGUE } from "@/config/league";
 import { scheduleEmptyLinks } from "@/lib/match";
 import { pageMetadata } from "@/lib/page-meta";
-import { getClubSettings, getSiteContent, getUpcomingMatches } from "@/lib/repo";
+import { getClubSettings, getSiteContent, getUpcomingMatches, isLiveData } from "@/lib/repo";
+import prose from "@/styles/prose.module.css";
 import styles from "./schedule.module.css";
 
 export function generateMetadata(): Promise<Metadata> {
@@ -20,7 +22,11 @@ export default async function SchedulePage() {
       <PageHeader title="경기일정" current="/match/schedule" />
       <div className="container">
         {matches.length > 0 ? (
-          <MatchTable matches={matches} />
+          <>
+            {/* 가장 가까운 예정 경기(원정 포함) 행은 blue-tint — 리디자인 2차 '다음 경기 행' */}
+            <MatchTable matches={matches} nextId={matches[0]?.id} />
+            {isLiveData() && <p className={`${prose.note} ${prose.source}`}>자료: {LEAGUE.source}</p>}
+          </>
         ) : (
           <Placeholder label={content["schedule.empty"]}>
             <EmptyLinks />

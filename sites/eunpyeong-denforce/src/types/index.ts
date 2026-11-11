@@ -42,7 +42,7 @@ export type Match = {
 
 export type StandingRow = {
   id: string;
-  /** 시즌 = 대회명 ("2026-27 FK1리그"). 지금 시즌은 LEAGUE.currentCompetition */
+  /** 시즌 = 대회명 ("키움증권 2026-27 FK리그1", 예전 시즌 "2025-26 FK1리그"). 지금 시즌은 LEAGUE.currentCompetition */
   season: string;
   team: string;
   played: number;

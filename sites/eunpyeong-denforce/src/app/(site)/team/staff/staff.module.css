@@ -1,0 +1,45 @@
+/* 프런트 목록 — 위 text 2px, 3열(태블릿 2, 휴대폰 1), 칸 아래 line, 직책 96 + 이름 */
+.front {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: var(--space-xl);
+  border-top: 2px solid var(--c-text);
+}
+
+.frontItem {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-m);
+  padding: var(--space-s) 0;
+  border-bottom: 1px solid var(--c-line);
+}
+
+.frontItem dt {
+  flex: none;
+  width: 96px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--c-text-sub);
+}
+
+/* dd 기본 margin-inline-start 40 없앰 — 직책 96 + 사이 space/m 만 (재검증 #9 와 같은 원인) */
+.frontItem dd {
+  margin: 0;
+  min-width: 0;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 960px) {
+  .front {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .front {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

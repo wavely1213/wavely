@@ -1,18 +1,17 @@
 import type { Metadata } from "next";
-import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { toNewsCardPost } from "@/components/news/NewsCard";
 import { NewsMoreGrid } from "@/components/news/NewsMoreGrid";
-import { EmblemFallback } from "@/components/ui/EmblemFallback";
+import { PlayerHero } from "@/components/player/PlayerHero";
+import { PlayerNav } from "@/components/player/PlayerNav";
 import { LEAGUE } from "@/config/league";
 import { POSITION_LABEL } from "@/data/people";
 import { sitePreviewMeta } from "@/lib/og-metadata";
 import { nonEmptyParams } from "@/lib/params";
-import { findPlayerJoin, findPlayerNews, playerDescription, profileRows } from "@/lib/player-profile";
+import { findPlayerJoin, findPlayerNews, playerDescription, playerNeighbors, playerRecordLine } from "@/lib/player-profile";
 import { getNews, getPlayer, getPlayers, getSiteContent, isLiveData } from "@/lib/repo";
-import styles from "@/styles/prose.module.css";
+import styles from "./player.module.css";
 import type { Player } from "@/types";
 
 export async function generateStaticParams() {
@@ -27,7 +26,7 @@ async function newsOf(player: Player) {
   const [players, posts] = await Promise.all([getPlayers(), getNews()]);
   const sameNameCount = players.filter((p) => p.name === player.name).length;
   return {
-    join: findPlayerJoin({ name: player.name, sameNameCount, posts, statsSeason: LEAGUE.statsSeason }),
+    join: findPlayerJoin({ name: player.name, slug: player.slug, sameNameCount, posts, statsSeason: LEAGUE.statsSeason }),
     related: findPlayerNews({ name: player.name, slug: player.slug, sameNameCount, posts }),
   };
 }
@@ -54,57 +53,32 @@ export default async function PlayerPage({ params }: PageProps<"/team/players/[s
   const player = await getPlayer((await params).slug);
   if (!player) notFound();
 
-  const { join, related } = await newsOf(player);
-  const profile = profileRows(player, POSITION_LABEL[player.position], join);
-  // 합류 선수는 출전/득점 칸이 없으니 기록 출처 문구도 없다 ('영입 소식 보기' 버튼은 소유자 지시로 뺌, D-068)
-  const joined = profile.some(([k]) => k === "합류");
+  const [{ join, related }, players] = await Promise.all([newsOf(player), getPlayers()]);
+  const record = playerRecordLine(player, join);
+  const { prev, next } = playerNeighbors(players, player.slug);
 
   return (
     <>
-      {/* 이 페이지의 큰 제목은 선수 이름(h1) — 메뉴 이름 '선수'는 작게 */}
-      <PageHeader title="선수" current="/team/players" compact />
-      <div className={`container ${styles.body}`}>
-        <div className={styles.split}>
-          <div className={styles.figure} style={{ aspectRatio: "3 / 4", maxWidth: 360 }}>
-            {player.photo ? (
-              <Image src={player.photo} alt={player.name} fill preload sizes="360px" />
-            ) : (
-              <EmblemFallback label={player.number ?? undefined} />
-            )}
-          </div>
-          <div>
-            <h1 className={styles.pageTitle}>
-              {player.number != null && `No.${player.number} `}
-              {player.name}
-            </h1>
-            <ul className={styles.list}>
-              {profile.map(([k, v]) => (
-                <li key={k}>
-                  <span>{k}</span>
-                  <span>{v}</span>
-                </li>
-              ))}
-            </ul>
-            {!joined && isLiveData() && (
-              <p className={`${styles.note} ${styles.source}`}>
-                출전/득점: {LEAGUE.statsSeason} 기록 / 자료: {LEAGUE.source}
-              </p>
-            )}
-          </div>
-        </div>
+      {/* 이 페이지의 큰 제목은 선수 이름(h1, PlayerHero) — 메뉴 이름 '선수'는 작게 */}
+      <PageHeader title="선수" current="/team/players" compact flush />
+      <PlayerHero
+        player={player}
+        positionLabel={POSITION_LABEL[player.position]}
+        record={record}
+        joinSeason={record ? null : (join?.season ?? null)}
+        source={isLiveData() ? `출전/득점: ${LEAGUE.statsSeason} 기록 / 자료: ${LEAGUE.source}` : null}
+      />
+      <div className="container">
+        {/* 관련 소식 (BR-031, D-068) — 12개씩 더 보기, 없으면 숨김. '영입 소식 보기' 버튼은 없음 */}
         {related.length > 0 && (
-          <section aria-labelledby="player-news">
+          <section className={styles.related} aria-labelledby="player-news">
             <h2 id="player-news" className={styles.h2}>
               관련 소식
             </h2>
             <NewsMoreGrid posts={related.map(toNewsCardPost)} />
           </section>
         )}
-        <p>
-          <Link href="/team/players" className={styles.button}>
-            선수 목록
-          </Link>
-        </p>
+        <PlayerNav prev={prev} next={next} />
       </div>
     </>
   );

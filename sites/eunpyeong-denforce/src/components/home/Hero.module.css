@@ -1,8 +1,8 @@
+/* 높이 layout/hero-h (640 / 휴대폰 520) */
 .hero {
   position: relative;
-  min-height: min(76vh, 640px);
+  min-height: var(--hero-h);
   display: flex;
-  align-items: flex-end;
   color: var(--c-on-dark);
   background: var(--c-black);
   overflow: hidden;
@@ -13,20 +13,22 @@
   object-position: center 30%;
 }
 
+/* 왼쪽 아래 overlay-strong → 오른쪽 위 overlay-faint (엠블럼 사선 방향) */
 .overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(14, 15, 18, 0.15) 0%, rgba(14, 15, 18, 0.35) 45%, rgba(14, 15, 18, 0.9) 100%);
+  background: linear-gradient(26.57deg, var(--c-overlay-strong) 14.3%, var(--c-overlay-mid) 46.4%, var(--c-overlay-faint) 85.7%);
 }
 
+/* 문구는 왼쪽 아래, 다음 홈경기 카드는 오른쪽 아래 — 아래 여백 space/2xl */
 .inner {
   position: relative;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 32px;
-  padding-top: 120px;
-  padding-bottom: 48px;
+  gap: var(--space-xl);
+  padding-top: var(--space-2xl);
+  padding-bottom: var(--space-2xl);
 }
 
 /* 글 칸 — 구단 이름·슬로건이 길어져도 다음 홈경기 카드를 밀어내지 않게 줄어들 수 있다 (D-046) */
@@ -34,18 +36,21 @@
   min-width: 0;
 }
 
+/* kfa/label yellow */
 .eyebrow {
-  font-size: 14px;
+  font-size: 12px;
+  line-height: 1.2;
   font-weight: 700;
   letter-spacing: 0.08em;
   color: var(--c-yellow);
 }
 
+/* kfa/pc/display 76 (휴대폰 kfa/m/display 40), 윗줄은 hero-lead(0.7625배, D-036) */
 .title {
-  margin-top: 10px;
-  font-size: clamp(40px, 7vw, 76px);
+  margin-top: var(--space-s);
+  font-size: clamp(40px, 6vw, 76px);
   font-weight: 700;
-  line-height: 1.05;
+  line-height: 1.2;
   letter-spacing: -0.02em;
 }
 
@@ -60,52 +65,19 @@
   letter-spacing: -0.02em;
 }
 
-.next {
-  flex: none;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 280px;
-  padding: 18px 22px;
-  border-left: 3px solid var(--c-yellow);
-  background: rgba(14, 15, 18, 0.55);
-  backdrop-filter: blur(6px);
-}
-
-.next:hover .nextTeams {
-  text-decoration: underline;
-  text-underline-offset: 4px;
-}
-
-.nextLabel {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: var(--c-on-dark-sub);
-}
-
-.nextTeams {
-  font-size: 24px;
-  font-weight: 700;
-}
-
-.nextMeta {
-  font-size: 14px;
-  color: var(--c-on-dark-sub);
-}
-
-@media (max-width: 760px) {
-  .hero {
-    min-height: 520px;
-  }
-
+/* 휴대폰: 문구는 위, 다음 홈경기 카드는 아래 (첫 화면 60 + 520 안에 이름과 카드 전체) */
+@media (max-width: 960px) {
   .inner {
     flex-direction: column;
     align-items: stretch;
-    padding-bottom: 28px;
+    justify-content: space-between;
+    padding-top: var(--space-xl);
+    padding-bottom: var(--space-m);
   }
+}
 
-  .next {
-    min-width: 0;
+@media (max-width: 720px) {
+  .title {
+    font-size: 40px;
   }
 }

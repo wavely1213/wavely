@@ -2,7 +2,7 @@ import { EmblemFallback } from "@/components/ui/EmblemFallback";
 import { FitImage } from "@/components/ui/FitImage";
 import { POSTING_KIND_LABEL, POSTING_PLATFORM_LABEL } from "@/data/postings";
 import { formatPostDate } from "@/lib/format";
-import { isPreshrunkThumbnail } from "@/lib/postings";
+import { isPreshrunkThumbnail, plainText } from "@/lib/postings";
 import type { Posting } from "@/types";
 import styles from "./PostingCard.module.css";
 
@@ -29,7 +29,7 @@ export function PostingCard({ posting }: { posting: Posting }) {
         </span>
       </div>
       <strong className={styles.title}>
-        {posting.title}
+        {plainText(posting.title)}
         <span className="sr-only"> (새 창)</span>
       </strong>
       <span className={styles.meta}>

@@ -5,8 +5,8 @@ import { josa, nameSlug } from "./korean.ts";
 
 export const ACCOUNT = "eunpyeong_denforce";
 const SITE = "https://eunpyeong-fs.com";
-/** 지금 시즌 리그 대회 이름 — src/config/league.ts 의 LEAGUE.currentCompetition 과 같아야 한다 (테스트로 맞춘다) */
-export const LEAGUE_COMPETITION = "2026-27 FK1리그";
+/** 지금 시즌 공식 대회명 — src/config/league.ts LEAGUE.currentCompetition 과 같아야 한다 (테스트가 확인, D-072) */
+export const LEAGUE_COMPETITION = "키움증권 2026-27 FK리그1";
 /** 기사에 쓰는 리그 이름 */
 export const LEAGUE_LABEL = "FK리그 1부(FK1)";
 
@@ -35,11 +35,25 @@ export function siteCaption(caption: string): string {
   return caption.replace(/ · /g, " / ").replace(/·/g, "/");
 }
 
-/** 이모지·꾸밈 글자 빼기 (𝑾𝑬𝑳𝑪𝑶𝑴𝑬 → WELCOME) */
+/**
+ * 수학 영숫자(꾸밈 글자) — 블록 U+1D400~1D7FF + Letterlike 블록의 빈자리 글자(ℎ ℂ ℍ ℯ 등).
+ * 이것만 NFKC 로 바꾼다: 전체에 걸면 'ㅣ'(호환 자모) '③' '…' 도 바뀐다 (I-053, 사이트 src/lib/postings.ts 와 같은 규칙)
+ */
+const MATH_ALNUM = /[\u{1D400}-\u{1D7FF}ℂℊ-ℎℐ-ℒℕℙ-ℝℤℨℬℭℯ-ℱℳℴ]/gu;
+
+/** 전각 영숫자/기호(U+FF01~FF5E, 'No.１０') — 반각으로 (전체 NFKC 를 좁히며 잃은 것, 배포 전 확인) */
+const FULLWIDTH = /[\uFF01-\uFF5E]/g;
+
+/**
+ * 이모지·꾸밈 글자 빼기 (𝑾𝑬𝑳𝑪𝑶𝑴𝑬 → WELCOME). 조합형(NFD) 한글은 NFC 로 모은다.
+ * ™ ℹ 는 Extended_Pictographic 이지만 글자로 남긴다 — 사이트 plainText 와 결과를 맞춘다.
+ */
 export function plainText(s: string): string {
   return s
-    .normalize("NFKC")
-    .replace(/[\p{Extended_Pictographic}\u{FE0F}\u{200D}\u{20E3}]/gu, "")
+    .normalize("NFC")
+    .replace(MATH_ALNUM, (c) => c.normalize("NFKC"))
+    .replace(FULLWIDTH, (c) => c.normalize("NFKC"))
+    .replace(/(?![™ℹ])[\p{Extended_Pictographic}\u{FE0F}\u{200D}\u{20E3}]/gu, "")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -150,8 +164,9 @@ export function parseWelcome(caption: string): Welcome | null {
   if (!m || NOT_NAME.has(m[2])) return null;
   let epithet = m[1].trim();
   if (/[,，、]|\s(와|과|및)\s|선수/.test(epithet)) return null;
-  const no = /No\.?\s*(\d{1,2})/i.exec(epithet);
-  epithet = epithet.replace(/No\.?\s*\d{1,2}/i, "").trim();
+  // 등번호: 'No.10' 'No 10' '№10'
+  const no = /(?:No\.?|№)\s*(\d{1,2})/i.exec(epithet);
+  epithet = epithet.replace(/(?:No\.?|№)\s*\d{1,2}/i, "").trim();
   const words = epithet.split(/\s+/).filter(Boolean);
   if (words.filter((w) => positionOf(w)).length > 1) return null;
   // 포지션은 이름 바로 앞 낱말만 ("지치지 않는 피보 박재희")
@@ -293,7 +308,8 @@ export function competitionOf(heading: string, date: string): { competition: str
   if (/FK\s*CUP/i.test(heading)) return { competition: `${year} FK CUP`, round: r };
   if (/FA\s*컵/i.test(heading)) return { competition: `${year} FA컵`, round: r };
   if (/PLAY\s*OFF|플레이오프/i.test(heading)) return { competition: `${season} 승강 플레이오프`, round: "" };
-  if (round) return { competition: `${season} ${LEAGUE_COMPETITION.split(" ").slice(1).join(" ")}`, round: r };
+  // 리그 라운드: 지금 시즌이면 공식 대회명 그대로, 다른 시즌이면 후원사 없이 '{시즌} FK리그1'
+  if (round) return { competition: LEAGUE_COMPETITION.includes(` ${season} `) || LEAGUE_COMPETITION.startsWith(`${season} `) ? LEAGUE_COMPETITION : `${season} FK리그1`, round: r };
   return { competition: cut(heading || "경기", 60), round: "" };
 }
 

@@ -1,0 +1,48 @@
+/* 404 본문 — 가운데, 위아래 section-gap. 404 kfa/poster 96 blue, 제목 kfa/pc/h2 32(휴대폰 24), 안내 kfa/body-s text-sub, 버튼 사이 space/xs */
+.wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-m);
+  padding-top: var(--section-gap);
+  text-align: center;
+}
+
+.code {
+  font-size: 96px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--c-blue);
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.desc {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--c-text-sub);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-xs);
+  margin-top: var(--space-xs);
+}
+
+@media (max-width: 720px) {
+  .code {
+    font-size: 64px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+}

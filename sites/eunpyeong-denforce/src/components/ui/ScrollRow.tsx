@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState, type HTMLAttributes } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type FocusEvent, type HTMLAttributes } from "react";
 import { edgeFades, revealScrollLeft } from "@/lib/scroll-row";
 import styles from "./ScrollRow.module.css";
 
-/** 양 끝 흐림 폭 — ScrollRow.module.css 의 --fade 와 같게 */
+/** 양 끝 흐림 폭 기본값 — ScrollRow.module.css 의 --fade 와 같게 (fade prop 으로 바꾸면 style 로 --fade 를 덮는다) */
 const FADE_PX = 32;
 
-/** 고른 탭 — 메뉴 링크(aria-current) 또는 탭 버튼(aria-selected) */
-const ACTIVE_SELECTOR = '[aria-current="page"], [aria-selected="true"]';
+/** 고른 탭 — 메뉴 링크(aria-current), 탭 버튼(aria-selected) 또는 토글 버튼(aria-pressed, 포스팅 분류) */
+const ACTIVE_SELECTOR = '[aria-current="page"], [aria-selected="true"], [aria-pressed="true"]';
 
 /**
  * 가로로 넘치는 탭 줄 — 휴대폰에서 고른 탭이 화면 밖에 있으면 처음 열 때 옆으로만 옮겨 보이게 하고
@@ -17,10 +17,16 @@ const ACTIVE_SELECTOR = '[aria-current="page"], [aria-selected="true"]';
  */
 export function ScrollRow({
   activeKey,
+  fade = FADE_PX,
   className,
   children,
+  style,
   ...rest
-}: HTMLAttributes<HTMLDivElement> & { activeKey?: string }) {
+}: HTMLAttributes<HTMLDivElement> & {
+  activeKey?: string;
+  /** 끝 흐림 폭(px) — 가려진 탭이 흐림 안에 충분히 들어오게 줄마다 넓힐 수 있다 (포스팅 분류 64) */
+  fade?: number;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const [fadeStart, setFadeStart] = useState(false);
   const [fadeEnd, setFadeEnd] = useState(false);
@@ -59,7 +65,7 @@ export function ScrollRow({
       scrollLeft: el.scrollLeft,
       clientWidth: el.clientWidth,
       scrollWidth: el.scrollWidth,
-      margin: FADE_PX,
+      margin: fade,
     });
     if (left !== el.scrollLeft) {
       // 처음 열 때는 바로, 탭을 눌러 바뀔 때는 부드럽게 (움직임 줄이기 설정이면 바로)
@@ -67,13 +73,29 @@ export function ScrollRow({
       el.scrollTo({ left, behavior: smooth ? "smooth" : "instant" });
     }
     moved.current = true;
-  }, [activeKey]);
+  }, [activeKey, fade]);
+
+  // 키보드로 줄 안의 탭에 초점이 오면 그 탭이 다 보이게 옆으로만 옮긴다 (화면 밖에 반쯤 걸리지 않게).
+  // 마우스/터치로 누를 때 생긴 초점에는 옮기지 않는다 — 누르는 사이 줄이 움직이면 click 이 빗나간다
+  const onFocus = (e: FocusEvent<HTMLDivElement>) => {
+    rest.onFocus?.(e);
+    const el = ref.current;
+    const item = e.target instanceof HTMLElement ? e.target : null;
+    if (!el || !item || item === el || !item.matches(":focus-visible")) return;
+    const row = el.getBoundingClientRect();
+    const tab = item.getBoundingClientRect();
+    const start = tab.left - row.left + el.scrollLeft;
+    const left = revealScrollLeft({ start, end: start + tab.width, scrollLeft: el.scrollLeft, clientWidth: el.clientWidth, scrollWidth: el.scrollWidth, margin: fade });
+    if (left !== el.scrollLeft) el.scrollTo({ left, behavior: "instant" });
+  };
 
   return (
     <div
       ref={ref}
       className={`${className ?? ""} ${fadeStart ? styles.fadeStart : ""} ${fadeEnd ? styles.fadeEnd : ""}`}
+      style={fade === FADE_PX ? style : ({ ...style, "--fade": `${fade}px` } as CSSProperties)}
       {...rest}
+      onFocus={onFocus}
     >
       {children}
     </div>

@@ -1,0 +1,235 @@
+/* 경기 작은 부품 (리디자인 D-067) — TeamCrest, HomeAwayBadge, CompetitionTag, ResultBadge. 놓인 면(surface)에 따라 색이 바뀐다 */
+
+/* ── TeamCrest (피그마 MatchEmblem 190:734, 부품 지도 표): 원 받침 없음. --crest 는 높이, 가로는 원본 비율 ──
+   크기마다 대체 방패의 선 굵기와 글자 스타일이 바뀐다 (64 이상 선 2px, 그 밑 1.5px) */
+.crest {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--crest);
+}
+
+.crestImg {
+  display: block;
+  width: auto;
+  height: 100%;
+}
+
+/* 우리 팀: emblem.png 흰 바탕 사각형이 검정 면에서 테두리가 보이게 바깥선 on-dark 1px (흰 면 표는 --crest-line 으로 line).
+   원본의 'SINCE 2012' 줄과 모서리 틈은 투명이라, 흰 바탕을 깔아 파랑/검정 면 위에서도 흰 사각형으로 보이게 한다 (공식 원본 파일은 그대로) */
+.crestUs .crestImg {
+  background: var(--c-bg);
+  outline: 1px solid var(--crest-line, var(--c-on-dark));
+}
+
+/* 대체 방패 폭 = 높이 x 0.84 (81:96). 글자는 방패 위쪽 무게중심(96 기준 글자 가운데 40/96)에.
+   선과 글자 색은 놓인 면의 글자색(검정 면 on-dark, 흰 면 text) */
+.crestFallback {
+  aspect-ratio: 81 / 96;
+  padding-bottom: calc(var(--crest) * 0.16);
+  color: inherit;
+}
+
+.shield {
+  position: absolute;
+  inset: calc(var(--crest-stroke) / 2);
+  width: calc(100% - var(--crest-stroke));
+  height: calc(100% - var(--crest-stroke));
+}
+
+.shield path {
+  stroke-width: var(--crest-stroke);
+}
+
+.crestText {
+  position: relative;
+  font-size: var(--crest-fs);
+  font-weight: var(--crest-fw);
+  line-height: var(--crest-lh);
+  letter-spacing: var(--crest-ls);
+  white-space: nowrap;
+}
+
+/* 글자: 96, 88 kfa/pc/h3 / 64 kfa/m/h4 / 56, 40 kfa/label / 32 kfa/caption */
+.crest96,
+.crest88 {
+  --crest-stroke: 2px;
+  --crest-fs: 24px;
+  --crest-fw: 700;
+  --crest-lh: 1.2;
+  --crest-ls: -0.02em;
+}
+
+.crest96 {
+  --crest: 96px;
+}
+
+.crest88 {
+  --crest: 88px;
+}
+
+.crest64 {
+  --crest: 64px;
+  --crest-stroke: 2px;
+  --crest-fs: 16px;
+  --crest-fw: 700;
+  --crest-lh: 1.2;
+  --crest-ls: -0.02em;
+}
+
+.crest56,
+.crest40 {
+  --crest-stroke: 1.5px;
+  --crest-fs: 12px;
+  --crest-fw: 700;
+  --crest-lh: 1.2;
+  --crest-ls: 0.08em;
+}
+
+.crest56 {
+  --crest: 56px;
+}
+
+.crest40 {
+  --crest: 40px;
+}
+
+/* 표(경기일정/결과, 순위) 24 — MatchEmblem 24 (a17af68): 흰 바탕 표 전용. 대체 방패 선 1px text-sub + 글자 1자 kfa/10 Bold text, 우리 팀 바깥선 line(--crest-line) */
+.crest24 {
+  --crest: 24px;
+  --crest-stroke: 1px;
+  --crest-fs: 10px;
+  --crest-fw: 700;
+  --crest-lh: 1.2;
+  --crest-ls: 0;
+}
+
+.crest24.crestFallback {
+  color: var(--c-text);
+}
+
+.crest24 .shield {
+  color: var(--c-text-sub);
+}
+
+.crest32 {
+  --crest: 32px;
+  --crest-stroke: 1.5px;
+  --crest-fs: 12px;
+  --crest-fw: 400;
+  --crest-lh: 1.6;
+  --crest-ls: 0;
+}
+
+/* 휴대폰(720 이하)에서 다른 크기 — 위 크기 단계를 덮는다 */
+@media (max-width: 720px) {
+  .m64 {
+    --crest: 64px;
+    --crest-stroke: 2px;
+    --crest-fs: 16px;
+    --crest-fw: 700;
+    --crest-lh: 1.2;
+    --crest-ls: -0.02em;
+  }
+
+  .m40 {
+    --crest: 40px;
+    --crest-stroke: 1.5px;
+    --crest-fs: 12px;
+    --crest-fw: 700;
+    --crest-lh: 1.2;
+    --crest-ls: 0.08em;
+  }
+
+  .m32 {
+    --crest: 32px;
+    --crest-stroke: 1.5px;
+    --crest-fs: 12px;
+    --crest-fw: 400;
+    --crest-lh: 1.6;
+    --crest-ls: 0;
+  }
+}
+
+/* ── HomeAwayBadge (HOME 만): kfa/label, radius/s, 패딩 2xs/xs ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-2xs) var(--space-xs);
+  border: 1px solid transparent;
+  border-radius: var(--radius-s);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+}
+
+.badgeLight {
+  border-color: var(--c-blue);
+  color: var(--c-blue);
+}
+
+.badgeTint {
+  background: var(--c-blue);
+  color: var(--c-on-dark);
+}
+
+.badgeDark {
+  border-color: var(--c-on-dark);
+  color: var(--c-on-dark);
+}
+
+.badgeBlue {
+  border-color: var(--c-on-blue);
+  color: var(--c-on-blue);
+}
+
+/* ── CompetitionTag: kfa/caption 글자만 ── */
+.tag {
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.tagLight {
+  color: var(--c-text-sub);
+}
+
+.tagTint {
+  color: var(--c-text);
+}
+
+.tagDark {
+  color: var(--c-on-dark-sub);
+}
+
+.tagBlue {
+  color: var(--c-on-blue);
+}
+
+/* ── ResultBadge(badge): kfa/badge 20, 흰 글자 + D-013 결과색 ── */
+.result {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2xs) var(--space-xs);
+  border-radius: var(--radius-s);
+  color: var(--c-on-dark);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.W {
+  background: var(--c-win);
+}
+
+.D {
+  background: var(--c-draw);
+}
+
+.L {
+  background: var(--c-loss);
+}

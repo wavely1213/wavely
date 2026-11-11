@@ -12,7 +12,7 @@ const LOGO_SIZE: Record<SponsorTier, { width: number; height: number }> = {
 
 /**
  * /sponsors 한 등급의 스폰서 카드 격자 — 받은 순서(관리자 표시 순서) 그대로.
- * 높은 등급일수록 로고가 크다. 네이밍 스폰서는 한 곳이면 한 줄 전체. 로고 아래 작은 글씨로 이름.
+ * 4열 격자(휴대폰 2열), 네이밍 스폰서는 두 칸 폭. 높은 등급일수록 로고가 크다. 로고 아래 작은 글씨로 이름(링크면 ↗).
  */
 export function SponsorStrip({ tier, sponsors }: { tier: SponsorTier; sponsors: Sponsor[] }) {
   const size = LOGO_SIZE[tier];
@@ -25,6 +25,7 @@ export function SponsorStrip({ tier, sponsors }: { tier: SponsorTier; sponsors: 
             {/* 이름은 로고 대체 글(alt)과 같아 스크린리더에는 한 번만 */}
             <span className={styles.caption} aria-hidden="true">
               {s.name}
+              {s.url && " ↗"}
             </span>
           </>
         ) : (

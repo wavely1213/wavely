@@ -14,6 +14,9 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   images: {
+    // 원본 그대로 보낸다(/_next/image 안 씀) — Vercel 무료 요금제 이미지 최적화 한도를 넘어 운영에서 402
+    // (OPTIMIZED_IMAGE_REQUEST_PAYMENT_REQUIRED)로 사진이 깨졌다. 원본은 모두 1MB 미만. 결제하면 되돌릴 수 있다 (D-073)
+    unoptimized: true,
     remotePatterns: storagePattern ? [storagePattern] : [],
     dangerouslyAllowLocalIP: isLocalSupabase,
   },

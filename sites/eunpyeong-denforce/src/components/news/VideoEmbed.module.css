@@ -39,12 +39,16 @@
 }
 
 .caption {
-  margin-top: 10px;
+  margin-top: var(--space-2xs);
   font-size: 13px;
   text-align: center;
 }
 
+/* 누르는 영역 높이 44 (검토 #24) */
 .caption a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   color: var(--c-text-sub);
   text-decoration: underline;
   text-underline-offset: 3px;

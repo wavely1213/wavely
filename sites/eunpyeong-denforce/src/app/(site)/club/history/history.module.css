@@ -1,0 +1,69 @@
+/* 연혁 — 성과 띠(AchievementStrip 146:737): black, radius/l, 칸 사이 line-on-dark, 라벨 kfa/label yellow + 값 kfa/pc/h2 32 on-dark, 가운데 */
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xl);
+  /* 아래 여백은 Footer margin-top(section-gap) 한 번만 (검토 #27) */
+  padding-bottom: 0;
+}
+
+.strip {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  padding: var(--space-xl) var(--space-l);
+  border-radius: var(--radius-l);
+  background: var(--c-black);
+  color: var(--c-on-dark);
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: 0 var(--space-m);
+  text-align: center;
+}
+
+.item + .item {
+  border-left: 1px solid var(--c-line-on-dark);
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  color: var(--c-yellow);
+  word-break: keep-all;
+}
+
+/* dd 기본 margin-inline-start 40 을 없애 라벨과 같은 세로선 (재검증 #9) */
+.value {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+@media (max-width: 720px) {
+  .strip {
+    grid-auto-flow: row;
+    padding: var(--space-xs) var(--space-l);
+  }
+
+  .item {
+    padding: var(--space-m) 0;
+  }
+
+  .item + .item {
+    border-left: 0;
+    border-top: 1px solid var(--c-line-on-dark);
+  }
+
+  .value {
+    font-size: 24px;
+  }
+}

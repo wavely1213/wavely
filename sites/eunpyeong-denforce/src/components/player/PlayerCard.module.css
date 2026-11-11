@@ -34,6 +34,7 @@
   display: flex;
   align-items: baseline;
   gap: 8px;
+  min-width: 0;
 }
 
 .number {
@@ -42,9 +43,13 @@
   color: var(--c-blue);
 }
 
+/* 긴 이름은 카드 폭 안에서 줄바꿈 (디자인 UX 상태 표 209:2827) */
 .name {
+  min-width: 0;
   font-size: 17px;
   font-weight: 700;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 .card:hover .name {
@@ -52,14 +57,14 @@
   text-underline-offset: 3px;
 }
 
-/* 사진이 없는 스태프 카드 — 선수 프로필 사진과 같은 파란 톤 */
+/* 사진이 없는 스태프 카드 — black-soft + 엠블럼 (리디자인 3차 StaffCard 145:881, [변경 D-016] 파랑 그라데이션 → black-soft) */
 .brand {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(160deg, var(--c-blue) 0%, var(--c-blue-hover) 100%);
+  background: var(--c-black-soft);
 }
 
 /* 링크가 아닌 카드(코칭스태프)는 hover 밑줄 없음 */
@@ -69,6 +74,14 @@
 
 .position {
   font-size: 13px;
+  color: var(--c-text-sub);
+}
+
+/* 출전 줄 (구분안 2) — kfa/caption text-sub, 기록 없는 선수도 같은 높이 */
+.apps {
+  margin-top: var(--space-2xs);
+  font-size: 12px;
+  line-height: 1.6;
   color: var(--c-text-sub);
 }
 

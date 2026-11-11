@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SponsorStrip } from "@/components/home/SponsorStrip";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Placeholder } from "@/components/ui/Placeholder";
 import { LEAGUE } from "@/config/league";
 import { SPONSOR_TIER_LABEL } from "@/data/sponsors";
 import { SPONSOR_TOPIC, mailDraftHref, snsHandle, topicSubject } from "@/lib/contact";
@@ -27,6 +28,8 @@ export default async function SponsorsPage() {
       <PageHeader title="스폰서" current="/sponsors" />
       <div className={`container ${styles.body}`}>
         {/* 등급별로 나눠 높은 등급부터 (스폰서가 있는 등급만), 같은 등급 안은 관리자 표시 순서 */}
+        {/* 스폰서가 없으면 안내, 스폰서십 문의 상자는 그대로 (디자인 UX 상태 표 208:22217) */}
+        {sponsors.length === 0 && <Placeholder label="등록된 스폰서가 없습니다." />}
         {groupSponsorsByTier(sponsors).map(({ tier, items }) => (
           <section key={tier}>
             <h2 className={styles.h2}>{SPONSOR_TIER_LABEL[tier]}</h2>

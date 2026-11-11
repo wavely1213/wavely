@@ -1,0 +1,109 @@
+/* 리그순위 표 (리디자인 2차 시안, 피그마 132:1618 / 132:1914).
+   머리: 위 text 2px, 아래 text 1px, kfa/caption text-sub, 위아래 space/s. 행: 위아래 space/m, 아래 line, kfa/body-s text.
+   칸 폭: 순위 64 / 팀명 나머지(엠블럼 24 + 사이 space/xs) / 숫자 80 x 8 */
+.wrap {
+  overflow-x: auto;
+}
+
+.wrap:focus-visible {
+  outline: 2px solid var(--c-blue);
+  outline-offset: 2px;
+}
+
+.table {
+  --crest-line: var(--c-line);
+  width: 100%;
+  min-width: 760px;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+  font-size: 14px;
+  line-height: 1.6;
+  font-variant-numeric: tabular-nums;
+}
+
+.table th,
+.table td {
+  padding: var(--space-m) 0;
+  border-bottom: 1px solid var(--c-line);
+  background: var(--c-bg);
+  text-align: center;
+  font-weight: 400;
+  color: var(--c-text);
+}
+
+.table thead th {
+  padding: var(--space-s) 0;
+  border-top: 2px solid var(--c-text);
+  border-bottom-color: var(--c-text);
+  font-size: 12px;
+  color: var(--c-text-sub);
+}
+
+.table thead th:not(.rank):not(.team) {
+  width: 80px;
+}
+
+.rank {
+  width: 64px;
+}
+
+.table .team {
+  text-align: left;
+}
+
+.teamInner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+/* 팀 이름은 낱말 경계에서만 (TeamName <wbr>) */
+.teamName {
+  min-width: 0;
+  word-break: keep-all;
+}
+
+/* 우리 팀 행 — blue-tint 바탕, 글자는 text 그대로 */
+.us th,
+.us td {
+  background: var(--c-blue-tint);
+}
+
+/* 태블릿(1080 이하): 숫자 칸 56, 최소 폭 없음 — 팀 칸이 줄지 않게 (검토 #21) */
+@media (max-width: 1080px) {
+  .table {
+    min-width: 0;
+  }
+
+  .table thead th:not(.rank):not(.team) {
+    width: 56px;
+  }
+}
+
+/* 휴대폰: 순위 36 + 팀명 132 고정, 숫자 52 가로 스크롤 */
+@media (max-width: 720px) {
+  .table {
+    min-width: 0;
+    width: max-content;
+  }
+
+  .table thead th:not(.rank):not(.team) {
+    width: 52px;
+  }
+
+  .rank {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    width: 36px;
+  }
+
+  .table .team {
+    position: sticky;
+    left: 36px;
+    z-index: 1;
+    width: 132px;
+    padding-right: var(--space-xs);
+  }
+}

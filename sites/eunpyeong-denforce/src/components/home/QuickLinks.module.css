@@ -1,66 +1,57 @@
+/* 메인 바로가기 (리디자인 D-067) — 글 타일: bg-soft, radius/m, 패딩 space/m, 폭 180 · 최소 높이 88, 사이 space/l. 한 줄 6칸 (휴대폰 2열) */
 .list {
   display: grid;
-  /* 칸 수는 카드 수에 맞춘다 (QuickLinks --cols, 최대 5) */
-  grid-template-columns: repeat(var(--cols, 5), minmax(0, 1fr));
-  border-top: 2px solid var(--c-black);
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--space-l);
 }
 
 .item {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  padding: 22px 4px;
-  border-bottom: 1px solid var(--c-line);
+  flex-direction: column;
+  gap: var(--space-2xs);
+  min-height: 88px;
+  height: 100%;
+  padding: var(--space-m);
+  border-radius: var(--radius-m);
+  background: var(--c-bg-soft);
 }
 
+/* kfa/m/h4 16 */
 .item strong {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 
+/* kfa/caption text-sub */
 .item span {
-  font-size: 13px;
+  font-size: 12px;
+  line-height: 1.6;
   color: var(--c-text-sub);
-}
-
-.item::after {
-  content: "→";
-  color: var(--c-text-sub);
-  transition: transform 0.15s ease, color 0.15s ease;
-}
-
-.item:hover::after {
-  color: var(--c-blue);
-  transform: translateX(3px);
 }
 
 .item:hover strong {
-  color: var(--c-blue);
-}
-
-/* 같은 줄 두 번째 카드부터 */
-.divided {
-  padding-left: 20px;
-  border-left: 1px solid var(--c-line);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .text {
   display: flex;
   flex-direction: column;
+  gap: var(--space-2xs);
 }
 
 @media (max-width: 960px) {
   .list {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+}
 
-  .divided {
-    padding-left: 4px;
-    border-left: 0;
-  }
-
-  .item {
-    padding: 16px 4px;
+@media (max-width: 720px) {
+  .list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    /* 피그마 휴대폰 타일 사이 8 (G11) */
+    gap: var(--space-xs);
   }
 }

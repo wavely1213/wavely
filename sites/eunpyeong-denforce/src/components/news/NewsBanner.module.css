@@ -1,10 +1,11 @@
-/* 구단소식 메인 배너 — 어두운 판 위 큰 사진 + 글 (D-035) */
+/* 구단소식 메인 배너 (리디자인 3차 NewsBanner 145:782) — black-soft, radius/l, PC 높이 450.
+   PC: 글 칸 400(패딩 space/xl, 위 제목 묶음 / 아래 넘김) + 사진(FitImage 16:9). 휴대폰: 사진 위(16:9) + 글(패딩 space/m) */
 .banner {
   position: relative;
-  margin-bottom: 40px;
-  border-radius: var(--radius-m);
+  margin-bottom: var(--space-2xl);
+  border-radius: var(--radius-l);
   overflow: hidden;
-  background: var(--c-black);
+  background: var(--c-black-soft);
   color: var(--c-on-dark);
 }
 
@@ -23,9 +24,10 @@
 }
 
 .link {
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
-  min-height: 380px;
+  grid-template-columns: 400px minmax(0, 1fr);
+  height: 450px;
 }
 
 .media {
@@ -33,28 +35,58 @@
   background: var(--c-black-soft);
 }
 
+/* 제목 묶음 — 사이 space/xs. 여러 장이면 아래 넘김 자리(44 + space/l)를 비운다 */
 .text {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 12px;
-  padding: 40px 40px 72px;
+  gap: var(--space-xs);
+  min-width: 0;
+  padding: var(--space-xl);
 }
 
+.multi .text {
+  padding-bottom: calc(var(--space-xl) + 44px + var(--space-l));
+}
+
+/* kfa/label yellow */
 .category {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
   color: var(--c-yellow);
 }
 
+/* kfa/pc/h2 32 (휴대폰 kfa/m/h3 20), 4줄까지 */
 .title {
-  font-size: clamp(22px, 2.4vw, 30px);
-  font-weight: 700;
-  line-height: 1.35;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* kfa/body-s on-dark-sub, 2줄까지 */
+.summary {
+  display: -webkit-box;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--c-on-dark-sub);
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* kfa/caption on-dark-sub */
+.date {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--c-on-dark-sub);
 }
 
 .link:hover .title {
@@ -62,40 +94,55 @@
   text-underline-offset: 4px;
 }
 
-.summary {
-  font-size: 15px;
-  line-height: 1.6;
-  color: var(--c-on-dark-sub);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+/* 초점 링 (I-047) — 배너가 overflow: hidden 이고 사진(absolute)이 링을 가려서 위 오버레이(::after)에 안쪽 링.
+   바깥 흰 페이지와도 구분되게 안쪽 2px black + 그 안 2px on-dark. 투명 outline 은 강제 색 모드용 */
+.link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: var(--radius-l);
+  pointer-events: none;
 }
 
-.date {
-  font-size: 13px;
-  color: var(--c-on-dark-sub);
+.banner .link:focus-visible {
+  outline: 2px solid transparent;
+  outline-offset: -2px;
 }
 
-/* 글 칸 아래쪽에 이전·점·다음·멈춤 */
+.banner .link:focus-visible::after {
+  box-shadow:
+    inset 0 0 0 2px var(--c-black),
+    inset 0 0 0 4px var(--c-on-dark);
+}
+
+/* 넘김 — 글 칸 아래(PC 왼쪽 아래), 사이 space/s: 이전 / 다음 / 점 / '1 / 5' / 멈춤 */
 .controls {
   position: absolute;
-  right: 28px;
-  bottom: 22px;
+  left: var(--space-xl);
+  bottom: var(--space-xl);
+  z-index: 3;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-s);
 }
 
+/* 44 원, line-on-dark 테두리, 글자 kfa/pc/h4 18 */
 .arrow {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border: 1px solid color-mix(in srgb, var(--c-on-dark) 35%, transparent);
-  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--c-line-on-dark);
+  border-radius: var(--radius-pill);
   background: transparent;
   color: var(--c-on-dark);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
   cursor: pointer;
 }
 
@@ -103,51 +150,74 @@
   border-color: var(--c-on-dark);
 }
 
+.arrow[aria-pressed="true"] {
+  border-color: var(--c-on-dark);
+}
+
+/* 점 8 (현재 24 on-dark), 사이 space/xs — 보기용 */
 .dots {
   display: flex;
-  gap: 6px;
-  padding: 0 4px;
+  align-items: center;
+  gap: var(--space-xs);
 }
 
 .dot {
   width: 8px;
   height: 8px;
-  padding: 0;
-  border: 0;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--c-on-dark) 40%, transparent);
-  cursor: pointer;
+  border-radius: var(--radius-pill);
+  background: var(--c-on-dark-sub);
   transition: width 0.2s ease;
 }
 
 .dotActive {
-  width: 22px;
-  background: var(--c-yellow);
+  width: 24px;
+  background: var(--c-on-dark);
+}
+
+/* kfa/label on-dark-sub */
+.counter {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  color: var(--c-on-dark-sub);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .track {
+  .track,
+  .dot {
     transition: none;
   }
 }
 
 @media (max-width: 900px) {
   .link {
-    grid-template-columns: minmax(0, 1fr);
-    min-height: 0;
+    display: flex;
+    flex-direction: column-reverse;
+    height: auto;
   }
 
   .media {
-    aspect-ratio: 16 / 10;
+    aspect-ratio: 16 / 9;
   }
 
   .text {
-    padding: 22px 20px 70px;
+    padding: var(--space-m);
+  }
+
+  .multi .text {
+    padding-bottom: calc(var(--space-m) + 44px + var(--space-m));
+  }
+
+  .title {
+    font-size: 20px;
   }
 
   .controls {
-    left: 20px;
-    right: auto;
-    bottom: 18px;
+    left: var(--space-m);
+    bottom: var(--space-m);
+    gap: var(--space-xs);
   }
 }

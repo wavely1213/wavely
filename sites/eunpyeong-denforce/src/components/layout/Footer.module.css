@@ -1,45 +1,50 @@
+/* 푸터 (리디자인 D-067) — 왼쪽 구단 정보(관리자 '푸터 정보 줄' 그대로, BR-028), 오른쪽 사이트맵 6칸, 아래 저작권/사업자 정보/관리자 */
 .footer {
   margin-top: var(--section-gap);
+  padding: var(--section-gap) 0;
   background: var(--c-black);
   color: var(--c-on-dark-sub);
-  font-size: 14px;
+  font-size: 12px;
+  line-height: 1.6;
 }
 
 .inner {
   display: flex;
-  justify-content: space-between;
-  gap: 32px;
-  flex-wrap: wrap;
-  padding-top: 48px;
-  padding-bottom: 36px;
+  align-items: flex-start;
+  gap: var(--space-2xl);
+  padding-bottom: var(--space-xl);
 }
 
 .about {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-xs);
+  flex: none;
+  width: 360px;
 }
 
+/* kfa/pc/h3 24 */
 .name {
   color: var(--c-on-dark);
-  font-size: 20px;
-  margin-bottom: 6px;
+  font-size: 24px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+/* 정보 줄 — 묶음('**이름표** 값')마다 한 줄, 이름표 on-dark + 값 on-dark-sub */
+.about p {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.group {
+  display: block;
 }
 
 .label {
-  margin-right: 8px;
+  margin-right: var(--space-xs);
   color: var(--c-on-dark);
-  font-weight: 700;
-}
-
-/* 한 줄에 여러 정보 — 넘치면 묶음 단위로 다음 줄로 */
-.group {
-  display: inline-block;
-}
-
-/* '단장' 과 '문의' 사이 — 점 없이 간격만 (소유자 지시, 줄이 바뀌면 줄 끝 여백이라 안 보인다) */
-.group:not(:last-child) {
-  margin-right: 14px;
 }
 
 .nowrap {
@@ -48,49 +53,156 @@
 
 .about a:hover,
 .links a:hover,
-.sns a:hover {
+.sns a:hover,
+.legal a:hover {
   color: var(--c-on-dark);
 }
 
 .sns {
   display: flex;
-  gap: 16px;
-  margin-top: 10px;
+  gap: var(--space-m);
 }
 
+/* 사이트맵 6칸 */
 .links {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--space-l);
+}
+
+.col {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px 24px;
-  align-content: flex-start;
+  flex-direction: column;
+  gap: var(--space-xs);
+  min-width: 0;
+}
+
+/* kfa/m/h4 16 */
+.colTitle {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
   color: var(--c-on-dark);
 }
 
+.colList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+/* 맨 아래 줄 — 위 구분선(line-on-dark)은 container 안쪽 폭만 */
 .copy {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: var(--space-s);
   flex-wrap: wrap;
-  padding-top: 18px;
-  padding-bottom: 28px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  font-size: 12px;
+  padding-top: var(--space-l);
+  border-top: 1px solid var(--c-line-on-dark);
 }
 
 .legal {
   display: flex;
   align-items: center;
-  gap: 16px;
+  flex-wrap: wrap;
+  gap: var(--space-2xs) var(--space-m);
+}
+
+.legal > span {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs) var(--space-m);
+}
+
+.legalGroup {
+  white-space: nowrap;
+}
+
+.legalLabel {
+  margin-right: var(--space-2xs);
+  color: var(--c-on-dark);
 }
 
 /* 관리자 대시보드 이동 — 눈에 띄지 않게 작은 테두리 버튼 */
 .admin {
-  padding: 1px 8px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  padding: var(--space-2xs) var(--space-xs);
+  border: 1px solid var(--c-line-on-dark);
   border-radius: var(--radius-s);
-  line-height: 1.6;
 }
 
-.legal a:hover {
-  color: var(--c-on-dark);
+@media (max-width: 960px) {
+  .inner {
+    flex-direction: column;
+    gap: var(--space-l);
+  }
+
+  .about {
+    width: 100%;
+  }
+
+  /* kfa/m/h3 20 */
+  .name {
+    font-size: 20px;
+  }
+
+  .links {
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .copy {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* 휴대폰: 링크 누르는 영역 높이 44 — 세로 간격은 그 높이로 대신한다 (검토 #24) */
+@media (max-width: 720px) {
+  /* 문단 안 메일/전화 링크는 inline 그대로(줄 간격 고르게) — 누름 영역만 위아래로 넓힌다 (재검증 #4) */
+  .about p a {
+    position: relative;
+  }
+
+  /* 글자 높이(12)와 상관없이 가운데 기준 높이 44 */
+  .about p a::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 0;
+    left: 0;
+    height: 44px;
+    transform: translateY(-50%);
+  }
+
+  /* inline-flex 는 글자와 '↗' 사이 공백 노드를 버리므로 column-gap 으로 띄운다 (재검증 #3).
+     위 문단 링크의 넓힌 누름 영역(::after)이 덮지 않게 위로 올린다 (재검증 2차 #4) */
+  .sns a {
+    position: relative;
+    z-index: 1;
+    column-gap: var(--space-2xs);
+  }
+
+  /* 문단과 SNS 줄 사이 16 (about gap 8 + 8) */
+  .sns {
+    margin-top: var(--space-xs);
+  }
+
+  .sns a,
+  .colTitle,
+  .colList a,
+  .admin {
+    display: inline-flex;
+    align-items: center;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .col,
+  .colList {
+    gap: 0;
+  }
 }

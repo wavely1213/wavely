@@ -13,15 +13,31 @@ export function byRank(a: Rankable, b: Rankable): number {
   );
 }
 
-/** 시즌(대회명) → 주소용 이름: "2025-26 FK1리그" → "2025-26-fk1". 영문·숫자로 못 바꾸면 그대로 인코딩 */
+/** 리그 부: "2025-26 FK1리그" 와 "키움증권 2026-27 FK리그1" 모두 1. 리그 부 표기가 없으면 null */
+export function leagueDivision(competition: string): number | null {
+  const m = /(?:^|\s)FK(?:(\d)리그|리그(\d))(?:\s|$)/.exec(competition.trim());
+  return m ? Number(m[1] ?? m[2]) : null;
+}
+
+/**
+ * 시즌(대회명) → 주소용 이름. 시즌 연도와 리그 부가 있으면 "{연도}-fk{부}" — "2025-26 FK1리그" 와
+ * "키움증권 2026-27 FK리그1" 은 "2025-26-fk1", "2026-27-fk1" (후원사 이름은 주소에 넣지 않는다).
+ * 그 밖에는 띄어쓰기를 '-' 로, 영문/숫자로 못 바꾸면 그대로 인코딩
+ */
 export function seasonSlug(season: string): string {
+  const year = seasonYear(season);
+  const division = leagueDivision(season);
+  if (year && division) return `${year}-fk${division}`;
   const s = season.trim().replace(/리그$/, "").replace(/\s+/g, "-").toLowerCase();
   return /^[a-z0-9-]+$/.test(s) ? s : encodeURIComponent(season.trim());
 }
 
-/** 대회명 앞의 시즌 연도: "2025-26 승강 플레이오프" → "2025-26". 연도 범위가 없으면(예: "2026 FK CUP") null */
+/**
+ * 대회명 안의 시즌 연도: "2025-26 승강 플레이오프" → "2025-26", "키움증권 2026-27 FK리그1" → "2026-27"
+ * (앞에 후원사 이름이 붙어도 된다). 연도 범위가 없으면(예: "2026 FK CUP") null
+ */
 export function seasonYear(competition: string): string | null {
-  return competition.match(/^(\d{4}-\d{2})(?:\s|$)/)?.[1] ?? null;
+  return competition.match(/(?:^|\s)(\d{4}-\d{2})(?:\s|$)/)?.[1] ?? null;
 }
 
 export type PastLeague = {

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MoreButton } from "@/components/ui/MoreButton";
+import { ScrollRow } from "@/components/ui/ScrollRow";
 import { POSTING_KIND_LABEL, POSTING_PLATFORM_LABEL } from "@/data/postings";
 import { countByKind, filterPostings, platformCounts, POSTING_KINDS, POSTINGS_PAGE_SIZE } from "@/lib/postings";
 import type { Posting, PostingKind, PostingPlatform } from "@/types";
@@ -19,6 +20,21 @@ export function PostingBoard({ postings, emptyText }: { postings: Posting[]; emp
   const scopedTotal = kind ? kindCounts[kind] : kindCounts.all;
   const list = filterPostings(postings, { kind, platform });
   const shown = list.slice(0, limit);
+  const grid = useRef<HTMLDivElement>(null);
+  const focusAt = useRef<number | null>(null);
+
+  // '더 보기' 뒤 새로 보인 첫 카드로 초점 — 마지막에 버튼이 사라져도 초점이 body 로 가지 않게 (검토 #15, NewsMoreGrid 와 같게)
+  useEffect(() => {
+    const i = focusAt.current;
+    if (i === null) return;
+    focusAt.current = null;
+    grid.current?.querySelectorAll<HTMLElement>(":scope > a")[i]?.focus();
+  }, [limit]);
+
+  const showMore = () => {
+    focusAt.current = limit;
+    setLimit(limit + POSTINGS_PAGE_SIZE);
+  };
 
   const pickKind = (k: PostingKind | null) => {
     setKind(k);
@@ -33,7 +49,8 @@ export function PostingBoard({ postings, emptyText }: { postings: Posting[]; emp
   return (
     <>
       <div className={styles.filters}>
-        <div className={styles.tabs} role="group" aria-label="분류">
+        {/* 휴대폰에서 넘치면 가려진 쪽 끝을 흐리게(64: 390 에서도 앞 탭 끝이 흐림에 또렷이 걸려 넘김 단서가 보이게, 재검증 2차 #1) + 누른/키보드 초점 탭이 다 보이게 */}
+        <ScrollRow className={styles.tabs} role="group" aria-label="분류" activeKey={kind ?? "all"} fade={64}>
           {[null, ...POSTING_KINDS].map((k) => (
             <button
               key={k ?? "all"}
@@ -46,7 +63,7 @@ export function PostingBoard({ postings, emptyText }: { postings: Posting[]; emp
               <span className={styles.count}>{k ? kindCounts[k] : kindCounts.all}</span>
             </button>
           ))}
-        </div>
+        </ScrollRow>
         <div className={styles.chips} role="group" aria-label="출처">
           {[{ platform: null, count: scopedTotal }, ...platforms].map((c) => (
             <button
@@ -63,7 +80,7 @@ export function PostingBoard({ postings, emptyText }: { postings: Posting[]; emp
       </div>
 
       {shown.length > 0 ? (
-        <div className={styles.grid}>
+        <div ref={grid} className={styles.grid}>
           {shown.map((p) => (
             <PostingCard key={p.id} posting={p} />
           ))}
@@ -73,7 +90,7 @@ export function PostingBoard({ postings, emptyText }: { postings: Posting[]; emp
       )}
 
       {list.length > shown.length && (
-        <MoreButton remaining={list.length - shown.length} onClick={() => setLimit((n) => n + POSTINGS_PAGE_SIZE)} />
+        <MoreButton remaining={list.length - shown.length} onClick={showMore} />
       )}
     </>
   );

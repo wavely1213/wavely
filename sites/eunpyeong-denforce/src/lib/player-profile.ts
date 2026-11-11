@@ -21,9 +21,9 @@ export function seasonLabel(startYear: number): string {
   return `${startYear}-${String((startYear + 1) % 100).padStart(2, "0")}`;
 }
 
-/** '2025-26 FK1리그' → 2025 (시즌 표기가 없으면 null) */
+/** '2025-26 FK1리그', '키움증권 2026-27 FK리그1' → 시작 연도 (시즌 표기가 없으면 null) */
 export function statsSeasonStartYear(statsSeason: string): number | null {
-  const m = /^(\d{4})-\d{2}/.exec(statsSeason);
+  const m = /(?:^|\s)(\d{4})-\d{2}(?:\s|$)/.exec(statsSeason);
   return m ? Number(m[1]) : null;
 }
 
@@ -32,17 +32,22 @@ export type PlayerJoin = { season: string; post: NewsPost };
 /**
  * 선수 이름 → 기록 시즌 뒤의 영입 소식. 없으면 null.
  * - 구단뉴스(news) 제목만 본다. 그 이름의 가장 최근 인사 소식이 영입(선수)일 때만 — 이적 소식이 더 최근이면 null
- * - 같은 이름 선수가 둘 이상이면(김대현처럼, BR-025) 누구 소식인지 몰라 null
+ * - 같은 이름 선수가 둘 이상이면(김대현, 김종호처럼, BR-025) 본문/요약에 이 선수 페이지 주소(slug)가 있는 영입 글만 본다
+ *   (관련 소식 BR-031 과 같은 규칙). slug 를 모르면 null
  * posts 는 최근 글 먼저(목록 순서).
  */
-export function findPlayerJoin(input: { name: string; sameNameCount: number; posts: NewsPost[]; statsSeason: string }): PlayerJoin | null {
-  if (input.sameNameCount !== 1) return null;
+export function findPlayerJoin(input: { name: string; slug?: string; sameNameCount: number; posts: NewsPost[]; statsSeason: string }): PlayerJoin | null {
+  if (input.sameNameCount < 1) return null;
+  const sameName = input.sameNameCount > 1;
+  if (sameName && !input.slug) return null;
   const statsYear = statsSeasonStartYear(input.statsSeason);
   if (statsYear == null) return null;
   for (const post of input.posts) {
     if (post.category !== "news") continue;
     const e = parseRosterNews(post.title);
     if (!e || e.staff || e.name !== input.name) continue;
+    // 동명이인이면 이 선수 주소가 있는 글만 이 선수 소식
+    if (sameName && !linksToPlayer([post.summary, ...post.body].join("\n"), input.slug ?? "")) continue;
     // 가장 최근 인사 소식 하나만 본다
     if (e.kind !== "join") return null;
     const year = seasonStartYear(post.date);
@@ -118,4 +123,26 @@ export function findPlayerNews(input: { name: string; slug: string; sameNameCoun
     if (linksToPlayer([post.summary, ...post.body].join("\n"), input.slug)) return true;
     return input.sameNameCount === 1 && (mentionsName(post.title, input.name) || mentionsName(post.summary, input.name));
   });
+}
+
+/**
+ * 선수 상세 머리(PlayerHero)의 기록 줄 — '12경기 / 10골'(득점 0이면 '0골' 그대로), 도움은 0보다 클 때만 '/ 2도움'.
+ * 합류 선수(기록 시즌 뒤 영입, 출전/득점 0)는 null — 대신 '합류 2026-27 시즌'.
+ */
+export function playerRecordLine(player: Pick<Player, "stats">, join: PlayerJoin | null): string | null {
+  const { apps, goals, assists } = player.stats;
+  if (join && apps === 0 && goals === 0) return null;
+  return [`${apps}경기`, `${goals}골`, ...(assists > 0 ? [`${assists}도움`] : [])].join(" / ");
+}
+
+/** 선수 목록 카드 아래 출전 줄(구분안 2, BR-025 동명이인 구분) — 출전 1경기 이상만 '2025-26 출전 9경기', 아니면 null(높이만 비움) */
+export function playerAppsLine(player: Pick<Player, "stats">, statsSeasonLabel: string): string | null {
+  return player.stats.apps > 0 ? `${statsSeasonLabel} 출전 ${player.stats.apps}경기` : null;
+}
+
+/** 목록 순서(포지션 → 번호 → 이름)에서 앞뒤 선수 — 처음/끝이면 null */
+export function playerNeighbors<T extends { slug: string }>(players: T[], slug: string): { prev: T | null; next: T | null } {
+  const i = players.findIndex((p) => p.slug === slug);
+  if (i < 0) return { prev: null, next: null };
+  return { prev: players[i - 1] ?? null, next: players[i + 1] ?? null };
 }

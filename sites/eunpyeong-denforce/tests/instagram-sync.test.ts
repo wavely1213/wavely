@@ -61,6 +61,8 @@ test("captionLines/plainText: 해시태그 줄 빼기, 꾸밈 글자/이모지 �
   assert.equal(plainText("𝑾𝑬𝑳𝑪𝑶𝑴𝑬 🤝"), "WELCOME");
   assert.equal(plainText("No.77 김영록의 추가골🔥"), "No.77 김영록의 추가골");
   assert.equal(plainText("⚽️ 김영록"), "김영록");
+  // 꾸밈 글자만 바꾸고 'ㅣ' '③' '…' ℃ 는 그대로 (I-053)
+  assert.equal(plainText("GOALㅣflex ③ … 25℃ 𝑡ℎ𝑒"), "GOALㅣflex ③ … 25℃ the");
 });
 
 test("postingDraft: 머리말 글은 둘째 줄까지, 나머지는 첫 줄", () => {
@@ -104,6 +106,24 @@ test("parseWelcome: 이름/수식어/포지션/등번호/인사말", () => {
   assert.equal(no1?.position, null);
   assert.equal(parseWelcome("𝑾𝑬𝑳𝑪𝑶𝑴𝑬\n서울은평덴포스가 거침없는 질주 강민원 선수를 영입했습니다.")?.epithet, "거침없는 질주");
   assert.equal(parseWelcome("𝑾𝑬𝑳𝑪𝑶𝑴𝑬\n서울은평덴포스가 김기범 수석코치를 영입했습니다."), null, "스태프는 읽지 않음");
+  // 등번호 표기 '№10', 전각 'No.１０' (전체 NFKC 를 좁힌 뒤에도 읽는다, 배포 전 확인)
+  for (const head of ["№10", "No.１０"]) {
+    const w = parseWelcome(`𝑾𝑬𝑳𝑪𝑶𝑴𝑬\n서울은평덴포스가 ${head} 피보 박재희 선수를 영입했습니다.`);
+    assert.equal(w?.number, 10, head);
+    assert.equal(w?.epithet, "피보", head);
+    assert.equal(w?.name, "박재희", head);
+  }
+  // 조합형(NFD) 한글 문장도 읽는다
+  const nfd = parseWelcome("서울은평덴포스가 지치지 않는 피보 박재희 선수를 영입했습니다.".normalize("NFD"));
+  assert.equal(nfd?.name, "박재희");
+  assert.equal(nfd?.epithet, "지치지 않는 피보");
+});
+
+test("plainText(edge): 전각 반각으로, NFD 한글 모음, ™ 남김, I-053 경우 그대로", () => {
+  assert.equal(plainText("FUTSAL™ 🔥"), "FUTSAL™");
+  assert.equal(plainText("No.１０ ＦＣ"), "No.10 FC");
+  assert.equal(plainText("박재희".normalize("NFD")), "박재희");
+  assert.equal(plainText("GOALㅣflex ③ … 25℃ 𝑡ℎ𝑒"), "GOALㅣflex ③ … 25℃ the");
 });
 
 test("welcomeNews: 영입 기사 (기존 기사와 같은 틀)", () => {
@@ -174,8 +194,10 @@ test("parseFarewell / planFarewell / farewellNews: 이적 선수 활동 끄기 +
 });
 
 test("competitionOf: 리그/컵/플레이오프", () => {
-  assert.deepEqual(competitionOf("15라운드", "2026-11-07"), { competition: "2026-27 FK1리그", round: "15R" });
-  assert.deepEqual(competitionOf("FK1 3R", "2026-11-07"), { competition: "2026-27 FK1리그", round: "3R" });
+  assert.deepEqual(competitionOf("15라운드", "2026-11-07"), { competition: "키움증권 2026-27 FK리그1", round: "15R" });
+  assert.deepEqual(competitionOf("FK1 3R", "2026-11-07"), { competition: "키움증권 2026-27 FK리그1", round: "3R" });
+  // 다른 시즌은 후원사 없이 (D-072)
+  assert.deepEqual(competitionOf("3라운드", "2027-11-07"), { competition: "2027-28 FK리그1", round: "3R" });
   assert.deepEqual(competitionOf("2026 FK CUP 3R", "2026-08-25"), { competition: "2026 FK CUP", round: "3R" });
   assert.deepEqual(competitionOf("PLAYOFF", "2026-04-04"), { competition: "2025-26 승강 플레이오프", round: "" });
   assert.deepEqual(competitionOf("FA컵 3라운드", "2026-08-25"), { competition: "2026 FA컵", round: "3R" });
@@ -188,7 +210,7 @@ const MATCHDAY = "🔵MATCH DAY⚪️\n\n15라운드\n🆚 서울은평덴포스
 test("planMatchday: 경기 일정 넣기 (홈 경기장 = 은평), 같은 날 같은 상대는 넣지 않음", () => {
   const p = post(MATCHDAY);
   assert.deepEqual(planMatchday(p, []), {
-    insert: { competition: "2026-27 FK1리그", round: "15R", kickoff: "2026-10-19T13:00:00+09:00", venue: "은평다목적체육관", is_home: true, opponent: "전주시민풋살구단", status: "scheduled" },
+    insert: { competition: "키움증권 2026-27 FK리그1", round: "15R", kickoff: "2026-10-19T13:00:00+09:00", venue: "은평다목적체육관", is_home: true, opponent: "전주시민풋살구단", status: "scheduled" },
     note: null,
   });
   const away = planMatchday(post(MATCHDAY.replace("은평다목적체육관", "단양국민체육센터")), []);

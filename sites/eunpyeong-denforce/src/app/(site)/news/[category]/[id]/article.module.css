@@ -1,54 +1,173 @@
-/* 구단소식 글 상세 — 제목 아래 날짜/공유, 글 끝 이전/다음 글 */
+/* 구단소식 글 상세 (리디자인 3차 151:17695 / 151:17850) — 가운데 800 칸.
+   머리: h1 kfa/pc/h1 40(휴대폰 24) + 분류(blue)/날짜/공유(오른쪽), 아래 line. 사진(크게 보기) → 본문 → 다음 글/이전 글 → 목록 */
+.article {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+  max-width: calc(800px + 2 * var(--gutter));
+  /* 아래 여백은 Footer margin-top(section-gap) 한 번만 (검토 #27) */
+  padding-bottom: 0;
+}
 
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-m);
+  padding-bottom: var(--space-m);
+  border-bottom: 1px solid var(--c-line);
+}
+
+.title {
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* 분류(kfa/caption blue) + 날짜(kfa/caption text-sub) + 공유 오른쪽 */
 .meta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px 14px;
+  gap: var(--space-xs) var(--space-s);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.category {
+  color: var(--c-blue);
+}
+
+.date {
+  color: var(--c-text-sub);
+}
+
+.share {
+  margin-left: auto;
+}
+
+/* 본문 kfa/body 16, 문단 사이 space/m, 관리자 줄바꿈 그대로 */
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-m);
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+.body p {
+  white-space: pre-line;
+}
+
+.body a {
+  color: var(--c-blue);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+}
+
+/* 선수 프로필 문단 — bg-soft 상자, radius/m, 패딩 space/m space/l, 첫 줄 굵게 */
+.profile {
+  padding: var(--space-m) var(--space-l);
+  border-radius: var(--radius-m);
+  background: var(--c-bg-soft);
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.profile::first-line {
+  font-size: 16px;
+  font-weight: 700;
 }
 
 .foot {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: var(--space-xl);
+  margin-top: var(--space-m);
 }
 
-/* 이전 / 다음 글 — 목록처럼 구분선만 (그림자 없음) */
+/* 다음 글 / 이전 글 — 위아래 line, 이름표 kfa/caption text-sub 72, 제목 kfa/body-s */
 .pager {
-  border-top: 2px solid var(--c-black);
+  border-top: 1px solid var(--c-line);
 }
 
 .pager li {
-  border-bottom: 1px solid var(--c-line);
-}
-
-.pagerLink {
   display: flex;
-  align-items: baseline;
-  gap: 16px;
-  padding: 16px 0;
+  align-items: center;
+  gap: var(--space-m);
+  min-height: 52px;
+  border-bottom: 1px solid var(--c-line);
+  font-size: 14px;
+  line-height: 1.6;
 }
 
 .pagerLabel {
   flex: none;
-  min-width: 72px;
-  font-weight: 700;
-  color: var(--c-blue);
+  width: 72px;
+  font-size: 12px;
+  color: var(--c-text-sub);
 }
 
-.pagerTitle {
+.pagerLink,
+.pagerEmpty {
   min-width: 0;
+  padding-block: var(--space-s);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.pagerLink:hover .pagerTitle {
+.pagerLink {
+  display: block;
+  flex: 1;
+}
+
+.pagerEmpty {
+  color: var(--c-text-sub);
+}
+
+.pagerLink:hover {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
 
-.pagerLink:focus-visible {
-  outline: 2px solid var(--c-blue);
-  outline-offset: 2px;
+/* [목록] 가운데 — line 테두리, radius/m, 높이 44 */
+.listWrap {
+  display: flex;
+  justify-content: center;
+}
+
+.list {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--space-l);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-m);
+  font-size: 14px;
+}
+
+.list:hover {
+  border-color: var(--c-blue);
+  color: var(--c-blue);
+}
+
+@media (max-width: 720px) {
+  .title {
+    font-size: 24px;
+  }
+
+  /* 프로필 상자 안 '선수 소개 보기' 링크(따로 한 줄) 누르는 영역 44 (검토 #24) */
+  .profile a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .body {
+    font-size: 15px;
+  }
 }

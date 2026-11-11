@@ -1,7 +1,7 @@
 // 선수 상세(프로필 칸·시즌 합류·검색 설명) 단위 테스트 — 실행: npm test
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { findPlayerJoin, findPlayerNews, linksToPlayer, mentionsName, playerDescription, profileRows, seasonLabel, seasonStartYear, statsSeasonStartYear } from "../src/lib/player-profile.ts";
+import { findPlayerJoin, findPlayerNews, linksToPlayer, mentionsName, playerAppsLine, playerDescription, playerNeighbors, playerRecordLine, profileRows, seasonLabel, seasonStartYear, statsSeasonStartYear } from "../src/lib/player-profile.ts";
 import type { NewsPost, Player } from "../src/types/index.ts";
 
 const post = (id: string, title: string, date: string, category: NewsPost["category"] = "news"): NewsPost => ({
@@ -24,6 +24,7 @@ test("seasonStartYear / seasonLabel / statsSeasonStartYear", () => {
   assert.equal(seasonLabel(2099), "2099-00");
   assert.equal(statsSeasonStartYear(STATS), 2025);
   assert.equal(statsSeasonStartYear("FK1리그"), null);
+  assert.equal(statsSeasonStartYear("키움증권 2026-27 FK리그1"), 2026);
 });
 
 test("findPlayerJoin: 기록 시즌 뒤 영입 소식 → 시즌 + 글", () => {
@@ -116,4 +117,35 @@ test("findPlayerNews: 동명이인(BR-025)은 선수 페이지 주소가 있는 
   const posts = [welcome, other];
   assert.deepEqual(findPlayerNews({ name: "김종호", slug: "kim-jongho", sameNameCount: 2, posts }).map((p) => p.id), ["w"]);
   assert.deepEqual(findPlayerNews({ name: "김종호", slug: "no-22", sameNameCount: 2, posts }), []);
+});
+
+test("playerRecordLine: '12경기 / 10골', 득점 0도 그대로, 도움은 있을 때만, 합류 선수는 null", () => {
+  const join = { season: "2026-27", post: {} as NewsPost };
+  assert.equal(playerRecordLine({ stats: { apps: 12, goals: 10, assists: 0 } }, null), "12경기 / 10골");
+  assert.equal(playerRecordLine({ stats: { apps: 3, goals: 0, assists: 0 } }, null), "3경기 / 0골");
+  assert.equal(playerRecordLine({ stats: { apps: 5, goals: 1, assists: 2 } }, null), "5경기 / 1골 / 2도움");
+  assert.equal(playerRecordLine({ stats: { apps: 0, goals: 0, assists: 0 } }, join), null);
+  assert.equal(playerRecordLine({ stats: { apps: 0, goals: 0, assists: 0 } }, null), "0경기 / 0골");
+});
+
+test("playerAppsLine: 출전 1경기 이상만", () => {
+  assert.equal(playerAppsLine({ stats: { apps: 9, goals: 0, assists: 0 } }, "2025-26"), "2025-26 출전 9경기");
+  assert.equal(playerAppsLine({ stats: { apps: 0, goals: 0, assists: 0 } }, "2025-26"), null);
+});
+
+test("playerNeighbors: 목록 순서 앞뒤, 처음/끝은 null", () => {
+  const ps = [{ slug: "a" }, { slug: "b" }, { slug: "c" }];
+  assert.deepEqual(playerNeighbors(ps, "b"), { prev: { slug: "a" }, next: { slug: "c" } });
+  assert.deepEqual(playerNeighbors(ps, "a"), { prev: null, next: { slug: "b" } });
+  assert.deepEqual(playerNeighbors(ps, "c"), { prev: { slug: "b" }, next: null });
+  assert.deepEqual(playerNeighbors(ps, "x"), { prev: null, next: null });
+});
+
+test("findPlayerJoin: 동명이인 — 본문에 이 선수 주소가 있는 영입 글이면 합류, 없으면 null (BR-025, BR-031)", () => {
+  const withLink = { ...post("a", "서울은평 덴포스, '확실한 존재감' 김종호 영입", "2026-10-19"), body: ["김종호 프로필\nhttps://eunpyeong-fs.com/team/players/kim-jongho"] };
+  assert.deepEqual(findPlayerJoin({ name: "김종호", slug: "kim-jongho", sameNameCount: 2, posts: [withLink], statsSeason: STATS }), { season: "2026-27", post: withLink });
+  // 다른 김종호 페이지에서는 이 글이 자기 소식이 아니다
+  assert.equal(findPlayerJoin({ name: "김종호", slug: "no-30", sameNameCount: 2, posts: [withLink], statsSeason: STATS }), null);
+  const noLink = post("b", "서울은평 덴포스, '확실한 존재감' 김종호 영입", "2026-10-19");
+  assert.equal(findPlayerJoin({ name: "김종호", slug: "kim-jongho", sameNameCount: 2, posts: [noLink], statsSeason: STATS }), null);
 });

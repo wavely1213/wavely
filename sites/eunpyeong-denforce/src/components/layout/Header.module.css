@@ -1,3 +1,4 @@
+/* 사이트 헤더 (리디자인 D-067) — 피그마 03 Screens Site 'Home / PC 1280 / 메뉴 열림', 'Home / Mobile 390 / 메뉴 열림' */
 .header {
   position: sticky;
   top: 0;
@@ -11,17 +12,17 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
+  gap: var(--space-l);
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-s);
   min-width: 0;
 }
 
-/* 구단 엠블럼 — PC 40px 너비, 휴대폰은 아래에서 줄인다 (소유자: "구단 로고랑 이름도 뭔가 작아보이고") */
+/* 구단 엠블럼 40x51 (휴대폰 32x41) */
 .mark {
   width: 40px;
   height: auto;
@@ -30,10 +31,11 @@
 .brandText {
   display: flex;
   flex-direction: column;
-  line-height: 1.15;
+  line-height: 1.2;
   white-space: nowrap;
 }
 
+/* kfa/pc/header-en 11, 0.08em (D-052) */
 .brandText small {
   font-size: 11px;
   font-weight: 700;
@@ -41,143 +43,258 @@
   color: var(--c-on-dark-sub);
 }
 
+/* kfa/pc/h3 24 */
 .brandText strong {
   font-size: 24px;
   font-weight: 700;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
+
+/* ── PC 1차 메뉴 ───────────────────────────── */
 
 .menu {
   display: flex;
+  gap: var(--space-xl);
   height: var(--header-h);
 }
 
 .menuItem {
-  position: relative;
+  position: static;
 }
 
+/* kfa/pc/h4 16 — 활성은 노란 2px 밑줄, 마우스/초점은 노란 글자 */
 .menuLink {
   position: relative;
   display: flex;
   align-items: center;
   height: 100%;
-  padding: 0 18px;
   font-size: 16px;
   font-weight: 700;
-  color: var(--c-on-dark-sub);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--c-on-dark);
   transition: color 0.15s ease;
 }
 
-.menuLink:hover,
-.active {
-  color: var(--c-on-dark);
+/* 마우스 hover 는 정확히 가리키는 장치에서만 — 터치에서 누른 뒤 노란 글자가 남지 않게 */
+@media (hover: hover) and (pointer: fine) {
+  .menuLink:hover {
+    color: var(--c-yellow);
+  }
+
+  .megaList a:hover {
+    color: var(--c-yellow);
+  }
 }
 
 .active::after {
   content: "";
   position: absolute;
-  left: 18px;
-  right: 18px;
+  left: 0;
+  right: 0;
   bottom: 0;
-  height: 3px;
+  height: 2px;
   background: var(--c-yellow);
 }
 
-/* 외부 링크 표시 (새 창) */
+/* 휴대폰 메뉴용 2차 — PC 에서는 메가메뉴가 대신 */
 .sub {
+  display: none;
+}
+
+/* ── PC 메가메뉴 (전폭 black-soft) ─────────── */
+
+.mega {
   display: none;
   position: absolute;
   top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  min-width: 140px;
-  padding: 8px 0;
-  background: var(--c-bg);
-  color: var(--c-text);
-  border: 1px solid var(--c-line);
-  border-top: 0;
+  left: 0;
+  right: 0;
+  padding: var(--space-xl) 0;
+  background: var(--c-black-soft);
 }
 
-.sub a {
+/* 열림은 Header.tsx 상태로 (마우스: 헤더 바 + 메가 안, 키보드: 메뉴 초점) */
+.megaOpen {
   display: block;
-  padding: 9px 20px;
-  font-size: 15px;
-  white-space: nowrap;
 }
 
-.sub a:hover {
-  color: var(--c-blue);
+.megaInner {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--space-l);
 }
 
-.menuItem:hover .sub,
-.menuItem:focus-within .sub {
-  display: block;
+.megaCol {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+  min-width: 0;
+}
+
+/* kfa/label 12, 0.08em, yellow */
+.megaLabel {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-yellow);
+}
+
+.megaList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+}
+
+/* kfa/pc/body 16 */
+.megaList a {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--c-on-dark);
+}
+
+/* 지금 페이지의 2차 (가장 긴 일치 하나) */
+.megaList a.megaActive {
+  color: var(--c-yellow);
 }
 
 .toggle {
   display: none;
 }
 
-/* 모바일 메뉴 맨 아래 SNS·사이트맵 (D-042) — PC 는 상단 띠(TopBar)에 있으므로 숨김 */
+/* 휴대폰 메뉴 맨 아래 SNS / MD스토어 / 사이트맵 (D-042) — PC 는 상단 띠(TopBar) */
 .mobileExtra {
   display: none;
 }
+
+/* ── 휴대폰: 전체 화면 메뉴 ────────────────── */
 
 @media (max-width: 960px) {
   .mark {
     width: 32px;
   }
 
+  /* 로고 링크 누르는 영역 높이 44 */
+  .brand {
+    min-height: 44px;
+  }
+
+  /* 로고와 메뉴 버튼 사이 space/xs — 390 에서 영문 줄이 한 줄에 들어가게 */
+  .bar {
+    gap: var(--space-xs);
+  }
+
+  /* 글 칸은 줄어들 수 있고, 좁으면(360 이하) 영문 줄만 두 줄 — 320 가로 넘침 0 */
+  .brandText {
+    min-width: 0;
+  }
+
+  /* kfa/m/header-en 10 */
   .brandText small {
     font-size: 10px;
+    white-space: normal;
   }
 
+  /* kfa/m/h4 16 */
   .brandText strong {
-    font-size: 20px;
+    font-size: 16px;
   }
 
+  /* 44x44 버튼, 오른쪽 여백 space/2xs */
   .toggle {
     display: flex;
-    flex-direction: column;
+    align-items: center;
     justify-content: center;
-    gap: 5px;
-    width: 40px;
-    height: 40px;
-    margin-right: -8px;
-    padding: 9px;
+    flex: none;
+    width: 44px;
+    height: 44px;
+    margin-right: calc(var(--space-2xs) - var(--gutter));
+    padding: 0;
     background: none;
     border: 0;
+    color: var(--c-on-dark);
     cursor: pointer;
   }
 
-  .toggleBar {
+  /* 24px 아이콘, 선 2px, 선 사이 5 (아이콘 높이 12) — 열리면 X */
+  .toggleIcon {
+    position: relative;
+    display: block;
+    width: 24px;
+    height: 24px;
+  }
+
+  .toggleIcon span {
+    position: absolute;
+    left: 3px;
+    right: 3px;
     height: 2px;
-    background: var(--c-on-dark);
+    background: currentColor;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+  }
+
+  .toggleIcon span:nth-child(1) {
+    top: 6px;
+  }
+
+  .toggleIcon span:nth-child(2) {
+    top: 11px;
+  }
+
+  .toggleIcon span:nth-child(3) {
+    top: 16px;
+  }
+
+  .toggleIconClose span:nth-child(1) {
+    transform: translateY(5px) rotate(45deg);
+  }
+
+  .toggleIconClose span:nth-child(2) {
+    opacity: 0;
+  }
+
+  .toggleIconClose span:nth-child(3) {
+    transform: translateY(-5px) rotate(-45deg);
   }
 
   .nav {
     display: none;
     position: fixed;
     inset: var(--header-h) 0 0 0;
+    flex-direction: column;
     background: var(--c-black);
     overflow-y: auto;
   }
 
   .navOpen {
-    display: block;
+    display: flex;
   }
 
   .menu {
     flex-direction: column;
+    gap: 0;
     height: auto;
-    padding: 8px var(--gutter) 40px;
+    padding: var(--space-xs) var(--gutter) 0;
   }
 
+  .menuItem {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: var(--space-xs) 0 var(--space-2xs);
+    border-bottom: 1px solid var(--c-line-on-dark);
+  }
+
+  /* kfa/m/h3 20 — 누르는 영역 높이 44 */
   .menuLink {
+    display: inline-flex;
     height: auto;
-    padding: 16px 0 6px;
+    align-items: center;
+    min-width: 44px;
+    min-height: 44px;
     font-size: 20px;
-    color: var(--c-on-dark);
   }
 
   .active {
@@ -188,74 +305,106 @@
     display: none;
   }
 
-  .sub,
-  .menuItem:hover .sub,
-  .menuItem:focus-within .sub {
+  /* kfa/m/body 15, on-dark-sub — 누르는 영역은 좌우 padding space/xs 로(높이 44), 보이는 글자 사이는 고르게 16.
+     첫 항목 글자가 1차 메뉴와 줄이 맞게 왼쪽으로 padding 만큼 당긴다 */
+  .sub {
     display: flex;
     flex-wrap: wrap;
-    position: static;
-    transform: none;
-    background: none;
-    border: 0;
+    gap: 0;
+    margin-left: calc(-1 * var(--space-xs));
+    font-size: 15px;
+    line-height: 1.6;
     color: var(--c-on-dark-sub);
-    padding: 0 0 14px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
 
   .sub a {
-    padding: 6px 16px 6px 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 var(--space-xs);
   }
 
   .sub a:hover {
     color: var(--c-on-dark);
   }
 
+  .mega,
+  .megaOpen {
+    display: none;
+  }
+
   .mobileExtra {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
-    padding: 0 var(--gutter) 40px;
-    font-size: 15px;
-    font-weight: 700;
+    gap: var(--space-m);
+    margin-top: auto;
+    padding: var(--space-l) var(--gutter) var(--space-xl);
+    font-size: 14px;
+    line-height: 1.6;
     color: var(--c-on-dark-sub);
   }
 
   .mobileSns {
     display: flex;
-    gap: 10px;
+    gap: var(--space-xs);
   }
 
+  /* 흰 원 44 + 검정 로고 */
   .mobileSns a {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-pill);
     background: var(--c-on-dark);
     color: var(--c-black);
-  }
-
-  .mobileSitemap:hover {
-    color: var(--c-on-dark);
   }
 
   .mobileLinks {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: var(--space-m);
   }
 
-  /* MD스토어 — 상단 띠와 같은 노란 테두리 버튼 (D-047) */
+  /* MD스토어 — 상단 띠와 같은 노란 테두리 알약 (D-047), 높이 44 */
   .mobileStore {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    height: 34px;
-    padding: 0 14px;
+    height: 44px;
+    padding: 0 var(--space-m);
     border: 1px solid var(--c-yellow);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     color: var(--c-yellow);
+    white-space: nowrap;
+  }
+
+  .mobileStore:hover {
+    background: var(--c-yellow);
+    color: var(--c-black);
+  }
+
+  .mobileSitemap {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    white-space: nowrap;
+  }
+
+  .mobileSitemap:hover {
+    color: var(--c-on-dark);
+  }
+}
+
+/* 움직임 줄이기 — 메뉴 버튼 X 전환, 글자색 전환 끔 */
+@media (prefers-reduced-motion: reduce) {
+  .menuLink,
+  .toggleIcon span {
+    transition: none;
   }
 }

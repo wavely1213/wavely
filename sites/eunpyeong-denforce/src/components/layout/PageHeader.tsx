@@ -4,16 +4,28 @@ import { findSection } from "@/config/site";
 import styles from "./PageHeader.module.css";
 
 /**
- * 하위 페이지 상단: 섹션명 + 제목 + 같은 섹션의 탭. current 는 이 페이지의 메뉴 href.
- * compact: 글/선수 상세처럼 본문에 이 페이지의 큰 제목(h1)이 있는 페이지 — 메뉴 이름(제목)을 작게, 제목 태그 없이 보인다.
+ * 하위 페이지 상단 (리디자인 D-067, D-069 1단계): 검정 면 + 엠블럼 사선으로 잘린 black-soft 면과 blue 6px 경계,
+ * 1차 메뉴 이름(노란 라벨) + 제목 + 같은 섹션의 2차 탭(활성은 노란 2px 밑줄). current 는 이 페이지의 메뉴 href.
+ * compact: 글/선수 상세처럼 본문에 이 페이지의 큰 제목(h1)이 있는 페이지 — 높이를 줄이고 메뉴 이름(제목)을 작게, 제목 태그 없이 보인다.
  */
-export function PageHeader({ title, current, compact = false }: { title: string; current: string; compact?: boolean }) {
+export function PageHeader({
+  title,
+  current,
+  compact = false,
+  flush = false,
+}: {
+  title: string;
+  current: string;
+  compact?: boolean;
+  /** 아래 여백 없음 — 바로 밑에 전폭 색 면(선수 상세 PlayerHero 등)이 붙을 때 */
+  flush?: boolean;
+}) {
   const section = findSection(current);
   const tabs = section?.children ?? [];
 
   return (
-    <div className={styles.wrap}>
-      <div className={`container ${styles.head} ${compact ? styles.headCompact : ""}`}>
+    <div className={`${styles.wrap} ${compact ? styles.wrapCompact : ""} ${tabs.length === 0 ? styles.noTabs : ""} ${flush ? styles.flush : ""}`} data-surface="dark">
+      <div className={`container ${styles.head}`}>
         {section && section.label !== title && <p className={styles.section}>{section.label}</p>}
         {compact ? <p className={styles.titleCompact}>{title}</p> : <h1 className={styles.title}>{title}</h1>}
       </div>

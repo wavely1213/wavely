@@ -5,11 +5,13 @@
   gap: 10px;
 }
 
+/* 공유 — line 테두리 알약, 누르는 영역 44 */
 .button {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 12px;
+  min-height: 44px;
+  padding: 0 var(--space-m);
   border: 1px solid var(--c-line);
   border-radius: 999px;
   background: var(--c-bg);
