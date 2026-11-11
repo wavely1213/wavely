@@ -29,6 +29,13 @@
 
 <!-- 여기서부터 최신 항목을 위에 추가 -->
 
+## D-073 | 2026-11-11 | 이미지 최적화를 끈다 — 원본 그대로 보냄 (Vercel 무료 요금제 한도)
+- **상태**: 채택 (총괄, 운영 장애 대응)
+- **맥락**: 운영 eunpyeong-fs.com 의 /_next/image 요청 일부가 402(x-vercel-error: OPTIMIZED_IMAGE_REQUEST_PAYMENT_REQUIRED)를 받아, 새로 올라온 사진(예: media/news/reel-DfgeO2GzuGc.jpg, news/ig-…)이 /news 에서 깨져 보였다. Vercel 무료 요금제의 이미지 최적화 한도를 넘었기 때문이며 리디자인과 상관없이 운영본에서도 난다.
+- **결정**: `next.config.ts` images 에 `unoptimized: true` — next/image 가 /_next/image 를 거치지 않고 원본 주소를 그대로 쓴다. 원본 크기는 Storage media 기준 posting 평균 52KB(최대 116), news 235KB(최대 662), players 268KB(최대 489)이고 1MB 넘는 파일이 없다. public 도 400KB 넘는 이미지가 없다.
+- **버린 대안**: Vercel Pro 결제(비용), Supabase Storage 이미지 변환(Pro 요금제 필요).
+- **영향**: 휴대폰에서도 원본 크기를 받는다(사진당 수백 KB). 소유자가 Vercel 결제를 하면 이 줄만 지워 되돌릴 수 있다.
+
 ## D-072 | 2026-11-10 | 2026-27 시즌 공식 대회명은 '키움증권 2026-27 FK리그1'
 - **상태**: 채택 (소유자 "지금 키움증권 2026-27 FK리그로 확정됨. 반영하고" → 확인 질문에 '키움증권 2026-27 FK리그1')
 - **결정**: 2026-27 시즌 리그 경기와 순위의 대회명을 '2026-27 FK1리그' 에서 '키움증권 2026-27 FK리그1' 로 바꾼다(운영 DB matches 15건, standings 6건, LEAGUE.currentCompetition, 인스타 자동 반영 Edge Function 의 LEAGUE_COMPETITION). 지난 시즌 이름('2025-26 FK1리그' 등)은 그 시즌 공식 표기라 그대로 둔다.
