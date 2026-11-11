@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useState } from "react";
 import { NewsLink } from "@/components/news/NewsLink";
+import { PlayMark } from "@/components/news/PlayMark";
+import { videoCardPlay } from "@/lib/video";
 import { buttonClass } from "@/components/ui/Button";
 import { FitImage } from "@/components/ui/FitImage";
 import { ScrollRow } from "@/components/ui/ScrollRow";
@@ -41,7 +43,10 @@ export function NewsTabs({ posts }: { posts: NewsPost[] }) {
       {lead ? (
         <div className={news.body} role="tabpanel">
           <NewsLink post={lead} className={`${news.lead} ${news.desktopOnly}`}>
-            <span className={news.leadThumb}>{lead.thumbnail && <FitImage src={lead.thumbnail} sizes="520px" />}</span>
+            <span className={news.leadThumb}>
+              {lead.thumbnail && <FitImage src={lead.thumbnail} sizes="520px" />}
+              {videoCardPlay(lead) && <PlayMark />}
+            </span>
             <span className={news.text}>
               <span className={news.category}>{NEWS_CATEGORY_LABEL[lead.category]}</span>
               <strong className={news.leadTitle}>{lead.title}</strong>
@@ -53,7 +58,10 @@ export function NewsTabs({ posts }: { posts: NewsPost[] }) {
             {[lead, ...rows].map((p, i) => (
               <li key={p.id} className={i === 0 ? news.mobileOnly : i === SHOWN - 1 ? news.desktopOnly : undefined}>
                 <NewsLink post={p} className={news.row}>
-                  <span className={news.rowThumb}>{p.thumbnail && <FitImage src={p.thumbnail} sizes="120px" />}</span>
+                  <span className={news.rowThumb}>
+                    {p.thumbnail && <FitImage src={p.thumbnail} sizes="120px" />}
+                    {videoCardPlay(p) && <PlayMark size="s" />}
+                  </span>
                   <span className={news.text}>
                     <span className={news.category}>{NEWS_CATEGORY_LABEL[p.category]}</span>
                     <strong className={news.rowTitle}>{p.title}</strong>

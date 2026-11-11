@@ -2,10 +2,11 @@ import { EmblemFallback } from "@/components/ui/EmblemFallback";
 import { FitImage } from "@/components/ui/FitImage";
 import { NEWS_CATEGORY_LABEL } from "@/data/news";
 import { formatPostDate } from "@/lib/format";
-import { externalPlay } from "@/lib/video";
+import { videoCardPlay } from "@/lib/video";
 import type { NewsPost } from "@/types";
 import styles from "./NewsCard.module.css";
 import { NewsLink } from "./NewsLink";
+import { PlayMark } from "./PlayMark";
 
 export { newsHref } from "./NewsLink";
 
@@ -17,7 +18,7 @@ export function toNewsCardPost({ id, category, title, date, thumbnail, videoUrl 
 }
 
 export function NewsCard({ post, sizes = "(max-width: 720px) 80vw, 300px" }: { post: NewsCardPost; sizes?: string }) {
-  const video = externalPlay(post.videoUrl) !== null;
+  const video = videoCardPlay(post) !== null;
   return (
     <NewsLink post={post} className={styles.card}>
       <div className={styles.thumb}>
@@ -27,13 +28,7 @@ export function NewsCard({ post, sizes = "(max-width: 720px) 80vw, 300px" }: { p
         ) : (
           <EmblemFallback />
         )}
-        {video && (
-          <span className={styles.play} aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="18" height="18">
-              <path d="M8 5v14l11-7z" fill="currentColor" />
-            </svg>
-          </span>
-        )}
+        {video && <PlayMark />}
       </div>
       <span className={styles.category}>{NEWS_CATEGORY_LABEL[post.category]}</span>
       <strong className={styles.title}>

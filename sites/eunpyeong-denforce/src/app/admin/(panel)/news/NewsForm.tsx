@@ -49,7 +49,7 @@ export function NewsForm({
         label="영상 주소"
         type="url"
         maxLength={300}
-        hint="구단영상: 유튜브/인스타그램(릴스) 주소를 넣으면 글 상세에서 바로 재생됩니다. 목록 카드 사진은 썸네일을 올려 주세요."
+        hint="구단영상: 유튜브/인스타그램(릴스) 주소를 넣으면 목록 카드를 눌렀을 때 원본이 새 창으로 열립니다. 카드 사진은 썸네일을 올려 주세요."
         defaultValue={initial?.video_url}
       />
       <ImageField

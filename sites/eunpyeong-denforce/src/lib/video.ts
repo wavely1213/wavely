@@ -54,3 +54,11 @@ export function externalPlay(raw: string | null | undefined): { href: string; la
   const v = parseVideoUrl(raw);
   return v ? { href: watchUrl(v), label: `${VIDEO_PROVIDER_LABEL[v.provider]}에서 재생` } : null;
 }
+
+/**
+ * 목록 카드를 원본으로 보낼지 — 구단영상 분류만 (관리자 폼은 모든 분류에서 영상 주소를 받는다).
+ * 공지, 구단뉴스 등은 영상 주소가 있어도 상세로 가고, 상세의 표지 버튼으로 원본에 간다 (D-074, 총괄 최종 확인)
+ */
+export function videoCardPlay(post: { category: string; videoUrl: string | null }): { href: string; label: string } | null {
+  return post.category === "video" ? externalPlay(post.videoUrl) : null;
+}

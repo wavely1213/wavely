@@ -66,7 +66,7 @@ export type NewsPost = {
   images: string[]; // 상세 화면 사진 (순서대로)
   summary: string;
   body: string[];
-  videoUrl: string | null; // 구단영상 — 상세에서 재생 (D-035)
+  videoUrl: string | null; // 구단영상 원본 주소 — 카드는 원본을 새 창으로, 상세는 표지 + 재생 버튼 (D-035, D-074)
   featured: boolean; // 구단소식 메인 배너 고정 (D-035)
 };
 

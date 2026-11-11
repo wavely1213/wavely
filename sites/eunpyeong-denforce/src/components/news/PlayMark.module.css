@@ -1,0 +1,25 @@
+/* 재생 표시 — 표지 왼쪽 아래, 36 원(작은 칸 28) (D-035, D-074) */
+.play {
+  position: absolute;
+  left: var(--space-s);
+  bottom: var(--space-s);
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--c-black) 70%, transparent);
+  color: var(--c-on-dark);
+}
+
+.small {
+  left: var(--space-2xs);
+  bottom: var(--space-2xs);
+  width: 28px;
+  height: 28px;
+}
+
+.small svg {
+  width: 14px;
+  height: 14px;
+}
