@@ -41,11 +41,19 @@ export function siteCaption(caption: string): string {
  */
 const MATH_ALNUM = /[\u{1D400}-\u{1D7FF}ℂℊ-ℎℐ-ℒℕℙ-ℝℤℨℬℭℯ-ℱℳℴ]/gu;
 
-/** 이모지·꾸밈 글자 빼기 (𝑾𝑬𝑳𝑪𝑶𝑴𝑬 → WELCOME) */
+/** 전각 영숫자/기호(U+FF01~FF5E, 'No.１０') — 반각으로 (전체 NFKC 를 좁히며 잃은 것, 배포 전 확인) */
+const FULLWIDTH = /[\uFF01-\uFF5E]/g;
+
+/**
+ * 이모지·꾸밈 글자 빼기 (𝑾𝑬𝑳𝑪𝑶𝑴𝑬 → WELCOME). 조합형(NFD) 한글은 NFC 로 모은다.
+ * ™ ℹ 는 Extended_Pictographic 이지만 글자로 남긴다 — 사이트 plainText 와 결과를 맞춘다.
+ */
 export function plainText(s: string): string {
   return s
+    .normalize("NFC")
     .replace(MATH_ALNUM, (c) => c.normalize("NFKC"))
-    .replace(/[\p{Extended_Pictographic}\u{FE0F}\u{200D}\u{20E3}]/gu, "")
+    .replace(FULLWIDTH, (c) => c.normalize("NFKC"))
+    .replace(/(?![™ℹ])[\p{Extended_Pictographic}\u{FE0F}\u{200D}\u{20E3}]/gu, "")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -156,8 +164,9 @@ export function parseWelcome(caption: string): Welcome | null {
   if (!m || NOT_NAME.has(m[2])) return null;
   let epithet = m[1].trim();
   if (/[,，、]|\s(와|과|및)\s|선수/.test(epithet)) return null;
-  const no = /No\.?\s*(\d{1,2})/i.exec(epithet);
-  epithet = epithet.replace(/No\.?\s*\d{1,2}/i, "").trim();
+  // 등번호: 'No.10' 'No 10' '№10'
+  const no = /(?:No\.?|№)\s*(\d{1,2})/i.exec(epithet);
+  epithet = epithet.replace(/(?:No\.?|№)\s*\d{1,2}/i, "").trim();
   const words = epithet.split(/\s+/).filter(Boolean);
   if (words.filter((w) => positionOf(w)).length > 1) return null;
   // 포지션은 이름 바로 앞 낱말만 ("지치지 않는 피보 박재희")

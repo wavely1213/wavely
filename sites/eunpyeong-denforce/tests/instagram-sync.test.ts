@@ -106,6 +106,24 @@ test("parseWelcome: 이름/수식어/포지션/등번호/인사말", () => {
   assert.equal(no1?.position, null);
   assert.equal(parseWelcome("𝑾𝑬𝑳𝑪𝑶𝑴𝑬\n서울은평덴포스가 거침없는 질주 강민원 선수를 영입했습니다.")?.epithet, "거침없는 질주");
   assert.equal(parseWelcome("𝑾𝑬𝑳𝑪𝑶𝑴𝑬\n서울은평덴포스가 김기범 수석코치를 영입했습니다."), null, "스태프는 읽지 않음");
+  // 등번호 표기 '№10', 전각 'No.１０' (전체 NFKC 를 좁힌 뒤에도 읽는다, 배포 전 확인)
+  for (const head of ["№10", "No.１０"]) {
+    const w = parseWelcome(`𝑾𝑬𝑳𝑪𝑶𝑴𝑬\n서울은평덴포스가 ${head} 피보 박재희 선수를 영입했습니다.`);
+    assert.equal(w?.number, 10, head);
+    assert.equal(w?.epithet, "피보", head);
+    assert.equal(w?.name, "박재희", head);
+  }
+  // 조합형(NFD) 한글 문장도 읽는다
+  const nfd = parseWelcome("서울은평덴포스가 지치지 않는 피보 박재희 선수를 영입했습니다.".normalize("NFD"));
+  assert.equal(nfd?.name, "박재희");
+  assert.equal(nfd?.epithet, "지치지 않는 피보");
+});
+
+test("plainText(edge): 전각 반각으로, NFD 한글 모음, ™ 남김, I-053 경우 그대로", () => {
+  assert.equal(plainText("FUTSAL™ 🔥"), "FUTSAL™");
+  assert.equal(plainText("No.１０ ＦＣ"), "No.10 FC");
+  assert.equal(plainText("박재희".normalize("NFD")), "박재희");
+  assert.equal(plainText("GOALㅣflex ③ … 25℃ 𝑡ℎ𝑒"), "GOALㅣflex ③ … 25℃ the");
 });
 
 test("welcomeNews: 영입 기사 (기존 기사와 같은 틀)", () => {

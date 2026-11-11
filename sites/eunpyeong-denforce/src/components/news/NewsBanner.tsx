@@ -65,12 +65,16 @@ export function NewsBanner({ posts }: { posts: NewsPost[] }) {
       onFocus={(e) => {
         if ((e.target as HTMLElement).matches(":focus-visible")) setFocusHold(true);
       }}
-      // 입력 방식이 섞일 때: 마우스로 누른 버튼을 키보드로 이어 쓰면 멈추고, 키보드로 온 뒤 마우스/터치로 누르면 풀린다 (재검증 2차 #3)
+      // 입력 방식이 섞일 때: 마우스로 누른 버튼을 키보드로 이어 쓰면 멈추고, 키보드로 온 뒤 마우스/터치로 누르면(onClick) 풀린다 (재검증 2차 #3)
       onKeyDown={(e) => {
         const active = document.activeElement;
         if (active instanceof HTMLElement && e.currentTarget.contains(active) && active.matches(":focus-visible")) setFocusHold(true);
       }}
-      onPointerDown={() => setFocusHold(false)}
+      // 실제로 눌렀을 때만 푼다 — 손가락으로 밀어 스크롤만 할 때는 그대로(초점이 숨은 슬라이드에 남지 않게).
+      // 키보드 Enter/Space 로 생긴 click 은 detail 0 이라 풀지 않는다 (배포 전 확인 #2)
+      onClick={(e) => {
+        if (e.detail > 0) setFocusHold(false);
+      }}
       onBlur={(e) => {
         if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setFocusHold(false);
       }}

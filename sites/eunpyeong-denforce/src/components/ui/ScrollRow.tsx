@@ -24,7 +24,7 @@ export function ScrollRow({
   ...rest
 }: HTMLAttributes<HTMLDivElement> & {
   activeKey?: string;
-  /** 끝 흐림 폭(px) — 가려진 탭이 흐림 안에 충분히 들어오게 줄마다 넓힐 수 있다 (포스팅 분류 48) */
+  /** 끝 흐림 폭(px) — 가려진 탭이 흐림 안에 충분히 들어오게 줄마다 넓힐 수 있다 (포스팅 분류 64) */
   fade?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
