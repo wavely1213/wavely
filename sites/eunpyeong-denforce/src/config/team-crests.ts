@@ -8,8 +8,10 @@ export type TeamCrestEntry = {
   name: string;
   /** 예전 이름, 줄인 이름 (띄어쓰기, 대소문자 차이는 crestFor 가 무시하므로 넣지 않음) */
   aliases: string[];
-  /** public 아래 경로. 못 구했으면 null */
+  /** public 아래 경로. 못 구했으면 null. 흰 글자 로고처럼 어두운 면 전용이면 이 파일은 어두운 면용 */
   file: string | null;
+  /** 흰 면(경기표, 순위표 등)에서 쓸 파일 — 흰 면에서 안 보이는 로고만 (같은 픽셀 크기) */
+  fileOnLight?: string;
   /** 원본 픽셀 크기 [가로, 세로] — 비율 그대로 보이게. 못 구했으면 null */
   pixels: [number, number] | null;
   /** 받은 곳 (공식 경로). 못 구했으면 확인한 곳 */
@@ -86,12 +88,13 @@ export const TEAM_CRESTS: TeamCrestEntry[] = [
   },
   {
     name: "인천ZD스포츠",
-    aliases: [],
-    file: null,
-    pixels: null,
-    source: null,
-    fetchedAt: null,
-    note: "못 구함: 지금 엠블럼인지 확인되지 않았고 흰 글자 표식이라 흰 바탕에서 안 보임 — 대체 방패로 둔다(총괄 2026-11-10)",
+    aliases: ["인천ZD"],
+    file: "/crests/incheon-zd.png",
+    fileOnLight: "/crests/incheon-zd-on-light.png",
+    pixels: [266, 218],
+    source: "https://www.youtube.com/watch?v=CVy3g6RNsAA",
+    fetchedAt: "2026-11-12",
+    note: "한국풋살연맹 유튜브 영상 썸네일의 붓글씨 '仁川 無缺點'(소유자 지정 2026-11-12). 흰 글씨는 어두운 면, 검정(#0e0f12) 글씨는 흰 면",
   },
   {
     name: "구미FS",

@@ -42,7 +42,8 @@ test("crestFor: 12팀과 별칭 모두 찾음 (총괄 863f54b, 58ed10d)", () => 
 });
 
 test("crestFor: 못 구한 팀, 모르는 팀, 빈 이름은 null", () => {
-  assert.equal(crestFor("인천ZD스포츠"), null);
+  assert.equal(crestFor("인천ZD스포츠"), "/crests/incheon-zd.png");
+  assert.equal(crestFor("인천ZD"), "/crests/incheon-zd.png");
   assert.equal(crestFor("제천FS"), null);
   assert.equal(crestFor("없는팀"), null);
   assert.equal(crestFor("   "), null);
@@ -59,6 +60,10 @@ test("TEAM_CRESTS: 이름 겹침 없음, 파일은 실제로 있고 출처와 �
       const png = readFileSync(url);
       assert.deepEqual([png.readUInt32BE(16), png.readUInt32BE(20)], e.pixels, e.file);
       assert.ok(Math.max(...(e.pixels ?? [0])) >= 256, e.file);
+      if (e.fileOnLight) {
+        const light = readFileSync(new URL(`../public${e.fileOnLight}`, import.meta.url));
+        assert.deepEqual([light.readUInt32BE(16), light.readUInt32BE(20)], e.pixels, e.fileOnLight);
+      }
       assert.ok(e.source?.startsWith("https://") && /^\d{4}-\d{2}-\d{2}$/.test(e.fetchedAt ?? ""), e.name);
     } else {
       assert.match(e.note, /^못 구함: /, e.name);
@@ -70,6 +75,9 @@ test("TEAM_CRESTS: 이름 겹침 없음, 파일은 실제로 있고 출처와 �
 
 test("crestImageFor: 경로와 원본 크기, 없으면 null", () => {
   assert.deepEqual(crestImageFor("강원 FS"), { src: "/crests/gangwon.png", width: 256, height: 264 });
-  assert.equal(crestImageFor("인천ZD스포츠"), null);
+  // 흰 글씨 로고: 어두운 면은 흰 파일, 흰 면은 검정 파일 (소유자 2026-11-12)
+  assert.equal(crestImageFor("인천ZD스포츠")?.src, "/crests/incheon-zd.png");
+  assert.equal(crestImageFor("인천ZD스포츠", "light")?.src, "/crests/incheon-zd-on-light.png");
+  assert.equal(crestImageFor("화성FS", "light")?.src, "/crests/hwaseong.png");
   assert.deepEqual(crestImageFor("경기LBFS"), { src: "/crests/lbfs.png", width: 233, height: 281 });
 });
