@@ -17,6 +17,7 @@ import {
   planWelcome,
   plainText,
   postingDraft,
+  trimTitleSeparators,
   reelNews,
   scorersText,
   seasonOf,
@@ -332,4 +333,19 @@ test("canMarkReviewed: 다시 시도할 실패 글에는 확인함 버튼 없음
   assert.equal(canMarkReviewed("error", 1), false);
   assert.equal(canMarkReviewed("error", 3), true);
   assert.equal(canMarkReviewed("done", 1), false);
+});
+
+test("trimTitleSeparators: 제목 맨 앞/끝 구분자만 뗀다 (소유자 2026-11-12)", () => {
+  assert.equal(trimTitleSeparators("| 2026/27 SQUAD NUMBERS"), "2026/27 SQUAD NUMBERS");
+  assert.equal(trimTitleSeparators("ㅣ제목ㅣ"), "제목");
+  assert.equal(trimTitleSeparators("GOALㅣflex"), "GOALㅣflex");
+  assert.equal(trimTitleSeparators("2026/27"), "2026/27");
+  assert.equal(trimTitleSeparators("— 경기 결과 :"), "경기 결과");
+  assert.equal(trimTitleSeparators("🔵| 𝟮𝟬𝟮𝟲/𝟮𝟳 𝗦𝗤𝗨𝗔𝗗"), "🔵 𝟮𝟬𝟮𝟲/𝟮𝟳 𝗦𝗤𝗨𝗔𝗗");
+});
+
+test("reelNews/postingDraft 제목: 앞 구분자 없음 (🔵| 𝟮𝟬𝟮𝟲/𝟮𝟳 𝗦𝗤𝗨𝗔𝗗 𝗡𝗨𝗠𝗕𝗘𝗥𝗦)", () => {
+  const p = post("🔵| 𝟮𝟬𝟮𝟲/𝟮𝟳 𝗦𝗤𝗨𝗔𝗗 𝗡𝗨𝗠𝗕𝗘𝗥𝗦\n\n#서울은평덴포스");
+  assert.equal(reelNews(p, "https://x/y.jpg").title, "2026/27 SQUAD NUMBERS");
+  assert.equal(postingDraft(p, "other").title, "🔵 𝟮𝟬𝟮𝟲/𝟮𝟳 𝗦𝗤𝗨𝗔𝗗 𝗡𝗨𝗠𝗕𝗘𝗥𝗦");
 });
