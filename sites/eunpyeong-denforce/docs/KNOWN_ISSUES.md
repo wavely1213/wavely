@@ -28,7 +28,7 @@
 <!-- 최신 항목을 위에 추가. 심각도 '높음'은 발견 즉시 소유자에게 별도 보고 -->
 
 ## I-055 | 2026-11-11 | 자동 반영 릴스 제목 앞에 '| '가 남고, 같은 제목 릴스 2건이 홈 맨 위에 연달아 보인다
-- **상태**: 열림 (범위 밖, 소유자에게 보고)
+- **상태**: 해결(2026-11-12) — 인스타에서 지워진 중복 릴스 Dfl8JNpTePa 의 news/posting 숨김(published=false), 남은 릴스 제목의 '| ' 정리(총괄, 운영 데이터), 자동 떼기 trimTitleSeparators 를 instagram-sync v6 로 배포(a4d489c)
 - **심각도**: 낮음
 - **증상/내용**: 11/11 자동 반영된 릴스 2건(instagram.com/p/Dfl_gSbT06w, Dfl8JNpTePa)이 둘 다 '| 2026/27 SQUAD NUMBERS' 제목으로 들어왔다. 홈 '구단 소식' 전체 탭 큰 카드와 첫 행, /news 배너 첫 장에 같은 제목이 연달아 보인다. 서로 다른 인스타 게시물(표지 파일 다름)이다. 제목 앞 '| '는 캡션 첫 줄의 이모지를 빼고 남은 구분자다(reelNews 의 plainText 결과).
 - **위치**: supabase/functions/instagram-sync/plan.ts reelNews(제목), news_posts 데이터
@@ -42,7 +42,7 @@
 - **해결 방향**: 제목에 text-wrap: balance(또는 pretty)를 주거나 카드 폭/글자 크기를 시안 기준으로 다시 맞춘다. 시각 세부라 소유자 "디자인은 나중에" 에 따라 디자인 단계에서 한다.
 
 ## I-053 | 2026-11-10 | Edge Function instagram-sync plainText 도 전체 NFKC — 자동 생성 소식 제목의 'ㅣ' 등이 바뀔 수 있음
-- **상태**: 해결(2026-11-11) — 저장소 코드 고침(수학 영숫자 + 빈자리 글자 + 전각만 NFKC, 테스트) 후 소유자 "ㄱㄱ"로 instagram-sync 버전 5 배포(verify_jwt=false 유지, 배포 파일 = 저장소)
+- **상태**: 해결(2026-11-11) — 저장소 코드 고침(수학 영숫자 + 빈자리 글자 + 전각만 NFKC, 테스트) 후 소유자 "ㄱㄱ"로 instagram-sync 버전 5 배포(verify_jwt=false 유지). 배포 도구가 FULLWIDTH 의 \u 이스케이프를 글자로 풀어 올리므로, 2026-11-12 저장소도 그 줄을 글자 그대로(`/[！-～]/g`)로 바꿔 v6 배포 파일 = 저장소
 - **심각도**: 낮음
 - **증상/내용**: 사이트 쪽 plainText 는 수학 영숫자 블록만 NFKC 로 고쳤다(재검증 #1). Edge Function `plainText` 는 아직 caption 전체에 NFKC 를 걸어, 영입/릴스 소식 제목을 만들 때 구분자 'ㅣ'(U+3163) → U+1175, '③' → '3', '…' → '...' 로 바뀔 수 있다. 머리말 판정(`embed.ts` 의 head NFKC)은 비교용이라 화면에 안 나와 괜찮다.
 - **위치**: `supabase/functions/instagram-sync/plan.ts` plainText

@@ -41,8 +41,11 @@ export function siteCaption(caption: string): string {
  */
 const MATH_ALNUM = /[\u{1D400}-\u{1D7FF}ℂℊ-ℎℐ-ℒℕℙ-ℝℤℨℬℭℯ-ℱℳℴ]/gu;
 
-/** 전각 영숫자/기호(U+FF01~FF5E, 'No.１０') — 반각으로 (전체 NFKC 를 좁히며 잃은 것, 배포 전 확인) */
-const FULLWIDTH = /[\uFF01-\uFF5E]/g;
+/**
+ * 전각 영숫자/기호(U+FF01~FF5E, 'No.１０') — 반각으로 (전체 NFKC 를 좁히며 잃은 것, 배포 전 확인).
+ * U+FF01~FF5E 를 글자 그대로 쓴다 — 배포 도구가 \u 이스케이프를 풀기 때문(배포본과 저장소를 바이트까지 같게)
+ */
+const FULLWIDTH = /[！-～]/g;
 
 /**
  * 제목 앞뒤 구분자 — | ｜ ㅣ / ／ · • ・ : - – — 와 공백 (가운데 'GOALㅣflex', '2026/27' 은 그대로).
