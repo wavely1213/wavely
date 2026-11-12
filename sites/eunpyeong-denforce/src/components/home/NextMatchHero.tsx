@@ -3,6 +3,7 @@ import { TeamCrest } from "@/components/match/TeamCrest";
 import { TeamName } from "@/components/match/TeamName";
 import { buttonClass } from "@/components/ui/Button";
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import { formatKickoff, matchSides } from "@/lib/format";
 import { matchLabel } from "@/lib/match";
 import type { Match } from "@/types";
@@ -14,11 +15,17 @@ import styles from "./NextMatchHero.module.css";
  * 검정 카드의 왼쪽 반(홈팀 쪽, BR-002)이 파랑 — 경계는 VS 가운데를 지나는 사선, 그라데이션 없음.
  * 카드 전체 링크가 아니다 — 버튼 둘([오시는 길] [경기일정])만 링크. 카운트다운 없음.
  */
-export function NextMatchHero({ match, ourName }: { match: Match; ourName: string }) {
+export function NextMatchHero({ match, ourName, texture }: { match: Match; ourName: string; texture?: string }) {
   const { date, time } = formatKickoff(match.kickoff);
   const { home, away } = matchSides(match, ourName);
   return (
-    <section className={styles.card} data-surface="dark" aria-labelledby="next-home-match">
+    <section
+      className={`${styles.card} ${texture ? styles.textured : ""}`}
+      data-surface="dark"
+      aria-labelledby="next-home-match"
+      // 파란 반쪽 듀오톤 질감 사진 (소유자 '(다) 구단 사진 듀오톤', 디자인 be0917e) — 없으면 평면 파랑
+      style={texture ? ({ "--nmh-texture": `url(${JSON.stringify(texture)})` } as CSSProperties) : undefined}
+    >
       <h2 id="next-home-match" className={styles.label}>
         NEXT HOME MATCH
       </h2>
