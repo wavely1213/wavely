@@ -24,6 +24,8 @@ export type FieldDef = {
   editor?: "markup" | "markupLine";
   /** 여러 줄 입력 칸 높이 (줄 수) — 긴 문서용 */
   rows?: number;
+  /** 비워 둘 수 있는 칸 — 기본값이 빈 글이고, 비면 화면에서 그 부분을 숨긴다 (예: 유스 소개) */
+  optional?: true;
 };
 
 /** 개인정보처리방침 기본값 — 이 글 그대로면 페이지는 '준비 중' 상자로 보인다 (관리자 개편 4단계) */
@@ -194,6 +196,15 @@ export const CONTENT_FIELDS = {
   // ── 선수단/경기/소식/스폰서/문의 (관리자 개편 3단계) — 기본값은 그동안 각 페이지에 박혀 있던 글 그대로 ──
   "staff.section.coaching": { label: "코칭스태프 섹션 제목", kind: "text", max: 20, default: "코칭스태프" },
   "staff.section.front": { label: "프런트 섹션 제목", kind: "text", max: 20, default: "프런트" },
+  // 유스 소개 — 기본값 없음(지어낸 글 없이), 비우면 유스 페이지에 소개 칸이 보이지 않는다 (소유자 2026-11-12)
+  "youth.intro": {
+    label: "유스 소개 글",
+    kind: "multiline",
+    max: 2000,
+    default: "",
+    optional: true,
+    hint: "선수단 › 유스 페이지 팀 카드 위 소개 글. 비워 두면 보이지 않습니다. 문단은 빈 줄로 나눕니다",
+  },
   "schedule.empty": {
     label: "경기 일정이 없을 때 안내",
     kind: "text",

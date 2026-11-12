@@ -11,6 +11,7 @@ export type DescriptionPath =
   | "/club/location"
   | "/team/players"
   | "/team/staff"
+  | "/team/youth"
   | "/match/schedule"
   | "/match/results"
   | "/match/standings"
@@ -31,6 +32,7 @@ const DESCRIPTIONS: Record<DescriptionPath, (v: DescriptionInput) => string> = {
   "/club/location": (v) => `${v.club} 오시는 길 - 홈구장 ${v.homeVenue} 위치와 대중교통, 주차 안내`,
   "/team/players": (v) => `${v.club} 선수단 - 골레이로/픽소/아라/피보 포지션별 선수 소개`,
   "/team/staff": (v) => `${v.club} 코칭스태프와 프런트 소개`,
+  "/team/youth": (v) => `${v.club} 유스 팀 소개`,
   "/match/schedule": (v) => `${v.club} 경기일정 - ${v.competition} 경기 날짜와 시간, 장소`,
   "/match/results": (v) => `${v.club} 경기결과 - 지난 경기 결과와 점수`,
   "/match/standings": (v) => `${v.club} 리그순위 - ${v.competition} 순위표와 지난 리그 최종 순위`,

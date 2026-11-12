@@ -20,6 +20,8 @@ export type FieldView = {
 /** 비우고 저장하면 기본값으로 — 짧은 기본값은 직접 보여 준다 */
 function restoreHint(f: FieldView): string | null {
   if (!f.customized) return null;
+  // 비워 둘 수 있는 칸(유스 소개 등)은 처음 값이 없다 — 비우면 화면에서 숨는다
+  if (f.def.optional) return "비우고 저장하면 화면에 보이지 않습니다";
   const short = f.def.default.length <= 40 && !f.def.default.includes("\n");
   return short ? `비우고 저장하면 처음 값 '${f.def.default}'(으)로 돌아갑니다` : "비우고 저장하면 처음 값으로 돌아갑니다";
 }

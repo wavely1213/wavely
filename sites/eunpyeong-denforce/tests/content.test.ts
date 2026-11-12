@@ -12,6 +12,11 @@ const def = (k: ContentKey): FieldDef => CONTENT_FIELDS[k];
 
 test("기본값은 모두 자기 규칙을 통과한다 (비어 있지 않고 글자 수/형식이 맞음)", () => {
   for (const k of KEYS) {
+    // 비워 둘 수 있는 칸(optional)만 기본값이 빈 글 — 지어낸 기본 글 없이 화면에서 숨긴다
+    if (def(k).optional) {
+      assert.equal(def(k).default, "", k);
+      continue;
+    }
     const n = normalizeValue(def(k), def(k).default);
     assert.ok(n.ok && n.value === def(k).default, k);
   }
@@ -153,4 +158,10 @@ test("visibleSections: 개인정보처리방침 탭은 페이지를 켤 때만 (
   assert.ok(!off.includes("privacy"));
   assert.ok(on.includes("privacy"));
   assert.deepEqual(off, on.filter((id) => id !== "privacy"));
+});
+
+test("optional 칸(유스 소개): 기본값 빈 글, 저장값이 없으면 빈 글로 풀려 화면에서 숨는다", () => {
+  assert.equal(def("youth.intro").optional, true);
+  assert.equal(resolveContent({})["youth.intro"], "");
+  assert.equal(resolveContent({ "youth.intro": "유스 팀 소개" })["youth.intro"], "유스 팀 소개");
 });

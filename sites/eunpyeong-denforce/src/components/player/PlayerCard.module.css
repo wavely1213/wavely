@@ -127,3 +127,11 @@
     font-size: 16px;
   }
 }
+
+/* 유스 팀 엠블럼 — 사진 칸 안에 가운데, 칸 높이의 60% 까지 (원본 비율 그대로) */
+.youthEmblem {
+  width: auto;
+  height: 60%;
+  max-width: 80%;
+  object-fit: contain;
+}

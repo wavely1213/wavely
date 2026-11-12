@@ -88,9 +88,12 @@ export const CONTENT_SECTIONS = [
   {
     id: "team",
     label: "선수단",
-    description: "코칭스태프 페이지의 섹션 제목입니다. 선수/스태프 명단은 각 관리 메뉴에서 고칩니다.",
+    description: "코칭스태프 페이지의 섹션 제목과 유스 페이지 소개 글입니다. 선수/스태프 명단은 각 관리 메뉴에서 고칩니다.",
     view: "/team/staff",
-    groups: [{ title: "코칭스태프 페이지 섹션 제목", keys: ["staff.section.coaching", "staff.section.front"] }],
+    groups: [
+      { title: "코칭스태프 페이지 섹션 제목", keys: ["staff.section.coaching", "staff.section.front"] },
+      { title: "유스 페이지 소개 (비우면 숨김)", keys: ["youth.intro"] },
+    ],
     lists: [],
     related: [
       { href: "/admin/players", label: "선수 명단/사진/기록 (선수)" },

@@ -5,7 +5,7 @@ import { SITE_DESCRIPTION } from "../src/config/site.ts";
 import { type DescriptionPath, newsCategoryDescription, pageDescription, pastLeagueDescription } from "../src/lib/page-descriptions.ts";
 
 const PATHS: DescriptionPath[] = [
-  "/club", "/club/history", "/club/emblem", "/club/location", "/team/players", "/team/staff", "/match/schedule",
+  "/club", "/club/history", "/club/emblem", "/club/location", "/team/players", "/team/staff", "/team/youth", "/match/schedule",
   "/match/results", "/match/standings", "/news", "/news/posting", "/sponsors", "/contact", "/privacy", "/sitemap",
 ];
 const V = { club: "서울은평 덴포스", homeVenue: "은평다목적체육관", competition: "2026-27 FK1리그" };

@@ -16,6 +16,7 @@ export const STATIC_PATHS = [
   "/news/posting",
   "/team/players",
   "/team/staff",
+  "/team/youth",
   "/match/schedule",
   "/match/results",
   "/match/standings",
