@@ -42,7 +42,7 @@
 - **해결 방향**: 제목에 text-wrap: balance(또는 pretty)를 주거나 카드 폭/글자 크기를 시안 기준으로 다시 맞춘다. 시각 세부라 소유자 "디자인은 나중에" 에 따라 디자인 단계에서 한다.
 
 ## I-053 | 2026-11-10 | Edge Function instagram-sync plainText 도 전체 NFKC — 자동 생성 소식 제목의 'ㅣ' 등이 바뀔 수 있음
-- **상태**: 해결(2026-11-11) — 저장소 코드 고침(수학 영숫자 + 빈자리 글자 + 전각만 NFKC, 테스트) 후 소유자 "ㄱㄱ"로 instagram-sync 버전 5 배포(verify_jwt=false 유지). 배포 도구가 FULLWIDTH 의 \u 이스케이프를 글자로 풀어 올리므로, 2026-11-12 저장소도 그 줄을 글자 그대로(`/[！-～]/g`)로 바꿔 v6 배포 파일 = 저장소
+- **상태**: 해결(2026-11-11) — 저장소 코드 고침(수학 영숫자 + 빈자리 글자 + 전각만 NFKC, 테스트) 후 소유자 "ㄱㄱ"로 instagram-sync 버전 5 배포(verify_jwt=false 유지). 배포 도구가 FULLWIDTH 의 \u 이스케이프를 글자로 풀어 올리므로, 2026-11-12 저장소도 그 줄을 글자 그대로(`/[！-～]/g`)로 바꿨다. v6 배포본과 저장소는 코드가 같고, 저장소 FULLWIDTH 위 주석만 2줄 더 길다(총괄 바이트 대조: index/embed/korean 같음, plan.ts 는 주석만 다름)
 - **심각도**: 낮음
 - **증상/내용**: 사이트 쪽 plainText 는 수학 영숫자 블록만 NFKC 로 고쳤다(재검증 #1). Edge Function `plainText` 는 아직 caption 전체에 NFKC 를 걸어, 영입/릴스 소식 제목을 만들 때 구분자 'ㅣ'(U+3163) → U+1175, '③' → '3', '…' → '...' 로 바뀔 수 있다. 머리말 판정(`embed.ts` 의 head NFKC)은 비교용이라 화면에 안 나와 괜찮다.
 - **위치**: `supabase/functions/instagram-sync/plan.ts` plainText
