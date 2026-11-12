@@ -15,9 +15,15 @@ export function crestFor(name: string, list: TeamCrestEntry[] = TEAM_CRESTS): st
   return crestEntryFor(name, list)?.file ?? null;
 }
 
-/** 엠블럼 그림 (경로 + 원본 픽셀 크기). 못 구한 팀, 모르는 팀은 null */
-export function crestImageFor(name: string, list: TeamCrestEntry[] = TEAM_CRESTS): { src: string; width: number; height: number } | null {
+/** 엠블럼 그림 (경로 + 원본 픽셀 크기). 못 구한 팀, 모르는 팀은 null.
+ * surface: 놓인 면 — 흰 면이고 흰 면용 파일(fileOnLight)이 있으면 그것을 쓴다 (인천ZD 흰 글씨 로고) */
+export function crestImageFor(
+  name: string,
+  surface: "dark" | "light" = "dark",
+  list: TeamCrestEntry[] = TEAM_CRESTS,
+): { src: string; width: number; height: number } | null {
   const e = crestEntryFor(name, list);
   if (!e?.file || !e.pixels) return null;
-  return { src: e.file, width: e.pixels[0], height: e.pixels[1] };
+  const src = surface === "light" && e.fileOnLight ? e.fileOnLight : e.file;
+  return { src, width: e.pixels[0], height: e.pixels[1] };
 }

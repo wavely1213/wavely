@@ -43,7 +43,20 @@ function Shield() {
  * - 원본이 없는 상대: 대체 방패(선 윤곽 + 이름 앞 2글자, 놓인 면의 글자색)
  * 팀 이름은 옆 글자로 따로 보이므로 그림은 읽지 않게 숨긴다.
  */
-export function TeamCrest({ team, us, size, mobileSize }: { team: string; us: boolean; size: CrestSize; mobileSize?: MobileCrestSize }) {
+export function TeamCrest({
+  team,
+  us,
+  size,
+  mobileSize,
+  surface = size === 24 ? "light" : "dark",
+}: {
+  team: string;
+  us: boolean;
+  size: CrestSize;
+  mobileSize?: MobileCrestSize;
+  /** 놓인 면 — 흰 글씨 로고(인천ZD)는 흰 면에서 검정 파일. 기본: 24(경기표, 순위표)는 흰 면, 나머지(카드, 띠)는 어두운 면 */
+  surface?: "dark" | "light";
+}) {
   const sizeClass = `${SIZE_CLASS[size]} ${mobileSize ? MOBILE_CLASS[mobileSize] : ""}`;
   if (us) {
     return (
@@ -52,7 +65,7 @@ export function TeamCrest({ team, us, size, mobileSize }: { team: string; us: bo
       </span>
     );
   }
-  const img = crestImageFor(team);
+  const img = crestImageFor(team, surface);
   if (img) {
     return (
       <span className={`${styles.crest} ${sizeClass}`} aria-hidden="true">

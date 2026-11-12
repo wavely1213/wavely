@@ -44,6 +44,20 @@ const MATH_ALNUM = /[\u{1D400}-\u{1D7FF}ℂℊ-ℎℐ-ℒℕℙ-ℝℤℨℬℭ�
 /** 전각 영숫자/기호(U+FF01~FF5E, 'No.１０') — 반각으로 (전체 NFKC 를 좁히며 잃은 것, 배포 전 확인) */
 const FULLWIDTH = /[\uFF01-\uFF5E]/g;
 
+/** 제목 앞뒤 구분자 — | ｜ ㅣ / ／ · • ・ : - – — 와 공백 (가운데 'GOALㅣflex', '2026/27' 은 그대로) */
+const EDGE_SEP = "[|｜ㅣ/／·•・:\\-–—\\s]+";
+const LEAD_SEP = new RegExp(`^((?:\\p{Extended_Pictographic}|\\u{FE0F}|\\u{200D})*)${EDGE_SEP}`, "u");
+const TRAIL_SEP = new RegExp(`${EDGE_SEP}$`, "u");
+
+/**
+ * 캡션으로 만든 제목의 맨 앞과 맨 끝 구분자를 뗀다 (소유자 "제목 앞 | 자동으로 떼줘", 2026-11-12).
+ * 맨 앞 이모지는 남기고 그 뒤 구분자만 뗀다('🔵| 2026/27' → '🔵 2026/27') — 포스팅은 꾸밈 글자를 그대로 저장하므로.
+ */
+export function trimTitleSeparators(s: string): string {
+  const lead = s.trim().replace(LEAD_SEP, (_, emoji: string) => (emoji ? `${emoji} ` : ""));
+  return lead.replace(TRAIL_SEP, "").trim();
+}
+
 /**
  * 이모지·꾸밈 글자 빼기 (𝑾𝑬𝑳𝑪𝑶𝑴𝑬 → WELCOME). 조합형(NFD) 한글은 NFC 로 모은다.
  * ™ ℹ 는 Extended_Pictographic 이지만 글자로 남긴다 — 사이트 plainText 와 결과를 맞춘다.
@@ -93,7 +107,7 @@ export type PostingDraft = { kind: "club"; platform: "instagram"; title: string;
 export function postingDraft(post: IgPost, type: IgPostType): PostingDraft {
   const lines = captionLines(post.caption);
   const headerOnly = type === "welcome" || type === "farewell" || type === "matchday";
-  const title = (headerOnly ? lines.slice(0, 2) : lines.slice(0, 1)).join(" ") || "구단 인스타그램 게시물";
+  const title = trimTitleSeparators((headerOnly ? lines.slice(0, 2) : lines.slice(0, 1)).join(" ")) || "구단 인스타그램 게시물";
   return {
     kind: "club",
     platform: "instagram",
@@ -133,7 +147,7 @@ export function reelNews(post: IgPost, imageUrl: string): NewsDraft {
   const summary = cut([scorer && `득점 ${scorer}`, assist && `도움 ${assist}`].filter(Boolean).join(" / "), 300);
   return {
     category: "video",
-    title: cut(plainText(lines[0] ?? "") || `구단 릴스 (${date})`, 120),
+    title: cut(trimTitleSeparators(plainText(lines[0] ?? "")) || `구단 릴스 (${date})`, 120),
     date,
     summary,
     body: `${summary ? `${summary}\n\n` : ""}구단 공식 인스타그램(@${ACCOUNT}) 릴스 (${date})`,
