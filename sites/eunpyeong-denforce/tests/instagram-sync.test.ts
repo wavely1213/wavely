@@ -341,6 +341,11 @@ test("trimTitleSeparators: 제목 맨 앞/끝 구분자만 뗀다 (소유자 202
   assert.equal(trimTitleSeparators("GOALㅣflex"), "GOALㅣflex");
   assert.equal(trimTitleSeparators("2026/27"), "2026/27");
   assert.equal(trimTitleSeparators("— 경기 결과 :"), "경기 결과");
+  // 맨 앞 ':' '-' 는 뒤에 공백/구분자/끝일 때만 (총괄 2026-11-12)
+  assert.equal(trimTitleSeparators(":) 좋아요"), ":) 좋아요");
+  assert.equal(trimTitleSeparators("-5℃ 한파 속 훈련"), "-5℃ 한파 속 훈련");
+  assert.equal(trimTitleSeparators(": 경기 결과"), "경기 결과");
+  assert.equal(trimTitleSeparators("- 경기 결과"), "경기 결과");
   assert.equal(trimTitleSeparators("🔵| 𝟮𝟬𝟮𝟲/𝟮𝟳 𝗦𝗤𝗨𝗔𝗗"), "🔵 𝟮𝟬𝟮𝟲/𝟮𝟳 𝗦𝗤𝗨𝗔𝗗");
 });
 

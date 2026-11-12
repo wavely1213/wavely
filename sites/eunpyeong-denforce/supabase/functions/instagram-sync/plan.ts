@@ -44,10 +44,13 @@ const MATH_ALNUM = /[\u{1D400}-\u{1D7FF}ℂℊ-ℎℐ-ℒℕℙ-ℝℤℨℬℭ�
 /** 전각 영숫자/기호(U+FF01~FF5E, 'No.１０') — 반각으로 (전체 NFKC 를 좁히며 잃은 것, 배포 전 확인) */
 const FULLWIDTH = /[\uFF01-\uFF5E]/g;
 
-/** 제목 앞뒤 구분자 — | ｜ ㅣ / ／ · • ・ : - – — 와 공백 (가운데 'GOALㅣflex', '2026/27' 은 그대로) */
-const EDGE_SEP = "[|｜ㅣ/／·•・:\\-–—\\s]+";
-const LEAD_SEP = new RegExp(`^((?:\\p{Extended_Pictographic}|\\u{FE0F}|\\u{200D})*)${EDGE_SEP}`, "u");
-const TRAIL_SEP = new RegExp(`${EDGE_SEP}$`, "u");
+/**
+ * 제목 앞뒤 구분자 — | ｜ ㅣ / ／ · • ・ : - – — 와 공백 (가운데 'GOALㅣflex', '2026/27' 은 그대로).
+ * 맨 앞의 ':' 와 '-' 는 뒤에 공백, 다른 구분자, 글 끝이 올 때만 뗀다(':) 좋아요', '-5℃ 한파' 는 그대로).
+ * 정규식 리터럴로 둔다 — 배포 도구가 문자열 안 역슬래시를 한 단계 풀면 모듈 로드가 멈추므로 (총괄 2026-11-12)
+ */
+const LEAD_SEP = /^((?:\p{Extended_Pictographic}|\u{FE0F}|\u{200D})*)(?:[|｜ㅣ/／·•・–—\s]|[:\-](?=[|｜ㅣ/／·•・:\-–—\s]|$))+/u;
+const TRAIL_SEP = /[|｜ㅣ/／·•・:\-–—\s]+$/u;
 
 /**
  * 캡션으로 만든 제목의 맨 앞과 맨 끝 구분자를 뗀다 (소유자 "제목 앞 | 자동으로 떼줘", 2026-11-12).
@@ -234,7 +237,7 @@ const NOT_DEPART = /잠시|동행합니다|동행을\s*이어|함께합니다|�
 export function parseFarewell(caption: string): Farewell | null {
   for (const line of captionLines(caption).map(plainText)) {
     if (!DEPART.test(line) || NOT_DEPART.test(line)) continue;
-    const m = new RegExp(`([가-힣]{2,4})\\s*(선수|${STAFF_ROLE})(?:님)?(?:가|이|과|와|과의|와의)?\\s`).exec(line);
+    const m = new RegExp(String.raw`([가-힣]{2,4})\s*(선수|${STAFF_ROLE})(?:님)?(?:가|이|과|와|과의|와의)?\s`).exec(line);
     if (!m || NOT_NAME.has(m[1])) continue;
     if (/[가-힣]{2,4}\s*(,|，|、|와|과|및)\s*$/.test(line.slice(0, m.index))) return null;
     return { name: m[1], role: m[2], transfer: /이적/.test(line) };
