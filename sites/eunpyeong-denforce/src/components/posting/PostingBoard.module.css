@@ -1,9 +1,10 @@
 /* 포스팅 거르기 (리디자인 3차 150:16947) — 위 분류 탭(글자 + 아래 2px 밑줄, 높이 44) / 아래 출처 칩(알약 44, 켜짐 black) */
+/* 탭 → 칩 → 격자 사이 space/2xl (휴대폰 space/xl) — 3차 시안 150:16947 / 150:17391 */
 .filters {
   display: flex;
   flex-direction: column;
-  gap: var(--space-m);
-  margin-bottom: var(--space-xl);
+  gap: var(--space-2xl);
+  margin-bottom: var(--space-2xl);
 }
 
 .tabs {
@@ -96,10 +97,11 @@
   color: var(--c-on-dark);
 }
 
+/* PC 4열, 줄 사이 space/xl, 칸 사이 space/l (휴대폰 2열, space/l / space/m) */
 .grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 36px 24px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-xl) var(--space-l);
 }
 
 .empty {
@@ -110,7 +112,18 @@
 
 @media (max-width: 960px) {
   .grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .filters {
+    gap: var(--space-xl);
+    margin-bottom: var(--space-xl);
+  }
+
+  .grid {
+    gap: var(--space-l) var(--space-m);
   }
 }
 
@@ -118,10 +131,5 @@
   /* 분류 탭은 왼쪽부터 가로 넘김(가운데 정렬이면 왼쪽이 잘려 '전체'를 못 누름, 검토 #8), 글자 + 밑줄 그대로 */
   .tab {
     font-size: 14px;
-  }
-
-  .grid {
-    grid-template-columns: 1fr;
-    gap: 32px;
   }
 }

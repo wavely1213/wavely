@@ -221,3 +221,10 @@
     gap: var(--space-xs);
   }
 }
+
+/* 휴대폰: 배너와 격자 사이 space/xl (148:16027) */
+@media (max-width: 720px) {
+  .banner {
+    margin-bottom: var(--space-xl);
+  }
+}

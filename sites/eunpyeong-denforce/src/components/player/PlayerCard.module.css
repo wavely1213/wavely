@@ -1,13 +1,18 @@
+/* PC 한 줄 5명 고정 (인원이 적은 포지션도 카드 크기 동일), 줄 사이 space/xl, 칸 사이 space/l (선수 목록 137:11897) */
 .grid {
   display: grid;
-  /* PC 한 줄 5명 고정 (인원이 적은 포지션도 카드 크기 동일) */
-  grid-template-columns: repeat(5, 1fr);
-  gap: 28px 16px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--space-xl) var(--space-l);
+}
+
+/* 코칭스태프 — PC 4열(카드 282, 155:18888) */
+.staffGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 @media (max-width: 960px) {
   .grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
@@ -17,13 +22,14 @@
   min-width: 0;
 }
 
+/* 사진 3:4, black-soft, radius/m — 글과 사이 space/s */
 .photo {
   position: relative;
   aspect-ratio: 3 / 4;
-  margin-bottom: 12px;
+  margin-bottom: var(--space-s);
   border-radius: var(--radius-m);
   overflow: hidden;
-  background: var(--c-bg-soft);
+  background: var(--c-black-soft);
 }
 
 .photo img {
@@ -44,10 +50,13 @@
 }
 
 /* 긴 이름은 카드 폭 안에서 줄바꿈 (디자인 UX 상태 표 209:2827) */
+/* kfa/pc/h4 18 Bold (코칭스태프 휴대폰 kfa/m/h4 16) */
 .name {
   min-width: 0;
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
   word-break: keep-all;
   overflow-wrap: anywhere;
 }
@@ -72,9 +81,16 @@
   text-decoration: none;
 }
 
+/* 포지션 kfa/caption text-sub (코칭스태프 직책 kfa/body-s 14), 이름과 사이 space/2xs */
 .position {
-  font-size: 13px;
+  margin-top: var(--space-2xs);
+  font-size: 12px;
+  line-height: 1.6;
   color: var(--c-text-sub);
+}
+
+.staffGrid .position {
+  font-size: 14px;
 }
 
 /* 출전 줄 (구분안 2) — kfa/caption text-sub, 기록 없는 선수도 같은 높이 */
@@ -103,7 +119,11 @@
   }
 
   .grid:not(.scroll) {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 24px 12px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-l) var(--space-m);
+  }
+
+  .staffGrid .name {
+    font-size: 16px;
   }
 }

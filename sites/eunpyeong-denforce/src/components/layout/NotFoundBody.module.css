@@ -1,17 +1,19 @@
-/* 404 본문 — 가운데, 위아래 section-gap. 404 kfa/poster 96 blue, 제목 kfa/pc/h2 32(휴대폰 24), 안내 kfa/body-s text-sub, 버튼 사이 space/xs */
+/* 404 본문 (3차 시안 158:19785 / 158:20132) — 가운데, 위 space/3xl(휴대폰 space/2xl), 줄 사이 space/l(휴대폰 space/m).
+   404 kfa/pc/display 76 blue(휴대폰 40), 제목 kfa/pc/h2 32(휴대폰 24), 안내 kfa/pc/body 16 text-sub(휴대폰 15), 버튼 사이 space/s.
+   아래 여백은 Footer margin-top(section-gap) 한 번 */
 .wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-m);
-  padding-top: var(--section-gap);
+  gap: var(--space-l);
+  padding-top: var(--space-3xl);
   text-align: center;
 }
 
 .code {
-  font-size: 96px;
+  font-size: 76px;
   font-weight: 700;
-  line-height: 1;
+  line-height: 1.2;
   letter-spacing: -0.02em;
   color: var(--c-blue);
 }
@@ -24,7 +26,7 @@
 }
 
 .desc {
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.6;
   color: var(--c-text-sub);
 }
@@ -33,16 +35,24 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: var(--space-xs);
-  margin-top: var(--space-xs);
+  gap: var(--space-s);
 }
 
 @media (max-width: 720px) {
+  .wrap {
+    gap: var(--space-m);
+    padding-top: var(--space-2xl);
+  }
+
   .code {
-    font-size: 64px;
+    font-size: 40px;
   }
 
   .title {
     font-size: 24px;
+  }
+
+  .desc {
+    font-size: 15px;
   }
 }

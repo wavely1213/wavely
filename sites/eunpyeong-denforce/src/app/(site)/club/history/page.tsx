@@ -3,7 +3,6 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { achievementItems } from "@/lib/achievements";
 import { pageMetadata } from "@/lib/page-meta";
 import { getHistory, getNationalTeamAlumni, getSiteContent } from "@/lib/repo";
-import styles from "@/styles/prose.module.css";
 import local from "./history.module.css";
 
 export function generateMetadata(): Promise<Metadata> {
@@ -28,11 +27,11 @@ export default async function HistoryPage() {
             ))}
           </dl>
         )}
-        <ul className={styles.list}>
+        <ul className={local.list}>
           {history.map((h) => (
             <li key={h.id}>
-              <span>{h.year}</span>
-              <span>{h.text}</span>
+              <span className={local.year}>{h.year}</span>
+              <span className={local.event}>{h.text}</span>
             </li>
           ))}
         </ul>

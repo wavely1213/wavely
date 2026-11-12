@@ -6,7 +6,10 @@ import { isPreshrunkThumbnail, plainText } from "@/lib/postings";
 import type { Posting } from "@/types";
 import styles from "./PostingCard.module.css";
 
-/** 바깥 글 카드 — 누르면 원문을 새 창으로 연다. 구단 포스팅은 출처 배지를 어둡게 구분, FK리그(연맹 영상)는 배지에 FK리그 */
+/**
+ * 바깥 글 카드 (3차 시안 PostingCard 145:811 / 145:823) — 누르면 원문을 새 창으로 연다.
+ * 썸네일 4:3 → 출처 배지(FK리그 영상은 'FK리그') → 제목 2줄 → 글쓴이 + ↗ → 날짜
+ */
 export function PostingCard({ posting }: { posting: Posting }) {
   return (
     <a href={posting.url} target="_blank" rel="noopener noreferrer" className={styles.card}>
@@ -23,17 +26,20 @@ export function PostingCard({ posting }: { posting: Posting }) {
         ) : (
           <EmblemFallback />
         )}
-        <span className={`${styles.badge} ${posting.kind === "club" ? styles.badgeClub : ""}`}>
+      </div>
+      <span className={styles.text}>
+        <span className={styles.badge}>
           {/* 연맹 영상은 출처(유튜브) 대신 'FK리그' (D-032) */}
           {posting.kind === "league" ? POSTING_KIND_LABEL.league : POSTING_PLATFORM_LABEL[posting.platform]}
         </span>
-      </div>
-      <strong className={styles.title}>
-        {plainText(posting.title)}
-        <span className="sr-only"> (새 창)</span>
-      </strong>
-      <span className={styles.meta}>
-        <span className={styles.author}>{posting.author}</span>
+        <strong className={styles.title}>
+          {plainText(posting.title)}
+          <span className="sr-only"> (새 창)</span>
+        </strong>
+        <span className={styles.author}>
+          <span className={styles.handle}>{posting.author}</span>
+          <span aria-hidden="true">↗</span>
+        </span>
         <span className={styles.date}>{formatPostDate(posting.date)}</span>
       </span>
     </a>

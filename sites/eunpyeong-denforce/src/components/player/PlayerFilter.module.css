@@ -1,6 +1,6 @@
-/* 선수 목록 — 칩 아래 space/xl, 묶음 사이 space/2xl, 묶음 제목 kfa/pc/h3 24 (휴대폰 20) + 영문 text-sub */
+/* 선수 목록 (137:11897 / 137:12494) — 칩 아래와 묶음 사이 space/2xl(휴대폰 space/xl), 묶음 제목 kfa/pc/h3 24 (휴대폰 20) + 영문 text-sub */
 .chips {
-  margin-bottom: var(--space-xl);
+  margin-bottom: var(--space-2xl);
 }
 
 .group + .group {
@@ -21,6 +21,14 @@
 }
 
 @media (max-width: 720px) {
+  .chips {
+    margin-bottom: var(--space-xl);
+  }
+
+  .group + .group {
+    margin-top: var(--space-xl);
+  }
+
   .h2 {
     font-size: 20px;
   }

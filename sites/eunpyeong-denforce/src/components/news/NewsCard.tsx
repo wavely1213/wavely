@@ -30,11 +30,11 @@ export function NewsCard({ post, sizes = "(max-width: 720px) 80vw, 300px" }: { p
         )}
         {video && <PlayMark />}
       </div>
-      <span className={styles.category}>{NEWS_CATEGORY_LABEL[post.category]}</span>
-      <strong className={styles.title}>
-        {post.title}
-      </strong>
-      {post.date && <span className={styles.date}>{formatPostDate(post.date)}</span>}
+      <span className={styles.text}>
+        <span className={styles.category}>{NEWS_CATEGORY_LABEL[post.category]}</span>
+        <strong className={styles.title}>{post.title}</strong>
+        {post.date && <span className={styles.date}>{formatPostDate(post.date)}</span>}
+      </span>
     </NewsLink>
   );
 }

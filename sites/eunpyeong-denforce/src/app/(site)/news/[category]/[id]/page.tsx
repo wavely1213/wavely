@@ -78,9 +78,14 @@ export default async function NewsPostPage({ params }: PageProps<"/news/[categor
         <div className={article.body}>
           {post.body.map((p) =>
             isProfileBlock(p) ? (
-              <p key={p} className={article.profile}>
-                <LinkifiedText text={p} />
-              </p>
+              // 선수 프로필 상자 — 줄마다 따로(사이 space/xs), 첫 줄은 제목 (3차 시안 151:17773)
+              <div key={p} className={article.profile}>
+                {p.split("\n").map((line, i) => (
+                  <p key={i} className={i === 0 ? article.profileTitle : undefined}>
+                    <LinkifiedText text={line} />
+                  </p>
+                ))}
+              </div>
             ) : (
               <p key={p}>
                 <LinkifiedText text={p} />

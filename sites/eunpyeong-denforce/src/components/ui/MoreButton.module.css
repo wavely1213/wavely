@@ -2,7 +2,14 @@
 .more {
   display: flex;
   justify-content: center;
-  margin-top: 44px;
+  margin-top: var(--space-2xl);
+}
+
+/* 휴대폰: 목록과 '더 보기' 사이 space/xl (3차 시안 148/149/150 휴대폰) */
+@media (max-width: 720px) {
+  .more {
+    margin-top: var(--space-xl);
+  }
 }
 
 .button {
