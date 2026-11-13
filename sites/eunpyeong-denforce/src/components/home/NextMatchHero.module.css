@@ -12,10 +12,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-m);
+  /* A 세로 압축(PC, 2026-11-13): 위아래 space/l, 좌우 space/xl, 줄 사이 space/s — 휴대폰은 아래에서 그대로 */
+  gap: var(--space-s);
   width: var(--match-hero-w);
   max-width: 100%;
-  padding: var(--nmh-pad);
+  padding: var(--space-l) var(--nmh-pad);
   border-radius: var(--radius-l);
   background: var(--c-black);
   color: var(--c-on-dark);
@@ -60,9 +61,19 @@
 }
 
 /* 모든 내용(대회 태그 포함)을 파랑 면과 질감 위에 */
-.card > * {
+.card > *,
+.meta > * {
   position: relative;
   z-index: 1;
+}
+
+/* PC: 대회 태그와 @장소 + HOME 한 줄, 사이 space/s (A 세로 압축) */
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs) var(--space-s);
 }
 
 /* NEXT HOME MATCH — kfa/m/h3 20 Bold (휴대폰 kfa/m/h4 16), yellow (소유자 '작게 두지 말고') */
@@ -92,7 +103,8 @@
   flex: 0 1 var(--nmh-col);
   flex-direction: column;
   align-items: center;
-  gap: var(--space-s);
+  /* 엠블럼과 이름 사이 space/xs (A 세로 압축, 휴대폰은 space/s 그대로) */
+  gap: var(--space-xs);
   min-width: 0;
 }
 
@@ -168,6 +180,32 @@
     --nmh-split-top: 10px;
     --nmh-split-bottom: 30px;
     gap: var(--space-s);
+    padding: var(--nmh-pad);
+  }
+
+  .team {
+    gap: var(--space-s);
+  }
+
+  /* 휴대폰은 A 이전 순서 그대로: 라벨 → 대진 → 대회 → 날짜 → @장소 + HOME → 버튼 */
+  .meta {
+    display: contents;
+  }
+
+  .meta > :first-child {
+    order: 2;
+  }
+
+  .date {
+    order: 3;
+  }
+
+  .venue {
+    order: 4;
+  }
+
+  .buttons {
+    order: 5;
   }
 
   .label {

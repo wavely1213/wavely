@@ -11,7 +11,8 @@ import styles from "./NextMatchHero.module.css";
 
 /**
  * 히어로 사진 위 다음 홈경기 카드 — v2 ② 좌우 분할 (소유자 확정 2026-11-11, 피그마 PC 223:24911 / 휴대폰 223:25069, BR-003 '예정'인 가장 가까운 홈경기).
- * 순서: 라벨 → [홈 엠블럼 | VS | 원정 엠블럼] + 이름 → 대회 → 날짜/시각 → @경기장 + HOME → 버튼 둘 (가운데 정렬 그대로).
+ * 순서(PC, A 세로 압축 2026-11-13): 라벨 → [홈 엠블럼 | VS | 원정 엠블럼] + 이름 → 날짜/시각 → [대회 + @경기장 + HOME] 한 줄 → 버튼 둘.
+ * 휴대폰은 그대로: 라벨 → 대진 → 대회 → 날짜 → @경기장 + HOME → 버튼.
  * 검정 카드의 왼쪽 반(홈팀 쪽, BR-002)이 파랑 — 경계는 VS 가운데를 지나는 사선, 그라데이션 없음.
  * 카드 전체 링크가 아니다 — 버튼 둘([오시는 길] [경기일정])만 링크. 카운트다운 없음.
  */
@@ -43,16 +44,19 @@ export function NextMatchHero({ match, ourName, texture }: { match: Match; ourNa
           <TeamName name={away} className={styles.teamName} />
         </div>
       </div>
-      <CompetitionTag text={matchLabel(match)} surface="dark" />
       <p className={styles.date}>
         {date} {time}
       </p>
-      {match.venue && (
-        <p className={styles.venue}>
-          @{match.venue}
-          <HomeAwayBadge isHome={match.isHome} surface="dark" />
-        </p>
-      )}
+      {/* PC: 대회 태그 + @장소 + HOME 한 줄 (A 세로 압축, D-077). 휴대폰은 풀어서 태그 → 날짜 → 장소 순서 그대로 */}
+      <div className={styles.meta}>
+        <CompetitionTag text={matchLabel(match)} surface="dark" />
+        {match.venue && (
+          <p className={styles.venue}>
+            @{match.venue}
+            <HomeAwayBadge isHome={match.isHome} surface="dark" />
+          </p>
+        )}
+      </div>
       <div className={styles.buttons}>
         <Link href="/club/location" className={buttonClass("onBlue", styles.button)}>
           오시는 길

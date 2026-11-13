@@ -33,7 +33,7 @@ function activeChildHref(pathname: string): string | null {
 
 /**
  * 사이트 헤더 (리디자인 D-067, D-069 1단계).
- * - PC: 1차 메뉴 한 줄(지금 페이지는 노란 2px 밑줄). 마우스를 1차 메뉴에 올리거나 키보드 초점이 메뉴에 오면 MegaMenu(전폭 black-soft, 모든 2차 메뉴).
+ * - PC: 1차 메뉴 한 줄(지금 페이지는 노란 2px 밑줄) + 오른쪽 구분선 뒤 SNS / MD스토어 / 사이트맵 (헤더 C, 위 띠 TopBar 없앰 D-079). 마우스를 1차 메뉴에 올리거나 키보드 초점이 메뉴에 오면 MegaMenu(전폭 black-soft, 모든 2차 메뉴).
  *   열림은 마우스 열림/키보드 열림 두 상태로 관리한다 — 마우스는 헤더(바 + 메가) 밖으로 나가면 잠시 뒤 닫히고, 키보드는 초점이 메뉴 밖으로 나가면 닫힌다.
  *   페이지가 바뀌면 닫히고, Esc 로 어디서든 닫는다(메뉴 안 초점이면 그 1차 메뉴로).
  * - 휴대폰(960px 이하): 메뉴 버튼 → 전체 화면 메뉴(1차 + 2차, 맨 아래 SNS / MD스토어 / 사이트맵 — D-042). Esc 로 닫으면 메뉴 버튼으로 초점.
@@ -264,6 +264,31 @@ export function Header({ pathname, sns, content }: { pathname: string; sns: SnsL
             </div>
           </div>
         </nav>
+
+        {/* PC 유틸 (헤더 C 한 줄, D-079) — 메뉴 오른쪽 구분선 뒤 SNS / MD스토어 / 사이트맵. 휴대폰은 위 메뉴 안 mobileExtra */}
+        <span className={styles.utilDivider} aria-hidden="true" />
+        <div className={styles.util}>
+          {sns.length > 0 && (
+            <ul className={styles.utilSns} aria-label="공식 SNS">
+              {sns.map((s) => (
+                <li key={s.label}>
+                  <a href={s.href} target="_blank" rel="noopener noreferrer" className={styles.utilIcon}>
+                    <SnsIcon name={s.label} />
+                    <span className="sr-only">{s.label} (새 창)</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+          <a href={content.externalHref} target="_blank" rel="noopener noreferrer" className={styles.utilStore}>
+            <StoreIcon size={15} />
+            {content.externalLabel}
+            <span className="sr-only">(새 창)</span>
+          </a>
+          <Link href="/sitemap" className={styles.utilLink} onClick={onLinkClick}>
+            사이트맵
+          </Link>
+        </div>
       </div>
     </header>
   );

@@ -63,6 +63,9 @@
 
   --container: 1200px;
   --gutter: 20px;
+  
+  --container-wide: 1480px;
+  --gutter-wide: 40px;
   --header-h: 80px;
   --section-gap: 72px;
   
@@ -70,6 +73,14 @@
   --hero-h: 640px;
   --aside-w: 280px;
   --match-hero-w: 456px;
+}
+
+
+@media (min-width: 1281px) {
+  :root {
+    --container: var(--container-wide);
+    --gutter: var(--gutter-wide);
+  }
 }
 
 @media (max-width: 720px) {
