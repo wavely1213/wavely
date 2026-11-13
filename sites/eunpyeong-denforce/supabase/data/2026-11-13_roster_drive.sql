@@ -45,3 +45,8 @@ update public.players set photo_url = replace(photo_url, '-2627.jpg', '-2627-car
   where is_active and photo_url like '%/media/players/%-2627.jpg';  -- 32행
 -- 윤창욱 2025-26 FK1 기록(연맹, KNOWN_ISSUES I-014): 8경기 4골
 update public.players set apps = 8, goals = 4, updated_at = now() where slug = 'yoon-changwook' and name = '윤창욱';
+-- 2025-26 기록 보충(소유자 선택, I-056 ①): 연맹 2025-26 결과기록지 합계 — 원해연(당시 11번) 13경기 3골, 이준형(당시 23번) 14경기 0골
+update public.players set apps = 13, goals = 3, updated_at = now() where slug = 'won-haeyeon' and name = '원해연';
+update public.players set apps = 14, goals = 0, updated_at = now() where slug = 'lee-junhyung' and name = '이준형';
+-- 구단소개 '팀 조직' 유스 카드(소유자 "유스는 서울은평 아카데미컬"): 'U-18 (고등부)\nU-15 (중등부)\nU-12 (초등부)' → '서울은평 아카데미컬 FC'
+update public.content_items set body = '서울은평 아카데미컬 FC', updated_at = now() where list = 'club.organization' and title = '유스';
