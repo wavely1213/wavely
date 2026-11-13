@@ -44,7 +44,10 @@
 }
 
 /* 제목 kfa/pc/body 16 Regular (휴대폰 kfa/body-s 14), 2줄까지 */
+/* 띄어쓰기 없는 긴 낱말도 카드 폭 안에서 (총괄 검토 #2) */
 .title {
+  align-self: stretch;
+  overflow-wrap: anywhere;
   font-size: 16px;
   font-weight: 400;
   line-height: 1.6;

@@ -6,7 +6,7 @@ import styles from "./SponsorStrip.module.css";
 const LOGO_SIZE: Record<SponsorTier, { width: number; height: number }> = {
   naming: { width: 360, height: 96 },
   official: { width: 288, height: 76 },
-  sub: { width: 240, height: 64 },
+  sub: { width: 196, height: 52 },
   partner: { width: 196, height: 52 },
 };
 

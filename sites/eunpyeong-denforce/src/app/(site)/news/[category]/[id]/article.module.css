@@ -25,6 +25,8 @@
   letter-spacing: -0.02em;
   word-break: keep-all;
   overflow-wrap: anywhere;
+  /* 마지막 줄에 한 글자만 남지 않게 (총괄 검토 #5) */
+  text-wrap: pretty;
 }
 
 /* 분류(kfa/caption blue) + 날짜(kfa/caption text-sub) + 공유 오른쪽 */
