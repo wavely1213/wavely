@@ -3,9 +3,11 @@ import { Suspense } from "react";
 import { AdminLoading, PageTitle } from "@/components/admin/PageTitle";
 import styles from "@/components/admin/admin.module.css";
 import { requireAdminPage } from "@/lib/admin/auth";
+import { folderLink } from "@/lib/admin/drive";
 import type { ClubSettingsRow } from "@/lib/data/rows";
 import { getSiteContent } from "@/lib/repo";
-import { savePreviewSettings } from "./actions";
+import { saveDriveFolder, savePreviewSettings } from "./actions";
+import { DriveFolderForm } from "./DriveFolderForm";
 import { PreviewSettingsForm } from "./PreviewSettingsForm";
 import local from "./settings.module.css";
 
@@ -17,9 +19,10 @@ export const metadata: Metadata = { title: "설정" };
 export default function SettingsPage() {
   return (
     <>
-      <PageTitle title="설정" description="홈페이지/관리자 주소를 카카오톡/SNS에 보낼 때 뜨는 링크 미리보기를 정합니다." />
+      <PageTitle title="설정" description="홈페이지/관리자 주소를 카카오톡/SNS에 보낼 때 뜨는 링크 미리보기와 드라이브 자료함 연결을 정합니다." />
       <Suspense fallback={<AdminLoading />}>
         <PreviewPanel />
+        <DrivePanel />
       </Suspense>
     </>
   );
@@ -68,6 +71,42 @@ async function PreviewPanel() {
         />
       ) : (
         <p className={styles.empty}>관리자 › 구단정보를 먼저 저장해 주세요.</p>
+      )}
+    </section>
+  );
+}
+
+/** 드라이브 자료함 연결 (D-081) — 최고 관리자만 바꾼다. 관리자는 연결 상태만 본다 */
+async function DrivePanel() {
+  const { supabase, role } = await requireAdminPage();
+  const { data, error } = await supabase.from("club_settings").select("drive_folder_id").eq("id", 1).maybeSingle<{ drive_folder_id: string | null }>();
+  const id = data?.drive_folder_id ?? null;
+  return (
+    <section className={styles.panel}>
+      <h2 className={styles.panelTitle}>드라이브 자료함 연결</h2>
+      <p className={local.note}>
+        구단 구글 드라이브 폴더를 연결하면 관리자 › 드라이브 자료함과 사진 칸의 &apos;드라이브에서 가져오기&apos;에서 파일을 골라 쓸 수 있습니다.
+        자동으로 올라가지는 않습니다. 드라이브 API 키(GOOGLE_DRIVE_API_KEY)는 이 화면이 아니라 Supabase 함수 비밀값에 최고 관리자가 넣습니다.
+      </p>
+      {error ? (
+        <p className={styles.formMessage} role="alert">
+          연결 상태를 불러오지 못했습니다. 새로고침해 주세요.
+        </p>
+      ) : role === "owner" ? (
+        <DriveFolderForm action={saveDriveFolder} initialLink={id ? folderLink(id) : ""} />
+      ) : (
+        <p className={local.note}>
+          {id ? (
+            <>
+              연결됨:{" "}
+              <a href={folderLink(id)} target="_blank" rel="noreferrer">
+                드라이브 폴더 열기
+              </a>
+            </>
+          ) : (
+            "아직 연결하지 않았습니다. 최고 관리자가 연결합니다."
+          )}
+        </p>
       )}
     </section>
   );

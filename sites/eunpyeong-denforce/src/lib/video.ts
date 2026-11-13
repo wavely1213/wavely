@@ -2,12 +2,15 @@
 
 export type VideoRef =
   | { provider: "youtube"; id: string; vertical: boolean }
-  | { provider: "instagram"; code: string; vertical: true };
+  | { provider: "instagram"; code: string; vertical: true }
+  // 드라이브 영상 (D-081 자료함) — 파일은 옮기지 않고 드라이브 보기 링크로 재생. 방향을 모르니 세로 칸
+  | { provider: "drive"; id: string; vertical: true };
 
 const YT_ID = /^[A-Za-z0-9_-]{11}$/;
 const IG_CODE = /^[A-Za-z0-9_-]{5,40}$/;
+const DRIVE_ID = /^[A-Za-z0-9_-]{10,100}$/;
 
-/** 유튜브(watch·shorts·youtu.be·embed)·인스타그램(p·reel) 주소만 받는다. 그 밖은 null */
+/** 유튜브(watch·shorts·youtu.be·embed)·인스타그램(p·reel)·드라이브(file/d/<id>) 주소만 받는다. 그 밖은 null */
 export function parseVideoUrl(raw: string | null | undefined): VideoRef | null {
   if (!raw) return null;
   let u: URL;
@@ -35,16 +38,20 @@ export function parseVideoUrl(raw: string | null | undefined): VideoRef | null {
     const code = i >= 0 ? parts[i + 1] ?? "" : "";
     return IG_CODE.test(code) ? { provider: "instagram", code, vertical: true } : null;
   }
+  if (host === "drive.google.com" && parts[0] === "file" && parts[1] === "d") {
+    return DRIVE_ID.test(parts[2] ?? "") ? { provider: "drive", id: parts[2], vertical: true } : null;
+  }
   return null;
 }
 
 /** 원본에서 보기 */
 export function watchUrl(v: VideoRef): string {
   if (v.provider === "instagram") return `https://www.instagram.com/p/${v.code}/`;
+  if (v.provider === "drive") return `https://drive.google.com/file/d/${v.id}/view`;
   return v.vertical ? `https://www.youtube.com/shorts/${v.id}` : `https://www.youtube.com/watch?v=${v.id}`;
 }
 
-export const VIDEO_PROVIDER_LABEL: Record<VideoRef["provider"], string> = { youtube: "유튜브", instagram: "인스타그램" };
+export const VIDEO_PROVIDER_LABEL: Record<VideoRef["provider"], string> = { youtube: "유튜브", instagram: "인스타그램", drive: "드라이브" };
 
 /**
  * 구단영상은 사이트 안에서 재생하지 않고 원본(인스타그램, 유튜브)으로 보낸다 (소유자 2026-11-11, D-074).

@@ -1,6 +1,7 @@
 "use client";
 
 import { AdminForm } from "@/components/admin/AdminForm";
+import { DriveVideoPicker } from "@/components/admin/drive/DriveVideoPicker";
 import { CheckboxField, FixedField, ImageField, ImagesField, ReviewNote, Row, SelectField, TextArea, TextField } from "@/components/admin/fields";
 import { NEWS_CATEGORY_LABEL } from "@/data/news";
 import type { ActionState } from "@/lib/admin/form";
@@ -49,14 +50,16 @@ export function NewsForm({
         label="영상 주소"
         type="url"
         maxLength={300}
-        hint="구단영상: 유튜브/인스타그램(릴스) 주소를 넣으면 목록 카드를 눌렀을 때 원본이 새 창으로 열립니다. 카드 사진은 썸네일을 올려 주세요."
+        hint="구단영상: 유튜브/인스타그램(릴스)/드라이브 주소를 넣으면 목록 카드를 눌렀을 때 원본이 새 창으로 열립니다. 카드 사진은 썸네일을 올려 주세요."
         defaultValue={initial?.video_url}
       />
+      <DriveVideoPicker videoField="video_url" coverField="thumbnail" />
       <ImageField
         name="thumbnail"
         label="썸네일"
         hint="목록 카드에 쓰는 사진. 비워 두면 아래 첫 번째 사진을 씁니다. JPG/PNG/WEBP/GIF"
         currentUrl={initial?.thumbnail_url}
+        drive="news"
       />
       <ImagesField
         name="images"
@@ -64,6 +67,7 @@ export function NewsForm({
         hint={`글 상세에 올린 순서대로 보입니다. 여러 장을 한 번에 고를 수 있습니다 (최대 ${MAX_NEWS_IMAGES}장). 한 번 저장에 올리는 파일은 썸네일 포함 합계 4MB 이하 — 넘으면 나눠서 저장하세요.`}
         currentUrls={initial?.images}
         batchBytes={MAX_UPLOAD_BATCH_BYTES}
+        drive={{ purpose: "news", max: MAX_NEWS_IMAGES }}
       />
       {perms.feature && (
         <CheckboxField name="featured" label="구단소식 맨 위 메인 배너에 고정 (고정한 글이 없으면 최근 소식이 자동으로 나옵니다)" defaultChecked={initial?.featured ?? false} />

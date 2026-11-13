@@ -56,7 +56,7 @@ export function PlayerForm({
         <TextField name="goals" label="득점" type="number" required defaultValue={initial?.goals ?? 0} />
         <TextField name="assists" label="도움" type="number" required defaultValue={initial?.assists ?? 0} />
       </Row>
-      <ImageField name="photo" label="사진" currentUrl={initial?.photo_url} />
+      <ImageField name="photo" label="사진" currentUrl={initial?.photo_url} drive="players" />
       <CheckboxField
         name="is_active"
         label="활동 중 (끄면 홈페이지에서 숨깁니다)"

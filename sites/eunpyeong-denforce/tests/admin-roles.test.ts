@@ -22,8 +22,9 @@ const hrefs = (role: (typeof ADMIN_ROLES)[number]) => navGroupsFor(role).flatMap
 const NO_PERMS: PostPerms = { publish: false, feature: false, setDate: false, editPublished: false };
 const perms0 = { can_publish: false, can_feature: false, can_set_date: false, can_edit_published: false };
 
-test("navGroupsFor: 미디어는 구단소식/포스팅만, 관리자 계정은 최고 관리자만", () => {
-  assert.deepEqual(hrefs("media"), ["/admin/news", "/admin/postings"]);
+test("navGroupsFor: 미디어는 구단소식/포스팅/드라이브 자료함만, 관리자 계정은 최고 관리자만", () => {
+  // 드라이브 자료함은 미디어 메뉴에도 (D-081)
+  assert.deepEqual(hrefs("media"), ["/admin/news", "/admin/postings", "/admin/drive"]);
   assert.ok(hrefs("owner").includes("/admin/accounts"));
   assert.ok(!hrefs("admin").includes("/admin/accounts"));
   // 관리자 계정 말고는 최고 관리자와 관리자의 메뉴가 같다
