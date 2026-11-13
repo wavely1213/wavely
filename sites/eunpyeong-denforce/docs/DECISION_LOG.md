@@ -29,6 +29,13 @@
 
 <!-- 여기서부터 최신 항목을 위에 추가 -->
 
+## D-086 | 2026-11-13 | Vercel 프로젝트를 Pro 팀(motmot4384)으로 옮김 — 운영 배포는 새 팀 ID 로
+- **상태**: 채택 (소유자가 직접 이전, "옮기기 끝났어. 배포 ㄱㄱ")
+- **맥락**: Hobby 팀(wavely1213s-projects)의 하루 배포 100건 한도에 걸려 운영 배포가 막힘(같은 팀의 wavely·deathmatch-web·futsal-redesign 미리보기 포함).
+- **결정**: 프로젝트 eunpyeong-denforce(prj_hieAzlpeatqXd6DmPIhD1L4gU8Fa, ID 그대로)를 Pro 팀 motmot_resort(slug motmot4384, team_49fm6QfQtXE93Whc9Qv06AWe)로 옮김. 앞으로 MCP create_deployment 는 이 teamId 로. 도메인 eunpyeong-fs.com / www(308 → apex) 확인 완료, 환경변수 3개(NEXT_PUBLIC_SUPABASE_URL / _PUBLISHABLE_KEY / NEXT_PUBLIC_NAVER_MAP_KEY_ID) 그대로. Claude 의 Vercel 연결에는 새 팀 권한을 승인 링크로 추가함(연결 해제 불필요).
+- **배포**: 886c1b2(헤더 C + 키보드 수정 018e496, 폭 D, 경기 띠 D-085) → dpl_CD4HVxATEbunvVmnYYGrpyt4E647 READY, 지역 icn1.
+- **남은 것**: 작업 브랜치 3개 미리보기 끄기 규칙(vercel.json git.deploymentEnabled, 4c4dffa)은 그대로 둠 — Pro 에서는 한도 걱정이 줄었으니 되돌릴지는 소유자 결정.
+
 ## D-085 | 2026-11-13 | 홈 경기 띠: 제목 줄('경기' + '전체 일정') 없이 MatchStrip 3칸만, 위아래 PC 48 / 휴대폰 32
 - **상태**: 채택, 기능 브랜치(배포는 총괄, C+D 뒤) (소유자 직접 요청, 디자인 fed2959: 247:3407 / 247:3510 / 247:3717, MatchStrip 200:21536 / 200:21621)
 - **결정**: 히어로 바로 아래 black-soft 띠(MatchBand). 각 칸 MatchCard 가 결과/일정으로 이어져 '전체 일정' 링크 없음. 제목은 읽기 프로그램용 숨김 h2 로만 남김. 관리자 › 홈페이지 내용에서 '경기 섹션 제목' 칸은 뺌 — 정의와 기본값은 fields.ts 에 retired 표시로 남김(BR-023).
