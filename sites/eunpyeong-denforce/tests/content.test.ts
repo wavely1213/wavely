@@ -22,9 +22,11 @@ test("기본값은 모두 자기 규칙을 통과한다 (비어 있지 않고 �
   }
 });
 
-test("모든 값/목록이 관리자 구역 중 정확히 한 곳에 나온다 (빠짐/중복 없음)", () => {
+test("모든 값/목록이 관리자 구역 중 정확히 한 곳에 나온다 (빠짐/중복 없음, 쓰지 않는 칸은 어디에도 없음)", () => {
   const keys = CONTENT_SECTIONS.flatMap((s) => s.groups.flatMap((g) => [...g.keys]));
-  assert.deepEqual([...keys].sort(), [...KEYS].sort());
+  const live = KEYS.filter((k) => !(CONTENT_FIELDS[k] as FieldDef).retired);
+  assert.deepEqual([...keys].sort(), [...live].sort());
+  assert.ok(live.length < KEYS.length, "home.section.matches 는 쓰지 않는 칸 (D-085)");
   const lists = CONTENT_SECTIONS.flatMap((s) => [...s.lists]);
   assert.deepEqual([...lists].sort(), Object.keys(CONTENT_LISTS).sort());
   const ids = CONTENT_SECTIONS.map((s) => s.id);

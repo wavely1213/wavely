@@ -26,6 +26,8 @@ export type FieldDef = {
   rows?: number;
   /** 비워 둘 수 있는 칸 — 기본값이 빈 글이고, 비면 화면에서 그 부분을 숨긴다 (예: 유스 소개) */
   optional?: true;
+  /** 지금 화면에 보이지 않아 관리자 구역에서 뺀 칸 — 정의와 기본값은 남긴다 (BR-023, 되살릴 때 대비. 예: 홈 경기 섹션 제목 D-085) */
+  retired?: true;
 };
 
 /** 개인정보처리방침 기본값 — 이 글 그대로면 페이지는 '준비 중' 상자로 보인다 (관리자 개편 4단계) */
@@ -140,7 +142,8 @@ export const CONTENT_FIELDS = {
     default: "대한민국 풋살의 중심",
     hint: "구단 이름 바로 위 한 줄 — 글자 크기는 아래 구단 이름 폭에 딱 맞게 자동으로 정해집니다",
   },
-  "home.section.matches": { label: "경기 섹션 제목", kind: "text", max: 20, default: "경기" },
+  // 홈 경기 띠는 제목 줄 없이 보인다 (D-085) — 읽기 프로그램용 숨김 제목에만 쓴다
+  "home.section.matches": { label: "경기 섹션 제목", kind: "text", max: 20, default: "경기", retired: true },
   "home.section.news": { label: "구단 소식 섹션 제목", kind: "text", max: 20, default: "구단 소식" },
   "home.section.standings": { label: "리그 순위 칸 제목", kind: "text", max: 20, default: "리그 순위" },
   "home.section.players": { label: "선수단 섹션 제목", kind: "text", max: 20, default: "선수단" },
