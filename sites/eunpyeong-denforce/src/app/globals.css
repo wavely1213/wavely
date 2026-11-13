@@ -88,7 +88,7 @@ button {
 }
 
 /* 공통 초점 표시 (리디자인 D-067, D-069 1단계) — 키보드 초점일 때 바깥 2px.
-   밝은 면은 blue, 어두운 면(data-surface="dark": TopBar, Header, PageHeader, Footer 등)은 on-dark, 파랑 면은 on-blue */
+   밝은 면은 blue, 어두운 면(data-surface="dark": Header, PageHeader, Footer 등)은 on-dark, 파랑 면은 on-blue */
 .site-root :focus-visible {
   outline: 2px solid var(--c-blue);
   outline-offset: 2px;
