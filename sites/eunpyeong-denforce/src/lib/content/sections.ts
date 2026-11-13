@@ -44,7 +44,8 @@ export const CONTENT_SECTIONS = [
       { title: "맨 위 큰 사진", keys: ["home.hero.image", "home.hero.imageAlt", "home.hero.eyebrow", "home.hero.slogan"] },
       {
         title: "섹션 제목",
-        keys: ["home.section.matches", "home.section.news", "home.section.standings", "home.section.players", "home.section.quicklinks"],
+        // 경기 섹션 제목(home.section.matches)은 화면에서 뺐다 (D-085) — 정의와 기본값은 fields.ts 에 남김
+        keys: ["home.section.news", "home.section.standings", "home.section.players", "home.section.quicklinks"],
       },
     ],
     lists: ["home.quicklinks"],
