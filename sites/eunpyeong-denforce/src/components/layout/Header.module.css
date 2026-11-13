@@ -165,9 +165,34 @@
 }
 
 /* ── PC 유틸 (헤더 C 한 줄 245:1414, D-079) ───
-   메뉴 | 구분선 1x20 (앞뒤 space/l 24 = .bar gap) | SNS, MD스토어, 사이트맵 (사이 space/m 16) */
+   메뉴 | 구분선 1x20 (앞뒤 space/l 24 = .nav gap) | SNS, MD스토어, 사이트맵 (사이 space/m 16) */
 .nav {
   margin-left: auto;
+}
+
+/* PC: 메뉴 | 구분선 | 유틸 — 사이 space/l 24 (모든 폭, 6e081ad). 로고 묶음은 줄이지 않는다 (961~1060 겹침 방지) */
+@media (min-width: 961px) {
+  .nav {
+    display: flex;
+    align-items: center;
+    gap: var(--space-l);
+  }
+
+  .brand {
+    flex: none;
+    min-width: auto;
+  }
+}
+
+/* 961~1099: 영문 작은 줄 숨김 + 메뉴 간격 32 → 24 (피그마 259:26453 / 259:26529). 1100 이상은 그대로 */
+@media (min-width: 961px) and (max-width: 1099px) {
+  .brandText small {
+    display: none;
+  }
+
+  .menu {
+    gap: var(--space-l);
+  }
 }
 
 .utilDivider {

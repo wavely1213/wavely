@@ -125,10 +125,21 @@ export function Header({ pathname, sns, content }: { pathname: string; sns: SnsL
     cancelClose();
     closeTimer.current = window.setTimeout(() => setPointerOpen(false), CLOSE_DELAY_MS);
   };
+  // 유틸(SNS / MD스토어 / 사이트맵)에 마우스가 오면 메가메뉴를 닫는다
+  const onUtilPointerEnter = (e: PointerEvent) => {
+    if (e.pointerType !== "mouse") return;
+    cancelClose();
+    setPointerOpen(false);
+  };
   // 키보드 초점(focus-visible)일 때만 연다 — 마우스/터치 누름으로 생긴 초점으로는 열지 않는다
   const onNavFocus = (e: FocusEvent<HTMLElement>) => {
     const fromOutside = !navRef.current?.contains(e.relatedTarget as Node | null);
     if (fromOutside) setDismissed(false);
+    // 유틸로 초점이 오면 메가메뉴는 닫는다 (메뉴가 아님)
+    if (e.target instanceof Element && e.target.closest("[data-util]")) {
+      setKeyboardOpen(false);
+      return;
+    }
     if (matches(DESKTOP) && e.target instanceof Element && e.target.matches(":focus-visible")) setKeyboardOpen(true);
   };
   const onNavBlur = (e: FocusEvent<HTMLElement>) => {
@@ -202,6 +213,32 @@ export function Header({ pathname, sns, content }: { pathname: string; sns: SnsL
             })}
           </ul>
 
+          {/* PC 유틸 (헤더 C 한 줄, D-079) — 메뉴 오른쪽 구분선 뒤 SNS / MD스토어 / 사이트맵. 휴대폰은 아래 mobileExtra.
+              메가메뉴보다 앞에 두어 Tab 이 메뉴 6개 다음 바로 유틸로 온다 */}
+          <span className={styles.utilDivider} aria-hidden="true" />
+          <div className={styles.util} data-util onPointerEnter={onUtilPointerEnter}>
+            {sns.length > 0 && (
+              <ul className={styles.utilSns} aria-label="공식 SNS">
+                {sns.map((s) => (
+                  <li key={s.label}>
+                    <a href={s.href} target="_blank" rel="noopener noreferrer" className={styles.utilIcon}>
+                      <SnsIcon name={s.label} />
+                      <span className="sr-only">{s.label} (새 창)</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <a href={content.externalHref} target="_blank" rel="noopener noreferrer" className={styles.utilStore}>
+              <StoreIcon size={15} />
+              {content.externalLabel}
+              <span className="sr-only">(새 창)</span>
+            </a>
+            <Link href="/sitemap" className={styles.utilLink} onClick={onLinkClick}>
+              사이트맵
+            </Link>
+          </div>
+
           {/* PC 메가메뉴 — 칸 제목은 글자(1차 링크와 겹치지 않게), 2차만 링크 */}
           <div
             id="site-mega"
@@ -264,31 +301,6 @@ export function Header({ pathname, sns, content }: { pathname: string; sns: SnsL
             </div>
           </div>
         </nav>
-
-        {/* PC 유틸 (헤더 C 한 줄, D-079) — 메뉴 오른쪽 구분선 뒤 SNS / MD스토어 / 사이트맵. 휴대폰은 위 메뉴 안 mobileExtra */}
-        <span className={styles.utilDivider} aria-hidden="true" />
-        <div className={styles.util}>
-          {sns.length > 0 && (
-            <ul className={styles.utilSns} aria-label="공식 SNS">
-              {sns.map((s) => (
-                <li key={s.label}>
-                  <a href={s.href} target="_blank" rel="noopener noreferrer" className={styles.utilIcon}>
-                    <SnsIcon name={s.label} />
-                    <span className="sr-only">{s.label} (새 창)</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          )}
-          <a href={content.externalHref} target="_blank" rel="noopener noreferrer" className={styles.utilStore}>
-            <StoreIcon size={15} />
-            {content.externalLabel}
-            <span className="sr-only">(새 창)</span>
-          </a>
-          <Link href="/sitemap" className={styles.utilLink} onClick={onLinkClick}>
-            사이트맵
-          </Link>
-        </div>
       </div>
     </header>
   );
