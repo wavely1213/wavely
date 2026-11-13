@@ -37,3 +37,11 @@ insert into public.players (slug, number, name, position, photo_url, is_active) 
  ('yang-jihoon', 37, '양지훈', 'GK', 'https://vunnzagbsrujdernvetl.supabase.co/storage/v1/object/public/media/players/yang-jihoon-2627.jpg', true);
 update public.players set is_active = false, updated_at = now() where slug = 'no-26' and name = '하윤호';  -- 드라이브 프로필 폴더에 사진 없음 (소유자: 사진 없는 선수는 로스터에서 빠짐)
 commit;
+
+-- ── 운영 반영 메모 (2026-11-13) ──
+-- 위 내용은 운영 DB 에 DO 블록으로 넣었다: 문마다 바뀐 행 수를 확인(수정 1행씩, 추가 9행, 숨김 1행)하고 다르면 전체 취소.
+-- 반영 뒤 소유자 "누끼 테두리가 더럽네, 배경 있는 사진으로" → 사진을 드라이브 '프로필' 카드(배경 있음)로 바꿈. 누끼 판(-2627.jpg)은 저장소에 남김(안 씀).
+update public.players set photo_url = replace(photo_url, '-2627.jpg', '-2627-card.jpg'), updated_at = now()
+  where is_active and photo_url like '%/media/players/%-2627.jpg';  -- 32행
+-- 윤창욱 2025-26 FK1 기록(연맹, KNOWN_ISSUES I-014): 8경기 4골
+update public.players set apps = 8, goals = 4, updated_at = now() where slug = 'yoon-changwook' and name = '윤창욱';
