@@ -302,8 +302,6 @@ h3.title {
     vertical-align: middle;
   }
 
-
-
   .round,
   .venue,
   .pcOnly,
@@ -322,8 +320,6 @@ h3.title {
   .table .result {
     width: calc(64px + 2 * var(--space-xs));
   }
-
-
 
   .mRound {
     display: block;
@@ -388,13 +384,16 @@ h3.title {
 
 /* 361~720: 양 끝 칸 바깥 space/s (2차 시안 136:10098). 320~360 은 대진 칸 폭(영상 버튼)을 위해 space/xs 그대로 */
 @media (min-width: 361px) and (max-width: 720px) {
+  /* 칸 사이 space/s 12 (일시 오른쪽 2xs + 대진 왼쪽 xs) — 대진 폭 162 (총괄 검토 #1) */
   .table .when {
-    width: calc(84px + var(--space-xs) + var(--space-s));
+    width: calc(84px + var(--space-s) + var(--space-2xs));
     padding-left: var(--space-s);
+    padding-right: var(--space-2xs);
   }
 
   .table .result {
-    width: calc(64px + var(--space-xs) + var(--space-s));
+    width: calc(64px + var(--space-2xs) + var(--space-s));
+    padding-left: var(--space-2xs);
     padding-right: var(--space-s);
   }
 }

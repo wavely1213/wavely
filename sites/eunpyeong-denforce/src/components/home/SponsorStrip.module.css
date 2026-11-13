@@ -10,15 +10,19 @@
   gap: var(--space-l);
 }
 
-/* 네이밍 스폰서 — 두 칸 폭, 칸 높이 196 (리디자인 3차 157:19165, D-053) */
+/* 네이밍 스폰서 — 두 칸 폭, 칸 높이 196, 로고 96 + 패딩 space/xl (157:19226 / 157:19541, D-053) */
 .list[data-tier="naming"] {
   --sponsor-min-h: 196px;
-  --sponsor-logo-h: 112px;
+  --sponsor-logo-h: 96px;
   --sponsor-name: 24px;
 }
 
 .list[data-tier="naming"] .item {
   grid-column: span 2;
+}
+
+.list[data-tier="naming"] .body {
+  padding: var(--space-xl);
 }
 
 /* 메인 스폰서 — 칸 높이 160, 로고 76 (SponsorTile 146:697) */
