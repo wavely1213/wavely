@@ -1,9 +1,10 @@
 /* 구단소식 글 상세 (리디자인 3차 151:17695 / 151:17850) — 가운데 800 칸.
-   머리: h1 kfa/pc/h1 40(휴대폰 24) + 분류(blue)/날짜/공유(오른쪽), 아래 line. 사진(크게 보기) → 본문 → 다음 글/이전 글 → 목록 */
+   머리: h1 kfa/pc/h1 48(휴대폰 kfa/m/h1 32) + 분류(blue)/날짜/공유(오른쪽), 아래 line. 사진(크게 보기) → 본문 → 다음 글/이전 글 → 목록,
+   묶음 사이 space/2xl (휴대폰 space/xl) */
 .article {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xl);
+  gap: var(--space-2xl);
   max-width: calc(800px + 2 * var(--gutter));
   /* 아래 여백은 Footer margin-top(section-gap) 한 번만 (검토 #27) */
   padding-bottom: 0;
@@ -13,17 +14,19 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-m);
-  padding-bottom: var(--space-m);
+  padding-bottom: var(--space-l);
   border-bottom: 1px solid var(--c-line);
 }
 
 .title {
-  font-size: 40px;
+  font-size: 48px;
   font-weight: 700;
   line-height: 1.2;
   letter-spacing: -0.02em;
   word-break: keep-all;
   overflow-wrap: anywhere;
+  /* 마지막 줄에 한 글자만 남지 않게 (총괄 검토 #5) */
+  text-wrap: pretty;
 }
 
 /* 분류(kfa/caption blue) + 날짜(kfa/caption text-sub) + 공유 오른쪽 */
@@ -48,13 +51,13 @@
   margin-left: auto;
 }
 
-/* 본문 kfa/body 16, 문단 사이 space/m, 관리자 줄바꿈 그대로 */
+/* 본문 kfa/pc/body 16 (휴대폰 15), 문단 사이 space/l (휴대폰 space/m), 관리자 줄바꿈 그대로 */
 .body {
   display: flex;
   flex-direction: column;
-  gap: var(--space-m);
+  gap: var(--space-l);
   font-size: 16px;
-  line-height: 1.8;
+  line-height: 1.6;
 }
 
 .body p {
@@ -68,53 +71,55 @@
   overflow-wrap: anywhere;
 }
 
-/* 선수 프로필 문단 — bg-soft 상자, radius/m, 패딩 space/m space/l, 첫 줄 굵게 */
+/* 선수 프로필 상자 — bg-soft, radius/m, 패딩 space/l, 줄 사이 space/xs. 제목 kfa/pc/h4 18 Bold, 줄 kfa/body-s 14 */
 .profile {
-  padding: var(--space-m) var(--space-l);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding: var(--space-l);
   border-radius: var(--radius-m);
   background: var(--c-bg-soft);
   font-size: 14px;
-  line-height: 1.8;
+  line-height: 1.6;
 }
 
-.profile::first-line {
-  font-size: 16px;
+.profileTitle {
+  font-size: 18px;
   font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 
 .foot {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xl);
-  margin-top: var(--space-m);
+  gap: var(--space-2xl);
 }
 
-/* 다음 글 / 이전 글 — 위아래 line, 이름표 kfa/caption text-sub 72, 제목 kfa/body-s */
+/* 다음 글 / 이전 글 (151:17777) — 줄마다 위 line(마지막 아래 line), 위아래 space/m, 이름표 80(휴대폰 64) text-sub, kfa/body-s */
 .pager {
-  border-top: 1px solid var(--c-line);
+  border-bottom: 1px solid var(--c-line);
 }
 
 .pager li {
   display: flex;
   align-items: center;
   gap: var(--space-m);
-  min-height: 52px;
-  border-bottom: 1px solid var(--c-line);
+  border-top: 1px solid var(--c-line);
   font-size: 14px;
   line-height: 1.6;
 }
 
 .pagerLabel {
   flex: none;
-  width: 72px;
-  font-size: 12px;
+  width: 80px;
   color: var(--c-text-sub);
 }
 
 .pagerLink,
 .pagerEmpty {
   min-width: 0;
-  padding-block: var(--space-s);
+  padding-block: var(--space-m);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -156,8 +161,17 @@
 }
 
 @media (max-width: 720px) {
+  .article,
+  .foot {
+    gap: var(--space-xl);
+  }
+
   .title {
-    font-size: 24px;
+    font-size: 32px;
+  }
+
+  .pagerLabel {
+    width: 64px;
   }
 
   /* 프로필 상자 안 '선수 소개 보기' 링크(따로 한 줄) 누르는 영역 44 (검토 #24) */
@@ -168,6 +182,7 @@
   }
 
   .body {
+    gap: var(--space-m);
     font-size: 15px;
   }
 }

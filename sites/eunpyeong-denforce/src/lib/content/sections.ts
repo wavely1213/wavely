@@ -44,7 +44,8 @@ export const CONTENT_SECTIONS = [
       { title: "맨 위 큰 사진", keys: ["home.hero.image", "home.hero.imageAlt", "home.hero.eyebrow", "home.hero.slogan"] },
       {
         title: "섹션 제목",
-        keys: ["home.section.matches", "home.section.news", "home.section.standings", "home.section.players", "home.section.quicklinks"],
+        // 경기 섹션 제목(home.section.matches)은 화면에서 뺐다 (D-085) — 정의와 기본값은 fields.ts 에 남김
+        keys: ["home.section.news", "home.section.standings", "home.section.players", "home.section.quicklinks"],
       },
     ],
     lists: ["home.quicklinks"],
@@ -88,9 +89,12 @@ export const CONTENT_SECTIONS = [
   {
     id: "team",
     label: "선수단",
-    description: "코칭스태프 페이지의 섹션 제목입니다. 선수/스태프 명단은 각 관리 메뉴에서 고칩니다.",
+    description: "코칭스태프 페이지의 섹션 제목과 유스 페이지 소개 글입니다. 선수/스태프 명단은 각 관리 메뉴에서 고칩니다.",
     view: "/team/staff",
-    groups: [{ title: "코칭스태프 페이지 섹션 제목", keys: ["staff.section.coaching", "staff.section.front"] }],
+    groups: [
+      { title: "코칭스태프 페이지 섹션 제목", keys: ["staff.section.coaching", "staff.section.front"] },
+      { title: "유스 페이지 소개 (비우면 숨김)", keys: ["youth.intro"] },
+    ],
     lists: [],
     related: [
       { href: "/admin/players", label: "선수 명단/사진/기록 (선수)" },

@@ -1,27 +1,30 @@
+/* 소식 격자 (3차 시안 148:15484 / 149:16417) — PC 4열, 줄 사이 space/xl, 칸 사이 space/l */
 .grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 32px 20px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-xl) var(--space-l);
 }
 
 /* 메인 왼쪽 칸(오른쪽 위젯 옆)용 3칸 (D-034) */
 .cols3 {
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+/* NewsCard 116:736 — 썸네일과 글 사이 space/s */
 .card {
   display: flex;
   flex-direction: column;
+  gap: var(--space-s);
   min-width: 0;
 }
 
+/* 썸네일 3:2(282 x 188), black-soft, radius/m */
 .thumb {
   position: relative;
-  aspect-ratio: 16 / 10;
-  margin-bottom: 14px;
+  aspect-ratio: 3 / 2;
   border-radius: var(--radius-m);
   overflow: hidden;
-  background: var(--c-bg-soft);
+  background: var(--c-black-soft);
 }
 
 .media {
@@ -32,17 +35,28 @@
   transform: scale(1.04);
 }
 
+/* 글 묶음 — 분류 / 제목 / 날짜, 사이 space/2xs */
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  min-width: 0;
+}
+
+/* 분류 kfa/caption blue */
 .category {
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 12px;
+  line-height: 1.6;
   color: var(--c-blue);
 }
 
+/* 제목 kfa/m/h4 16 Bold, 2줄까지. 마지막 줄에 한 글자만 남지 않게 pretty (I-054) */
 .title {
-  margin-top: 4px;
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 700;
-  line-height: 1.4;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  text-wrap: pretty;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -54,9 +68,10 @@
   text-underline-offset: 3px;
 }
 
+/* 날짜 kfa/caption text-sub */
 .date {
-  margin-top: 6px;
-  font-size: 13px;
+  font-size: 12px;
+  line-height: 1.6;
   color: var(--c-text-sub);
 }
 
@@ -84,37 +99,51 @@
   }
 }
 
-@media (max-width: 480px) {
-  .grid:not(.scroll) {
-    grid-template-columns: 1fr;
+/* 휴대폰: 목록 행(썸네일 120 x 80 + 글, 사이 space/m), 행 사이 space/m — 148:16027 */
+@media (max-width: 720px) {
+  .grid:not(.scroll):not(.vertical) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-m);
+  }
+
+  .grid:not(.scroll):not(.vertical) .card {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-m);
+  }
+
+  .grid:not(.scroll):not(.vertical) .thumb {
+    flex: none;
+    width: 120px;
+    height: 80px;
+    aspect-ratio: auto;
+  }
+
+  .grid:not(.scroll):not(.vertical) .text {
+    flex: 1;
   }
 }
 
 /* 구단영상 탭 — 세로 영상(릴스, 9:16) 카드를 한 줄에 여럿: PC 5칸, 태블릿 4칸, 휴대폰 2칸 (D-061).
    위의 '480px 이하 한 칸' 규칙보다 뒤에, 같은 강도(.grid.vertical)로 둔다 */
 .grid.vertical {
-  grid-template-columns: repeat(5, 1fr);
-  gap: 28px 16px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--space-xl) var(--space-l);
 }
 
 .vertical .thumb {
   aspect-ratio: 9 / 16;
-  margin-bottom: 10px;
 }
 
 @media (max-width: 960px) {
   .grid.vertical {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 720px) {
   .grid.vertical {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 24px 12px;
-  }
-
-  .vertical .title {
-    font-size: 15px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-l) var(--space-m);
   }
 }

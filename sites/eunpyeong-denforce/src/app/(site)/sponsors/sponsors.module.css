@@ -1,32 +1,137 @@
-/* 스폰서십 문의 상자의 확인된 사실 목록 — 줄 머리 '- ' (BR-024). 글자 색/줄 간격은 prose .card li 그대로 */
+/* 스폰서 (3차 시안 157:19165 / 157:19509) — 등급 사이 space/2xl(휴대폰 space/xl), 등급 제목 kfa/pc/h3 24(휴대폰 20) 아래 space/l(휴대폰 space/m) */
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xl);
+}
+
+.h2 {
+  margin-bottom: var(--space-l);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+/* 스폰서십 문의 판 (157:19282) — black, radius/l, 패딩 space/2xl(휴대폰 space/l), 글과 버튼 사이 space/2xl(휴대폰 space/l) */
+.partner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xl);
+  padding: var(--space-2xl);
+  border-radius: var(--radius-l);
+  background: var(--c-black);
+  color: var(--c-on-dark);
+}
+
+/* 글 묶음 — 줄 사이 space/m */
+.partnerText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-m);
+  min-width: 0;
+}
+
+/* kfa/label yellow 대문자 */
+.partnerLabel {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-yellow);
+}
+
+/* kfa/pc/h2 32 (휴대폰 kfa/m/h3 24) */
+.partnerTitle {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+/* kfa/pc/body 16 on-dark-sub (휴대폰 15) */
+.partnerDesc {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--c-on-dark-sub);
+}
+
+/* 확인된 사실 줄 — kfa/body-s on-dark, 줄 머리 '✓ ', 줄 사이 space/m */
 .facts {
-  margin-top: 12px;
-  padding-left: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-m);
+  font-size: 14px;
+  line-height: 1.6;
 }
 
 .facts li {
-  position: relative;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
-/* 글머리표는 왼쪽 여백에 걸어 두어 긴 줄이 꺾여도 글 시작이 맞는다 */
 .facts li::before {
-  content: "-";
-  position: absolute;
-  right: calc(100% + 6px);
+  content: "✓ ";
 }
 
 .facts a {
-  color: var(--c-blue);
   text-decoration: underline;
   text-underline-offset: 3px;
   overflow-wrap: anywhere;
 }
 
-/* 휴대폰: 문의 상자 안 인스타그램 링크 누르는 영역 44 (검토 #24) */
+/* 버튼 — blue, 높이 44, radius/m, 패딩 0 space/l, kfa/body-s on-blue */
+.partnerButton {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 var(--space-l);
+  border-radius: var(--radius-m);
+  background: var(--c-blue);
+  color: var(--c-on-blue);
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.partnerButton:hover {
+  background: var(--c-blue-hover);
+}
+
 @media (max-width: 720px) {
+  .body {
+    gap: var(--space-xl);
+  }
+
+  .h2 {
+    margin-bottom: var(--space-m);
+    font-size: 20px;
+  }
+
+  .partner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-l);
+    padding: var(--space-l);
+  }
+
+  .partnerTitle {
+    font-size: 24px;
+  }
+
+  .partnerDesc {
+    font-size: 15px;
+  }
+
+  /* 휴대폰: 문의 판 안 인스타그램 링크 누르는 영역 44 (검토 #24) */
   .facts a {
     display: inline-flex;
     align-items: center;
+    column-gap: var(--space-2xs);
     min-height: 44px;
   }
 }

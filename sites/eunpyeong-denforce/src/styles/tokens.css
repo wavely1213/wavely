@@ -60,13 +60,23 @@
 
   --container: 1200px;
   --gutter: 20px;
+  /* 넓은 PC(1281 이상) 내용 폭 D (D-080) — 1480 - 40 x 2 = 내용 1400. 아래 @media (min-width: 1281px) 에서 --container / --gutter 로 바꿔 넣는다 */
+  --container-wide: 1480px;
+  --gutter-wide: 40px;
   --header-h: 80px;
   --section-gap: 72px;
-  /* 리디자인 치수 (D-067) — 상단 띠(휴대폰은 메뉴 안으로 옮겨 0), 홈 히어로, 순위 위젯 폭, 다음 홈경기 카드 폭 */
-  --topbar-h: 44px;
+  /* 리디자인 치수 (D-067) — 홈 히어로, 순위 위젯 폭, 다음 홈경기 카드 폭 (상단 띠 --topbar-h 는 헤더 C 로 없앰, I-057) */
   --hero-h: 640px;
   --aside-w: 280px;
   --match-hero-w: 456px;
+}
+
+/* 폭 D (D-080): 1281 이상만 넓힌다. 1280 이하는 그대로 */
+@media (min-width: 1281px) {
+  :root {
+    --container: var(--container-wide);
+    --gutter: var(--gutter-wide);
+  }
 }
 
 @media (max-width: 720px) {
@@ -74,7 +84,6 @@
     --gutter: 16px;
     --header-h: 60px;
     --section-gap: 48px;
-    --topbar-h: 0px;
     --hero-h: 520px;
     --match-hero-w: 358px;
   }

@@ -10,7 +10,6 @@ import { pageMetadata } from "@/lib/page-meta";
 import { contentLines } from "@/lib/content/values";
 import { getClubSettings, getSiteContent, getSponsors } from "@/lib/repo";
 import { groupSponsorsByTier, leagueEntryLine } from "@/lib/sponsors";
-import styles from "@/styles/prose.module.css";
 import local from "./sponsors.module.css";
 
 export function generateMetadata(): Promise<Metadata> {
@@ -26,46 +25,50 @@ export default async function SponsorsPage() {
   return (
     <>
       <PageHeader title="스폰서" current="/sponsors" />
-      <div className={`container ${styles.body}`}>
+      <div className={`container ${local.body}`}>
         {/* 등급별로 나눠 높은 등급부터 (스폰서가 있는 등급만), 같은 등급 안은 관리자 표시 순서 */}
         {/* 스폰서가 없으면 안내, 스폰서십 문의 상자는 그대로 (디자인 UX 상태 표 208:22217) */}
         {sponsors.length === 0 && <Placeholder label="등록된 스폰서가 없습니다." />}
         {groupSponsorsByTier(sponsors).map(({ tier, items }) => (
           <section key={tier}>
-            <h2 className={styles.h2}>{SPONSOR_TIER_LABEL[tier]}</h2>
+            <h2 className={local.h2}>{SPONSOR_TIER_LABEL[tier]}</h2>
             <SponsorStrip tier={tier} sponsors={items} />
           </section>
         ))}
-        <section className={styles.card}>
-          <h3>{content["sponsors.box.title"]}</h3>
-          <p>{content["sponsors.box.body"]}</p>
-          <ul className={local.facts}>
-            {league && <li>{league}</li>}
-            {[...new Set(contentLines(content["sponsors.box.facts"]))].map((line) => (
-              <li key={line}>{line}</li>
-            ))}
-            {instagram && (
-              <li>
-                구단 공식 인스타그램 운영{" "}
-                <a href={instagram} target="_blank" rel="noreferrer">
-                  {snsHandle(instagram) ?? instagram}
-                  <span className="sr-only"> (새 창)</span>
-                </a>
-              </li>
-            )}
-          </ul>
-          <p style={{ marginTop: 16 }}>
-            {/* 문의 메일이 있으면 제목이 채워진 메일 쓰기 창, 없으면 문의 페이지로 */}
-            {settings.contactEmail ? (
-              <a href={mailDraftHref(settings.contactEmail, topicSubject(SPONSOR_TOPIC))} className={styles.button}>
-                {content["sponsors.box.button"]}
-              </a>
-            ) : (
-              <Link href="/contact" className={styles.button}>
-                {content["sponsors.box.button"]}
-              </Link>
-            )}
-          </p>
+        {/* 스폰서십 문의 판 (157:19282) — 검정, 글 + 오른쪽 버튼(휴대폰은 아래 전체 폭) */}
+        <section className={local.partner} data-surface="dark" aria-labelledby="sponsor-partner">
+          <div className={local.partnerText}>
+            <p className={local.partnerLabel}>PARTNERSHIP</p>
+            <h2 id="sponsor-partner" className={local.partnerTitle}>
+              {content["sponsors.box.title"]}
+            </h2>
+            <p className={local.partnerDesc}>{content["sponsors.box.body"]}</p>
+            <ul className={local.facts}>
+              {league && <li>{league}</li>}
+              {[...new Set(contentLines(content["sponsors.box.facts"]))].map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+              {instagram && (
+                <li>
+                  구단 공식 인스타그램 운영{" "}
+                  <a href={instagram} target="_blank" rel="noreferrer">
+                    {snsHandle(instagram) ?? instagram} <span aria-hidden="true">↗</span>
+                    <span className="sr-only"> (새 창)</span>
+                  </a>
+                </li>
+              )}
+            </ul>
+          </div>
+          {/* 문의 메일이 있으면 제목이 채워진 메일 쓰기 창, 없으면 문의 페이지로 */}
+          {settings.contactEmail ? (
+            <a href={mailDraftHref(settings.contactEmail, topicSubject(SPONSOR_TOPIC))} className={local.partnerButton}>
+              {content["sponsors.box.button"]}
+            </a>
+          ) : (
+            <Link href="/contact" className={local.partnerButton}>
+              {content["sponsors.box.button"]}
+            </Link>
+          )}
         </section>
       </div>
     </>

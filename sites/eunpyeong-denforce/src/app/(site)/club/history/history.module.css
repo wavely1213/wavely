@@ -1,17 +1,20 @@
-/* 연혁 — 성과 띠(AchievementStrip 146:737): black, radius/l, 칸 사이 line-on-dark, 라벨 kfa/label yellow + 값 kfa/pc/h2 32 on-dark, 가운데 */
+/* 연혁 (3차 시안 152:18164 / 152:18590) — 성과 띠(AchievementStrip 146:713): black, radius/l, 패딩 space/2xl space/xl(휴대폰 space/l),
+   칸 사이 line-on-dark, 라벨 kfa/label yellow 대문자 + 값 kfa/pc/number 32(휴대폰 24) on-dark. 띠와 목록 사이 space/3xl(휴대폰 space/2xl) */
 .body {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2xl);
+  gap: var(--space-3xl);
   /* 아래 여백은 Footer margin-top(section-gap) 한 번만 (검토 #27) */
   padding-bottom: 0;
 }
 
+/* dl 기본 margin 없앰 — 띠와 목록 사이 64(휴대폰 48) 그대로 (총괄 검토 #3) */
 .strip {
+  margin: 0;
   display: grid;
   grid-auto-columns: minmax(0, 1fr);
   grid-auto-flow: column;
-  padding: var(--space-xl) var(--space-l);
+  padding: var(--space-2xl) var(--space-xl);
   border-radius: var(--radius-l);
   background: var(--c-black);
   color: var(--c-on-dark);
@@ -22,7 +25,7 @@
   flex-direction: column;
   align-items: center;
   gap: var(--space-xs);
-  padding: 0 var(--space-m);
+  padding: var(--space-2xs) var(--space-l);
   text-align: center;
 }
 
@@ -35,6 +38,7 @@
   font-weight: 700;
   line-height: 1.2;
   letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--c-yellow);
   word-break: keep-all;
 }
@@ -44,18 +48,63 @@
   margin: 0;
   font-size: 32px;
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1;
   letter-spacing: -0.02em;
 }
 
+/* 연혁 목록 (152:18236) — 줄 위아래 space/m + 아래 line, 연도 160 kfa/pc/h3 24 Bold blue(휴대폰 76 kfa/m/h4 16), 사이 space/xl(휴대폰 space/m), 내용 kfa/pc/body 16(휴대폰 15) */
+.list li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xl);
+  padding: var(--space-m) 0;
+  border-bottom: 1px solid var(--c-line);
+}
+
+.year {
+  flex: none;
+  width: 160px;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--c-blue);
+}
+
+.event {
+  min-width: 0;
+  font-size: 16px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 720px) {
+  .body {
+    gap: var(--space-2xl);
+  }
+
   .strip {
     grid-auto-flow: row;
-    padding: var(--space-xs) var(--space-l);
+    padding: var(--space-l);
   }
 
   .item {
-    padding: var(--space-m) 0;
+    align-items: flex-start;
+    padding: var(--space-m) var(--space-2xs);
+    text-align: left;
+  }
+
+  .list li {
+    gap: var(--space-m);
+  }
+
+  .year {
+    width: 76px;
+    font-size: 16px;
+  }
+
+  .event {
+    font-size: 15px;
   }
 
   .item + .item {

@@ -12,7 +12,8 @@ import styles from "./StandingsTable.module.css";
  */
 export function StandingsTable({ rows, caption }: { rows: StandingRow[]; caption: string }) {
   return (
-    <ScrollRegion className={styles.wrap} label={caption}>
+    // 휴대폰처럼 표가 넘칠 때만 아래 '가로로 밀어 더 보기 →' (2차 시안 138:14414)
+    <ScrollRegion className={styles.wrap} label={caption} hint="가로로 밀어 더 보기 →" hintClassName={styles.hint}>
       <table className={styles.table}>
         <caption className="sr-only">{caption}</caption>
         <thead>

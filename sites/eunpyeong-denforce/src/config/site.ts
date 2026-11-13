@@ -73,6 +73,7 @@ export const NAV: NavItem[] = [
     children: [
       { label: "선수", href: "/team/players" },
       { label: "코칭스태프", href: "/team/staff" },
+      { label: "유스", href: "/team/youth" },
     ],
   },
   {

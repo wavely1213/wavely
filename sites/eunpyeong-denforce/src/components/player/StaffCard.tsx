@@ -25,7 +25,7 @@ export function StaffCard({ staff }: { staff: Staff }) {
 
 export function StaffGrid({ staff }: { staff: Staff[] }) {
   return (
-    <div className={styles.grid}>
+    <div className={`${styles.grid} ${styles.staffGrid}`}>
       {staff.map((s) => (
         <StaffCard key={s.id} staff={s} />
       ))}

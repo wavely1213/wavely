@@ -7,20 +7,22 @@
   padding-bottom: 0;
 }
 
+/* 연락처 2 x 2, 사이 space/l (휴대폰 1열 space/m) */
 .info {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-m);
+  gap: var(--space-l);
 }
 
-/* 연락처 카드 — line 테두리, radius/m, 패딩 space/m space/l. 이름표 kfa/caption text-sub, 값 kfa/pc/h4 18 Bold(링크는 blue) */
+/* 연락처 카드 (157:19415) — line 테두리, radius/m, 패딩 space/l(휴대폰 space/m), 사이 space/xs.
+   이름표 kfa/caption text-sub, 값 kfa/pc/h3 24 Bold(휴대폰 kfa/m/h4 16, 링크는 blue) */
 .infoCard {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2xs);
+  gap: var(--space-xs);
   height: 100%;
   min-height: 44px;
-  padding: var(--space-m) var(--space-l);
+  padding: var(--space-l);
   border: 1px solid var(--c-line);
   border-radius: var(--radius-m);
 }
@@ -36,9 +38,9 @@ a.infoCard:hover {
 }
 
 .infoValue {
-  font-size: 18px;
+  font-size: 24px;
   font-weight: 700;
-  line-height: 1.4;
+  line-height: 1.2;
   letter-spacing: -0.02em;
   color: var(--c-blue);
   overflow-wrap: anywhere;
@@ -48,26 +50,27 @@ a.infoCard:hover {
   color: var(--c-text);
 }
 
-/* kfa/pc/h3 24 (휴대폰 20) */
+/* kfa/pc/h3 24 (휴대폰 20), 아래 space/l (휴대폰 space/m) */
 .h2 {
-  margin-bottom: var(--space-m);
+  margin-bottom: var(--space-l);
   font-size: 24px;
   font-weight: 700;
   line-height: 1.2;
   letter-spacing: -0.02em;
 }
 
+/* 문의 분야 4칸 사이 space/l (휴대폰 1열 space/s) */
 .topics {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--space-m);
+  gap: var(--space-l);
 }
 
-/* 문의 분야 카드 — bg-soft, radius/m, 패딩 space/l, 카드 전체가 메일 쓰기 링크 */
+/* 문의 분야 카드 (157:19430) — bg-soft, radius/m, 패딩 space/l(휴대폰 space/m), 줄 사이 space/s, 카드 전체가 메일 쓰기 링크 */
 .topic {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xs);
+  gap: var(--space-s);
   padding: var(--space-l);
   border-radius: var(--radius-m);
   background: var(--c-bg-soft);
@@ -81,7 +84,7 @@ a.infoCard:hover {
 }
 
 .topicNote {
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.6;
   color: var(--c-text-sub);
 }
@@ -90,8 +93,8 @@ a.infoCard:hover {
   display: inline-flex;
   gap: var(--space-2xs);
   margin-top: auto;
-  padding-top: var(--space-xs);
-  font-size: 13px;
+  font-size: 14px;
+  line-height: 1.6;
   color: var(--c-blue);
 }
 
@@ -113,11 +116,30 @@ a.topic:hover .topicMore {
     grid-template-columns: minmax(0, 1fr);
   }
 
+  .body {
+    gap: var(--space-xl);
+  }
+
+  .info {
+    gap: var(--space-m);
+  }
+
+  .infoCard,
+  .topic {
+    padding: var(--space-m);
+  }
+
+  .topics {
+    gap: var(--space-s);
+  }
+
   .h2 {
+    margin-bottom: var(--space-m);
     font-size: 20px;
   }
 
-  .infoValue {
+  .infoValue,
+  .topicTitle {
     font-size: 16px;
   }
 }

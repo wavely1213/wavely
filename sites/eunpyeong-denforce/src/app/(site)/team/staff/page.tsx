@@ -5,7 +5,6 @@ import { pageMetadata } from "@/lib/page-meta";
 import { getSiteContent, getStaff } from "@/lib/repo";
 import { splitStaff } from "@/lib/staff";
 import { Placeholder } from "@/components/ui/Placeholder";
-import styles from "@/styles/prose.module.css";
 import local from "./staff.module.css";
 
 export function generateMetadata(): Promise<Metadata> {
@@ -19,18 +18,18 @@ export default async function StaffPage() {
   return (
     <>
       <PageHeader title="코칭스태프" current="/team/staff" />
-      <div className={`container ${styles.body}`}>
+      <div className={`container ${local.body}`}>
         {/* 아무도 없으면 안내 (디자인 UX 상태 표 208:22070, 고정 글 — 관리자 칸은 후보 KNOWN_ISSUES) */}
         {coaching.length === 0 && front.length === 0 && <Placeholder label="등록된 코칭스태프가 없습니다." />}
         {coaching.length > 0 && (
           <section>
-            <h2 className={styles.h2}>{content["staff.section.coaching"]}</h2>
+            <h2 className={local.h2}>{content["staff.section.coaching"]}</h2>
             <StaffGrid staff={coaching} />
           </section>
         )}
         {front.length > 0 && (
           <section>
-            <h2 className={styles.h2}>{content["staff.section.front"]}</h2>
+            <h2 className={local.h2}>{content["staff.section.front"]}</h2>
             {/* 프런트 — 3열 격자(휴대폰 1열), 직책 kfa/caption text-sub + 이름 Bold (리디자인 3차 155:18888) */}
             <dl className={local.front}>
               {front.map((s) => (

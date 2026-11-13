@@ -164,7 +164,105 @@
   display: none;
 }
 
-/* 휴대폰 메뉴 맨 아래 SNS / MD스토어 / 사이트맵 (D-042) — PC 는 상단 띠(TopBar) */
+/* ── PC 유틸 (헤더 C 한 줄 245:1414, D-079) ───
+   메뉴 | 구분선 1x20 (앞뒤 space/l 24 = .nav gap) | SNS, MD스토어, 사이트맵 (사이 space/m 16) */
+.nav {
+  margin-left: auto;
+}
+
+/* PC: 메뉴 | 구분선 | 유틸 — 사이 space/l 24 (모든 폭, 6e081ad). 로고 묶음은 줄이지 않는다 (961~1060 겹침 방지) */
+@media (min-width: 961px) {
+  .nav {
+    display: flex;
+    align-items: center;
+    gap: var(--space-l);
+  }
+
+  .brand {
+    flex: none;
+    min-width: auto;
+  }
+}
+
+/* 961~1099: 영문 작은 줄 숨김 + 메뉴 간격 32 → 24 (피그마 259:26453 / 259:26529). 1100 이상은 그대로 */
+@media (min-width: 961px) and (max-width: 1099px) {
+  .brandText small {
+    display: none;
+  }
+
+  .menu {
+    gap: var(--space-l);
+  }
+}
+
+.utilDivider {
+  flex: none;
+  width: 1px;
+  height: 20px;
+  background: var(--c-line-on-dark);
+}
+
+.util {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-m);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--c-on-dark-sub);
+  white-space: nowrap;
+}
+
+.utilSns {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+/* 흰 동그라미 28 안에 검정 로고 (전 TopBar 그대로) */
+.utilIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-pill);
+  background: var(--c-on-dark);
+  color: var(--c-black);
+  transition: background 0.15s ease;
+}
+
+.utilIcon:hover {
+  background: var(--c-yellow);
+}
+
+/* MD스토어 — 노란 테두리 알약 + 쇼핑백 아이콘 (D-047 그대로) */
+.utilStore {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 14px;
+  border: 1px solid var(--c-yellow);
+  border-radius: var(--radius-pill);
+  color: var(--c-yellow);
+  font-weight: 700;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.utilStore:hover {
+  background: var(--c-yellow);
+  color: var(--c-black);
+}
+
+.utilLink {
+  font-weight: 700;
+}
+
+.utilLink:hover {
+  color: var(--c-on-dark);
+}
+
+/* 휴대폰 메뉴 맨 아래 SNS / MD스토어 / 사이트맵 (D-042) — PC 는 메뉴 오른쪽 유틸 */
 .mobileExtra {
   display: none;
 }
@@ -172,6 +270,11 @@
 /* ── 휴대폰: 전체 화면 메뉴 ────────────────── */
 
 @media (max-width: 960px) {
+  .utilDivider,
+  .util {
+    display: none;
+  }
+
   .mark {
     width: 32px;
   }
@@ -261,6 +364,7 @@
 
   .nav {
     display: none;
+    margin-left: 0;
     position: fixed;
     inset: var(--header-h) 0 0 0;
     flex-direction: column;

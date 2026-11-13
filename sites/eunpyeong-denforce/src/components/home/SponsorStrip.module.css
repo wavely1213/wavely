@@ -2,17 +2,17 @@
    등급별 값: 칸 최소 폭 / 카드 최소 높이 / 로고 높이(SponsorStrip.tsx LOGO_SIZE 높이와 같게) / 로고 없을 때 이름 글자.
    .list 의 값 = 서브 스폰서, 다른 등급은 아래 data-tier 에서 바꾼다 */
 .list {
-  --sponsor-min-h: 112px;
-  --sponsor-logo-h: 64px;
+  --sponsor-min-h: 136px;
+  --sponsor-logo-h: 52px;
   --sponsor-name: 19px;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--space-m);
+  gap: var(--space-l);
 }
 
-/* 네이밍 스폰서 — 두 칸 폭 (리디자인 3차 157:19165, D-053) */
+/* 네이밍 스폰서 — 두 칸 폭, 칸 높이 196, 로고 96 + 패딩 space/xl (157:19226 / 157:19541, D-053) */
 .list[data-tier="naming"] {
-  --sponsor-min-h: 160px;
+  --sponsor-min-h: 196px;
   --sponsor-logo-h: 96px;
   --sponsor-name: 24px;
 }
@@ -21,15 +21,19 @@
   grid-column: span 2;
 }
 
+.list[data-tier="naming"] .body {
+  padding: var(--space-xl);
+}
+
+/* 메인 스폰서 — 칸 높이 160, 로고 76 (SponsorTile 146:697) */
 .list[data-tier="official"] {
-  --sponsor-min-h: 132px;
+  --sponsor-min-h: 160px;
   --sponsor-logo-h: 76px;
   --sponsor-name: 21px;
 }
 
+/* 후원사(서브)와 파트너 — 칸 높이 136, 로고 52 */
 .list[data-tier="partner"] {
-  --sponsor-min-h: 96px;
-  --sponsor-logo-h: 52px;
   --sponsor-name: 17px;
 }
 
@@ -48,10 +52,11 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--space-xs);
+  gap: var(--space-s);
   min-width: 0;
-  min-height: var(--sponsor-min-h);
-  padding: var(--space-m);
+  /* 칸 테두리(위아래 1px)를 뺀 높이 — 칸 전체가 196 / 160 / 136 */
+  min-height: calc(var(--sponsor-min-h) - 2px);
+  padding: var(--space-l);
   border-radius: inherit;
 }
 
@@ -79,9 +84,9 @@ a.body:hover {
   object-fit: contain;
 }
 
-/* 이름 kfa/caption text-sub (링크면 '↗') */
+/* 이름 kfa/body-s text-sub (링크면 '↗') */
 .caption {
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.6;
   color: var(--c-text-sub);
   text-align: center;
@@ -95,6 +100,6 @@ a.body:hover .caption {
 @media (max-width: 720px) {
   .list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-xs);
+    gap: var(--space-m);
   }
 }

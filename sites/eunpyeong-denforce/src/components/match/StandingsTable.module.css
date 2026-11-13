@@ -106,3 +106,11 @@
     padding-right: var(--space-xs);
   }
 }
+
+/* 넘칠 때만 표 아래 안내 — 위 space/s, kfa/caption text-sub (138:14591) */
+.hint {
+  margin-top: var(--space-s);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--c-text-sub);
+}

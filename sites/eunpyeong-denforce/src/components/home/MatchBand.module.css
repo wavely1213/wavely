@@ -1,0 +1,12 @@
+/* 홈 경기 띠 (D-085, 디자인 fed2959) — 제목 줄 없이 MatchStrip 3칸만. black-soft, 위아래 PC space/2xl 48 / 휴대폰 space/xl 32 */
+.band {
+  padding: var(--space-2xl) 0;
+  background: var(--c-black-soft);
+  color: var(--c-on-dark);
+}
+
+@media (max-width: 720px) {
+  .band {
+    padding: var(--space-xl) 0;
+  }
+}

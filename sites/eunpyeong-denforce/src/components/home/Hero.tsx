@@ -19,7 +19,8 @@ export function Hero({ nextHome, content, ourName }: { nextHome?: Match; content
           <p className={styles.eyebrow}>{content.eyebrow}</p>
           <HeroTitle slogan={content.slogan} name={content.name} className={styles.title} leadClassName={styles.lead} />
         </div>
-        {nextHome && <NextMatchHero match={nextHome} ourName={ourName} />}
+        {/* 카드 파란 반쪽 질감은 히어로와 같은 사진(같은 주소라 요청이 늘지 않음, D-073 원본 그대로) */}
+        {nextHome && <NextMatchHero match={nextHome} ourName={ourName} texture={content.image} />}
       </div>
     </section>
   );

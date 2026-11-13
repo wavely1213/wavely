@@ -7,6 +7,7 @@ import { QuickLinks } from "@/components/home/QuickLinks";
 import { SponsorMarquee } from "@/components/home/SponsorMarquee";
 import { StandingsWidget } from "@/components/home/StandingsWidget";
 import { InstagramGrid } from "@/components/home/InstagramGrid";
+import { MatchBand } from "@/components/home/MatchBand";
 import { MatchStrip } from "@/components/home/MatchStrip";
 import { Section } from "@/components/ui/Section";
 import { SITE } from "@/config/site";
@@ -79,13 +80,9 @@ export default async function HomePage() {
       <Hero nextHome={nextHome} content={heroContent(c)} ourName={ourName} />
 
       {matchItems.length > 0 && (
-        <Section
-          title={c["home.section.matches"]}
-          band="black-soft"
-          more={upcoming.length > 0 ? { href: "/match/schedule", label: "전체 일정" } : { href: "/match/results", label: "전체 결과" }}
-        >
+        <MatchBand title={c["home.section.matches"]}>
           <MatchStrip items={matchItems} ourName={ourName} />
-        </Section>
+        </MatchBand>
       )}
 
       {sponsors.length > 0 && <SponsorMarquee sponsors={sortByTier(sponsors)} />}

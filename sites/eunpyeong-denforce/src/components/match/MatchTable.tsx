@@ -76,7 +76,8 @@ function MatchTableRow({ match, ourName, details, next }: { match: Match; ourNam
       <td className={styles.round}>{match.round || "-"}</td>
       <td className={styles.when}>
         {next && <span className="sr-only">다음 경기, </span>}
-        {match.round && <span className={styles.mRound}>{match.round}</span>}
+        {/* 라운드 칸이 숨는 폭에서 일시 위에 라운드 — 없으면 PC 칸처럼 '-' (2차 시안 MatchTable Row 131:813) */}
+        <span className={styles.mRound}>{match.round || "-"}</span>
         <span className={styles.date}>
           <span className={styles.year}>{year}</span>
           {rest}
