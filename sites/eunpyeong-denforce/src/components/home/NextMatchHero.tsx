@@ -82,8 +82,8 @@ function WideCard({ match, ourName, textured, style }: Props) {
 }
 
 /**
- * 휴대폰 작은 띠 A 가운데 3줄 (D-088, 피그마 274:26717 / 274:26795 / 274:26873 / 274:26951) — 폭 화면 - 32.
- * [NEXT HOME MATCH + 날짜] / [엠블럼 32 + 우리 이름, VS, 상대 이름 + 엠블럼] / [대회 + (@장소 + HOME + →)] — 줄 규칙은 KFA고딕 실측 기준(I-062, 디자인 f46f3d6).
+ * 휴대폰 작은 띠 A 순서 바꿈 5줄 (D-088 → D-089, 피그마 279:27004 / 279:27049 / 279:27094 / 279:27139) — 폭 화면 - 32.
+ * NEXT HOME MATCH / 대회, 라운드 / [엠블럼 32 + 우리 이름, VS, 상대 이름 + 엠블럼] / 날짜, 시간 / @장소 + HOME + →.
  * 카드 전체가 /match/schedule 링크 하나. 링크 이름은 보이는 글자 그대로 + '경기일정 보기'(→ 는 숨김), 라벨은 2단계 제목.
  */
 function PhoneStrip({ match, ourName, textured, style }: Props) {
@@ -93,14 +93,10 @@ function PhoneStrip({ match, ourName, textured, style }: Props) {
   return (
     <section className={styles.stripWrap} data-surface="dark" aria-labelledby="next-home-match-strip">
       <Link href="/match/schedule" className={`${styles.card} ${styles.strip} ${textured ? styles.textured : ""}`} style={style}>
-        <span className={styles.stripRow}>
-          <span id="next-home-match-strip" role="heading" aria-level={2} className={styles.label}>
-            NEXT HOME MATCH
-          </span>
-          <span className={styles.stripDate}>
-            {date} {time}
-          </span>
+        <span id="next-home-match-strip" role="heading" aria-level={2} className={styles.label}>
+          NEXT HOME MATCH
         </span>
+        <CompetitionTag text={matchLabel(match)} surface="dark" />
         <span className={styles.stripTeams}>
           <span className={styles.stripTeam}>
             <TeamCrest team={home} us={match.isHome} size={32} />
@@ -112,17 +108,17 @@ function PhoneStrip({ match, ourName, textured, style }: Props) {
             <TeamCrest team={away} us={!match.isHome} size={32} />
           </span>
         </span>
-        <span className={styles.stripRow}>
-          <CompetitionTag text={matchLabel(match)} surface="dark" />
-          <span className={styles.venue}>
-            {match.venue && <>@{match.venue}</>}
-            <HomeAwayBadge isHome={match.isHome} surface="dark" />
-            <span className={styles.arrow} aria-hidden="true">
-              →
-            </span>
-            {/* 카드 바로 아래 자식은 .card > * 가 position: relative 로 바꿔 자리를 차지하므로, 숨김 글자는 줄 안에 둔다 */}
-            <span className="sr-only">, 경기일정 보기</span>
+        <span className={styles.stripDate}>
+          {date} {time}
+        </span>
+        <span className={styles.venue}>
+          {match.venue && <>@{match.venue}</>}
+          <HomeAwayBadge isHome={match.isHome} surface="dark" />
+          <span className={styles.arrow} aria-hidden="true">
+            →
           </span>
+          {/* 카드 바로 아래 자식은 .card > * 가 position: relative 로 바꿔 자리를 차지하므로, 숨김 글자는 줄 안에 둔다 */}
+          <span className="sr-only">, 경기일정 보기</span>
         </span>
       </Link>
     </section>

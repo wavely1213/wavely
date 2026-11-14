@@ -171,86 +171,11 @@
   min-height: 44px;
 }
 
-@media (max-width: 720px) {
-  .card {
-    --nmh-pad: var(--space-m);
-    --nmh-col: 135px;
-    --nmh-vs: 40px;
-    --nmh-crest: 72px;
-    --nmh-split-top: 10px;
-    --nmh-split-bottom: 30px;
-    gap: var(--space-s);
-    padding: var(--nmh-pad);
-    /* 391~720 넓은 휴대폰(412 / 430 등): 카드는 358 그대로 가운데 (D-087). 390 이하는 꽉 차서 그대로 */
-    margin-inline: auto;
-  }
-
-  .team {
-    gap: var(--space-s);
-  }
-
-  /* 휴대폰은 A 이전 순서 그대로: 라벨 → 대진 → 대회 → 날짜 → @장소 + HOME → 버튼 */
-  .meta {
-    display: contents;
-  }
-
-  .meta > :first-child {
-    order: 2;
-  }
-
-  .date {
-    order: 3;
-  }
-
-  .venue {
-    order: 4;
-  }
-
-  .buttons {
-    order: 5;
-  }
-
-  .label {
-    font-size: 16px;
-  }
-
-  .teamName {
-    font-size: 20px;
-  }
-
-  .vs {
-    font-size: 28px;
-  }
-
-  .date {
-    font-size: 22px;
-  }
-
-  .button {
-    flex: 1;
-    width: auto;
-  }
-}
-
-/* 390 미만 좁은 휴대폰(375 SE/mini 포함): 팀 이름 kfa/m/h4 16, 엠블럼 칸 64 — 첫 화면 580 안 (디자인 d162b69, 768831c).
-   320 은 두 줄이 될 수 있고 첫 화면을 조금 넘는 것을 받아들인다 */
-@media (max-width: 389px) {
-  .card {
-    --nmh-crest: 64px;
-  }
-
-  .team > span:first-child {
-    --crest: 64px;
-  }
-
-  .teamName {
-    font-size: 16px;
-  }
-}
-
-/* ── 휴대폰 작은 띠 A 가운데 3줄 (D-088, 피그마 274:26795) ──────────────
-   721 이상은 위 카드(.wide), 720 이하는 띠(.strip). 폭 화면 - 32(히어로 안쪽 그대로), 높이(KFA고딕 실측) 320 168 / 360 162 / 375~430 139 / 480~720 116 / 390 긴 이름 145.
-   안쪽 여백 위아래 space/s 좌우 space/m, 줄 사이 space/xs, 줄 안 줄바꿈 사이 space/2xs. 파랑 반쪽 +10 / -30 + (다) 질감 그대로 */
+/* ── 휴대폰 작은 띠 A, 순서 바꿈 5줄 (D-089, 피그마 279:27004 / 279:27049 / 279:27094 / 279:27139) ──────────────
+   721 이상은 위 카드(.wide), 720 이하는 띠(.strip) — 휴대폰용 .card 규칙(예전 큰 카드)은 쓰이지 않아 지움(I-063).
+   ① NEXT HOME MATCH ② 대회/라운드 ③ 대진 ④ 날짜/시간 ⑤ @장소 + HOME + →. 줄 안 줄바꿈 없음(긴 상대 이름만 2줄).
+   폭 화면 - 32, 안쪽 여백 위아래 space/s 좌우 space/m, 줄 사이 space/2xs. 파랑 반쪽 +10 / -30 + (다) 질감 그대로.
+   높이(KFA고딕) 약 154, 390 긴 이름 160 */
 .stripWrap {
   display: none;
 }
@@ -269,20 +194,15 @@
     --nmh-split-top: 10px;
     --nmh-split-bottom: 30px;
     width: 100%;
-    gap: var(--space-xs);
+    gap: var(--space-2xs);
     padding: var(--space-s) var(--space-m);
     margin-inline: 0;
     text-decoration: none;
   }
 
-  /* 줄 1(라벨 + 날짜), 줄 3(대회 + 장소 덩어리) — 좁으면 덩어리째 다음 줄로, 사이 space/2xs (I-062, 디자인 f46f3d6) */
-  .stripRow {
-    position: relative;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    gap: var(--space-2xs) var(--space-xs);
+  /* NEXT HOME MATCH — kfa/m/h4 16 Bold yellow (넓은 카드는 20) */
+  .strip .label {
+    font-size: 16px;
   }
 
   /* [엠블럼 32 + 이름] VS [이름 + 엠블럼 32] — 엠블럼과 이름 space/xs, 이름과 VS space/s */
