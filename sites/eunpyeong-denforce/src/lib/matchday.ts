@@ -46,6 +46,7 @@ function kstMidnight(ms: number): number {
 }
 
 const https = (u: string | null | undefined) => (u?.startsWith("https://") ? u : null);
+const instagram = (u: string | null | undefined) => (u?.startsWith("https://www.instagram.com/") ? u : null);
 
 /** 이 경기의 포스터 창. 포스터가 하나도 없거나 날짜 오류면 null */
 export function posterWindow(
@@ -57,7 +58,7 @@ export function posterWindow(
   const k = Date.parse(m.kickoff);
   if (!Number.isFinite(k)) return null;
   const start = kstMidnight(k);
-  return { matchId: m.id, start, end: start + DAY_MS, matchEnd: k + MATCH_END_AFTER_MS, finished: m.status === "finished", matchday, fulltime, matchdayPost: https(m.matchdayPost), fulltimePost: https(m.fulltimePost), opponent: m.opponent, isHome: m.isHome, kickoff: m.kickoff };
+  return { matchId: m.id, start, end: start + DAY_MS, matchEnd: k + MATCH_END_AFTER_MS, finished: m.status === "finished", matchday, fulltime, matchdayPost: instagram(m.matchdayPost), fulltimePost: instagram(m.fulltimePost), opponent: m.opponent, isHome: m.isHome, kickoff: m.kickoff };
 }
 
 /** 포스터가 있는 경기들의 창, 시작 순 (지난 것도 넘긴다 — 시각은 브라우저가 판단) */

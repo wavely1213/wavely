@@ -10,9 +10,9 @@ alter table public.matches
     constraint matches_fulltime_poster_url_check check (fulltime_poster_url is null or (fulltime_poster_url ~ '^https://' and length(fulltime_poster_url) <= 500)),
   -- 포스터를 누르면 갈 구단 인스타 게시물 (새 창). instagram-sync 가 MATCH DAY / 경기결과 글 주소를 빈 칸에만 넣는다(관리자 값 우선)
   add column if not exists matchday_post_url text
-    constraint matches_matchday_post_url_check check (matchday_post_url is null or (matchday_post_url ~ '^https://' and length(matchday_post_url) <= 500)),
+    constraint matches_matchday_post_url_check check (matchday_post_url is null or (matchday_post_url ~ '^https://www\.instagram\.com/' and length(matchday_post_url) <= 500)),
   add column if not exists fulltime_post_url text
-    constraint matches_fulltime_post_url_check check (fulltime_post_url is null or (fulltime_post_url ~ '^https://' and length(fulltime_post_url) <= 500));
+    constraint matches_fulltime_post_url_check check (fulltime_post_url is null or (fulltime_post_url ~ '^https://www\.instagram\.com/' and length(fulltime_post_url) <= 500));
 
 -- 포스터 폴더 (관리자 › 설정, 최고 관리자). 처음 값은 소유자가 준 폴더(2026-11-15, 링크 공개 폴더 ID — 비밀값 아님)
 alter table public.club_settings

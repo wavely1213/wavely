@@ -11,6 +11,9 @@ import { MATCH_SIDES, MATCH_STATUSES } from "./labels";
 // 경기 관리 서버 액션 — 모든 액션이 직접 관리자 권한을 확인한다 (페이지 검사에 기대지 않음).
 // 순서: 권한 → 입력 검증 → DB 저장 → updateTag → redirect
 
+/** 포스터를 누르면 갈 게시물은 인스타그램만 (DB check matches_*_post_url_check) */
+const isInstagramUrl = (u: string) => u.startsWith("https://www.instagram.com/");
+
 // 포스터 칸 (D-096) — 폼 이름 → DB 열. 마이그레이션 전 DB 에서도 저장되게, 바뀐 칸만 보낸다
 const POSTERS = [
   ["matchday_poster", "matchday_poster_url"],
@@ -29,6 +32,10 @@ function readPostLinks(f: FormReader, current: PosterColumns): Record<string, st
     matchday_post_url: f.optHttpsUrl("matchday_post_url", "MATCH DAY 게시물"),
     fulltime_post_url: f.optHttpsUrl("fulltime_post_url", "FULL TIME 게시물"),
   };
+  // DB check 와 같게 인스타그램 주소만
+  for (const [k, v] of Object.entries(next)) {
+    if (v && !isInstagramUrl(v)) f.reject(k, "인스타그램 게시물 주소(https://www.instagram.com/…)만 넣을 수 있습니다.");
+  }
   return Object.fromEntries(Object.entries(next).filter(([k, v]) => v !== (current[k as keyof PosterColumns] ?? null)));
 }
 
