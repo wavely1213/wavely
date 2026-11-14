@@ -39,7 +39,10 @@ export function HighlightCard({ item }: { item: HighlightItem }) {
           {item.away}
         </strong>
         <span className={styles.meta}>
-          {item.date} {item.competition}
+          {/* 날짜 + 공백 2칸 + 대회/라운드 (디자인 수치표 2ad2066) */}
+          {item.date}
+          {"\u00a0\u00a0"}
+          {item.competition}
         </span>
       </span>
     </a>
