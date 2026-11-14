@@ -1,4 +1,14 @@
 -- 주의(2026-11-14, D-082 C2): 운영 DB 는 D-072 이름 '키움증권 2026-27 FK리그1'. 새 환경에서 이 파일 뒤에 D-072 이름 변경을 먼저 실행할 것.
+begin;
+
+-- 운영 실행 막기(2026-11-15 검토): 운영 DB 에는 이미 D-072 이름으로 들어가 있어, 다시 실행하면 중복 경기/표가 생긴다. 새 환경 전용.
+do $$ begin
+  if exists (select 1 from public.matches where competition = '키움증권 2026-27 FK리그1')
+     or exists (select 1 from public.standings where season = '키움증권 2026-27 FK리그1') then
+    raise exception 'D-072 이름의 2026-27 시즌이 이미 있음 — 새 환경 전용 파일 (운영 DB 에서 실행 금지)';
+  end if;
+end $$;
+
 -- 2026-27 FK1리그 서울은평 덴포스 15경기 일정 — 소유자가 준 일정표("flex 2026-27 FK League1 일정", 2026-11-05) 그대로. 2026-11-05 운영 DB 적용 (I-025 해결)
 -- 대회명은 사이트 표기 '2026-27 FK1리그' (LEAGUE.currentCompetition). 시간은 한국 시간.
 -- 홈/원정: 은평다목적체육관 = 홈, 나머지 = 원정. 파주 NFC 풋살장(1R, 2R)과 단양군 국민체육센터(7R, 8R)는 중립 경기장이라 표에 홈/원정이 없어 원정으로 넣었다 (소유자 기본값 승인 "연동해줘").
@@ -27,3 +37,5 @@ where not exists (select 1 from public.matches m where m.competition = '2026-27 
 
 -- 팀 이름: '용인지솔FS' (리그순위의 옛 이름 '용인대흥FS' 를 바꾼다. 처음에 일정표를 '용인지슬FS'로 잘못 읽어 넣었다가 소유자 정정 "용인지솔" 로 고침, 2026-11-05)
 update public.standings set team = '용인지솔FS' where season = '2026-27 FK1리그' and team = '용인대흥FS';
+
+commit;
