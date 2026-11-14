@@ -14,7 +14,7 @@ import styles from "./NextMatchHero.module.css";
  * 순서(PC, A 세로 압축 2026-11-13): 라벨 → [홈 엠블럼 | VS | 원정 엠블럼] + 이름 → 날짜/시각 → [대회 + @경기장 + HOME] 한 줄 → 버튼 둘.
  * 검정 카드의 왼쪽 반(홈팀 쪽, BR-002)이 파랑 — 경계는 VS 가운데를 지나는 사선, 그라데이션 없음.
  * 721 이상(태블릿, PC): 카드 전체 링크가 아니다 — 버튼 둘([오시는 길] [경기일정])만 링크. 카운트다운 없음.
- * 720 이하(휴대폰): 작은 띠 A 가운데 3줄(D-088) — PhoneStrip. 카드 전체가 링크 하나(/match/schedule), 버튼 없음.
+ * 720 이하(휴대폰): 작은 띠(D-088, 줄 순서 D-089: 라벨 / 대회 / 대진 / 날짜 / 장소) — PhoneStrip. 카드 전체가 링크 하나(/match/schedule), 버튼 없음. 이 카드(.wide)는 휴대폰에서 숨김.
  */
 export function NextMatchHero({ match, ourName, texture }: { match: Match; ourName: string; texture?: string }) {
   const style = texture ? ({ "--nmh-texture": `url(${JSON.stringify(texture)})` } as CSSProperties) : undefined;
@@ -59,7 +59,7 @@ function WideCard({ match, ourName, textured, style }: Props) {
       <p className={styles.date}>
         {date} {time}
       </p>
-      {/* PC: 대회 태그 + @장소 + HOME 한 줄 (A 세로 압축, D-077). 휴대폰은 풀어서 태그 → 날짜 → 장소 순서 그대로 */}
+      {/* 721 이상: 대회 태그 + @장소 + HOME 한 줄 (A 세로 압축, D-077). 휴대폰은 이 카드 대신 PhoneStrip */}
       <div className={styles.meta}>
         <CompetitionTag text={matchLabel(match)} surface="dark" />
         {match.venue && (
