@@ -27,7 +27,8 @@ function altOf(a: ActivePoster): string {
 export function MatchdayPopup({ windows }: { windows: PosterWindow[] }) {
   const ref = useRef<HTMLDialogElement>(null);
   const [shown, setShown] = useState<ActivePoster | null>(null);
-  const [ratio, setRatio] = useState(DEFAULT_RATIO);
+  // 받은 그림의 원래 비율 — 그림이 바뀌면(MATCH DAY → FULL TIME) 그 그림을 받기 전까지 기본 3:4
+  const [loaded, setLoaded] = useState<{ src: string; ratio: number } | null>(null);
   // 이번 열람에서 이미 띄운 포스터 — 같은 것을 다시 띄우지 않는다
   const seen = useRef(new Set<string>());
 
@@ -81,6 +82,7 @@ export function MatchdayPopup({ windows }: { windows: PosterWindow[] }) {
     close();
   };
 
+  const ratio = shown && loaded?.src === shown.image ? loaded.ratio : DEFAULT_RATIO;
   const link = shown ? (shown.kind === "fulltime" ? shown.window.fulltimePost : shown.window.matchdayPost) : null;
   const poster = shown && (
     // eslint-disable-next-line @next/next/no-img-element -- 이미지 최적화 끔(원본 그대로, D-073)
@@ -88,12 +90,13 @@ export function MatchdayPopup({ windows }: { windows: PosterWindow[] }) {
       key={shown.image}
       src={shown.image}
       className={styles.poster}
-      // 불러오기 전에도 자리를 잡아 둔다(0px 였다가 늘어나면 '닫기'를 누르려다 포스터를 누를 수 있음). 받으면 원래 비율로
-      style={{ aspectRatio: String(ratio) }}
+      // 불러오기 전/오류에도 자리를 잡아 둔다(0px 였다가 늘어나면 '닫기'를 누르려다 포스터를 누를 수 있음).
+      // 'auto 비율' — 받는 중에는 그림의 원래 비율, 받기 전에는 3:4
+      style={{ aspectRatio: `auto ${ratio}` }}
       alt={altOf(shown)}
       onLoad={(e) => {
         const { naturalWidth: w, naturalHeight: h } = e.currentTarget;
-        if (w > 0 && h > 0) setRatio(w / h);
+        if (w > 0 && h > 0) setLoaded({ src: e.currentTarget.getAttribute("src") ?? "", ratio: w / h });
       }}
     />
   );

@@ -4,6 +4,7 @@ import type { AdminContext } from "./auth";
 import { driveImportPrefix, isDriveImportUrl } from "./drive";
 import type { FormReader } from "./form";
 import { planImageList } from "./image-list";
+import { bucketPaths } from "./storage-path";
 
 // 이미지 업로드 — Supabase Storage 'media' 버킷 (공개 읽기, 관리자만 쓰기: 마이그레이션 정책)
 
@@ -159,9 +160,8 @@ export async function resolveImages(
  */
 export async function removeImages(ctx: AdminContext, urls: Array<string | null | undefined>): Promise<void> {
   const prefix = `${SUPABASE_URL}/storage/v1/object/public/${MEDIA_BUCKET}/`;
-  const paths = urls
-    .filter((u): u is string => typeof u === "string" && u.startsWith(prefix) && !u.startsWith(DRIVE_PREFIX))
-    .map((u) => u.slice(prefix.length));
+  // '?v=…' 꼬리(동기화가 붙임)와 해시는 떼고 경로를 낸다
+  const paths = bucketPaths(urls, prefix, DRIVE_PREFIX);
   if (paths.length > 0) await ctx.supabase.storage.from(MEDIA_BUCKET).remove(paths);
 }
 

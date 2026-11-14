@@ -1,6 +1,6 @@
 // 인스타그램 게시물 → 사이트에 넣을 행 (D-065, BR-029) — AI 없이 정해진 규칙으로. 순수 함수만 (테스트: instagram-sync.test.ts).
 // 판단이 필요한 값(포지션 없음, 같은 이름, 홈/원정, 경기 못 찾음)은 넣지 않거나 넣은 뒤 note 로 '확인 필요'를 남긴다.
-import { kstDateTime, parseMatchday, parseResult, type IgPost, type IgPostType } from "./embed.ts";
+import { kstDateTime, parseMatchday, parseResult, type IgPost, type IgPostType, type ResultHint } from "./embed.ts";
 import { josa, nameSlug } from "./korean.ts";
 
 export const ACCOUNT = "eunpyeong_denforce";
@@ -317,6 +317,8 @@ export type MatchLite = {
   score_us: number | null;
   score_them: number | null;
   venue?: string;
+  /** 득점자 (다시 시도할 때 메모 판단) */
+  scorers?: string | null;
   /** 매치데이 팝업 포스터를 누르면 갈 게시물 (D-096). 열이 없는 DB(마이그레이션 전)에서는 키 자체가 없다 */
   matchday_post_url?: string | null;
   fulltime_post_url?: string | null;
@@ -398,8 +400,8 @@ export function postLinkTarget(post: IgPost, type: IgPostType, matches: readonly
   return { matchId: m.id, field, url };
 }
 
-/** 득점 줄 → "백승하 3, 김영록, 윤창욱" (자책골 제외, 한 골이면 숫자 없음) */
-export function scorersText(lines: readonly string[]): string | null {
+/** 분 표기 득점 줄 → [이름, 골 수] (줄의 숫자 개수 = 골 수, 자책골 제외) */
+export function minuteGoals(lines: readonly string[]): Array<[string, number]> {
   const goals = new Map<string, number>();
   for (const line of lines) {
     const name = line.split(/\s+/)[0];
@@ -407,8 +409,7 @@ export function scorersText(lines: readonly string[]): string | null {
     const n = (line.slice(name.length).match(/\d+/g) ?? []).length || 1;
     goals.set(name, (goals.get(name) ?? 0) + n);
   }
-  if (!goals.size) return null;
-  return cut([...goals].map(([name, n]) => (n > 1 ? `${name} ${n}` : name)).join(", "), 300);
+  return [...goals];
 }
 
 /** [이름, 골 수] → "김영록 2, 윤창욱" (한 골이면 숫자 없음) */
@@ -417,12 +418,32 @@ export function ballScorersText(list: ReadonlyArray<readonly [string, number]>):
   return cut(list.map(([name, n]) => (n > 1 ? `${name} ${n}` : name)).join(", "), 300);
 }
 
+/** 득점 줄 → "백승하 3, 김영록, 윤창욱" (자책골 제외, 한 골이면 숫자 없음) */
+export function scorersText(lines: readonly string[]): string | null {
+  return ballScorersText(minuteGoals(lines));
+}
+
 export type ResultUpdate = { id: string; status: "finished"; score_us: number; score_them: number; scorers: string | null };
+
+const UNREADABLE_SCORERS = "득점 줄을 다 읽지 못함 — 확인 필요, 관리자 › 경기에서 득점자 입력";
+
+/**
+ * 득점자 글 — 득점 줄을 모두 읽었고 골 수 합(상대 자책골 포함) = 우리 점수일 때만. 아니면 null + 읽지 못함.
+ * 득점 줄이 아예 없고 우리 점수가 0 이면 null(메모 없음).
+ */
+export function resultScorers(r: Pick<ResultHint, "scorerLines" | "ballScorers" | "ownGoals">, scoreUs: number): { scorers: string | null; unreadable: boolean } {
+  const list = r.ballScorers === null ? null : r.ballScorers.length ? r.ballScorers : minuteGoals(r.scorerLines);
+  if (list === null) return { scorers: null, unreadable: true };
+  const total = list.reduce((n, [, g]) => n + g, 0) + r.ownGoals;
+  if (total !== scoreUs) return { scorers: null, unreadable: scoreUs > 0 || total > 0 };
+  return { scorers: ballScorersText(list), unreadable: false };
+}
 
 /** 경기결과 → 최근 7일 안 같은 상대 경기에 점수/득점. 이미 결과가 있으면 그대로 둔다 */
 export function planResult(post: IgPost, matches: readonly MatchLite[]): { update: ResultUpdate | null; note: string | null } {
   const r = parseResult(post.caption);
-  if (r.opponent && r.scoreUnclear) return { update: null, note: `경기결과 글의 점수 줄에 팀 이름이 없어 어느 쪽 점수인지 모름 (상대 ${r.opponent}) — 확인 필요, 관리자 › 경기에서 입력` };
+  if (r.opponent && r.scoreIssue === "no-team") return { update: null, note: `경기결과 글의 점수 줄에 팀 이름이 없어 어느 쪽 점수인지 모름 (상대 ${r.opponent}) — 확인 필요, 관리자 › 경기에서 입력` };
+  if (r.scoreIssue === "many") return { update: null, note: `경기결과 글에 팀 점수 줄이 둘 이상(전반/최종 등)이라 어느 것이 최종인지 모름${r.opponent ? ` (상대 ${r.opponent})` : ""} — 확인 필요, 관리자 › 경기에서 입력` };
   if (!r.opponent || r.scoreUs === null || r.scoreThem === null) return { update: null, note: "경기결과 글에서 상대/점수를 읽지 못함 — 관리자 › 경기에서 입력" };
   const at = post.takenAt * 1000;
   const found = matches
@@ -430,15 +451,15 @@ export function planResult(post: IgPost, matches: readonly MatchLite[]): { updat
     .sort((a, b) => Date.parse(b.kickoff) - Date.parse(a.kickoff))[0];
   const score = `${r.scoreUs}:${r.scoreThem}`;
   if (!found) return { update: null, note: `최근 7일 안 ${r.opponent} 경기를 찾지 못함 (결과 ${score}) — 관리자 › 경기에서 입력` };
+  const s = resultScorers(r, r.scoreUs);
   if (found.status === "finished") {
     const same = found.score_us === r.scoreUs && found.score_them === r.scoreThem;
-    return { update: null, note: same ? null : `이미 입력된 결과(${found.score_us}:${found.score_them})와 글(${score})이 다름 — 확인 필요` };
+    if (!same) return { update: null, note: `이미 입력된 결과(${found.score_us}:${found.score_them})와 글(${score})이 다름 — 확인 필요` };
+    // 다시 시도할 때도 메모가 남게 — 같은 점수로 이미 넣었지만 득점자가 비어 있고 글의 득점 줄을 다 읽지 못했으면 다시 알린다
+    return { update: null, note: s.unreadable && !found.scorers ? UNREADABLE_SCORERS : null };
   }
-  // ⚽ 줄을 다 읽지 못하면 점수만 넣고 득점은 비운다 (일부만 넣지 않음)
-  const unreadable = !r.scorerLines.length && r.ballScorers === null;
-  const scorers = r.scorerLines.length ? scorersText(r.scorerLines) : r.ballScorers ? ballScorersText(r.ballScorers) : null;
   return {
-    update: { id: found.id, status: "finished", score_us: r.scoreUs, score_them: r.scoreThem, scorers },
-    note: unreadable ? "득점 줄을 다 읽지 못함 — 확인 필요, 관리자 › 경기에서 득점자 입력" : null,
+    update: { id: found.id, status: "finished", score_us: r.scoreUs, score_them: r.scoreThem, scorers: s.scorers },
+    note: s.unreadable ? UNREADABLE_SCORERS : null,
   };
 }

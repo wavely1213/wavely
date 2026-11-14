@@ -7,7 +7,7 @@ import { createClient } from "npm:@supabase/supabase-js@2.117.3";
 import { driveError, FOLDER_MIME, listUrl, redactKey } from "../drive-library/drive.ts";
 import {
   appliedKey,
-  dedupeUpdates,
+  candidateGroups,
   matchForFolder,
   needsPoster,
   parseFolderName,
@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
   try {
     const { data: rows, error } = await db
       .from("matches")
-      .select("id, kickoff, opponent, matchday_poster_url, fulltime_poster_url")
+      .select("id, kickoff, opponent, is_home, matchday_poster_url, fulltime_poster_url")
       .gte("kickoff", new Date(now - 86400_000).toISOString())
       .lte("kickoff", new Date(now + 60 * 86400_000).toISOString())
       .order("kickoff");
@@ -94,43 +94,54 @@ Deno.serve(async (req) => {
       const match = matchForFolder(name, matches, now);
       if (typeof match === "string") continue; // 지난 시즌/먼 경기 폴더는 조용히 넘어간다
       if (!needsPoster(match, applied)) continue;
-      const plan = planFolder(match, await listAll(folder.id), applied);
+      const plan = planFolder(match, await listAll(folder.id), applied, { name: folder.name, side: name.side });
       updates.push(...plan.updates);
       notes.push(...plan.notes);
     }
 
-    const unique = dedupeUpdates(updates);
-    notes.push(...unique.notes);
     const appliedList: string[] = [];
-    for (const u of unique.updates) {
-      const img = await fetch(u.thumb, { redirect: "follow", signal: AbortSignal.timeout(20_000) });
-      const type = (img.headers.get("content-type") ?? "").split(";")[0].trim();
-      if (!img.ok || !/^image\/(jpeg|png|webp)$/.test(type)) {
-        notes.push(`${u.fileName}: 이미지를 받지 못함 (${img.status})`);
-        continue;
-      }
-      const bytes = new Uint8Array(await img.arrayBuffer());
-      if (!bytes.byteLength || bytes.byteLength > MAX_BYTES) {
-        notes.push(`${u.fileName}: 크기 이상 (${bytes.byteLength})`);
-        continue;
-      }
-      const path = storagePath(u.matchId, u.field);
-      const { error: upErr } = await db.storage.from(BUCKET).upload(path, bytes, { contentType: type, cacheControl: "300", upsert: true });
-      if (upErr) {
-        notes.push(`${u.fileName}: 저장 실패 ${upErr.message}`);
-        continue;
-      }
-      // 같은 경로를 다시 쓸 수 있어 주소 꼬리에 파일 ID 를 붙여 캐시를 갈라 둔다
-      const url = `${db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl}?v=${u.fileId}`;
-      // 비어 있을 때만 — 그사이 관리자가 넣었으면 0행이 바뀌고 넘어간다
-      const { data: set, error: setErr } = await db.from("matches").update({ [u.field]: url }).eq("id", u.matchId).is(u.field, null).select("id");
-      if (setErr) notes.push(`넣기 실패 ${u.matchId} ${u.field}: ${setErr.message}`);
-      else if (set?.length) {
-        appliedList.push(`${u.matchId} ${u.field} ${u.fileName}`);
-        const { error: logErr } = await db
-          .from("matchday_poster_sync_applied")
-          .upsert({ match_id: u.matchId, field: u.field, file_id: u.fileId, applied_at: new Date().toISOString() }, { onConflict: "match_id,field" });
-        if (logErr) notes.push(`기록 실패 ${u.matchId} ${u.field}: ${logErr.message}`);
+    for (const group of candidateGroups(updates)) {
+      for (const u of group) {
+        const label = `${u.folderName} / ${u.fileName}`;
+        // 후보마다 받기를 따로 감싼다 — 시간 초과, 끊김도 메모만 남기고 다음 후보로
+        let bytes = new Uint8Array(0);
+        let type = "";
+        try {
+          const img = await fetch(u.thumb, { redirect: "follow", signal: AbortSignal.timeout(20_000) });
+          type = (img.headers.get("content-type") ?? "").split(";")[0].trim();
+          if (!img.ok || !/^image\/(jpeg|png|webp)$/.test(type)) {
+            notes.push(`${label}: 이미지를 받지 못함 (${img.status})`);
+            continue;
+          }
+          bytes = new Uint8Array(await img.arrayBuffer());
+        } catch (e) {
+          notes.push(`${label}: 이미지를 받지 못함 (${redactKey(String(e instanceof Error ? e.message : e)).slice(0, 120)})`);
+          continue;
+        }
+        if (!bytes.byteLength || bytes.byteLength > MAX_BYTES) {
+          notes.push(`${label}: 크기 이상 (${bytes.byteLength})`);
+          continue;
+        }
+        const path = storagePath(u.matchId, u.field);
+        const { error: upErr } = await db.storage.from(BUCKET).upload(path, bytes, { contentType: type, cacheControl: "300", upsert: true });
+        if (upErr) {
+          notes.push(`${label}: 저장 실패 ${upErr.message}`);
+          continue;
+        }
+        // 같은 경로를 다시 쓸 수 있어 주소 꼬리에 파일 ID 를 붙여 캐시를 갈라 둔다
+        const url = `${db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl}?v=${u.fileId}`;
+        // 비어 있을 때만 — 그사이 관리자가 넣었으면 0행이 바뀌고 넘어간다
+        const { data: set, error: setErr } = await db.from("matches").update({ [u.field]: url }).eq("id", u.matchId).is(u.field, null).select("id");
+        if (setErr) notes.push(`${label}: 넣기 실패 ${setErr.message}`);
+        else if (set?.length) {
+          appliedList.push(`${u.matchId} ${u.field} ${label}`);
+          const { error: logErr } = await db
+            .from("matchday_poster_sync_applied")
+            .upsert({ match_id: u.matchId, field: u.field, file_id: u.fileId, applied_at: new Date().toISOString() }, { onConflict: "match_id,field" });
+          if (logErr) notes.push(`${label}: 기록 실패 ${logErr.message}`);
+        }
+        if (group.length > 1 && u !== group[group.length - 1]) notes.push(`${u.folderName}: 같은 칸 후보 ${group.length}개 중 ${u.fileName} 를 씀`);
+        break; // 올렸으면(또는 칸이 그사이 찼으면) 이 칸은 끝
       }
     }
 

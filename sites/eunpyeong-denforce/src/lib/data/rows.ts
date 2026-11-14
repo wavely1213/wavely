@@ -58,6 +58,8 @@ export type MatchRow = {
   fulltime_poster_url?: string | null;
   matchday_post_url?: string | null;
   fulltime_post_url?: string | null;
+  /** 관리자 폼이 연 때의 값 — 저장할 때 그사이 바뀌었는지 본다 (공개 조회에는 쓰지 않음) */
+  updated_at?: string;
 };
 
 export type StandingDbRow = {

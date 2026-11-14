@@ -133,9 +133,10 @@ test("planFolder: 빈 칸만, 관리자 값 우선, 지운 칸 다시 안 채움
   const noThumb = planFolder(pm(), [file("MATCH-DAY.jpg", { thumbnailLink: "" })], new Set());
   assert.deepEqual(noThumb.updates, []);
   assert.equal(noThumb.notes.length, 1);
-  // 같은 종류 여러 장 → 최근에 바뀐 것
+  // 같은 종류 여러 장 → 최근에 바뀐 것부터 (모두 후보)
   const newer = planFolder(pm(), [file("MATCH-DAY.jpg", { modifiedTime: "2026-11-10" }), file("MATCH-DAY 2.jpg", { modifiedTime: "2026-11-12", id: "newer_file_id_123" })], new Set());
   assert.equal(newer.updates[0].fileId, "newer_file_id_123");
+  assert.equal(newer.updates.length, 2);
 });
 
 test("needsPoster, storagePath, sizedThumb", () => {
@@ -161,12 +162,33 @@ test("포스터 링크: 인스타그램 게시물 주소만 창에 실린다", (
   assert.equal(w.fulltimePost, null);
 });
 
-test("dedupeUpdates: 같은 (경기, 칸)은 하나만, 나머지는 메모", async () => {
-  const { dedupeUpdates } = await import("../supabase/functions/matchday-poster-sync/plan.ts");
-  const u = (fileName: string, field: "matchday_poster_url" | "fulltime_poster_url" = "matchday_poster_url") => ({ matchId: "m1", field, fileId: `f_${fileName}_00000000`, thumb: "https://x", fileName });
-  const r = dedupeUpdates([u("a.jpg"), u("b.jpg"), u("FULL.jpg", "fulltime_poster_url")]);
-  assert.deepEqual(r.updates.map((x) => x.fileName), ["a.jpg", "FULL.jpg"]);
-  assert.equal(r.notes.length, 1);
+test("candidateGroups: 같은 (경기, 칸) 후보를 묶어 HOME/AWAY 맞는 폴더, 최신 순", async () => {
+  const { candidateGroups } = await import("../supabase/functions/matchday-poster-sync/plan.ts");
+  const u = (fileName: string, sideMatch: boolean, modifiedTime: string, field: "matchday_poster_url" | "fulltime_poster_url" = "matchday_poster_url") => ({
+    matchId: "m1",
+    field,
+    fileId: `f_${fileName}_00000000`,
+    thumb: "https://x",
+    fileName,
+    folderName: "11/21 vs 용인지솔FS (AWAY)",
+    sideMatch,
+    modifiedTime,
+  });
+  const g = candidateGroups([u("old.jpg", true, "2026-11-01"), u("wrongside.jpg", false, "2026-11-20"), u("new.jpg", true, "2026-11-10"), u("FULL.jpg", true, "", "fulltime_poster_url")]);
+  assert.deepEqual(
+    g.map((x) => x.map((y) => y.fileName)),
+    [["new.jpg", "old.jpg", "wrongside.jpg"], ["FULL.jpg"]],
+  );
+});
+
+test("planFolder: 같은 종류 이미지는 모두 후보, 폴더 HOME/AWAY 가 경기와 맞는지", () => {
+  const files = [file("MATCH-DAY.jpg", { modifiedTime: "2026-11-10" }), file("MATCH-DAY 2.jpg", { modifiedTime: "2026-11-12", id: "newer_file_id_123" })];
+  const p = planFolder(pm({ is_home: false }), files, new Set(), { name: "11/15 vs 노원제너FS (AWAY)", side: "AWAY" });
+  assert.deepEqual(p.updates.map((u) => [u.fileId, u.sideMatch, u.folderName]), [
+    ["newer_file_id_123", true, "11/15 vs 노원제너FS (AWAY)"],
+    [files[0].id, true, "11/15 vs 노원제너FS (AWAY)"],
+  ]);
+  assert.equal(planFolder(pm({ is_home: false }), files, new Set(), { name: "x", side: "HOME" }).updates[0].sideMatch, false);
 });
 
 test("redactKey: 오류 문구 속 API 키를 가린다", async () => {
@@ -177,4 +199,10 @@ test("redactKey: 오류 문구 속 API 키를 가린다", async () => {
   );
   assert.equal(redactKey("https://a/b?key=AIza) end"), "https://a/b?key=***) end");
   assert.equal(redactKey("no key here"), "no key here");
+  // Deno fetch 실제 오류 모양 (시간 초과 / 연결 실패)
+  assert.equal(
+    redactKey("error sending request for url (https://www.googleapis.com/drive/v3/files?q=%27x%27+in+parents&key=AIzaSyA-b_c&pageSize=100): connection error"),
+    "error sending request for url (https://www.googleapis.com/drive/v3/files?q=%27x%27+in+parents&key=***&pageSize=100): connection error",
+  );
+  assert.equal(redactKey("TimeoutError: Signal timed out. url=https://x/y?key=AIzaSyA-b_c"), "TimeoutError: Signal timed out. url=https://x/y?key=***");
 });

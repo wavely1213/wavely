@@ -4,22 +4,25 @@
 -- 다시 실행해도 된다.
 
 -- ── 연결 설정: 루트 폴더 ID (관리자 › 설정, 최고 관리자가 링크를 넣으면 ID 만 뽑아 저장) ──
--- 공개 조회되는 club_settings 가 아니라 관리자 전용 1행 표에 둔다 (총괄 검토 2026-11-15: 폴더 ID 를 anon 에 내보내지 않게).
--- 바꾸기는 최고 관리자만(서버 동작 requireAdminAction(OWNER_ROLES)), 서버 함수는 서버 키로 읽는다.
+-- 관리자 전용 1행 설정 표 (드라이브 폴더 ID). drive_library / matchday_poster 마이그레이션이 각자 이 블록을 갖고 자기 칸만 더한다
+-- — 어느 하나만 적용돼도 동작하게 (총괄 검토 2026-11-15). 조회는 관리자(is_admin), 바꾸기는 최고 관리자(is_owner). anon 권한 없음.
 create table if not exists public.drive_settings (
   id smallint primary key default 1 check (id = 1),
-  drive_folder_id text check (drive_folder_id is null or drive_folder_id ~ '^[A-Za-z0-9_-]{10,100}$'),
   updated_at timestamptz not null default now()
 );
 insert into public.drive_settings (id) values (1) on conflict (id) do nothing;
-
 alter table public.drive_settings enable row level security;
 drop policy if exists drive_settings_admin_read on public.drive_settings;
 create policy drive_settings_admin_read on public.drive_settings for select to authenticated using (public.is_admin());
 drop policy if exists drive_settings_admin_update on public.drive_settings;
-create policy drive_settings_admin_update on public.drive_settings for update to authenticated using (public.is_admin()) with check (public.is_admin());
+drop policy if exists drive_settings_owner_update on public.drive_settings;
+create policy drive_settings_owner_update on public.drive_settings for update to authenticated using (public.is_owner()) with check (public.is_owner());
 revoke all on public.drive_settings from anon, authenticated;
 grant select, update on public.drive_settings to authenticated;
+alter table public.drive_settings add column if not exists drive_folder_id text;
+alter table public.drive_settings drop constraint if exists drive_settings_drive_folder_id_check;
+alter table public.drive_settings add constraint drive_settings_drive_folder_id_check
+  check (drive_folder_id is null or drive_folder_id ~ '^[A-Za-z0-9_-]{10,100}$');
 
 -- ── 가져온 파일 기록: 같은 파일(file id)은 다시 받지 않는다 ──
 create table if not exists public.drive_imports (
