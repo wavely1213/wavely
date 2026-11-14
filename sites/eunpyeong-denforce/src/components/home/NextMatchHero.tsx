@@ -5,8 +5,10 @@ import { buttonClass } from "@/components/ui/Button";
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import { formatKickoff, matchSides } from "@/lib/format";
+import { liveWindow } from "@/lib/live";
 import { matchLabel } from "@/lib/match";
 import type { Match } from "@/types";
+import { LiveBadge, LiveButton, LiveLink } from "@/components/match/Live";
 import styles from "./NextMatchHero.module.css";
 
 /**
@@ -31,6 +33,7 @@ type Props = { match: Match; ourName: string; textured: boolean; style?: CSSProp
 function WideCard({ match, ourName, textured, style }: Props) {
   const { date, time } = formatKickoff(match.kickoff);
   const { home, away } = matchSides(match, ourName);
+  const live = liveWindow(match);
   return (
     <section
       className={`${styles.card} ${styles.wide} ${textured ? styles.textured : ""}`}
@@ -39,9 +42,13 @@ function WideCard({ match, ourName, textured, style }: Props) {
       // 파란 반쪽 듀오톤 질감 사진 (소유자 '(다) 구단 사진 듀오톤', 디자인 be0917e) — 없으면 평면 파랑
       style={style}
     >
-      <h2 id="next-home-match" className={styles.label}>
-        NEXT HOME MATCH
-      </h2>
+      {/* 경기 당일(생중계 주소, 킥오프 2시간 전부터) 라벨 옆 LIVE + 버튼 아래 '생중계 보기 ↗' 한 줄 — 카드 368 → 424 (D-092 L3) */}
+      <div className={styles.labelRow}>
+        <h2 id="next-home-match" className={styles.label}>
+          NEXT HOME MATCH
+        </h2>
+        <LiveBadge window={live} />
+      </div>
       <div className={styles.teams}>
         <div className={styles.team}>
           <TeamCrest team={home} us={match.isHome} size={112} mobileSize={72} />
@@ -77,6 +84,7 @@ function WideCard({ match, ourName, textured, style }: Props) {
           경기일정
         </Link>
       </div>
+      <LiveButton window={live} className={buttonClass("onDarkOutline", styles.liveButton)} wrapClassName={styles.buttons} game={`${home} vs ${away}`} />
     </section>
   );
 }
@@ -89,10 +97,12 @@ function WideCard({ match, ourName, textured, style }: Props) {
 function PhoneStrip({ match, ourName, textured, style }: Props) {
   const { date, time } = formatKickoff(match.kickoff);
   const { home, away } = matchSides(match, ourName);
+  // 경기 당일 LIVE 시간에는 띠 전체가 생중계(새 창)로, → 는 ↗, 숨김 글자는 '생중계 보기 (새 창)' (D-092 L4 (가), 높이 그대로)
+  const live = liveWindow(match);
   // 링크 이름 = 보이는 글자 그대로(WCAG 2.5.3) + 끝에 '경기일정 보기'(숨김 글자). 제목 'NEXT HOME MATCH' 는 휴대폰에서도 2단계 제목으로 남긴다
   return (
     <section className={styles.stripWrap} data-surface="dark" aria-labelledby="next-home-match-strip">
-      <Link href="/match/schedule" className={`${styles.card} ${styles.strip} ${textured ? styles.textured : ""}`} style={style}>
+      <LiveLink window={live} href="/match/schedule" className={`${styles.card} ${styles.strip} ${textured ? styles.textured : ""}`} style={style}>
         <span id="next-home-match-strip" role="heading" aria-level={2} className={styles.label}>
           NEXT HOME MATCH
         </span>
@@ -114,13 +124,17 @@ function PhoneStrip({ match, ourName, textured, style }: Props) {
         <span className={styles.venue}>
           {match.venue && <>@{match.venue}</>}
           <HomeAwayBadge isHome={match.isHome} surface="dark" />
-          <span className={styles.arrow} aria-hidden="true">
+          <span className={`${styles.arrow} ${styles.notLive}`} aria-hidden="true">
             →
           </span>
+          <span className={`${styles.arrow} ${styles.onlyLive}`} aria-hidden="true">
+            ↗
+          </span>
           {/* 카드 바로 아래 자식은 .card > * 가 position: relative 로 바꿔 자리를 차지하므로, 숨김 글자는 줄 안에 둔다 */}
-          <span className="sr-only">, 경기일정 보기</span>
+          <span className={`sr-only ${styles.notLive}`}>, 경기일정 보기</span>
+          <span className={`sr-only ${styles.onlyLive}`}>, 생중계 보기 (새 창)</span>
         </span>
-      </Link>
+      </LiveLink>
     </section>
   );
 }
