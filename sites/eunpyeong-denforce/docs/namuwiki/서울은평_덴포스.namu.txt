@@ -167,9 +167,28 @@
 
 
 === 구단 레전드 ===
-[[최경진]] / 전 대한민국 풋살 국가대표 선수 및 수석 코치 / [[FK리그]] 100경기 돌파[* 한국풋살연맹 홈페이지 참조.]
-[[박영재(풋살)|박영재]] / 전 대한민국 풋살 국가대표 선수 / [[FK리그]] 100경기 돌파[* 한국풋살연맹 홈페이지 참조.]
-[[이우진(풋살)|이우진]] / 현 대한민국 풋살 국가대표 선수 / [[FK리그]] 100경기 돌파[* 한국풋살연맹 홈페이지 참조.]
+[[최경진]], [[박영재(풋살)|박영재]], [[이우진(풋살)|이우진]]은 [[FK리그]] 100경기를 넘긴 구단 레전드다.[* 한국풋살연맹 홈페이지 참조.]
+
+||<-3><tablewidth=100%><tablebordercolor=#0E0F12><bgcolor=#1A349A> {{{#!wiki style="margin: -5px -10px; padding: 5px 10px; background-image: repeating-linear-gradient(-65deg, #1A349A 0px, #1A349A 26px, #2341B4 26px, #2341B4 30px)"
+{{{#!wiki style="margin: -5px -10px; padding: 5px 10px; background-image: linear-gradient(to right, #0E0F12 0%, transparent 30%, transparent 70%, #0E0F12 100%), linear-gradient(to bottom, transparent 45%, #0E0F12 160%)"
+{{{#!wiki style="margin: -5px -10px; padding: 5px 10px; background-image: linear-gradient(to left, #FFC000 0.5%, #0E0F12 0.5%, #0E0F12 1%, #FFC000 1%, #FFC000 2%, #0E0F12 2%, #0E0F12 3.5%, transparent 3.5%), linear-gradient(to right, #FFC000 0.5%, #0E0F12 0.5%, #0E0F12 1%, #FFC000 1%, #FFC000 2%, #0E0F12 2%, #0E0F12 3.5%, transparent 3.5%)"
+||<tablealign=center><tablebgcolor=transparent><tablebordercolor=transparent><bgcolor=transparent> [[서울은평 덴포스|[[파일:서울은평 덴포스 엠블럼.png|height=60]]]] ||<bgcolor=transparent><(> {{{#fff 서울은평 덴포스}}}[br]{{{+2 {{{#fff '''역대 대한민국 풋살 국가대표 배출'''}}}}}} ||
+}}}}}}}}} ||
+
+||<-3><tablewidth=100%><tablebordercolor=#1A349A><tablebgcolor=#fff,#1c1d1f><tablecolor=#000,#e0e0e0><bgcolor=#1A349A><color=#fff> '''역대 대한민국 풋살 국가대표 배출'''[* [[https://eunpyeong-fs.com/club|구단소개]] - 서울은평 덴포스 공식 홈페이지, 2026년 11월 14일 확인.] ||
+||<rowbgcolor=#0E0F12><rowcolor=#fff><width=22%> '''이름''' ||<width=14%> '''포지션''' || '''국가대표 발탁''' ||
+|| [[최경진]] || FP || 2004, 2008(FK리그 이전), 2013, 2014, 2015, 2017(코치) ||
+|| [[이우진(풋살)|이우진]] || GK || 2014, 2015, 2019, 2020, 2021, 2022 ||
+|| 전원조 || FP || 2014, 2015 ||
+|| 이경호 || GK || 2014 ||
+|| 이주섭 || FP || 2014 ||
+|| [[박영재(풋살)|박영재]] || FP || 2018 ||
+|| 조병걸 || FP || 2018, 2019 ||
+|| 이안 || FP || 2018, 2021 ||
+|| 이준원 || FP || 2019, 2020, 2021 ||
+|| 이한울 || FP || 2020, 2021, 2022 ||
+|| [[강주광]] || FP || 2020, 2021, 2022 ||
+||<-3><bgcolor=#0E0F12><color=#fff> {{{-1 FP = 필드 플레이어, GK = 골레이로}}} ||
 
 === 유스 ===
 유스 팀은 서울은평 아카데미컬 FC다.[* [[https://eunpyeong-fs.com/team/youth|유스]] - 서울은평 덴포스 공식 홈페이지, 2026년 11월 14일 확인.]
