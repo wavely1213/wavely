@@ -146,6 +146,8 @@ export const CONTENT_FIELDS = {
   "home.section.matches": { label: "경기 섹션 제목", kind: "text", max: 20, default: "경기", retired: true },
   "home.section.news": { label: "구단 소식 섹션 제목", kind: "text", max: 20, default: "구단 소식" },
   "home.section.standings": { label: "리그 순위 칸 제목", kind: "text", max: 20, default: "리그 순위" },
+  // 홈 경기 띠 바로 아래 하이라이트 줄 (D-091) — 하이라이트가 하나도 없으면 줄째 숨는다
+  "home.section.highlights": { label: "하이라이트 섹션 제목", kind: "text", max: 20, default: "HIGHLIGHTS" },
   "home.section.players": { label: "선수단 섹션 제목", kind: "text", max: 20, default: "선수단" },
   "home.section.quicklinks": { label: "바로가기 섹션 제목", kind: "text", max: 20, default: "바로가기" },
 
