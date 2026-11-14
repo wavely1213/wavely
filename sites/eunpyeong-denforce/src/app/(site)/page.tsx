@@ -8,6 +8,8 @@ import { SponsorMarquee } from "@/components/home/SponsorMarquee";
 import { StandingsWidget } from "@/components/home/StandingsWidget";
 import { InstagramGrid } from "@/components/home/InstagramGrid";
 import { MatchBand } from "@/components/home/MatchBand";
+import { HighlightBlock, HighlightRow } from "@/components/news/HighlightCard";
+import { matchHighlights } from "@/lib/highlights";
 import { MatchStrip } from "@/components/home/MatchStrip";
 import { Section } from "@/components/ui/Section";
 import { SITE } from "@/config/site";
@@ -70,6 +72,8 @@ export default async function HomePage() {
   });
 
   const matchItems = homeMatchItems(finished, upcoming);
+  // 은평 경기 하이라이트 최신 4개 (D-091) — 없으면 줄째 숨김
+  const highlights = matchHighlights(finished, c["site.name"], 4);
   const ourName = c["site.name"];
   const instagram = instagramTiles(postings);
   const handle = instagramHandle(settings.instagramUrl);
@@ -83,6 +87,14 @@ export default async function HomePage() {
         <MatchBand title={c["home.section.matches"]}>
           <MatchStrip items={matchItems} ourName={ourName} />
         </MatchBand>
+      )}
+
+      {highlights.length > 0 && (
+        <HighlightBlock>
+          <Section title={c["home.section.highlights"]} more={{ href: "/news/video#highlights" }}>
+            <HighlightRow items={highlights} />
+          </Section>
+        </HighlightBlock>
       )}
 
       {sponsors.length > 0 && <SponsorMarquee sponsors={sortByTier(sponsors)} />}
