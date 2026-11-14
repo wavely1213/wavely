@@ -53,6 +53,9 @@ export function classifyPost(post: Pick<IgPost, "caption" | "isVideo">): IgPostT
   const head = post.caption.normalize("NFKC").slice(0, 80).toUpperCase();
   if (/WELCOME/.test(head)) return "welcome";
   if (/GOOD ?LUCK|THANK ?YOU/.test(head)) return "farewell";
+  // FULL TIME(경기 뒤 결과 글, 2026-27 모양 '𝑭𝑼𝑳𝑳 𝑻𝑰𝑴𝑬 …')은 첫 줄에 있을 때만 — 본문의 'full time' 같은 말로 바뀌지 않게
+  const first = (head.split("\n").find((l) => l.trim()) ?? "").trim();
+  if (/^\W*FULL ?TIME/u.test(first)) return "result";
   if (/MATCH ?DAY/.test(head)) return "matchday";
   if (/경기 ?결과/.test(head)) return "result";
   if (/MATCH ?PHOTO/.test(head)) return "photo";
@@ -92,7 +95,10 @@ export type MatchdayHint = { heading: string; opponent: string | null; time: str
 export function parseMatchday(caption: string): MatchdayHint {
   const lines = caption.split("\n").map((l) => l.trim()).filter(Boolean);
   const vsAt = lines.findIndex((l) => /\bvs\b/i.test(l));
-  const heading = lines.slice(1, vsAt < 0 ? 1 : vsAt).filter((l) => !l.startsWith("#")).join(" ");
+  // 상대만 적힌 '🆚 상대' 줄 위까지가 머리말 (2026-27 모양)
+  const soloVs = vsAt < 0 ? lines.findIndex((l) => l.startsWith("🆚")) : -1;
+  const end = vsAt >= 0 ? vsAt : soloVs >= 0 ? soloVs : 1;
+  const heading = lines.slice(1, end).filter((l) => !l.startsWith("#")).join(" ");
   let opponent: string | null = null;
   if (vsAt >= 0) {
     const sides = lines[vsAt].replace(/^🆚\s*/u, "").split(/\s+vs\s+/i).map((s) => s.trim());
@@ -100,12 +106,41 @@ export function parseMatchday(caption: string): MatchdayHint {
     const ours = sides.filter((s) => CLUB.test(s));
     if (sides.length === 2 && ours.length === 1) opponent = sides.find((s) => !CLUB.test(s)) ?? null;
   }
-  const time = kickoffTime(lines.find((l) => l.startsWith("🕑")) ?? "");
+  // 2026-27 모양: '🆚 노원제너FS' (상대만), '⏰ 11.15 (일) 14:00'
+  if (vsAt < 0) {
+    const only = lines.find((l) => l.startsWith("🆚"))?.replace(/^🆚\s*/u, "").trim();
+    if (only && !CLUB.test(only)) opponent = only;
+  }
+  const time = kickoffTime(lines.find((l) => l.startsWith("🕑") || l.startsWith("⏰")) ?? "");
   const venue = lines.find((l) => l.startsWith("📍"))?.replace(/^📍\s*/u, "") || null;
   return { heading, opponent, time, venue };
 }
 
-export type ResultHint = { opponent: string | null; scoreUs: number | null; scoreThem: number | null; scorerLines: string[] };
+export type ResultHint = {
+  opponent: string | null;
+  scoreUs: number | null;
+  scoreThem: number | null;
+  /** '이름 전반 5, 후반 6' 모양 (숫자 = 분) */
+  scorerLines: string[];
+  /** '⚽ 김영록 2, 윤창욱' 모양 (숫자 = 골 수, 2026-27) */
+  ballScorers: Array<[string, number]>;
+  /** 점수 줄에 팀 이름이 없어 어느 쪽 점수인지 모름 — 반영하지 않고 확인 필요 */
+  scoreUnclear: boolean;
+};
+
+/** '⚽ 김영록 2, 윤창욱' / '⚽️ 김영록' → [이름, 골 수]. 자책골(O.G, 자책)은 뺀다 */
+export function ballScorers(lines: readonly string[]): Array<[string, number]> {
+  const out = new Map<string, number>();
+  for (const line of lines) {
+    if (!line.startsWith("⚽")) continue;
+    for (const part of line.replace(/^⚽\uFE0F?\s*/u, "").split(/[,，]/)) {
+      const m = /^\s*(\S+?)\s*(?:\(?\s*(\d+)\s*(?:골)?\s*\)?)?\s*$/u.exec(part);
+      if (!m || /^(O\.?G\.?|자책)/i.test(m[1])) continue;
+      out.set(m[1], (out.get(m[1]) ?? 0) + (m[2] ? Number(m[2]) : 1));
+    }
+  }
+  return [...out];
+}
 
 /**
  * 경기결과 글 → 상대, 점수, 득점 줄. 예:
@@ -117,17 +152,26 @@ export function parseResult(caption: string): ResultHint {
   let opponent: string | null = null;
   let scoreUs: number | null = null;
   let scoreThem: number | null = null;
+  let scoreUnclear = false;
   if (scoreLine) {
     const m = /^(.+?)\s+(\d+)\s*:\s*(\d+)\s+(.+)$/.exec(scoreLine);
     if (m) {
       const [left, a, b, right] = [m[1].trim(), Number(m[2]), Number(m[3]), m[4].trim()];
       if (CLUB.test(left) && !CLUB.test(right)) [opponent, scoreUs, scoreThem] = [right, a, b];
       else if (CLUB.test(right) && !CLUB.test(left)) [opponent, scoreUs, scoreThem] = [left, b, a];
+    } else if (/^\D*\d+\s*:\s*\d+\D*$/.test(scoreLine)) {
+      // '3 : 2' 만 있는 줄 — 앞 숫자가 우리인지 홈 기준인지 글만으로 알 수 없다. 틀린 점수보다 비워 두고 확인 필요
+      scoreUnclear = true;
     }
   }
-  const after = scoreLine ? lines.slice(lines.indexOf(scoreLine) + 1) : [];
-  const scorerLines = after.filter((l) => !l.startsWith("#") && /(전반|후반|연장)/.test(l));
-  return { opponent, scoreUs, scoreThem, scorerLines };
+  // 상대가 '🆚 노원제너FS' 줄에만 있는 모양 (2026-27)
+  if (!opponent) {
+    const vs = lines.find((l) => l.startsWith("🆚"))?.replace(/^🆚\s*/u, "").trim();
+    if (vs && !/\bvs\b/i.test(vs) && !CLUB.test(vs)) opponent = vs;
+  }
+  const after = scoreLine ? lines.slice(lines.indexOf(scoreLine) + 1) : lines;
+  const scorerLines = after.filter((l) => !l.startsWith("#") && !l.startsWith("⚽") && /(전반|후반|연장)/.test(l));
+  return { opponent, scoreUs, scoreThem, scorerLines, ballScorers: ballScorers(lines), scoreUnclear };
 }
 
 /** 사이트에 이미 넣은 게시물 코드 — postings.url 의 /p/<코드>/ 또는 /reel/<코드>/ (계정 이름이 낀 주소도). 모든 구단 게시물은 포스팅에 들어간다 (BR-029) */
