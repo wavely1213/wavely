@@ -40,6 +40,8 @@ export type Match = {
   replayUrl: string | null;
   /** 우리 팀 득점자 한 줄, 관리자 입력 그대로 (예: "원해연 2, 김민성") */
   scorers: string | null;
+  /** 매치데이 포스터 (D-096) — 경기 당일 홈 팝업. 없으면 팝업 없음. 마이그레이션 전/정적 자료에는 없다 */
+  matchdayPoster?: string | null;
 };
 
 export type StandingRow = {

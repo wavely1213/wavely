@@ -24,7 +24,7 @@ function driveUrls(reader: FormReader, name: string): string[] | null {
   return urls.every((u) => isDriveImportUrl(u, DRIVE_PREFIX)) ? urls : null;
 }
 
-export type ImageFolder = "news" | "players" | "staff" | "sponsors" | "postings" | "og" | "content" | "crests";
+export type ImageFolder = "news" | "players" | "staff" | "sponsors" | "postings" | "og" | "content" | "crests" | "matchday";
 
 /** 받을 이미지 형식 제한 — 링크 미리보기(카카오톡·SNS)는 JPG·PNG 만 확실히 보인다 (D-037) */
 export type ImageAccept = { types: readonly string[]; label: string };

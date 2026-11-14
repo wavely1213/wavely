@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { TAGS } from "@/lib/cache-tags";
 import { NOT_ADMIN_MESSAGE, requireAdminAction } from "@/lib/admin/auth";
 import { dbErrorMessage, FormReader, isoToKst, kstToIso, submittedValues, type ActionState } from "@/lib/admin/form";
+import { removeImage, resolveImage } from "@/lib/admin/storage";
 import { MATCH_SIDES, MATCH_STATUSES } from "./labels";
 
 // 경기 관리 서버 액션 — 모든 액션이 직접 관리자 권한을 확인한다 (페이지 검사에 기대지 않음).
@@ -61,8 +62,15 @@ export async function createMatch(_prev: ActionState, fd: FormData): Promise<Act
   const values = readMatch(f);
   if (f.hasErrors) return f.state();
 
-  const { error } = await ctx.supabase.from("matches").insert(values);
-  if (error) return { message: dbErrorMessage(error), values: submittedValues(fd) };
+  // 매치데이 포스터 (D-096) — 비워 두면 열을 보내지 않는다(마이그레이션 전 DB 에서도 저장되게)
+  const poster = await resolveImage(ctx, f, "matchday_poster", "matchday", null);
+  if (f.hasErrors) return f.state();
+
+  const { error } = await ctx.supabase.from("matches").insert({ ...values, ...(poster ? { matchday_poster_url: poster } : {}) });
+  if (error) {
+    await removeImage(ctx, poster); // 방금 올린 파일이 고아로 남지 않게
+    return { message: dbErrorMessage(error), values: submittedValues(fd) };
+  }
 
   updateTag(TAGS.matches);
   redirect("/admin/matches");
@@ -72,16 +80,25 @@ export async function updateMatch(id: string, _prev: ActionState, fd: FormData):
   const ctx = await requireAdminAction();
   if (!ctx) return { message: NOT_ADMIN_MESSAGE };
 
-  // 대상 행이 아직 있는지 DB 에서 다시 확인한다
-  const { data: current } = await ctx.supabase.from("matches").select("id").eq("id", id).maybeSingle();
+  // 대상 행이 아직 있는지, 지금 포스터는 무엇인지 DB 에서 다시 읽는다 (select * — 마이그레이션 전 DB 에는 포스터 열이 없다)
+  const { data: current } = await ctx.supabase.from("matches").select("*").eq("id", id).maybeSingle<{ matchday_poster_url?: string | null }>();
   if (!current) return { message: "이미 삭제된 항목입니다." };
 
   const f = new FormReader(fd);
   const values = readMatch(f);
   if (f.hasErrors) return f.state();
 
-  const { error } = await ctx.supabase.from("matches").update(values).eq("id", id);
-  if (error) return { message: dbErrorMessage(error), values: submittedValues(fd) };
+  const before = current.matchday_poster_url ?? null;
+  const poster = await resolveImage(ctx, f, "matchday_poster", "matchday", before);
+  if (f.hasErrors) return f.state();
+  const changed = poster !== before;
+
+  const { error } = await ctx.supabase.from("matches").update({ ...values, ...(changed ? { matchday_poster_url: poster } : {}) }).eq("id", id);
+  if (error) {
+    if (changed) await removeImage(ctx, poster);
+    return { message: dbErrorMessage(error), values: submittedValues(fd) };
+  }
+  if (changed) await removeImage(ctx, before);
 
   updateTag(TAGS.matches);
   redirect("/admin/matches");
@@ -91,7 +108,8 @@ export async function deleteMatch(id: string): Promise<void> {
   const ctx = await requireAdminAction();
   if (!ctx) redirect("/admin/login");
 
-  await ctx.supabase.from("matches").delete().eq("id", id);
+  const { data } = await ctx.supabase.from("matches").delete().eq("id", id).select("*").maybeSingle<{ matchday_poster_url?: string | null }>();
+  await removeImage(ctx, data?.matchday_poster_url);
   updateTag(TAGS.matches);
   redirect("/admin/matches");
 }

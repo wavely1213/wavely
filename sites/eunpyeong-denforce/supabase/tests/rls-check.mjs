@@ -74,6 +74,9 @@ check("종료 경기 스코어 없으면 DB 가 거부", bad.error?.code === "23
 // 6) 제약: 경기 영상 주소는 https 만 (20261018100000)
 const badVideo = await admin.from("matches").insert({ competition: "c", kickoff: "2026-01-01T00:00:00Z", opponent: "o", highlight_url: "http://example.com/v" });
 check("경기 영상 주소가 https 가 아니면 DB 가 거부", badVideo.error?.code === "23514");
+// 6-1) 매치데이 포스터도 https 만 (20261114150000, D-096)
+const badPoster = await admin.from("matches").insert({ competition: "c", kickoff: "2026-01-01T00:00:00Z", opponent: "o", matchday_poster_url: "http://example.com/p.jpg" });
+check("매치데이 포스터 주소가 https 가 아니면 DB 가 거부", badPoster.error?.code === "23514");
 // 7) 연맹 기록 표 (D-082, 명세 1.3) — 시드(supabase/data/2026-11-14_kfl_seed.sql)가 실행된 로컬 DB
 const view = await anon.from("player_season_stats").select("player_id");
 check("anon 선수 시즌 기록 뷰 조회 가능", !view.error);

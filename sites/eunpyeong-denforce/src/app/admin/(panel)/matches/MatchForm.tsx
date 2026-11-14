@@ -1,7 +1,7 @@
 "use client";
 
 import { AdminForm } from "@/components/admin/AdminForm";
-import { Row, SelectField, TextField } from "@/components/admin/fields";
+import { ImageField, Row, SelectField, TextField } from "@/components/admin/fields";
 import { LEAGUE } from "@/config/league";
 import { isoToKst, type ActionState } from "@/lib/admin/form";
 import type { MatchRow } from "@/lib/data/rows";
@@ -99,6 +99,13 @@ export function MatchForm({
         placeholder="예: 원해연 2, 김민성"
         hint="우리 팀만, 쉼표로 구분. 상태가 '종료'일 때만 저장됩니다"
         defaultValue={initial?.scorers}
+      />
+      {/* D-096: 경기 당일 홈 화면 팝업. 비워 두면 팝업이 뜨지 않는다. 인스타 MATCH DAY 사진은 이 칸이 비어 있을 때만 자동으로 들어온다 */}
+      <ImageField
+        name="matchday_poster"
+        label="매치데이 포스터"
+        hint="경기 당일 홈 화면 팝업 (JPG/PNG/WEBP/GIF, 5MB 이하). 비워 두면 팝업 없음"
+        currentUrl={initial?.matchday_poster_url}
       />
     </AdminForm>
   );
