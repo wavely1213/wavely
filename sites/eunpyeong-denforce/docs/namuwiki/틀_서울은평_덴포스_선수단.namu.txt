@@ -7,7 +7,7 @@
 {{{#!folding [ 펼치기 · 접기 ]
 {{{#!wiki style="margin: -6px -1px -11px"
 ||<-4><tablewidth=100%><tablebordercolor=#1A349A><tablebgcolor=#fff,#1c1d1f><tablecolor=#000,#e0e0e0><bgcolor=#1A349A><color=#fff> '''서울은평 덴포스 2026-27 시즌 선수단'''[* [[https://eunpyeong-fs.com/team/players|선수]] - 서울은평 덴포스 공식 홈페이지, 2026년 11월 14일 확인.] ||
-||<rowbgcolor=#0E0F12><rowcolor=#fff><width=22%> '''포지션''' ||<width=14%> '''등번호''' || '''이름''' ||<width=22%> '''비고''' ||
+||<rowbgcolor=#0E0F12><rowcolor=#fff><width=22%> '''포지션''' ||<width=14%> '''등번호''' || '''이름''' ||<width=22%> '''비고'''[* 주장단 표시: [[https://www.instagram.com/reel/Dfl_gSbT06w/|2026/27 SQUAD NUMBERS]] - 서울은평 덴포스 공식 인스타그램 게시물 기준.] ||
 ||<|4><bgcolor=#1A349A><color=#fff> '''골레이로'''[br]{{{-1 GK}}} || 1 || 임우성 || ||
 || 2 || 정대연 || ||
 || 12 || 조현웅 || ||
