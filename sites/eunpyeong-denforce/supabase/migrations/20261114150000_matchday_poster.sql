@@ -37,7 +37,7 @@ alter table public.drive_settings add constraint drive_settings_matchday_folder_
   check (matchday_folder_id is null or matchday_folder_id ~ '^[A-Za-z0-9_-]{10,100}$');
 update public.drive_settings set matchday_folder_id = '1qqH_3qT6zSOm63gbtaHpUCxlEDmiu5Wo' where id = 1 and matchday_folder_id is null;
 
--- 실행 상태 (한 줄). last_status: ok / no_key(드라이브 키 없음) / no_folder / error / skipped(경기 날 아님, 3시간 안 됨)
+-- 실행 상태 (한 줄). last_status: ok / no_key(드라이브 키 없음) / no_folder / error. 경기 날이 아니고 3시간이 안 됐으면 읽지 않고 상태도 쓰지 않는다
 create table if not exists public.matchday_poster_sync_state (
   id smallint primary key default 1 check (id = 1),
   last_run_at timestamptz,

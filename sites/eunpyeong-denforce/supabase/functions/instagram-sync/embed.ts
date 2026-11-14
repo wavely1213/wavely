@@ -54,7 +54,8 @@ export function classifyPost(post: Pick<IgPost, "caption" | "isVideo">): IgPostT
   // FULL TIME(경기 뒤 결과 글, 2026-27 '𝑭𝑼𝑳𝑳 𝑻𝑰𝑴𝑬', '𝟭𝗥 𝗙𝗨𝗟𝗟 𝗧𝗜𝗠𝗘')은 첫 줄에 있을 때만, 그리고 가장 먼저 —
   // 본문의 'full time' 이나 '응원 감사합니다 THANK YOU' 같은 말로 다른 종류가 되지 않게
   const first = (head.split("\n").find((l) => l.trim()) ?? "").trim();
-  if (/^\W*(?:\d+\s*R\s*)?FULL ?TIME/u.test(first)) return "result";
+  // 앞에는 꾸밈 이모지/공백/라운드(1R)만, 뒤에는 글자가 바로 붙지 않게 ('FULL TIME까지 응원' 같은 한글 문장은 아님). 'FULL-TIME' 하이픈 허용
+  if (/^[\p{Extended_Pictographic}\p{Variation_Selector}\s]*(?:\d+\s*R\s*)?FULL[\s-]?TIME(?![\p{L}\p{N}])/u.test(first)) return "result";
   if (/WELCOME/.test(head)) return "welcome";
   if (/GOOD ?LUCK|THANK ?YOU/.test(head)) return "farewell";
   if (/MATCH ?DAY/.test(head)) return "matchday";
@@ -125,6 +126,8 @@ export type ResultHint = {
   scorerLines: string[];
   /** '⚽ 김영록 2, 윤창욱' 모양 (2026-27). ⚽ 줄이 없으면 [], 못 읽는 조각이 있으면 null (득점 일부만 넣지 않는다) */
   ballScorers: Array<[string, number]> | null;
+  /** 득점자별 골 수 — ⚽ 줄이 있으면 그것, 없으면 분 표기 줄(엄격 문법). 하나라도 못 읽으면 null */
+  goals: Array<[string, number]> | null;
   /** 득점 줄의 자책골(상대 자책) 수 — 합계 검산용 */
   ownGoals: number;
   /** 점수를 쓰지 않는 이유: no-team = 팀 이름 없는 '3 : 2' 만 / many = 팀 점수 줄이 둘 이상(전반/최종 등) */
@@ -167,6 +170,40 @@ export function ballScorers(lines: readonly string[]): { list: Array<[string, nu
   return { list: [...out], ownGoals };
 }
 
+const HALF = "(?:전반|후반|연장)";
+const MINUTE = "'?\\d{1,3}(?:′|분|')?";
+const SCORER = "(?:[가-힣]{2,4}|O\\.?G\\.?|자책골?)";
+/** '백승하 전반 5, 후반 6, 14' / "O.G 후반 '6" — 이름 뒤에 '전반|후반|연장 N' 과 쉼표만 */
+const NAME_FIRST = new RegExp(`^(${SCORER})\\s+${HALF}\\s*${MINUTE}((?:\\s*,\\s*(?:${HALF}\\s*)?${MINUTE})*)$`, "u");
+/** '전반 7분 김영록' — 분이 앞, 이름이 뒤 (한 골) */
+const MINUTE_FIRST = new RegExp(`^${HALF}\\s*${MINUTE}\\s+(${SCORER})$`, "u");
+
+/**
+ * 분 표기 득점 줄(⚽ 없는 글) → [이름, 골 수] + 자책골 수. 엄격 문법(NAME_FIRST / MINUTE_FIRST)만 읽고,
+ * 하나라도 못 읽는 줄('(전반 1 : 0)', '후반 12분 김영록 선수의 결승골…' 같은 문장)이 있으면 null — 확실할 때만 쓴다.
+ */
+export function minuteScorers(lines: readonly string[]): { list: Array<[string, number]>; ownGoals: number } | null {
+  const out = new Map<string, number>();
+  let ownGoals = 0;
+  for (const raw of lines) {
+    const line = trimDecor(raw);
+    let name: string;
+    let n: number;
+    const a = NAME_FIRST.exec(line);
+    const b = a ? null : MINUTE_FIRST.exec(line);
+    if (a && !/^(전반|후반|연장)$/.test(a[1])) {
+      name = a[1];
+      n = 1 + (a[2].match(/\d{1,3}/g) ?? []).length;
+    } else if (b && !/^(전반|후반|연장)$/.test(b[1])) {
+      name = b[1];
+      n = 1;
+    } else return null;
+    if (OWN_GOAL.test(name)) ownGoals += n;
+    else out.set(name, (out.get(name) ?? 0) + n);
+  }
+  return { list: [...out], ownGoals };
+}
+
 /** 시계 이모지 줄과 날짜(11.15, 11/15)가 든 줄 — 점수 줄 후보에서 뺀다 ('1:15' 같은 점수는 시각으로 보지 않는다) */
 const isTimeOrDateLine = (l: string) => /^[⏰⏱⌚🕐-🕧]/u.test(l) || /\d{1,2}\s*[./]\s*\d{1,2}/.test(l);
 /** 줄 앞뒤 꾸밈 이모지(🔵 … ⚪️) 떼기 */
@@ -187,16 +224,22 @@ export function parseResult(caption: string): ResultHint {
     if (CLUB.test(right) && !CLUB.test(left)) return { line: l, opponent: left, us: b, them: a };
     return null;
   };
-  const candidates = lines.filter((l) => !isTimeOrDateLine(l)).map(scoreOf).filter((x) => x !== null);
+  // 전반/HT/하프타임 점수 줄은 최종 점수 후보가 아니다
+  const halfTime = (l: string) => /^(전반|HT|H\.T|하프)/i.test(trimDecor(l)) || /\((?:전반|HT|하프)/i.test(l);
+  const usable = lines.filter((l) => !isTimeOrDateLine(l) && !halfTime(l));
+  const candidates = usable.map(scoreOf).filter((x) => x !== null);
+  // 팀 이름 없는 'N : N' 줄 (전반/HT 표시 없는 것)
+  const teamless = usable.filter((l) => !scoreOf(l) && /^\D*\d+\s*:\s*\d+\D*$/.test(trimDecor(l)));
   let opponent: string | null = null;
   let scoreUs: number | null = null;
   let scoreThem: number | null = null;
   let scoreIssue: ResultHint["scoreIssue"] = null;
-  if (candidates.length === 1) [opponent, scoreUs, scoreThem] = [candidates[0].opponent, candidates[0].us, candidates[0].them];
-  else if (candidates.length > 1) {
+  if (candidates.length === 1 && teamless.length === 0) [opponent, scoreUs, scoreThem] = [candidates[0].opponent, candidates[0].us, candidates[0].them];
+  else if (candidates.length >= 1) {
+    // 팀 점수 줄이 둘 이상이거나, 팀 줄 하나에 팀 없는 'N : N' 줄이 또 있음 — 어느 것이 최종인지 모른다
     scoreIssue = "many";
     if (candidates.every((c) => c.opponent === candidates[0].opponent)) opponent = candidates[0].opponent;
-  } else if (lines.some((l) => !isTimeOrDateLine(l) && /^\D*\d+\s*:\s*\d+\D*$/.test(trimDecor(l)))) {
+  } else if (teamless.length > 0) {
     // '3 : 2' 만 있는 줄 — 앞 숫자가 우리인지 홈 기준인지 글만으로 알 수 없다. 틀린 점수보다 비워 두고 확인 필요
     scoreIssue = "no-team";
   }
@@ -208,17 +251,19 @@ export function parseResult(caption: string): ResultHint {
   // ⚽ 줄이 하나라도 있으면 그것만 (전반/후반 문장 줄은 보지 않는다), 없으면 분 표기 줄
   const hasBall = lines.some((l) => l.startsWith("⚽"));
   const ball = hasBall ? ballScorers(lines) : { list: [], ownGoals: 0 };
-  const scoreLine = candidates.length === 1 ? candidates[0].line : null;
+  const scoreLine = scoreUs !== null ? candidates[0].line : null;
   const after = scoreLine ? lines.slice(lines.indexOf(scoreLine) + 1) : lines;
   const scorerLines = hasBall ? [] : after.filter((l) => !l.startsWith("#") && /(전반|후반|연장)/.test(l));
-  const minuteOwn = scorerLines.filter((l) => OWN_GOAL.test(l)).reduce((n, l) => n + ((l.match(/\d+/g) ?? []).length || 1), 0);
+  const minute = hasBall ? null : minuteScorers(scorerLines);
+  const used = hasBall ? ball : minute;
   return {
     opponent,
     scoreUs,
     scoreThem,
     scorerLines,
     ballScorers: ball ? ball.list : null,
-    ownGoals: hasBall ? (ball?.ownGoals ?? 0) : minuteOwn,
+    goals: used ? used.list : null,
+    ownGoals: used?.ownGoals ?? 0,
     scoreIssue,
   };
 }

@@ -1,6 +1,6 @@
 // 인스타그램 게시물 → 사이트에 넣을 행 (D-065, BR-029) — AI 없이 정해진 규칙으로. 순수 함수만 (테스트: instagram-sync.test.ts).
 // 판단이 필요한 값(포지션 없음, 같은 이름, 홈/원정, 경기 못 찾음)은 넣지 않거나 넣은 뒤 note 로 '확인 필요'를 남긴다.
-import { kstDateTime, parseMatchday, parseResult, type IgPost, type IgPostType, type ResultHint } from "./embed.ts";
+import { kstDateTime, minuteScorers, parseMatchday, parseResult, type IgPost, type IgPostType, type ResultHint } from "./embed.ts";
 import { josa, nameSlug } from "./korean.ts";
 
 export const ACCOUNT = "eunpyeong_denforce";
@@ -400,17 +400,6 @@ export function postLinkTarget(post: IgPost, type: IgPostType, matches: readonly
   return { matchId: m.id, field, url };
 }
 
-/** 분 표기 득점 줄 → [이름, 골 수] (줄의 숫자 개수 = 골 수, 자책골 제외) */
-export function minuteGoals(lines: readonly string[]): Array<[string, number]> {
-  const goals = new Map<string, number>();
-  for (const line of lines) {
-    const name = line.split(/\s+/)[0];
-    if (!name || /^(O\.?G\.?|자책)/i.test(name)) continue;
-    const n = (line.slice(name.length).match(/\d+/g) ?? []).length || 1;
-    goals.set(name, (goals.get(name) ?? 0) + n);
-  }
-  return [...goals];
-}
 
 /** [이름, 골 수] → "김영록 2, 윤창욱" (한 골이면 숫자 없음) */
 export function ballScorersText(list: ReadonlyArray<readonly [string, number]>): string | null {
@@ -418,9 +407,10 @@ export function ballScorersText(list: ReadonlyArray<readonly [string, number]>):
   return cut(list.map(([name, n]) => (n > 1 ? `${name} ${n}` : name)).join(", "), 300);
 }
 
-/** 득점 줄 → "백승하 3, 김영록, 윤창욱" (자책골 제외, 한 골이면 숫자 없음) */
+/** 분 표기 득점 줄 → "백승하 3, 김영록, 윤창욱" (자책골 제외, 한 골이면 숫자 없음). 못 읽는 줄이 있으면 null */
 export function scorersText(lines: readonly string[]): string | null {
-  return ballScorersText(minuteGoals(lines));
+  const m = minuteScorers(lines);
+  return m ? ballScorersText(m.list) : null;
 }
 
 export type ResultUpdate = { id: string; status: "finished"; score_us: number; score_them: number; scorers: string | null };
@@ -431,8 +421,8 @@ const UNREADABLE_SCORERS = "득점 줄을 다 읽지 못함 — 확인 필요, �
  * 득점자 글 — 득점 줄을 모두 읽었고 골 수 합(상대 자책골 포함) = 우리 점수일 때만. 아니면 null + 읽지 못함.
  * 득점 줄이 아예 없고 우리 점수가 0 이면 null(메모 없음).
  */
-export function resultScorers(r: Pick<ResultHint, "scorerLines" | "ballScorers" | "ownGoals">, scoreUs: number): { scorers: string | null; unreadable: boolean } {
-  const list = r.ballScorers === null ? null : r.ballScorers.length ? r.ballScorers : minuteGoals(r.scorerLines);
+export function resultScorers(r: Pick<ResultHint, "goals" | "ownGoals">, scoreUs: number): { scorers: string | null; unreadable: boolean } {
+  const list = r.goals;
   if (list === null) return { scorers: null, unreadable: true };
   const total = list.reduce((n, [, g]) => n + g, 0) + r.ownGoals;
   if (total !== scoreUs) return { scorers: null, unreadable: scoreUs > 0 || total > 0 };

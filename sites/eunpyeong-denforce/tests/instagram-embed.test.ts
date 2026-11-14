@@ -83,6 +83,7 @@ test("parseResult: 상대/점수(우리 기준)/득점 줄", () => {
     scoreThem: 5,
     scorerLines: ["백승하 전반 5, 후반 6, 14", "윤창욱 전반 11"],
     ballScorers: [],
+    goals: [["백승하", 3], ["윤창욱", 1]],
     ownGoals: 0,
     scoreIssue: null,
   });
@@ -92,10 +93,11 @@ test("parseResult: 상대/점수(우리 기준)/득점 줄", () => {
     scoreThem: 4,
     scorerLines: ["백승하 전반 '18", "O.G 후반 '6"],
     ballScorers: [],
+    goals: [["백승하", 1]],
     ownGoals: 1,
     scoreIssue: null,
   });
-  assert.deepEqual(parseResult("⚪경기결과🔵\n아쉽게 졌습니다"), { opponent: null, scoreUs: null, scoreThem: null, scorerLines: [], ballScorers: [], ownGoals: 0, scoreIssue: null });
+  assert.deepEqual(parseResult("⚪경기결과🔵\n아쉽게 졌습니다"), { opponent: null, scoreUs: null, scoreThem: null, scorerLines: [], ballScorers: [], goals: [], ownGoals: 0, scoreIssue: null });
 });
 
 test("knownCodes: 포스팅 주소에서 게시물 코드", () => {
@@ -150,12 +152,22 @@ test("2026-27 FULL TIME: 첫 줄에 있을 때만 결과, 점수 줄에 팀 이�
 test("parseResult: 시각 줄(⏰ 11.15 (일) 14:00, 14:00)은 점수 줄이 아니다", () => {
   const r = parseResult("𝑭𝑼𝑳𝑳 𝑻𝑰𝑴𝑬\n⏰ 11.15 (일) 14:00\n서울은평 덴포스 3 : 2 노원제너FS\n⚽ 김영록");
   assert.deepEqual([r.opponent, r.scoreUs, r.scoreThem], ["노원제너FS", 3, 2]);
-  assert.deepEqual(parseResult("𝑭𝑼𝑳𝑳 𝑻𝑰𝑴𝑬\n14:00\n노원제너FS 1 : 4 덴포스").scoreUs, 4);
+  // 시계 이모지 없는 '14:00' 만의 줄은 팀 없는 'N : N' 과 구별할 수 없어 모호(many) — 확실할 때만 쓴다
+  assert.deepEqual(parseResult("𝑭𝑼𝑳𝑳 𝑻𝑰𝑴𝑬\n14:00\n노원제너FS 1 : 4 덴포스").scoreIssue, "many");
+  assert.deepEqual(parseResult("𝑭𝑼𝑳𝑳 𝑻𝑰𝑴𝑬\n🕑 14:00\n노원제너FS 1 : 4 덴포스").scoreUs, 4);
   // 'D:DD' 점수는 시각으로 빼지 않는다 (2025-26 실제 1:15)
   assert.deepEqual([parseResult("경기결과\n서울은평 덴포스 1:15 경기LBFS").scoreUs, parseResult("경기결과\n서울은평 덴포스 1:15 경기LBFS").scoreThem], [1, 15]);
-  // 날짜가 든 줄은 빼고, 팀 점수 줄이 둘 이상이면 쓰지 않는다
-  const two = parseResult("FULL TIME\n11.15 서울은평 덴포스 경기\n전반 서울은평 덴포스 1 : 0 노원제너FS\n서울은평 덴포스 3 : 2 노원제너FS");
+  // 날짜가 든 줄과 '전반/HT' 로 시작하는 줄은 후보에서 빼고, 팀 점수 줄이 둘 이상이면 쓰지 않는다
+  const half = parseResult("FULL TIME\n11.15 서울은평 덴포스 경기\n전반 서울은평 덴포스 1 : 0 노원제너FS\n서울은평 덴포스 3 : 2 노원제너FS");
+  assert.deepEqual([half.scoreUs, half.scoreIssue], [3, null]);
+  const two = parseResult("FULL TIME\n서울은평 덴포스 1 : 0 노원제너FS\n서울은평 덴포스 3 : 2 노원제너FS");
   assert.deepEqual([two.scoreUs, two.scoreIssue, two.opponent], [null, "many", "노원제너FS"]);
+  // 총괄 재현: 팀 없는 '3 : 2' + '전반 종료' 팀 줄 → 쓰지 않음
+  const r2 = parseResult("FULL TIME\n🆚 노원제너FS\n🔵 3 : 2 ⚪️\n\n전반 종료 서울은평 덴포스 1 : 2 노원제너FS");
+  assert.deepEqual([r2.scoreUs, r2.scoreIssue], [null, "no-team"]);
+  // 팀 줄 하나 + 팀 없는 'N : N' 줄 → many
+  const r3 = parseResult("FULL TIME\n서울은평 덴포스 3 : 2 노원제너FS\n4 : 2");
+  assert.deepEqual([r3.scoreUs, r3.scoreIssue], [null, "many"]);
 });
 
 test("classifyPost: FULL TIME 첫 줄이 가장 먼저, 장식 숫자 '𝟭𝗥 𝗙𝗨𝗟𝗟 𝗧𝗜𝗠𝗘' 도", () => {
@@ -172,4 +184,19 @@ test("ballScorers: 못 읽는 조각(분 표기)이 있으면 null, 빈 조각/�
   assert.deepEqual(r.ballScorers, [["김대현(18)", 1], ["김영록", 2], ["윤창욱", 1]]);
   // ⚽ 줄이 있으면 전반/후반 문장 줄은 보지 않는다
   assert.deepEqual(parseResult("FULL TIME\n덴포스 1 : 0 화성FS\n후반 5분 김영록 골\n⚽ 김영록").scorerLines, []);
+});
+
+test("분 표기 득점(⚽ 없음) 엄격 문법: 못 읽는 줄이 하나라도 있으면 goals null", () => {
+  const ok = parseResult("경기결과\n서울은평 덴포스 3 : 1 화성FS\n백승하 전반 5, 후반 6\n전반 7분 김영록\nO.G 후반 '6");
+  assert.deepEqual([ok.goals, ok.ownGoals], [[["백승하", 2], ["김영록", 1]], 1]);
+  // 총괄 재현 (ft2/ft3)
+  for (const bad of ["(전반 1 : 0)", "후반 12분 김영록 선수의 결승골로 승리", "전반에 두 골"]) {
+    assert.equal(parseResult(`경기결과\n서울은평 덴포스 2 : 1 화성FS\n백승하 전반 5\n${bad}`).goals, null, bad);
+  }
+});
+
+test("classifyPost: FULL TIME 앞뒤 규칙 (한글 문장 안은 아님, 하이픈 허용)", () => {
+  assert.equal(classifyPost({ caption: "🔵 𝑭𝑼𝑳𝑳-𝑻𝑰𝑴𝑬 ⚪️\n서울은평 덴포스 3 : 2 노원제너FS", isVideo: false }), "result");
+  assert.equal(classifyPost({ caption: "FULL TIME까지 응원해 주세요!", isVideo: false }), "other");
+  assert.equal(classifyPost({ caption: "오늘 FULL TIME 까지", isVideo: false }), "other");
 });
