@@ -364,9 +364,16 @@ export function standingsFromGames(
     H.goalsAgainst += as;
     A.goalsFor += as;
     A.goalsAgainst += hs;
-    if (hs > as) (H.win++, A.loss++);
-    else if (hs < as) (H.loss++, A.win++);
-    else (H.draw++, A.draw++);
+    if (hs > as) {
+      H.win++;
+      A.loss++;
+    } else if (hs < as) {
+      H.loss++;
+      A.win++;
+    } else {
+      H.draw++;
+      A.draw++;
+    }
   }
   return { records, unknown: [...unknown] };
 }
