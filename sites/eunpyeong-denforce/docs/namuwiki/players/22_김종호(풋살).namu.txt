@@ -2,9 +2,9 @@
 [include(틀:서울은평 덴포스/간략)]
  * 같은 팀의 동명이인 선수는 [[김종호(풋살, 30번)|김종호(30번)]] 문서 참고.
 
-||<tablealign=right><tablewidth=300><tablebordercolor=#1A349A><tablebgcolor=#fff,#1c1d1f><tablecolor=#000,#e0e0e0><-2><nopad><bgcolor=#0E0F12> [[파일:서울은평 덴포스 2026-27 22번 김종호.jpg|width=100%]] ||
+||<tablealign=right><tablewidth=420><tablebordercolor=#1A349A><tablebgcolor=#fff,#1c1d1f><tablecolor=#000,#e0e0e0><-2><nopad><bgcolor=#0E0F12> [[파일:서울은평 덴포스 2026-27 22번 김종호.jpg|width=100%]] ||
 ||<-2><bgcolor=#1A349A><color=#fff> '''서울은평 덴포스 No.22''' ||
-||<-2><bgcolor=#0E0F12><color=#fff> '''{{{+1 김종호}}}''' ||
+||<-2><bgcolor=#0E0F12><color=#fff> '''김종호''' ||
 ||<width=35%><bgcolor=#e9edf7,#23262c> '''국적''' || [[파일:대한민국 국기.svg|width=20]] [[대한민국]] ||
 ||<bgcolor=#e9edf7,#23262c> '''포지션''' || 피보(PIVO) ||
 ||<bgcolor=#e9edf7,#23262c> '''등번호''' || 22 ||
