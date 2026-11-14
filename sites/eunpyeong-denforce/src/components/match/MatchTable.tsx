@@ -3,9 +3,11 @@ import { TeamCrest } from "@/components/match/TeamCrest";
 import { TeamName } from "@/components/match/TeamName";
 import { VenueName } from "@/components/match/VenueName";
 import { formatKickoffFull, matchResult, matchSides, RESULT_LABEL } from "@/lib/format";
+import { liveWindow } from "@/lib/live";
 import { groupByCompetition, hasMatchDetails, matchVideoLinks } from "@/lib/match";
 import { getSiteContent } from "@/lib/repo";
 import type { Match } from "@/types";
+import { LiveBadge, LiveButton, NotLive } from "./Live";
 import styles from "./MatchTable.module.css";
 
 /**
@@ -14,6 +16,7 @@ import styles from "./MatchTable.module.css";
  * 휴대폰 3칸(D-012): 일시(라운드, 월-일, 시각) / 대진(홈 줄, 원정 줄, 장소 줄 + HOME) / 결과.
  * 홈팀 왼쪽(위) (BR-002), HOME 배지는 홈경기만. nextId: 경기일정의 다음 경기 행(blue-tint).
  * details: 경기결과 — 종료 경기 대진 아래 득점 줄과 [하이라이트] [다시보기](있을 때만, 새 창).
+ * 경기 당일 LIVE (D-092 L2): 일시 칸 아래 LIVE 배지, '생중계 보기 ↗' 는 PC 결과 칸 / 휴대폰 장소 줄 아래.
  * 따로 줄(tr)을 두지 않고 대진 칸 안에 둔다: 휴대폰에서 라운드/장소 칸을 숨겨 colspan 이 맞지 않기 때문.
  */
 export async function MatchTable({
@@ -70,6 +73,8 @@ function MatchTableRow({ match, ourName, details, next }: { match: Match; ourNam
   const result = matchResult(match);
   // 'YYYY-MM-DD (요일)' — 휴대폰은 연도를 숨겨 'MM-DD (요일)'
   const [year, rest] = [date.slice(0, 5), date.slice(5)];
+  const live = liveWindow(match);
+  const game = `${date} ${home} vs ${away}`;
 
   return (
     <tr className={next ? styles.next : undefined}>
@@ -83,6 +88,9 @@ function MatchTableRow({ match, ourName, details, next }: { match: Match; ourNam
           {rest}
         </span>
         <span className={styles.time}>{time}</span>
+        <span className={styles.live}>
+          <LiveBadge window={live} />
+        </span>
       </td>
       <td className={styles.versusCell}>
         <span className={styles.versus}>
@@ -107,6 +115,7 @@ function MatchTableRow({ match, ourName, details, next }: { match: Match; ourNam
           </span>
         )}
         {details && hasMatchDetails(match) && <MatchDetails match={match} ourName={ourName} />}
+        <LiveButton window={live} className={styles.video} wrapClassName={`${styles.videos} ${styles.mLive}`} game={game} />
       </td>
       <td className={styles.venue}>
         <span className={styles.venueInner}>
@@ -122,7 +131,12 @@ function MatchTableRow({ match, ourName, details, next }: { match: Match; ourNam
             {score[0]} : {score[1]}
           </span>
         ) : (
-          <span className={styles.noScore}>-</span>
+          <>
+            <LiveButton window={live} className={`${styles.video} ${styles.pcOnly}`} game={game} />
+            <NotLive window={live} liveClassName={styles.mOnly}>
+              <span className={styles.noScore}>-</span>
+            </NotLive>
+          </>
         )}
       </td>
     </tr>

@@ -22,6 +22,13 @@
   text-align: center;
 }
 
+/* 라벨 + LIVE 배지 (D-092) */
+.labelRow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
 /* kfa/label yellow */
 .label {
   font-size: 12px;

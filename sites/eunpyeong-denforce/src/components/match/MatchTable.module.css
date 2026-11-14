@@ -98,8 +98,18 @@ h3.title {
 
 .mRound,
 .mOnly,
-.mVenue {
+.mVenue,
+.videos.mLive {
   display: none;
+}
+
+/* LIVE 배지 (D-092 L2) — 일시 칸 시각 아래, 사이 space/2xs. 비어 있으면 자리 없음 */
+.live {
+  display: block;
+}
+
+.live:not(:empty) {
+  margin-top: var(--space-2xs);
 }
 
 /* 대진: [홈 칸 1fr(오른쪽 맞춤) | vs 48 | 원정 칸 1fr] — 모든 행의 vs 가 같은 세로선. 엠블럼 24 와 이름 사이 space/s */
@@ -311,6 +321,13 @@ h3.title {
 
   .mOnly {
     display: inline;
+  }
+
+  /* 휴대폰: '생중계 보기 ↗' 는 장소 줄 아래 (D-092 L2) */
+  .videos.mLive {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: var(--space-xs);
   }
 
   .when {

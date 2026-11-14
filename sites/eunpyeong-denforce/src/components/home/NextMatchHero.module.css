@@ -76,6 +76,33 @@
   gap: var(--space-xs) var(--space-s);
 }
 
+/* 라벨 + LIVE 배지 (D-092 L3), 사이 space/xs */
+.labelRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+}
+
+/* '생중계 보기 ↗' — 버튼 둘 아래 한 줄, 폭은 버튼 둘 + 사이 (D-092 L3) */
+.liveButton {
+  width: calc(2 * 160px + var(--space-xs));
+  min-height: 44px;
+}
+
+/* 휴대폰 띠: LIVE 때만 바뀌는 글자 (LiveLink 의 data-live, D-092 L4) */
+.onlyLive {
+  display: none;
+}
+
+[data-live] .notLive {
+  display: none;
+}
+
+[data-live] .onlyLive {
+  display: inline;
+}
+
 /* NEXT HOME MATCH — kfa/m/h3 20 Bold (휴대폰 kfa/m/h4 16), yellow (소유자 '작게 두지 말고') */
 .label {
   position: relative;
