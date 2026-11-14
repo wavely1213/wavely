@@ -81,3 +81,42 @@ test("crestImageFor: 경로와 원본 크기, 없으면 null", () => {
   assert.equal(crestImageFor("화성FS", "light")?.src, "/crests/hwaseong.png");
   assert.deepEqual(crestImageFor("경기LBFS"), { src: "/crests/lbfs.png", width: 233, height: 281 });
 });
+
+// ── D-094 DB 줄이 코드 목록을 덮는다 ──
+import { mergeCrests } from "../src/lib/crests.ts";
+import { toTeamCrest } from "../src/lib/data/rows.ts";
+import type { TeamCrestEntry } from "../src/config/team-crests.ts";
+
+const codeEntry = (over: Partial<TeamCrestEntry> = {}): TeamCrestEntry => ({
+  name: "용인지솔FS",
+  aliases: ["용인대흥FS"],
+  file: "/crests/yongin.png",
+  pixels: [256, 256],
+  source: "code",
+  fetchedAt: "2026-11-10",
+  note: "코드",
+  ...over,
+});
+
+test("mergeCrests: 별칭이 겹치면 같은 팀 — DB 파일과 크기가 덮고 별칭은 합친다", () => {
+  const db = toTeamCrest({ name: "용인FS", aliases: ["용인대흥FS"], file_url: "https://x/storage/v1/object/public/media/crests/a.png", file_on_light_url: null, width: 500, height: 400, source: "구단", note: "", updated_at: "2026-11-14T00:00:00Z" });
+  const [m] = mergeCrests([codeEntry()], [db]);
+  assert.equal(m.name, "용인FS");
+  assert.equal(m.file, "https://x/storage/v1/object/public/media/crests/a.png");
+  assert.deepEqual(m.pixels, [500, 400]);
+  assert.ok(m.aliases.includes("용인지솔FS") && m.aliases.includes("용인대흥FS"));
+  assert.equal(m.fetchedAt, "2026-11-14");
+  assert.equal(crestImageFor("용인지솔FS", "dark", mergeCrests([codeEntry()], [db]))?.src, "https://x/storage/v1/object/public/media/crests/a.png");
+});
+
+test("mergeCrests: 파일을 비운 DB 줄은 코드 파일 그대로(기본값), 새 팀은 붙인다, 흰 면 파일", () => {
+  const empty = toTeamCrest({ name: "용인지솔FS", aliases: [], file_url: null, file_on_light_url: null, width: null, height: null, source: null, note: null, updated_at: null });
+  assert.equal(mergeCrests([codeEntry()], [empty])[0].file, "/crests/yongin.png");
+  const fresh = toTeamCrest({ name: "제천FS", aliases: [], file_url: "https://x/d.png", file_on_light_url: "https://x/l.png", width: 10, height: 12, source: null, note: null, updated_at: null });
+  const list = mergeCrests([codeEntry()], [fresh]);
+  assert.equal(list.length, 2);
+  assert.equal(crestImageFor("제천 FS", "light", list)?.src, "https://x/l.png");
+  assert.equal(crestImageFor("제천FS", "dark", list)?.src, "https://x/d.png");
+  // DB 가 비면(마이그레이션 전) 코드 목록 그대로
+  assert.deepEqual(mergeCrests([codeEntry()], []), [codeEntry()]);
+});

@@ -34,4 +34,6 @@ export const staticSource: DataSource = {
   sponsors: async () => SPONSORS,
   siteContent: async () => ({}),
   contentItems: async () => STATIC_ITEMS,
+  // 정적 모드는 코드 목록(src/config/team-crests.ts)만 쓴다
+  teamCrests: async () => [],
 };

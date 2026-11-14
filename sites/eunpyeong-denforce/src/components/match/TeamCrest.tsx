@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { SITE } from "@/config/site";
 import { crestImageFor } from "@/lib/crests";
+import { getTeamCrests } from "@/lib/repo";
 import { crestInitial, crestInitialShort } from "@/lib/match";
 import styles from "./MatchParts.module.css";
 
@@ -39,11 +40,11 @@ function Shield() {
 /**
  * 팀 엠블럼 (피그마 MatchEmblem 190:734, 원 받침 없음). size 는 높이(px), 가로는 원본 비율.
  * - 우리 팀: emblem-mark.png(SINCE 줄 없음, 600x766) 테두리와 바탕 없이 (NMH v2, 모든 크기 공통)
- * - 상대: 받은 투명 원본(crestFor, src/config/team-crests.ts)
+ * - 상대: 받은 투명 원본 — 관리자가 올린 DB 줄(team_crests) 이 코드 목록(src/config/team-crests.ts)을 덮는다 (D-094)
  * - 원본이 없는 상대: 대체 방패(선 윤곽 + 이름 앞 2글자, 놓인 면의 글자색)
  * 팀 이름은 옆 글자로 따로 보이므로 그림은 읽지 않게 숨긴다.
  */
-export function TeamCrest({
+export async function TeamCrest({
   team,
   us,
   size,
@@ -65,7 +66,7 @@ export function TeamCrest({
       </span>
     );
   }
-  const img = crestImageFor(team, surface);
+  const img = crestImageFor(team, surface, await getTeamCrests());
   if (img) {
     return (
       <span className={`${styles.crest} ${sizeClass}`} aria-hidden="true">

@@ -29,6 +29,10 @@
 
 <!-- 여기서부터 최신 항목을 위에 추가 -->
 
+## D-094 | 2026-11-14 | 상대팀 엠블럼을 DB 로(I-048): 코드 목록은 기본값, 관리자가 올린 줄이 같은 팀을 덮는다
+- **상태**: 채택, 기능 브랜치(마이그레이션 파일만) (소유자 ㄱㄱ, 총괄 순서: 1단계 DB 읽기 경로 + 코드 기본값 → 2단계 관리자 업로드/자료함)
+- **1단계**: 표 team_crests(name unique, aliases, file_url, file_on_light_url, width, height, source, note; 누구나 읽기, 관리자 쓰기) — 20261114130000_team_crests.sql. getTeamCrests()(use cache, 태그 crests) = mergeCrests(코드 TEAM_CRESTS, DB 줄): 이름/별칭이 겹치면 같은 팀, 값이 있는 칸만 덮고(파일 비운 DB 줄이면 코드 파일 그대로) 별칭은 합침, 없으면 새 팀. TeamCrest 는 async 서버 부품으로 이 목록을 읽는다(쓰는 곳 5곳 모두 서버 부품). 표가 없으면(PGRST205 / 42P01, 마이그레이션 전) 빈 목록 — 운영은 지금 그대로(실측 경기일정 엠블럼 5팀 그대로, 22페이지 x 12폭 ALL CLEAN).
+
 ## D-093 | 2026-11-14 | 주장단 표식: 카드 이름 옆 파랑 면 C / VC 배지, 상세 포지션 옆 '주장' / '부주장'
 - **상태**: 채택, 기능 브랜치(마이그레이션 파일만, 데이터 4명은 총괄이 배포 뒤 입력) (소유자 ㄱㄱ, 디자인 ① 파랑 면 배지 bc43899 섹션 252:26194)
 - **결정**: players.captain text null check in ('C', 'VC') (20261114120000_player_captain.sql). 관리자 › 선수 '주장단' 고르기(없음 / 주장 (C) / 부주장 (VC)), 서버에서 다시 검사(lib/captain.ts parseCaptain).

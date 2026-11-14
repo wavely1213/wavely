@@ -17,6 +17,7 @@ import type {
   Staff,
   StandingRow,
 } from "@/types";
+import type { TeamCrestEntry } from "@/config/team-crests";
 import type { ContentItem } from "@/lib/content/lists";
 
 export type PlayerRow = {
@@ -140,6 +141,30 @@ export function splitParagraphs(text: string): string[] {
     .map((p) => p.trim())
     .filter(Boolean);
 }
+
+/** team_crests (D-094) */
+export type TeamCrestRow = {
+  name: string;
+  aliases: string[] | null;
+  file_url: string | null;
+  file_on_light_url: string | null;
+  width: number | null;
+  height: number | null;
+  source: string | null;
+  note: string | null;
+  updated_at: string | null;
+};
+
+export const toTeamCrest = (r: TeamCrestRow): TeamCrestEntry => ({
+  name: r.name,
+  aliases: r.aliases ?? [],
+  file: r.file_url,
+  ...(r.file_on_light_url ? { fileOnLight: r.file_on_light_url } : {}),
+  pixels: r.width && r.height ? [r.width, r.height] : null,
+  source: r.source,
+  fetchedAt: r.updated_at ? r.updated_at.slice(0, 10) : null,
+  note: r.note ?? "",
+});
 
 export const toPlayer = (r: PlayerRow): Player => ({
   id: r.id,
