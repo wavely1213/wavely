@@ -247,3 +247,103 @@
     font-size: 16px;
   }
 }
+
+/* ── 휴대폰 작은 띠 A 가운데 3줄 (D-088, 피그마 274:26795) ──────────────
+   721 이상은 위 카드(.wide), 720 이하는 띠(.strip). 폭 화면 - 32(히어로 안쪽 그대로), 높이 360 161 / 390 138 / 430 115 / 긴 이름 144.
+   안쪽 여백 위아래 space/s 좌우 space/m, 줄 사이 space/xs, 줄 안 줄바꿈 사이 space/2xs. 파랑 반쪽 +10 / -30 + (다) 질감 그대로 */
+.stripWrap {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .wide {
+    display: none;
+  }
+
+  .stripWrap {
+    display: block;
+    width: 100%;
+  }
+
+  .strip {
+    --nmh-split-top: 10px;
+    --nmh-split-bottom: 30px;
+    width: 100%;
+    gap: var(--space-xs);
+    padding: var(--space-s) var(--space-m);
+    margin-inline: 0;
+    text-decoration: none;
+  }
+
+  /* 줄 1(라벨 + 대회), 줄 3(날짜 + 장소 덩어리) — 좁으면 덩어리째 다음 줄로 */
+  .stripRow {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2xs) var(--space-xs);
+  }
+
+  /* [엠블럼 32 + 이름] VS [이름 + 엠블럼 32] — 엠블럼과 이름 space/xs, 이름과 VS space/s */
+  .stripTeams {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-s);
+    max-width: 100%;
+  }
+
+  .stripTeam {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    min-width: 0;
+  }
+
+  /* 엠블럼(TeamCrest, aria-hidden)만 줄이지 않는다 — 이름은 줄어들며 낱말 경계에서 줄바꿈 */
+  .stripTeam > [aria-hidden="true"] {
+    flex: none;
+  }
+
+  /* kfa/m/h4 16 Bold — 긴 이름은 낱말 경계(TeamName 의 <wbr>)에서만 줄바꿈 */
+  .stripName {
+    min-width: 0;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    word-break: keep-all;
+    text-align: center;
+  }
+
+  .stripVs {
+    flex: none;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+
+  .stripDate {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+  }
+
+  .strip .venue {
+    flex-wrap: nowrap;
+    white-space: nowrap;
+  }
+
+  /* 눌림 표시 — 줄 끝 →, on-dark */
+  .arrow {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--c-on-dark);
+  }
+}
