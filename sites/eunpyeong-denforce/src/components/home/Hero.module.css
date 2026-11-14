@@ -82,10 +82,11 @@
 }
 
 @media (max-width: 720px) {
-  /* 휴대폰: 카드는 첫 화면(60 + 520) 아래에서 space/s 위 (NMH v2).
-     문구와 카드 최소 간격 space/xs — 상대 이름이 두 줄이어도 카드가 위로 올라가 580 안 (피그마 227:263 은 11, 총괄 검토) */
+  /* 휴대폰: 띠 카드는 첫 화면(60 + 520) 아래에서 space/s 위 (NMH v2).
+     문구(눈썹 + 두 줄 제목)는 띠 카드 바로 위로 내림, 사이 space/m (D-088, 디자인 be56ee2 277:26956 / 277:27007 / 277:27058) — 위쪽은 사진만 보인다 */
   .inner {
-    gap: var(--space-xs);
+    justify-content: flex-end;
+    gap: var(--space-m);
     padding-bottom: var(--space-s);
   }
 
