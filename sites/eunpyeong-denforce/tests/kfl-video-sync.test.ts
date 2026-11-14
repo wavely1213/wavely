@@ -122,3 +122,52 @@ test("RSS 읽기: 영상 ID, 제목(글자 참조 풀기), 게시일", () => {
     { videoId: "Xyz_def-456", title: "백호 & 프렌즈", published: "2026-10-01T05:09:21+00:00" },
   ]);
 });
+
+// ── D-090 검토 반영 ──
+
+test("라운드가 팀 앞에 오는 FK CUP 제목('… 3라운드 | A vs B')", () => {
+  assert.deepEqual(parseTitle("[2026.08.25] 단양군과 함께하는 2026 FK CUP 남자부 3라운드 | 서울은평덴포스 vs 인천ZD스포츠"), {
+    kind: "replay",
+    teams: ["서울은평덴포스", "인천ZD스포츠"],
+    date: "2026-08-25",
+  });
+});
+
+test("날짜 뒤 단계 글자는 상대 이름이 아니다 (승강 플레이오프, 승강PO, - 8강, - 결승)", () => {
+  assert.deepEqual(parseTitle("[LIVE] 서울은평덴포스FS vs 화성FS (2026/04/04) 승강 플레이오프"), {
+    kind: "replay",
+    teams: ["서울은평덴포스FS", "화성FS"],
+    date: "2026-04-04",
+  });
+  for (const tail of ["승강PO", "- 8강", "- 결승", "준결승"]) {
+    assert.deepEqual(parseTitle(`[LIVE] 서울은평 덴포스 vs 강원FS (2026/03/01) ${tail}`)?.teams, ["서울은평 덴포스", "강원FS"], tail);
+  }
+  // 수동 파일(2026-10-18_match_videos.sql)의 짝: 2026-04-04 승강 PO 화성FS → replay jSRqL1-wI1k
+  const plan = planVideos([E("jSRqL1-wI1k", "[LIVE] 서울은평덴포스FS vs 화성FS (2026/04/04) 승강 플레이오프")], [M("6d7d7de0", "2026-04-04", "화성FS")]);
+  assert.deepEqual(plan.updates.map((u) => [u.matchId, u.field, u.videoId]), [["6d7d7de0", "replay_url", "jSRqL1-wI1k"]]);
+  const cup = planVideos([E("CVy3g6RNsAA", "[2026.08.25] 단양군과 함께하는 2026 FK CUP 남자부 3라운드 | 서울은평덴포스 vs 인천ZD스포츠")], [M("a5991b61", "2026-08-25", "인천ZD스포츠")]);
+  assert.deepEqual(cup.updates.map((u) => u.videoId), ["CVy3g6RNsAA"]);
+});
+
+test("한 번 넣었다가 관리자가 비운 칸은 다시 넣지 않고 기록", () => {
+  const plan = planVideos([E("ZcRT9Wob-TQ", "[LIVE] 서울은평 덴포스 vs 강원FS (2025/11/15)  1라운드")], [M("m1", "2025-11-15", "강원FS")], new Set(["m1:replay_url"]));
+  assert.deepEqual(plan.updates, []);
+  assert.ok(plan.notes.some((n) => n.startsWith("관리자가 비운 칸")));
+  // 다른 칸(하이라이트)은 그대로 넣는다
+  const other = planVideos([E("TYf4ZnmFpQM", "[하이라이트] 서울은평 덴포스 vs 강원FS (2025/11/15)")], [M("m1", "2025-11-15", "강원FS")], new Set(["m1:replay_url"]));
+  assert.equal(other.updates.length, 1);
+});
+
+test("별칭은 정규화한 이름끼리 (띄어쓰기 다른 표기도)", () => {
+  assert.ok(sameOpponent("전주시민 풋살클럽", "전주시민풋살구단"));
+  assert.ok(sameOpponent("전주시민풋살구단", "전주시민 풋살클럽"));
+  assert.ok(!sameOpponent("전주시민풋살클럽", "강원FS"));
+});
+
+test("RSS: 범위 밖 숫자 참조는 그 항목만 버린다, &amp;amp; 는 &amp;", () => {
+  const xml = `<feed>
+<entry><yt:videoId>Bad_entry01</yt:videoId><title>깨짐 &#99999999;</title><published>2026-11-01T00:00:00+00:00</published></entry>
+<entry><yt:videoId>Good_entry1</yt:videoId><title>A &amp;amp; B &#x41;</title><published>2026-11-02T00:00:00+00:00</published></entry>
+</feed>`;
+  assert.deepEqual(parseFeed(xml), [{ videoId: "Good_entry1", title: "A &amp; B A", published: "2026-11-02T00:00:00+00:00" }]);
+});

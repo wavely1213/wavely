@@ -25,17 +25,17 @@ export type Plan = { updates: Update[]; notes: string[] };
 const VIDEO_ID = /^[A-Za-z0-9_-]{11}$/;
 const OURS = /은평|덴포스/;
 
-/** 상대 이름 별칭 — 연맹 영상 제목과 matches.opponent 표기가 다른 팀 (손작업 기록 2026-10-18) */
-export const OPPONENT_ALIASES: Record<string, string[]> = {
-  전주시민풋살구단: ["전주시민풋살클럽"],
-};
+/** 상대 이름 별칭 묶음 — 연맹 영상 제목과 matches.opponent 표기가 다른 팀 (손작업 기록 2026-10-18). 비교는 정규화(띄어쓰기, 대소문자 무시)한 이름끼리 */
+export const OPPONENT_ALIASES: readonly (readonly string[])[] = [["전주시민풋살구단", "전주시민풋살클럽"]];
 
+/** XML 글자 참조 풀기. &amp; 는 마지막(&amp;amp; → &amp;). 범위 밖 숫자 참조는 RangeError — 부르는 쪽이 그 항목만 버린다 */
 function decodeXml(s: string): string {
   return s
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
     .replace(/&#39;|&apos;/g, "'")
+    .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)))
     .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
     .replace(/&amp;/g, "&");
 }
@@ -48,7 +48,14 @@ export function parseFeed(xml: string): FeedEntry[] {
     const id = body.match(/<yt:videoId>([^<]+)<\/yt:videoId>/)?.[1]?.trim() ?? "";
     const title = body.match(/<title>([^<]*)<\/title>/)?.[1] ?? "";
     const published = body.match(/<published>([^<]+)<\/published>/)?.[1]?.trim() ?? "";
-    if (VIDEO_ID.test(id) && title) out.push({ videoId: id, title: decodeXml(title).trim(), published });
+    if (!VIDEO_ID.test(id) || !title) continue;
+    let decoded: string;
+    try {
+      decoded = decodeXml(title).trim();
+    } catch {
+      continue; // 깨진 글자 참조 — 이 항목만 버린다 (피드 전체를 버리지 않게)
+    }
+    out.push({ videoId: id, title: decoded, published });
   }
   return out;
 }
@@ -58,13 +65,15 @@ export function normalizeTeam(name: string): string {
   return name.replace(/\s+/g, "").toLowerCase();
 }
 
-/** 상대 팀이 같은지 — 같은 이름 또는 별칭 */
+/** 상대 팀이 같은지 — 같은 이름 또는 같은 별칭 묶음 */
 export function sameOpponent(titleTeam: string, opponent: string): boolean {
   const a = normalizeTeam(titleTeam);
   const b = normalizeTeam(opponent);
   if (a === b) return true;
-  const aliases = [...(OPPONENT_ALIASES[opponent] ?? []), ...Object.entries(OPPONENT_ALIASES).filter(([, v]) => v.includes(opponent)).map(([k]) => k)];
-  return aliases.some((x) => normalizeTeam(x) === a);
+  return OPPONENT_ALIASES.some((group) => {
+    const names = group.map(normalizeTeam);
+    return names.includes(a) && names.includes(b);
+  });
 }
 
 const DATE = /(\d{4})\s*[./-]\s*(\d{1,2})\s*[./-]\s*(\d{1,2})/;
@@ -88,14 +97,21 @@ export function parseTitle(title: string): ParsedTitle | null {
     const dd = Number(d);
     if (mm >= 1 && mm <= 12 && dd >= 1 && dd <= 31) date = `${y}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")}`;
   }
-  // 대진: 앞의 [태그], 날짜, 괄호, '경기 하이라이트', '- 1R' 같은 꼬리를 떼고 'A VS B' 를 찾는다
-  const core = title
+  // 대진 찾기:
+  //  1) '|' 로 나뉜 제목('[2026.08.25] … 3라운드 | A vs B')은 VS 가 든 칸만 본다
+  //  2) '(날짜)' 괄호가 있으면 그 앞만 본다 — 뒤 꼬리(승강 플레이오프, - 1R, 1라운드 등)는 팀 이름이 아니다
+  //  3) 남은 [태그], 날짜, '경기 하이라이트', 끝의 '- nR' / 'n라운드' / 단계 글자를 뗀다
+  let core = title.split("|").find((part) => /vs/i.test(part)) ?? title;
+  const paren = core.match(/\(\s*\d{4}\s*[./-]\s*\d{1,2}\s*[./-]\s*\d{1,2}\.?\s*\)/);
+  if (paren && paren.index !== undefined) core = core.slice(0, paren.index);
+  core = core
     .replace(/\[[^\]]*\]/g, " ")
     .replace(/\([^)]*\)/g, " ")
     .replace(DATE, " ")
     .replace(/경기\s*하이라이트|하이라이트|다시보기/g, " ")
-    .replace(/[-–]\s*\d+\s*R\b.*$/i, " ")
-    .replace(/\d+\s*라운드.*$/, " ");
+    .replace(/\s[-–]\s*.*$/, " ")
+    .replace(/\s\d+\s*(R|라운드)\s*$/i, " ")
+    .replace(/\s(승강\s*(플레이오프|PO)|플레이오프|준?결승|\d+강)\s*$/i, " ");
   const vs = core.split(/\s*vs\.?\s*/i);
   if (vs.length !== 2) return null;
   const a = vs[0].trim();
@@ -123,9 +139,15 @@ export function watchUrl(videoId: string): string {
  *   - 날짜가 없으면 게시일로 추정하지 않고 건너뛰고 기록.
  *   - 그 날짜(서울) + 상대 팀이 맞는 경기가 정확히 하나일 때만.
  *   - 그 칸이 비어 있을 때만 (관리자, 총괄이 넣은 값은 덮지 않는다).
+ *   - 이 함수가 한 번 넣었던 칸이 지금 비어 있으면 관리자가 지운 것 — 다시 넣지 않는다(applied).
  *   - 같은 경기 같은 칸에 후보가 둘 이상이면 넣지 않고 기록.
  */
-export function planVideos(entries: FeedEntry[], matches: MatchLite[]): Plan {
+/** 이 함수가 한 번 넣었던 칸 — '경기 id:칸' (kfl_video_sync_applied) */
+export function appliedKey(matchId: string, field: Update["field"]): string {
+  return `${matchId}:${field}`;
+}
+
+export function planVideos(entries: FeedEntry[], matches: MatchLite[], applied: ReadonlySet<string> = new Set()): Plan {
   const notes: string[] = [];
   const candidates = new Map<string, Update[]>();
   for (const e of entries) {
@@ -162,6 +184,10 @@ export function planVideos(entries: FeedEntry[], matches: MatchLite[]): Plan {
     const m = matches.find((x) => x.id === matchId);
     if (!m) continue;
     if (m[field]) continue; // 이미 값이 있다 — 덮지 않는다 (같은 영상이어도 조용히 넘어감)
+    if (applied.has(key)) {
+      notes.push(`관리자가 비운 칸이라 다시 넣지 않음 (${m.date} ${m.opponent} ${field})`);
+      continue;
+    }
     if (list.length > 1) {
       notes.push(`후보 ${list.length}개라 넣지 않음 (${m.date} ${m.opponent} ${field}): ${list.map((u) => u.videoId).join(", ")}`);
       continue;
