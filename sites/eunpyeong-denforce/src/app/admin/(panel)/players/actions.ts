@@ -128,12 +128,14 @@ export async function deletePlayer(id: string): Promise<void> {
   const ctx = await requireAdminAction();
   if (!ctx) redirect("/admin/login");
 
-  const { data } = await ctx.supabase
+  const { data, error } = await ctx.supabase
     .from("players")
     .delete()
     .eq("id", id)
     .select("photo_url")
     .maybeSingle<Pick<PlayerRow, "photo_url">>();
+  // 출전 기록(match_appearances.player_id on delete restrict, D-082)이 있으면 지워지지 않는다 — 목록 위에 안내
+  if (error?.code === "23503") redirect("/admin/players?error=appearances");
   await removeImage(ctx, data?.photo_url);
   updateTag(TAGS.players);
   redirect("/admin/players");

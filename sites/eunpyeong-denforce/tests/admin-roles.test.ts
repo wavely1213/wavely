@@ -102,6 +102,8 @@ test("isPendingReview: 최고 관리자/관리자가 아닌 계정이 올린 비
 test("dbErrorMessage: 미디어 규칙 거절은 이유 그대로, 그 밖의 권한 오류는 다시 로그인 안내", () => {
   assert.equal(dbErrorMessage({ code: "42501", message: "미디어 계정은 글을 공개할 수 없습니다 (검토 후 공개)" }), "미디어 계정은 글을 공개할 수 없습니다 (검토 후 공개)");
   assert.match(dbErrorMessage({ code: "42501", message: "permission denied for table players" }), /다시 로그인/);
+  // 출전 기록이 있는 선수 등 다른 기록이 쓰는 항목 (D-082)
+  assert.equal(dbErrorMessage({ code: "23503" }), "다른 기록이 이 항목을 쓰고 있어 지울 수 없습니다.");
 });
 
 test("reviewAlerts: 검토 대기 구단소식/포스팅", () => {
