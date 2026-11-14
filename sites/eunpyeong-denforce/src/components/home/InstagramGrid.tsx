@@ -1,5 +1,7 @@
 import Image from "next/image";
 import { isPreshrunkThumbnail, plainText } from "@/lib/postings";
+import { PlayMark } from "@/components/news/PlayMark";
+import type { ReelTile } from "@/lib/reels";
 import type { Posting } from "@/types";
 import styles from "./InstagramGrid.module.css";
 
@@ -23,6 +25,26 @@ export function InstagramGrid({ posts }: { posts: Posting[] }) {
               className={styles.image}
             />
             <span className="sr-only">(새 창)</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * 게시물 6칸 아래 릴스 6칸 한 줄 (D-095, 디자인 ① 정사각 254:26222 / 254:26275 / 254:26328) — 같은 칸, 같은 간격(PC 24 / 휴대폰 8).
+ * 구단영상 중 인스타 릴스 최신 6개, 표지 꽉 채움 + 재생 표시, 누르면 인스타그램 릴스(새 창). 없으면 줄째 숨김(page.tsx).
+ */
+export function InstagramReels({ reels }: { reels: ReelTile[] }) {
+  return (
+    <ul className={`${styles.grid} ${styles.reels}`} aria-label="릴스">
+      {reels.map((r) => (
+        <li key={r.id}>
+          <a href={r.href} target="_blank" rel="noopener noreferrer" className={styles.tile}>
+            <Image src={r.thumbnail} alt={plainText(r.title)} fill sizes="(max-width: 720px) 33vw, 184px" className={styles.image} />
+            <PlayMark size="ms" />
+            <span className="sr-only">릴스 (새 창)</span>
           </a>
         </li>
       ))}

@@ -23,7 +23,16 @@
   transform: scale(1.03);
 }
 
+/* 릴스 줄 — 게시물 줄 아래 같은 간격 (D-095) */
+.reels {
+  margin-top: var(--space-l);
+}
+
 @media (max-width: 720px) {
+  .reels {
+    margin-top: var(--space-xs);
+  }
+
   .grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--space-xs);
