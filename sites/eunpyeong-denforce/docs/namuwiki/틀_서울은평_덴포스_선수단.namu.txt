@@ -1,0 +1,44 @@
+||<-4><tablewidth=100%><tablebordercolor=#0E0F12><bgcolor=#1A349A> {{{#!wiki style="margin: -5px -10px; padding: 5px 10px; background-image: repeating-linear-gradient(-65deg, #1A349A 0px, #1A349A 26px, #2341B4 26px, #2341B4 30px)"
+{{{#!wiki style="margin: -5px -10px; padding: 5px 10px; background-image: linear-gradient(to right, #0E0F12 0%, transparent 30%, transparent 70%, #0E0F12 100%), linear-gradient(to bottom, transparent 45%, #0E0F12 160%)"
+{{{#!wiki style="margin: -5px -10px; padding: 5px 10px; background-image: linear-gradient(to left, #FFC000 0.5%, #0E0F12 0.5%, #0E0F12 1%, #FFC000 1%, #FFC000 2%, #0E0F12 2%, #0E0F12 3.5%, transparent 3.5%), linear-gradient(to right, #FFC000 0.5%, #0E0F12 0.5%, #0E0F12 1%, #FFC000 1%, #FFC000 2%, #0E0F12 2%, #0E0F12 3.5%, transparent 3.5%)"
+||<tablealign=center><tablebgcolor=transparent><tablebordercolor=transparent><bgcolor=transparent> [[서울은평 덴포스|[[파일:서울은평 덴포스 엠블럼.png|height=60]]]] ||<bgcolor=transparent><(> {{{#fff 서울은평 덴포스}}}[br]{{{+2 {{{#fff '''2026-27 시즌 선수단'''}}}}}} ||
+}}}}}}}}} ||
+||<-4><bgcolor=#0E0F12><color=#fff> {{{#!wiki style="margin: 0 -10px -5px; min-height: calc(1.5em + 5px)"
+{{{#!folding [ 펼치기 · 접기 ]
+{{{#!wiki style="margin: -6px -1px -11px"
+||<-4><tablewidth=100%><tablebordercolor=#1A349A><tablebgcolor=#fff,#1c1d1f><tablecolor=#000,#e0e0e0><bgcolor=#1A349A><color=#fff> '''서울은평 덴포스 2026-27 시즌 선수단'''[* [[https://eunpyeong-fs.com/team/players|선수]] - 서울은평 덴포스 공식 홈페이지, 2026년 11월 14일 확인.] ||
+||<rowbgcolor=#0E0F12><rowcolor=#fff><width=22%> '''포지션''' ||<width=14%> '''등번호''' || '''이름''' ||<width=22%> '''비고''' ||
+||<|4><bgcolor=#1A349A><color=#fff> '''골레이로'''[br]{{{-1 GK}}} || 1 || 임우성 || ||
+|| 2 || 정대연 || ||
+|| 12 || 조현웅 || ||
+|| 37 || 양지훈 || ||
+||<|7><bgcolor=#0E0F12><color=#fff> '''픽소'''[br]{{{-1 FIXO}}} || 6 || 김대현 ||<bgcolor=#1A349A><color=#fff> '''부주장''' ||
+|| 8 || 윤창욱 ||<bgcolor=#1A349A><color=#fff> '''부주장''' ||
+|| 11 || 부성인 || ||
+|| 15 || 이준형 || ||
+|| 18 || 김대현 || ||
+|| 44 || 정우민 || ||
+|| 88 || 문직수 || ||
+||<|16><bgcolor=#1A349A><color=#fff> '''아라'''[br]{{{-1 ALA}}} || 4 || 김영민 || ||
+|| 5 || 강민원 || ||
+|| 7 || 최진규 ||<bgcolor=#FFC000><color=#0E0F12> '''주장''' ||
+|| 14 || 안현국 || ||
+|| 16 || 김진수 || ||
+|| 17 || 서진영 || ||
+|| 19 || 이효수 || ||
+|| 20 || 오영택 || ||
+|| 23 || 김선빈 || ||
+|| 24 || 이지훈 || ||
+|| 27 || 김남석 || ||
+|| 30 || 김종호 || ||
+|| 33 || 이상호 || ||
+|| 47 || 이상욱 || ||
+|| 66 || 박재희 || ||
+|| 77 || 원해연 || ||
+||<|5><bgcolor=#0E0F12><color=#fff> '''피보'''[br]{{{-1 PIVO}}} || 9 || 안성혁 || ||
+|| 10 || 김영록 || ||
+|| 13 || 김종문 ||<bgcolor=#1A349A><color=#fff> '''부주장''' ||
+|| 22 || 김종호 || ||
+|| 99 || 한견희 || ||
+||<-4><bgcolor=#0E0F12><color=#fff> {{{-1 김대현(6, 18)과 김종호(22, 30)는 동명이인이다.}}} ||
+}}}}}}}}} ||
