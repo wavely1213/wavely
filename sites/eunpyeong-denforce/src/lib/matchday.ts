@@ -26,6 +26,9 @@ export type PosterWindow = {
   finished: boolean;
   matchday: string | null;
   fulltime: string | null;
+  /** 포스터를 누르면 갈 인스타 게시물 (없으면 그림만) */
+  matchdayPost: string | null;
+  fulltimePost: string | null;
   opponent: string;
   isHome: boolean;
   kickoff: string;
@@ -46,7 +49,7 @@ const https = (u: string | null | undefined) => (u?.startsWith("https://") ? u :
 
 /** 이 경기의 포스터 창. 포스터가 하나도 없거나 날짜 오류면 null */
 export function posterWindow(
-  m: Pick<Match, "id" | "kickoff" | "status" | "opponent" | "isHome" | "matchdayPoster" | "fulltimePoster">,
+  m: Pick<Match, "id" | "kickoff" | "status" | "opponent" | "isHome" | "matchdayPoster" | "fulltimePoster" | "matchdayPost" | "fulltimePost">,
 ): PosterWindow | null {
   const matchday = https(m.matchdayPoster);
   const fulltime = https(m.fulltimePoster);
@@ -54,7 +57,7 @@ export function posterWindow(
   const k = Date.parse(m.kickoff);
   if (!Number.isFinite(k)) return null;
   const start = kstMidnight(k);
-  return { matchId: m.id, start, end: start + DAY_MS, matchEnd: k + MATCH_END_AFTER_MS, finished: m.status === "finished", matchday, fulltime, opponent: m.opponent, isHome: m.isHome, kickoff: m.kickoff };
+  return { matchId: m.id, start, end: start + DAY_MS, matchEnd: k + MATCH_END_AFTER_MS, finished: m.status === "finished", matchday, fulltime, matchdayPost: https(m.matchdayPost), fulltimePost: https(m.fulltimePost), opponent: m.opponent, isHome: m.isHome, kickoff: m.kickoff };
 }
 
 /** 포스터가 있는 경기들의 창, 시작 순 (지난 것도 넘긴다 — 시각은 브라우저가 판단) */

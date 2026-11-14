@@ -13,6 +13,7 @@ import {
   parseWelcome,
   planFarewell,
   planMatchday,
+  postLinkTarget,
   planResult,
   planWelcome,
   plainText,
@@ -353,4 +354,23 @@ test("reelNews/postingDraft 제목: 앞 구분자 없음 (🔵| 𝟮𝟬𝟮𝟲
   const p = post("🔵| 𝟮𝟬𝟮𝟲/𝟮𝟳 𝗦𝗤𝗨𝗔𝗗 𝗡𝗨𝗠𝗕𝗘𝗥𝗦\n\n#서울은평덴포스");
   assert.equal(reelNews(p, "https://x/y.jpg").title, "2026/27 SQUAD NUMBERS");
   assert.equal(postingDraft(p, "other").title, "🔵 𝟮𝟬𝟮𝟲/𝟮𝟳 𝗦𝗤𝗨𝗔𝗗 𝗡𝗨𝗠𝗕𝗘𝗥𝗦");
+});
+
+test("postLinkTarget (D-096): MATCH DAY 글 → 같은 날 같은 상대 matchday_post_url, 빈 칸만, 열 없는 DB 는 건너뜀", () => {
+  const lite = (over: Partial<MatchLite> = {}): MatchLite => ({ id: "m", kickoff: "2026-10-19T04:00:00Z", opponent: "전주시민 풋살구단", status: "scheduled", score_us: null, score_them: null, matchday_post_url: null, fulltime_post_url: null, ...over });
+  const p = post(MATCHDAY);
+  assert.deepEqual(postLinkTarget(p, "matchday", [lite()]), { matchId: "m", field: "matchday_post_url", url: "https://www.instagram.com/p/DerArQ-TWEJ/" });
+  assert.equal(postLinkTarget(p, "matchday", [lite({ matchday_post_url: "https://www.instagram.com/p/X/" })]), null);
+  assert.equal(postLinkTarget(p, "matchday", [lite({ opponent: "화성FS" })]), null);
+  const { matchday_post_url: _a, fulltime_post_url: _b, ...noColumn } = lite();
+  void _a;
+  void _b;
+  assert.equal(postLinkTarget(p, "matchday", [noColumn]), null);
+  assert.equal(postLinkTarget(p, "welcome", [lite()]), null);
+});
+
+test("postLinkTarget (D-096): 경기결과 글 → 최근 7일 같은 상대 fulltime_post_url (이미 종료여도)", () => {
+  const done: MatchLite = { id: "m", kickoff: "2026-10-19T04:00:00Z", opponent: "전주시민풋살구단", status: "finished", score_us: 7, score_them: 5, matchday_post_url: null, fulltime_post_url: null };
+  assert.deepEqual(postLinkTarget(post(RESULT), "result", [done]), { matchId: "m", field: "fulltime_post_url", url: "https://www.instagram.com/p/DerArQ-TWEJ/" });
+  assert.equal(postLinkTarget(post(RESULT), "result", [{ ...done, kickoff: "2026-10-01T04:00:00Z" }]), null);
 });

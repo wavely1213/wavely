@@ -309,7 +309,18 @@ export function planFarewell(f: Farewell, roster: readonly RosterPlayer[]): { de
 
 // ── 경기 ──
 
-export type MatchLite = { id: string; kickoff: string; opponent: string; status: string; score_us: number | null; score_them: number | null; venue?: string };
+export type MatchLite = {
+  id: string;
+  kickoff: string;
+  opponent: string;
+  status: string;
+  score_us: number | null;
+  score_them: number | null;
+  venue?: string;
+  /** 매치데이 팝업 포스터를 누르면 갈 게시물 (D-096). 열이 없는 DB(마이그레이션 전)에서는 키 자체가 없다 */
+  matchday_post_url?: string | null;
+  fulltime_post_url?: string | null;
+};
 export type MatchDraft = { competition: string; round: string; kickoff: string; venue: string; is_home: boolean; opponent: string; status: "scheduled" };
 
 /** 팀 이름 비교 — 띄어쓰기·대소문자 무시 */
@@ -355,6 +366,36 @@ export function planMatchday(post: IgPost, matches: readonly MatchLite[]): { ins
     insert: { competition, round, kickoff, venue, is_home: isHome, opponent: cut(hint.opponent, 40), status: "scheduled" },
     note: isHome ? null : `원정 경기로 넣음 (경기장: ${venue || "없음"}) — 중립/홈 경기면 관리자 › 경기에서 고치기`,
   };
+}
+
+export type PostLink = { matchId: string; field: "matchday_post_url" | "fulltime_post_url"; url: string };
+
+/**
+ * 매치데이 팝업 포스터를 누르면 갈 인스타 게시물 (D-096) — MATCH DAY 글은 같은 날 같은 상대 경기의 matchday_post_url,
+ * 경기결과 글은 최근 7일 안 같은 상대 경기의 fulltime_post_url. 칸이 비어 있을 때만(관리자 값 우선).
+ * 열이 없는 DB(키 없음)거나 글에서 상대를 못 읽으면 null. 포스터 그림은 드라이브가 맡는다(matchday-poster-sync).
+ */
+export function postLinkTarget(post: IgPost, type: IgPostType, matches: readonly MatchLite[]): PostLink | null {
+  const url = `https://www.instagram.com/p/${post.code}/`;
+  let m: MatchLite | undefined;
+  let field: PostLink["field"];
+  if (type === "matchday") {
+    const hint = parseMatchday(post.caption);
+    if (!hint.opponent) return null;
+    const date = kstDate(post.takenAt);
+    m = matches.find((x) => kstDateTime(Date.parse(x.kickoff) / 1000).slice(0, 10) === date && sameTeam(x.opponent, hint.opponent!));
+    field = "matchday_post_url";
+  } else if (type === "result") {
+    const r = parseResult(post.caption);
+    if (!r.opponent) return null;
+    const at = post.takenAt * 1000;
+    m = matches
+      .filter((x) => sameTeam(x.opponent, r.opponent!) && Date.parse(x.kickoff) <= at + 3_600_000 && Date.parse(x.kickoff) >= at - 7 * 86_400_000)
+      .sort((a, b) => Date.parse(b.kickoff) - Date.parse(a.kickoff))[0];
+    field = "fulltime_post_url";
+  } else return null;
+  if (!m || !(field in m) || m[field]) return null;
+  return { matchId: m.id, field, url };
 }
 
 /** 득점 줄 → "백승하 3, 김영록, 윤창욱" (자책골 제외, 한 골이면 숫자 없음) */

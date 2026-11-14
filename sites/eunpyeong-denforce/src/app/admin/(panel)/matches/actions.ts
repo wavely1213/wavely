@@ -16,7 +16,21 @@ const POSTERS = [
   ["matchday_poster", "matchday_poster_url"],
   ["fulltime_poster", "fulltime_poster_url"],
 ] as const;
-type PosterColumns = { matchday_poster_url?: string | null; fulltime_poster_url?: string | null };
+type PosterColumns = {
+  matchday_poster_url?: string | null;
+  fulltime_poster_url?: string | null;
+  matchday_post_url?: string | null;
+  fulltime_post_url?: string | null;
+};
+
+/** 포스터를 누르면 갈 인스타 게시물 (D-096) — 지금 값과 다른 칸만 (마이그레이션 전 DB 에서도 저장되게) */
+function readPostLinks(f: FormReader, current: PosterColumns): Record<string, string | null> {
+  const next = {
+    matchday_post_url: f.optHttpsUrl("matchday_post_url", "MATCH DAY 게시물"),
+    fulltime_post_url: f.optHttpsUrl("fulltime_post_url", "FULL TIME 게시물"),
+  };
+  return Object.fromEntries(Object.entries(next).filter(([k, v]) => v !== (current[k as keyof PosterColumns] ?? null)));
+}
 
 /** 포스터 이미지 처리 → 바뀐 칸만 { 열: 새 주소 }, 그리고 지울 옛 파일/새로 올린 파일 */
 async function resolvePosters(ctx: NonNullable<Awaited<ReturnType<typeof requireAdminAction>>>, f: FormReader, current: PosterColumns) {
@@ -87,10 +101,11 @@ export async function createMatch(_prev: ActionState, fd: FormData): Promise<Act
   if (f.hasErrors) return f.state();
 
   // 포스터 (D-096) — 비워 두면 열을 보내지 않는다
+  const links = readPostLinks(f, {});
   const posters = await resolvePosters(ctx, f, {});
   if (f.hasErrors) return f.state();
 
-  const { error } = await ctx.supabase.from("matches").insert({ ...values, ...posters.changes });
+  const { error } = await ctx.supabase.from("matches").insert({ ...values, ...links, ...posters.changes });
   if (error) {
     for (const u of posters.uploaded) await removeImage(ctx, u); // 방금 올린 파일이 고아로 남지 않게
     return { message: dbErrorMessage(error), values: submittedValues(fd) };
@@ -112,10 +127,11 @@ export async function updateMatch(id: string, _prev: ActionState, fd: FormData):
   const values = readMatch(f);
   if (f.hasErrors) return f.state();
 
+  const links = readPostLinks(f, current);
   const posters = await resolvePosters(ctx, f, current);
   if (f.hasErrors) return f.state();
 
-  const { error } = await ctx.supabase.from("matches").update({ ...values, ...posters.changes }).eq("id", id);
+  const { error } = await ctx.supabase.from("matches").update({ ...values, ...links, ...posters.changes }).eq("id", id);
   if (error) {
     for (const u of posters.uploaded) await removeImage(ctx, u);
     return { message: dbErrorMessage(error), values: submittedValues(fd) };

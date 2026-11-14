@@ -44,6 +44,9 @@ export type Match = {
   matchdayPoster?: string | null;
   /** FULL TIME 포스터 (D-096) — 올라오면 그날 23:59 까지 홈 팝업 */
   fulltimePoster?: string | null;
+  /** 포스터를 누르면 갈 인스타 게시물 (D-096, 새 창) */
+  matchdayPost?: string | null;
+  fulltimePost?: string | null;
 };
 
 export type StandingRow = {

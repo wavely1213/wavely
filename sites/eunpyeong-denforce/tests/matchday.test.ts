@@ -154,3 +154,9 @@ test("shouldRun: 경기 날(서울)은 매번, 아니면 마지막 성공 뒤 3�
   assert.equal(shouldRun(t("2026-11-20T12:00:00+09:00"), kick, "2026-11-20T00:00:00Z"), true);
   assert.equal(shouldRun(t("2026-11-20T12:00:00+09:00"), kick, null), true);
 });
+
+test("포스터 링크: 게시물 주소(https)만 창에 실린다", () => {
+  const w = posterWindow(m({ matchdayPost: "https://www.instagram.com/p/AAA/", fulltimePost: "http://x" }))!;
+  assert.equal(w.matchdayPost, "https://www.instagram.com/p/AAA/");
+  assert.equal(w.fulltimePost, null);
+});

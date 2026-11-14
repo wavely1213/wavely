@@ -115,6 +115,26 @@ export function MatchForm({
           currentUrl={initial?.fulltime_poster_url}
         />
       </Row>
+      <Row>
+        <TextField
+          name="matchday_post_url"
+          label="MATCH DAY 게시물"
+          type="url"
+          maxLength={500}
+          placeholder="https://www.instagram.com/p/…"
+          hint="포스터를 누르면 갈 인스타 게시물 (새 창). 인스타 MATCH DAY 글이 올라오면 빈 칸에 자동으로 들어옵니다"
+          defaultValue={initial?.matchday_post_url}
+        />
+        <TextField
+          name="fulltime_post_url"
+          label="FULL TIME 게시물"
+          type="url"
+          maxLength={500}
+          placeholder="https://www.instagram.com/p/…"
+          hint="FULL TIME 포스터를 누르면 갈 게시물. 인스타 경기결과 글이 올라오면 빈 칸에 자동으로 들어옵니다"
+          defaultValue={initial?.fulltime_post_url}
+        />
+      </Row>
     </AdminForm>
   );
 }
