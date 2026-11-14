@@ -82,14 +82,18 @@ test("parseResult: 상대/점수(우리 기준)/득점 줄", () => {
     scoreUs: 7,
     scoreThem: 5,
     scorerLines: ["백승하 전반 5, 후반 6, 14", "윤창욱 전반 11"],
+    ballScorers: [],
+    scoreUnclear: false,
   });
   assert.deepEqual(parseResult("⚪플레이오프 경기결과🔵\n\n화성FS 4 : 3 서울은평덴포스\n\n백승하 전반 '18\nO.G 후반 '6"), {
     opponent: "화성FS",
     scoreUs: 3,
     scoreThem: 4,
     scorerLines: ["백승하 전반 '18", "O.G 후반 '6"],
+    ballScorers: [],
+    scoreUnclear: false,
   });
-  assert.deepEqual(parseResult("⚪경기결과🔵\n아쉽게 졌습니다"), { opponent: null, scoreUs: null, scoreThem: null, scorerLines: [] });
+  assert.deepEqual(parseResult("⚪경기결과🔵\n아쉽게 졌습니다"), { opponent: null, scoreUs: null, scoreThem: null, scorerLines: [], ballScorers: [], scoreUnclear: false });
 });
 
 test("knownCodes: 포스팅 주소에서 게시물 코드", () => {
@@ -117,4 +121,25 @@ test("parseMatchday/parseResult: 줄인 구단 이름도 우리 팀, 양쪽 다 
 
 test("knownCodes: 계정 이름이 낀 주소도", () => {
   assert.deepEqual([...knownCodes(["https://www.instagram.com/eunpyeong_denforce/p/DerArQ-TWEJ/"])], ["DerArQ-TWEJ"]);
+});
+
+/* 2026-27 글 모양 (총괄 2026-11-15: 실제 MATCH DAY 글, FULL TIME 은 같은 꾸밈 글꼴로 예상) */
+const MD2627 = "𝑴𝑨𝑻𝑪𝑯 𝑫𝑨𝒀 🔵⚪️\n\n🆚 노원제너FS\n⏰ 11.15 (일) 14:00\n📍 파주NFC풋살장\n📺 한국풋살연맹 유튜브";
+
+test("2026-27 MATCH DAY: 꾸민 글꼴 머리말, '🆚 상대' 한쪽만, ⏰ 시각", () => {
+  assert.equal(classifyPost({ caption: MD2627, isVideo: false }), "matchday");
+  assert.deepEqual(parseMatchday(MD2627), { heading: "", opponent: "노원제너FS", time: "14:00", venue: "파주NFC풋살장" });
+});
+
+test("2026-27 FULL TIME: 첫 줄에 있을 때만 결과, 점수 줄에 팀 이름 있으면 우리 기준, 없으면 확인 필요", () => {
+  const ft = "𝑭𝑼𝑳𝑳 𝑻𝑰𝑴𝑬 🔵⚪️\n\n서울은평 덴포스 3 : 2 노원제너FS\n\n⚽ 김영록 2, 윤창욱\n⚽️ O.G\n\n#서울은평덴포스";
+  assert.equal(classifyPost({ caption: ft, isVideo: false }), "result");
+  assert.equal(classifyPost({ caption: "오늘 경기 감사합니다\nfull time 응원", isVideo: false }), "other");
+  // MATCH DAY 글 본문에 FULL TIME 이 있어도 MATCH DAY
+  assert.equal(classifyPost({ caption: MD2627 + "\nFULL TIME 까지 응원해 주세요", isVideo: false }), "matchday");
+  const r = parseResult(ft);
+  assert.deepEqual([r.opponent, r.scoreUs, r.scoreThem, r.scoreUnclear], ["노원제너FS", 3, 2, false]);
+  assert.deepEqual(r.ballScorers, [["김영록", 2], ["윤창욱", 1]]);
+  const bare = parseResult("𝑭𝑼𝑳𝑳 𝑻𝑰𝑴𝑬\n\n🆚 노원제너FS\n3 : 2\n⚽ 김영록");
+  assert.deepEqual([bare.opponent, bare.scoreUs, bare.scoreThem, bare.scoreUnclear], ["노원제너FS", null, null, true]);
 });

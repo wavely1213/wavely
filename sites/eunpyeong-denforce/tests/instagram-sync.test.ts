@@ -374,3 +374,16 @@ test("postLinkTarget (D-096): 경기결과 글 → 최근 7일 같은 상대 ful
   assert.deepEqual(postLinkTarget(post(RESULT), "result", [done]), { matchId: "m", field: "fulltime_post_url", url: "https://www.instagram.com/p/DerArQ-TWEJ/" });
   assert.equal(postLinkTarget(post(RESULT), "result", [{ ...done, kickoff: "2026-10-01T04:00:00Z" }]), null);
 });
+
+test("planResult (2026-27): ⚽ 득점 줄, 점수가 모호하면 넣지 않고 확인 필요", () => {
+  const m: MatchLite = { id: "m", kickoff: "2026-10-19T04:00:00Z", opponent: "전주시민풋살구단", status: "scheduled", score_us: null, score_them: null };
+  const ft = "𝑭𝑼𝑳𝑳 𝑻𝑰𝑴𝑬\n\n서울은평 덴포스 3 : 2 전주시민풋살구단\n⚽ 김영록 2, 윤창욱\n⚽ 자책골";
+  assert.deepEqual(planResult(post(ft), [m]).update, { id: "m", status: "finished", score_us: 3, score_them: 2, scorers: "김영록 2, 윤창욱" });
+  const bare = planResult(post("𝑭𝑼𝑳𝑳 𝑻𝑰𝑴𝑬\n\n🆚 전주시민풋살구단\n3 : 2\n⚽ 김영록"), [m]);
+  assert.equal(bare.update, null);
+  assert.match(bare.note!, /어느 쪽 점수인지 모름/);
+  // 이미 다른 점수 → 확인 필요 메모 (그대로 둠)
+  const done = planResult(post(ft), [{ ...m, status: "finished", score_us: 1, score_them: 1 }]);
+  assert.equal(done.update, null);
+  assert.match(done.note!, /다름/);
+});

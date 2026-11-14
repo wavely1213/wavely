@@ -411,11 +411,18 @@ export function scorersText(lines: readonly string[]): string | null {
   return cut([...goals].map(([name, n]) => (n > 1 ? `${name} ${n}` : name)).join(", "), 300);
 }
 
+/** [이름, 골 수] → "김영록 2, 윤창욱" (한 골이면 숫자 없음) */
+export function ballScorersText(list: ReadonlyArray<readonly [string, number]>): string | null {
+  if (!list.length) return null;
+  return cut(list.map(([name, n]) => (n > 1 ? `${name} ${n}` : name)).join(", "), 300);
+}
+
 export type ResultUpdate = { id: string; status: "finished"; score_us: number; score_them: number; scorers: string | null };
 
 /** 경기결과 → 최근 7일 안 같은 상대 경기에 점수/득점. 이미 결과가 있으면 그대로 둔다 */
 export function planResult(post: IgPost, matches: readonly MatchLite[]): { update: ResultUpdate | null; note: string | null } {
   const r = parseResult(post.caption);
+  if (r.opponent && r.scoreUnclear) return { update: null, note: `경기결과 글의 점수 줄에 팀 이름이 없어 어느 쪽 점수인지 모름 (상대 ${r.opponent}) — 확인 필요, 관리자 › 경기에서 입력` };
   if (!r.opponent || r.scoreUs === null || r.scoreThem === null) return { update: null, note: "경기결과 글에서 상대/점수를 읽지 못함 — 관리자 › 경기에서 입력" };
   const at = post.takenAt * 1000;
   const found = matches
@@ -427,5 +434,5 @@ export function planResult(post: IgPost, matches: readonly MatchLite[]): { updat
     const same = found.score_us === r.scoreUs && found.score_them === r.scoreThem;
     return { update: null, note: same ? null : `이미 입력된 결과(${found.score_us}:${found.score_them})와 글(${score})이 다름 — 확인 필요` };
   }
-  return { update: { id: found.id, status: "finished", score_us: r.scoreUs, score_them: r.scoreThem, scorers: scorersText(r.scorerLines) }, note: null };
+  return { update: { id: found.id, status: "finished", score_us: r.scoreUs, score_them: r.scoreThem, scorers: r.scorerLines.length ? scorersText(r.scorerLines) : ballScorersText(r.ballScorers) }, note: null };
 }
