@@ -7,7 +7,7 @@ import { createClient } from "npm:@supabase/supabase-js@2.117.3";
 import { driveError, FOLDER_MIME, listUrl, redactKey } from "../drive-library/drive.ts";
 import {
   appliedKey,
-  candidateGroups,
+  firstCandidates,
   matchForFolder,
   needsPoster,
   parseFolderName,
@@ -100,52 +100,54 @@ Deno.serve(async (req) => {
     }
 
     const appliedList: string[] = [];
-    for (const group of candidateGroups(updates)) {
-      for (const u of group) {
-        const label = `${u.folderName} / ${u.fileName}`;
-        // 후보마다 받기를 따로 감싼다 — 시간 초과, 끊김도 메모만 남기고 다음 후보로
-        let bytes = new Uint8Array(0);
-        let type = "";
-        try {
-          const img = await fetch(u.thumb, { redirect: "follow", signal: AbortSignal.timeout(20_000) });
-          type = (img.headers.get("content-type") ?? "").split(";")[0].trim();
-          if (!img.ok || !/^image\/(jpeg|png|webp)$/.test(type)) {
-            notes.push(`${label}: 이미지를 받지 못함 (${img.status})`);
-            continue;
-          }
-          bytes = new Uint8Array(await img.arrayBuffer());
-        } catch (e) {
-          notes.push(`${label}: 이미지를 받지 못함 (${redactKey(String(e instanceof Error ? e.message : e)).slice(0, 120)})`);
-          continue;
-        }
-        if (!bytes.byteLength || bytes.byteLength > MAX_BYTES) {
-          notes.push(`${label}: 크기 이상 (${bytes.byteLength})`);
-          continue;
-        }
-        const path = storagePath(u.matchId, u.field);
-        const { error: upErr } = await db.storage.from(BUCKET).upload(path, bytes, { contentType: type, cacheControl: "300", upsert: true });
-        if (upErr) {
-          notes.push(`${label}: 저장 실패 ${upErr.message}`);
-          continue;
-        }
-        // 같은 경로를 다시 쓸 수 있어 주소 꼬리에 파일 ID 를 붙여 캐시를 갈라 둔다
-        const url = `${db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl}?v=${u.fileId}`;
-        // 비어 있을 때만 — 그사이 관리자가 넣었으면 0행이 바뀌고 넘어간다
-        const { data: set, error: setErr } = await db.from("matches").update({ [u.field]: url }).eq("id", u.matchId).is(u.field, null).select("id");
-        if (setErr || !set?.length) {
-          // 넣지 못함(그사이 관리자가 칸을 채움 등) — 방금 올린 파일은 지운다
-          await db.storage.from(BUCKET).remove([path]);
-          if (setErr) notes.push(`${label}: 넣기 실패 ${setErr.message}`);
-        } else {
-          appliedList.push(`${u.matchId} ${u.field} ${label}`);
-          const { error: logErr } = await db
-            .from("matchday_poster_sync_applied")
-            .upsert({ match_id: u.matchId, field: u.field, file_id: u.fileId, applied_at: new Date().toISOString() }, { onConflict: "match_id,field" });
-          if (logErr) notes.push(`${label}: 기록 실패 ${logErr.message}`);
-          if (group.length > 1) notes.push(`${u.folderName}: 같은 칸 후보 ${group.length}개 중 ${u.fileName} 를 씀`);
-        }
-        break; // 올렸으면(또는 칸이 그사이 찼으면) 이 칸은 끝
+    for (const { pick: u, count } of firstCandidates(updates)) {
+      const label = `${u.folderName} / ${u.fileName}`;
+      const skip = (why: string) => notes.push(`${label}: ${why} — 이 칸은 이번에 건너뜀(다음 실행에 다시)${count > 1 ? `, 후보 ${count}개 중 1등` : ""}`);
+      if (!u.thumb) {
+        skip("드라이브 미리보기가 아직 없음");
+        continue;
       }
+      // 1등만 시도 — 받기/올리기 실패면 다음 후보로 내려가지 않는다
+      let bytes = new Uint8Array(0);
+      let type = "";
+      try {
+        const img = await fetch(u.thumb, { redirect: "follow", signal: AbortSignal.timeout(20_000) });
+        type = (img.headers.get("content-type") ?? "").split(";")[0].trim();
+        if (!img.ok || !/^image\/(jpeg|png|webp)$/.test(type)) {
+          skip(`이미지를 받지 못함 (${img.status})`);
+          continue;
+        }
+        bytes = new Uint8Array(await img.arrayBuffer());
+      } catch (e) {
+        skip(`이미지를 받지 못함 (${redactKey(String(e instanceof Error ? e.message : e)).slice(0, 120)})`);
+        continue;
+      }
+      if (!bytes.byteLength || bytes.byteLength > MAX_BYTES) {
+        skip(`크기 이상 (${bytes.byteLength})`);
+        continue;
+      }
+      const path = storagePath(u.matchId, u.fileId);
+      const { error: upErr } = await db.storage.from(BUCKET).upload(path, bytes, { contentType: type, cacheControl: "31536000", upsert: true });
+      if (upErr) {
+        skip(`저장 실패 ${upErr.message}`);
+        continue;
+      }
+      const url = db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+      // 비어 있을 때만 — 그사이 관리자가 넣었으면 0행이 바뀌고 넘어간다
+      const { data: set, error: setErr } = await db.from("matches").update({ [u.field]: url }).eq("id", u.matchId).is(u.field, null).select("id");
+      if (setErr || !set?.length) {
+        // 넣지 못함 — 방금 올린 그 경로만 지운다
+        const { error: rmErr } = await db.storage.from(BUCKET).remove([path]);
+        if (setErr) notes.push(`${label}: 넣기 실패 ${setErr.message}`);
+        if (rmErr) notes.push(`${label}: 올린 파일 지우기 실패 ${rmErr.message} (${path})`);
+        continue;
+      }
+      appliedList.push(`${u.matchId} ${u.field} ${label}`);
+      const { error: logErr } = await db
+        .from("matchday_poster_sync_applied")
+        .upsert({ match_id: u.matchId, field: u.field, file_id: u.fileId, applied_at: new Date().toISOString() }, { onConflict: "match_id,field" });
+      if (logErr) notes.push(`${label}: 기록 실패 ${logErr.message}`);
+      if (count > 1) notes.push(`${u.folderName}: 같은 칸 후보 ${count}개 중 ${u.fileName} 를 씀`);
     }
 
     await setState({
