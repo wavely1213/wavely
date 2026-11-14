@@ -22,7 +22,7 @@ test("쓰는 경우: 점수 꼴 1개 + 팀 이름만 + 득점자 모두 활동 �
   assert.deepEqual(ok, { update: { id: "m", status: "finished", score_us: 4, score_them: 2, scorers: "김영록 2, 윤창욱" }, note: null });
   // 상대가 앞, 2골 표기, 동명이인 번호, OG
   const ok2 = plan("FULL TIME\n노원제너FS 1 : 4 덴포스\n⚽ 김대현(No.18) 2골, 김영록\n⚽ OG");
-  assert.deepEqual(ok2.update, { id: "m", status: "finished", score_us: 4, score_them: 1, scorers: "김대현 2, 김영록" });
+  assert.deepEqual(ok2.update, { id: "m", status: "finished", score_us: 4, score_them: 1, scorers: "김대현(No.18) 2, 김영록" });
   // 2025-26 분 표기 모양
   const old = plan("⚪15라운드 경기결과🔵\n\n서울은평덴포스 3 : 2 노원제너FS\n\n김영록 전반 5, 후반 6\n윤창욱 후반 11");
   assert.deepEqual(old.update?.scorers, "김영록 2, 윤창욱");
@@ -95,4 +95,15 @@ test("classifyPost: FULL TIME 은 첫 줄 전체일 때만, 경기결과도 첫 
   assert.equal(c("⚪15라운드 경기결과🔵\n..."), "result");
   assert.equal(c("오늘도 응원 감사합니다\n경기결과는 곧"), "other");
   assert.equal(c("𝑴𝑨𝑻𝑪𝑯 𝑫𝑨𝒀 🔵⚪️\nFULL TIME 까지 응원해 주세요"), "matchday");
+});
+
+test("planResult: 동명이인은 번호가 있어야 하고 '이름(No.N)' 그대로 쓴다 (총괄 4차 검증)", () => {
+  const roster = [
+    { name: "김대현", number: 6, is_active: true },
+    { name: "김대현", number: 18, is_active: true },
+    { name: "윤창욱", number: 8, is_active: true },
+  ];
+  assert.deepEqual(resultScorers([["김대현(No.18)", 1], ["윤창욱", 1]], 2, roster), { scorers: "김대현(No.18), 윤창욱", problem: null });
+  assert.deepEqual(resultScorers([["김대현", 1], ["윤창욱", 1]], 2, roster), { scorers: null, problem: "unreadable" });
+  assert.deepEqual(resultScorers([["김대현(No.7)", 1], ["윤창욱", 1]], 2, roster), { scorers: null, problem: "unreadable" });
 });

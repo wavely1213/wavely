@@ -432,9 +432,12 @@ export function resultScorers(
     total += n;
     if (OWN_GOAL_NAMES.includes(name)) continue;
     const no = /^(.+?)\s*\(\s*No\.\s*(\d{1,2})\s*\)$/i.exec(name);
-    const ok = no ? active.some((p) => p.name === no[1].trim() && p.number === Number(no[2])) : active.some((p) => p.name === name);
+    // 동명이인(활동 선수 둘 이상)은 번호가 있어야 하고, 글에도 '이름(No.N)' 그대로 남긴다 — 번호 없으면 누군지 몰라 못 읽음
+    const ok = no
+      ? active.some((p) => p.name === no[1].trim() && p.number === Number(no[2]))
+      : active.filter((p) => p.name === name).length === 1;
     if (!ok) return { scorers: null, problem: "unreadable" };
-    const label = no ? no[1].trim() : name;
+    const label = no ? `${no[1].trim()}(No.${Number(no[2])})` : name;
     const prev = list.find((x) => x[0] === label);
     if (prev) prev[1] += n;
     else list.push([label, n]);
