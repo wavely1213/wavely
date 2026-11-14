@@ -12,6 +12,8 @@ export type Player = {
   birth: string | null; // YYYY-MM-DD
   heightCm: number | null;
   stats: { apps: number; goals: number; assists: number };
+  /** 주장단 — 'C' 주장 / 'VC' 부주장 (D-093). 정적 데이터에는 없다 */
+  captain?: "C" | "VC" | null;
 };
 
 export type Staff = {

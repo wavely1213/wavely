@@ -32,6 +32,8 @@ export type PlayerRow = {
   goals: number;
   assists: number;
   is_active: boolean;
+  /** 마이그레이션(20261114120000) 전 DB 에는 열이 없다 */
+  captain?: "C" | "VC" | null;
 };
 
 export type StaffRow = { id: string; role: string; name: string; photo_url: string | null; sort_order: number };
@@ -149,6 +151,7 @@ export const toPlayer = (r: PlayerRow): Player => ({
   birth: r.birth,
   heightCm: r.height_cm,
   stats: { apps: r.apps, goals: r.goals, assists: r.assists },
+  captain: r.captain ?? null,
 });
 
 export const toStaff = (r: StaffRow): Staff => ({ id: r.id, role: r.role, name: r.name, photo: r.photo_url });

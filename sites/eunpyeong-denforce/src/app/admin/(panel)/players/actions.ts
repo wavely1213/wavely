@@ -7,6 +7,7 @@ import { TAGS } from "@/lib/cache-tags";
 import { NOT_ADMIN_MESSAGE, requireAdminAction } from "@/lib/admin/auth";
 import { dbErrorMessage, FormReader, submittedValues, type ActionState } from "@/lib/admin/form";
 import { removeImage, resolveImage } from "@/lib/admin/storage";
+import { parseCaptain } from "@/lib/captain";
 import type { PlayerRow } from "@/lib/data/rows";
 
 // 선수 관리 서버 액션 — 모든 액션이 직접 관리자 권한을 확인한다 (페이지 검사에 기대지 않음).
@@ -46,7 +47,18 @@ function readPlayer(f: FormReader) {
     goals: stat("goals", "득점"),
     assists: stat("assists", "도움"),
     is_active: f.bool("is_active"),
+    captain: readCaptain(f),
   };
+}
+
+/** 주장단 — 없음 / 주장(C) / 부주장(VC) (D-093) */
+function readCaptain(f: FormReader): "C" | "VC" | null {
+  const v = parseCaptain(f.values("captain")[0]);
+  if (v === undefined) {
+    f.reject("captain", "주장단은 없음 / 주장 / 부주장 중에서 골라 주세요.");
+    return null;
+  }
+  return v;
 }
 
 /** DB 오류 → 폼 상태. slug 는 players 의 유일한 unique 컬럼이라 중복(23505)이면 주소 칸에도 표시한다. */

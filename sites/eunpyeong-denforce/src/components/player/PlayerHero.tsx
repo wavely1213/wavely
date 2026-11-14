@@ -1,6 +1,7 @@
 import { EmblemFallback } from "@/components/ui/EmblemFallback";
 import { FitImage } from "@/components/ui/FitImage";
 import type { Player } from "@/types";
+import { CAPTAIN_LABEL } from "@/lib/captain";
 import styles from "./PlayerHero.module.css";
 
 /**
@@ -37,6 +38,8 @@ export function PlayerHero({
         <div className={styles.info}>
           <p className={styles.position}>
             {positionLabel} ({player.position})
+            {/* 주장단 — 포지션 옆 12, 같은 글자 (D-093, 피그마 252:26616 / 252:26638 / 252:26660) */}
+            {player.captain && <span className={styles.captain}>{CAPTAIN_LABEL[player.captain]}</span>}
           </p>
           <h1 id="player-name" className={styles.name}>
             {player.number != null && <span className={styles.number}>No.{player.number} </span>}

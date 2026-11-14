@@ -40,6 +40,11 @@
   color: var(--c-yellow);
 }
 
+/* '주장' / '부주장' — 포지션 라벨과 같은 글자, 사이 space/s 12 (D-093) */
+.captain {
+  margin-left: var(--space-s);
+}
+
 /* kfa/pc/display 76 (휴대폰 kfa/m/display 40) */
 .name {
   font-size: 76px;

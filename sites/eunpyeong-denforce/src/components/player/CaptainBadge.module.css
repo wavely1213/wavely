@@ -1,0 +1,16 @@
+/* 주장단 배지 ① 파랑 면 (D-093, 피그마 252:26196 / 252:26241 / 252:26286) — HomeAwayBadge 문법:
+   color/blue 면 + on-dark 글자, radius/s 6, 패딩 위아래 space/2xs 4 좌우 space/xs 8, kfa/label. 흰 면, 검정 면 모두 같은 배지 */
+.badge {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  align-self: center;
+  padding: var(--space-2xs) var(--space-xs);
+  border-radius: var(--radius-s);
+  background: var(--c-blue);
+  color: var(--c-on-dark);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+}

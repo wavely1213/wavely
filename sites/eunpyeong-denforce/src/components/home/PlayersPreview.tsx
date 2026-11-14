@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { CaptainBadge } from "@/components/player/CaptainBadge";
 import { useState } from "react";
 import { EmblemFallback } from "@/components/ui/EmblemFallback";
 import { FitImage } from "@/components/ui/FitImage";
@@ -43,7 +44,11 @@ export function PlayersPreview({ groups }: { groups: Array<[Position, Player[]]>
               <span className={cards.photo}>
                 {p.photo ? <FitImage src={p.photo} sizes="(max-width: 720px) 80vw, 282px" /> : <EmblemFallback />}
               </span>
-              <strong className={cards.name}>{p.name}</strong>
+              {/* 이름 옆 주장단 C / VC (D-093, 피그마 252:26286 — 검정 면에도 같은 파랑 배지) */}
+              <span className={cards.nameRow}>
+                <strong className={cards.name}>{p.name}</strong>
+                <CaptainBadge captain={p.captain} />
+              </span>
               <span className={cards.position}>{POSITION_LABEL[p.position]}</span>
             </Link>
           ))}
