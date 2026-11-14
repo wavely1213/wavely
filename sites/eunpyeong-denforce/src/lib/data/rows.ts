@@ -55,6 +55,7 @@ export type MatchRow = {
   scorers: string | null;
   /** 마이그레이션(20261114150000) 전 DB 에는 열이 없다 (D-096) */
   matchday_poster_url?: string | null;
+  fulltime_poster_url?: string | null;
 };
 
 export type StandingDbRow = {
@@ -201,6 +202,7 @@ export const toMatch = (r: MatchRow): Match => ({
   replayUrl: r.replay_url ?? null,
   scorers: r.scorers ?? null,
   matchdayPoster: r.matchday_poster_url ?? null,
+  fulltimePoster: r.fulltime_poster_url ?? null,
 });
 
 export const toStanding = (r: StandingDbRow): StandingRow => ({

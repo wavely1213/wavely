@@ -96,3 +96,24 @@ export async function saveDriveFolder(_prev: ActionState, fd: FormData): Promise
     values: { drive_folder: id ? folderLink(id) : "" },
   };
 }
+
+/**
+ * 매치데이 포스터 폴더 (D-096) — 최고 관리자만. 날짜 폴더('MM/DD vs 상대 (HOME|AWAY)')가 든 폴더의 링크에서 ID 만 뽑아
+ * club_settings.matchday_folder_id 에 저장한다. 서버 함수 matchday-poster-sync 가 이 폴더를 읽는다.
+ */
+export async function saveMatchdayFolder(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const ctx = await requireAdminAction(OWNER_ROLES);
+  if (!ctx) return { message: "최고 관리자만 포스터 폴더를 바꿀 수 있습니다." };
+  const f = new FormReader(fd);
+  const link = f.optText("matchday_folder", { label: "포스터 폴더 링크", max: 500 });
+  const id = link ? folderIdFromLink(link) : null;
+  if (link && !id) f.reject("matchday_folder", "드라이브 폴더 링크(drive.google.com/drive/folders/…)를 넣어 주세요.");
+  if (f.hasErrors) return f.state();
+  const { error } = await ctx.supabase.from("club_settings").update({ matchday_folder_id: id }).eq("id", 1);
+  if (error) return { message: dbErrorMessage(error), values: submittedValues(fd) };
+  return {
+    ok: true,
+    message: id ? "포스터 폴더를 연결했습니다. 15분 안에 자동 확인이 이 폴더를 읽습니다." : "포스터 폴더 연결을 끊었습니다.",
+    values: { matchday_folder: id ? folderLink(id) : "" },
+  };
+}

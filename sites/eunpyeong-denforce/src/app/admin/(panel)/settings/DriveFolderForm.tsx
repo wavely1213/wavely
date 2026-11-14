@@ -8,15 +8,20 @@ import type { ActionState } from "@/lib/admin/form";
 export function DriveFolderForm({
   action,
   initialLink,
+  name = "drive_folder",
+  label = "드라이브 폴더 링크",
 }: {
   action: (prev: ActionState, fd: FormData) => Promise<ActionState>;
   initialLink: string;
+  /** 같은 모양을 매치데이 포스터 폴더(D-096)에도 쓴다 */
+  name?: string;
+  label?: string;
 }) {
   return (
     <AdminForm action={action} submitLabel="연결 저장">
       <TextField
-        name="drive_folder"
-        label="드라이브 폴더 링크"
+        name={name}
+        label={label}
         type="url"
         maxLength={500}
         hint="구글 드라이브 폴더 공유 링크. 드라이브에서 '링크가 있는 모든 사용자(뷰어)'로 공유해야 열립니다. 비우고 저장하면 연결을 끊습니다."

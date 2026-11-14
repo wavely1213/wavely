@@ -6,7 +6,7 @@ import { requireAdminPage } from "@/lib/admin/auth";
 import { folderLink } from "@/lib/admin/drive";
 import type { ClubSettingsRow } from "@/lib/data/rows";
 import { getSiteContent } from "@/lib/repo";
-import { saveDriveFolder, savePreviewSettings } from "./actions";
+import { saveDriveFolder, saveMatchdayFolder, savePreviewSettings } from "./actions";
 import { DriveFolderForm } from "./DriveFolderForm";
 import { PreviewSettingsForm } from "./PreviewSettingsForm";
 import local from "./settings.module.css";
@@ -23,6 +23,7 @@ export default function SettingsPage() {
       <Suspense fallback={<AdminLoading />}>
         <PreviewPanel />
         <DrivePanel />
+        <MatchdayPosterPanel />
       </Suspense>
     </>
   );
@@ -107,6 +108,79 @@ async function DrivePanel() {
             "아직 연결하지 않았습니다. 최고 관리자가 연결합니다."
           )}
         </p>
+      )}
+    </section>
+  );
+}
+
+type PosterSyncState = { last_run_at: string | null; last_ok_at: string | null; last_status: string | null; last_error: string | null; last_applied: string | null; last_notes: string | null };
+
+const POSTER_STATUS: Record<string, string> = {
+  ok: "정상",
+  no_key: "드라이브 API 키 필요 (Supabase 함수 비밀값 GOOGLE_DRIVE_API_KEY)",
+  no_folder: "포스터 폴더가 연결되지 않음",
+  error: "오류",
+};
+
+const kst = (iso: string | null) => (iso ? new Date(Date.parse(iso) + 9 * 3600_000).toISOString().slice(0, 16).replace("T", " ") : "없음");
+
+/** 매치데이 포스터 폴더 (D-096) — 최고 관리자만 바꾼다. 자동 확인 상태는 관리자 모두 본다. 마이그레이션 전에는 안내만 */
+async function MatchdayPosterPanel() {
+  const { supabase, role } = await requireAdminPage();
+  const [folder, state] = await Promise.all([
+    supabase.from("club_settings").select("matchday_folder_id").eq("id", 1).maybeSingle<{ matchday_folder_id: string | null }>(),
+    supabase.from("matchday_poster_sync_state").select("*").eq("id", 1).maybeSingle<PosterSyncState>(),
+  ]);
+  const id = folder.data?.matchday_folder_id ?? null;
+  const s = state.data;
+  return (
+    <section className={styles.panel}>
+      <h2 className={styles.panelTitle}>매치데이 포스터 폴더</h2>
+      <p className={local.note}>
+        이 드라이브 폴더 안의 날짜 폴더(예: 11/15 vs 노원제너FS (AWAY))에서 MATCH-DAY 이미지와 이름에 FULL 이 든 이미지를 찾아 경기의
+        포스터 칸이 비어 있을 때만 넣습니다. 경기 날에는 15분마다, 다른 날에는 3시간마다 확인합니다. 관리자 › 경기에서 직접 올린 포스터가
+        우선이고, 지운 칸은 다시 채우지 않습니다.
+      </p>
+      {folder.error ? (
+        <p className={local.note}>아직 준비 중입니다(DB 반영 전).</p>
+      ) : role === "owner" ? (
+        <DriveFolderForm action={saveMatchdayFolder} initialLink={id ? folderLink(id) : ""} name="matchday_folder" label="포스터 폴더 링크" />
+      ) : (
+        <p className={local.note}>
+          {id ? (
+            <a href={folderLink(id)} target="_blank" rel="noreferrer">
+              포스터 폴더 열기
+            </a>
+          ) : (
+            "아직 연결하지 않았습니다. 최고 관리자가 연결합니다."
+          )}
+        </p>
+      )}
+      {s && (
+        <dl className={local.note}>
+          <dt>자동 확인</dt>
+          <dd>
+            {s.last_status ? (POSTER_STATUS[s.last_status] ?? s.last_status) : "아직 실행 전"} (마지막 실행 {kst(s.last_run_at)}, 마지막 성공 {kst(s.last_ok_at)})
+          </dd>
+          {s.last_error && (
+            <>
+              <dt>오류</dt>
+              <dd>{s.last_error}</dd>
+            </>
+          )}
+          {s.last_applied && (
+            <>
+              <dt>최근에 넣은 것</dt>
+              <dd>{s.last_applied}</dd>
+            </>
+          )}
+          {s.last_notes && (
+            <>
+              <dt>확인할 것</dt>
+              <dd>{s.last_notes}</dd>
+            </>
+          )}
+        </dl>
       )}
     </section>
   );

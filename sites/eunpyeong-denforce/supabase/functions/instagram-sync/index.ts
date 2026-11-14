@@ -12,7 +12,6 @@ import {
   parseFarewell,
   parseWelcome,
   planFarewell,
-  matchdayPosterTarget,
   planMatchday,
   planResult,
   planWelcome,
@@ -171,22 +170,11 @@ async function apply(db: Db, post: IgPost, roster: RosterPlayer[], matches: Matc
   } else if (type === "matchday") {
     const plan = planMatchday(post, matches);
     if (plan.insert) {
-      const [row] = await must(db.from("matches").insert(plan.insert).select("*"), "경기 넣기");
+      const [row] = await must(db.from("matches").insert(plan.insert).select("id, kickoff, opponent, status, score_us, score_them, venue"), "경기 넣기");
       matches.push(row as MatchLite);
       out.actions.push(`경기 일정: ${plan.insert.competition} ${plan.insert.round} vs ${plan.insert.opponent} (${plan.insert.kickoff.slice(0, 16).replace("T", " ")})`);
     }
     if (plan.note) out.notes.push(plan.note);
-    // 매치데이 포스터 (D-096): 그 경기의 포스터 칸이 비어 있을 때만. 관리자가 그 사이 넣었으면 is null 조건으로 건너뛴다
-    const target = matchdayPosterTarget(post, matches);
-    if (target) {
-      const url = await upload(db, `matchday/ig-${post.code}.jpg`, bytes);
-      const set = await must(db.from("matches").update({ matchday_poster_url: url }).eq("id", target).is("matchday_poster_url", null).select("id"), "매치데이 포스터 넣기");
-      if (set?.length) {
-        const m = matches.find((x) => x.id === target);
-        if (m) m.matchday_poster_url = url;
-        out.actions.push("매치데이 포스터");
-      }
-    }
   } else if (type === "result") {
     const plan = planResult(post, matches);
     if (plan.update) {
@@ -242,7 +230,7 @@ async function sync(db: Db) {
   const roster = (await must(db.from("players").select("id, name, is_active, position, slug"), "선수 읽기")) as RosterPlayer[];
   const since = new Date(Date.now() - 60 * 86_400_000).toISOString();
   const matches = (await must(
-    db.from("matches").select("*").gte("kickoff", since),
+    db.from("matches").select("id, kickoff, opponent, status, score_us, score_them, venue").gte("kickoff", since),
     "경기 읽기",
   )) as MatchLite[];
 

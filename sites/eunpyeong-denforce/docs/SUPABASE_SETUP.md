@@ -84,6 +84,12 @@ Vercel → 이 사이트 프로젝트 → Settings → Environment Variables 에
   select status, start_time from cron.job_run_details order by start_time desc limit 5;  -- 최근 실행
   ```
   다시 켜기는 마이그레이션 `20261023110000_instagram_sync_cron.sql` 의 `cron.schedule(...)` 을 다시 실행. 함수 코드를 고치면 supabase/functions/instagram-sync 4개 파일을 다시 배포(JWT 확인 끔 — config.toml).
+- 매치데이 포스터 자동 연결 (D-096): `matchday-poster-sync` 가 15분마다 불린다(경기 날만 매번, 다른 날 3시간마다 드라이브를 읽음). 드라이브 키는 함수 비밀값 `GOOGLE_DRIVE_API_KEY`(드라이브 자료함과 같음). 상태는 관리자 › 설정 '매치데이 포스터 폴더'.
+  ```sql
+  select cron.unschedule('matchday-poster-sync');                -- 멈추기 (넣은 포스터는 남는다)
+  select * from public.matchday_poster_sync_state;                -- 마지막 실행/상태
+  ```
+  다시 켜기는 `20261114160000_matchday_poster_sync_cron.sql` 의 `cron.schedule(...)` 을 다시 실행.
 - 연맹 기록 수집 (D-082): `kfl-sync` 서버 함수가 30분마다 돈다(예약 실행은 C6 마이그레이션). 상태는 관리자 › 연맹 기록 수집(C4).
   ```sql
   select cron.unschedule('kfl-sync');                  -- 멈추기 (반영된 데이터는 남는다)

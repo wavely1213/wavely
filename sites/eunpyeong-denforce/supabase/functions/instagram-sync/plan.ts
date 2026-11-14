@@ -309,17 +309,7 @@ export function planFarewell(f: Farewell, roster: readonly RosterPlayer[]): { de
 
 // ── 경기 ──
 
-export type MatchLite = {
-  id: string;
-  kickoff: string;
-  opponent: string;
-  status: string;
-  score_us: number | null;
-  score_them: number | null;
-  venue?: string;
-  /** 매치데이 포스터 (D-096). 열이 없는 DB(마이그레이션 전)에서는 키 자체가 없다 */
-  matchday_poster_url?: string | null;
-};
+export type MatchLite = { id: string; kickoff: string; opponent: string; status: string; score_us: number | null; score_them: number | null; venue?: string };
 export type MatchDraft = { competition: string; round: string; kickoff: string; venue: string; is_home: boolean; opponent: string; status: "scheduled" };
 
 /** 팀 이름 비교 — 띄어쓰기·대소문자 무시 */
@@ -365,19 +355,6 @@ export function planMatchday(post: IgPost, matches: readonly MatchLite[]): { ins
     insert: { competition, round, kickoff, venue, is_home: isHome, opponent: cut(hint.opponent, 40), status: "scheduled" },
     note: isHome ? null : `원정 경기로 넣음 (경기장: ${venue || "없음"}) — 중립/홈 경기면 관리자 › 경기에서 고치기`,
   };
-}
-
-/**
- * MATCH DAY 사진을 포스터로 넣을 경기 (D-096) — 글 날짜(KST)와 같은 날, 같은 상대 경기 중 포스터 칸이 비어 있는 것.
- * 관리자가 넣은 값이 있으면 넣지 않는다. 포스터 열이 없는 DB(키 없음)면 null. 글에서 상대를 못 읽으면 null.
- */
-export function matchdayPosterTarget(post: IgPost, matches: readonly MatchLite[]): string | null {
-  const hint = parseMatchday(post.caption);
-  if (!hint.opponent) return null;
-  const date = kstDate(post.takenAt);
-  const m = matches.find((x) => kstDateTime(Date.parse(x.kickoff) / 1000).slice(0, 10) === date && sameTeam(x.opponent, hint.opponent!));
-  if (!m || !("matchday_poster_url" in m) || m.matchday_poster_url) return null;
-  return m.id;
 }
 
 /** 득점 줄 → "백승하 3, 김영록, 윤창욱" (자책골 제외, 한 골이면 숫자 없음) */

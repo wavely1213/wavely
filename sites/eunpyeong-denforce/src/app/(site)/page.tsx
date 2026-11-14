@@ -13,7 +13,7 @@ import { matchHighlights } from "@/lib/highlights";
 import { homeReels } from "@/lib/reels";
 import { MatchStrip } from "@/components/home/MatchStrip";
 import { MatchdayPopup } from "@/components/home/MatchdayPopup";
-import { MATCHDAY_POPUP } from "@/config/matchday";
+import { posterWindows } from "@/lib/matchday";
 import { Section } from "@/components/ui/Section";
 import { SITE } from "@/config/site";
 import { instagramHandle, snsLinks } from "@/lib/club";
@@ -80,12 +80,14 @@ export default async function HomePage() {
   // INSTAGRAM 게시물 아래 릴스 6칸 (D-095) — 구단영상 중 인스타 릴스
   const reels = homeReels(news);
   const ourName = c["site.name"];
+  // 매치데이 / FULL TIME 포스터 팝업 (D-096) — 포스터가 있는 경기의 창. 지금 보일지는 브라우저가 정한다
+  const popups = posterWindows([...upcoming, ...finished]);
   const instagram = instagramTiles(postings);
   const handle = instagramHandle(settings.instagramUrl);
 
   return (
     <>
-      {MATCHDAY_POPUP && <MatchdayPopup config={MATCHDAY_POPUP} />}
+      {popups.length > 0 && <MatchdayPopup windows={popups} />}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(jsonLd) }} />
       <Hero nextHome={nextHome} content={heroContent(c)} ourName={ourName} />
 

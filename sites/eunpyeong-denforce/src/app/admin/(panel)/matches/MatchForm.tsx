@@ -100,13 +100,21 @@ export function MatchForm({
         hint="우리 팀만, 쉼표로 구분. 상태가 '종료'일 때만 저장됩니다"
         defaultValue={initial?.scorers}
       />
-      {/* D-096: 경기 당일 홈 화면 팝업. 비워 두면 팝업이 뜨지 않는다. 인스타 MATCH DAY 사진은 이 칸이 비어 있을 때만 자동으로 들어온다 */}
-      <ImageField
-        name="matchday_poster"
-        label="매치데이 포스터"
-        hint="경기 당일 홈 화면 팝업 (JPG/PNG/WEBP/GIF, 5MB 이하). 비워 두면 팝업 없음"
-        currentUrl={initial?.matchday_poster_url}
-      />
+      {/* D-096: 경기 날 홈 화면 팝업. 드라이브 포스터 폴더의 날짜 폴더에서 빈 칸에만 자동으로 들어온다. 여기서 올리면 그 값이 우선 */}
+      <Row>
+        <ImageField
+          name="matchday_poster"
+          label="MATCH DAY 포스터"
+          hint="경기 날 0시부터 경기 끝까지 홈 팝업. 지우면 자동으로 다시 채우지 않습니다"
+          currentUrl={initial?.matchday_poster_url}
+        />
+        <ImageField
+          name="fulltime_poster"
+          label="FULL TIME 포스터"
+          hint="올라오면 그날 23:59 까지 홈 팝업. 지우면 자동으로 다시 채우지 않습니다"
+          currentUrl={initial?.fulltime_poster_url}
+        />
+      </Row>
     </AdminForm>
   );
 }
