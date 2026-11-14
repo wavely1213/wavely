@@ -4,12 +4,22 @@
 -- 다시 실행해도 된다.
 
 -- ── 연결 설정: 루트 폴더 ID (관리자 › 설정, 최고 관리자가 링크를 넣으면 ID 만 뽑아 저장) ──
-alter table public.club_settings
-  add column if not exists drive_folder_id text;
+-- 공개 조회되는 club_settings 가 아니라 관리자 전용 1행 표에 둔다 (총괄 검토 2026-11-15: 폴더 ID 를 anon 에 내보내지 않게).
+-- 바꾸기는 최고 관리자만(서버 동작 requireAdminAction(OWNER_ROLES)), 서버 함수는 서버 키로 읽는다.
+create table if not exists public.drive_settings (
+  id smallint primary key default 1 check (id = 1),
+  drive_folder_id text check (drive_folder_id is null or drive_folder_id ~ '^[A-Za-z0-9_-]{10,100}$'),
+  updated_at timestamptz not null default now()
+);
+insert into public.drive_settings (id) values (1) on conflict (id) do nothing;
 
-alter table public.club_settings drop constraint if exists club_settings_drive_folder_id_check;
-alter table public.club_settings add constraint club_settings_drive_folder_id_check
-  check (drive_folder_id is null or drive_folder_id ~ '^[A-Za-z0-9_-]{10,100}$');
+alter table public.drive_settings enable row level security;
+drop policy if exists drive_settings_admin_read on public.drive_settings;
+create policy drive_settings_admin_read on public.drive_settings for select to authenticated using (public.is_admin());
+drop policy if exists drive_settings_admin_update on public.drive_settings;
+create policy drive_settings_admin_update on public.drive_settings for update to authenticated using (public.is_admin()) with check (public.is_admin());
+revoke all on public.drive_settings from anon, authenticated;
+grant select, update on public.drive_settings to authenticated;
 
 -- ── 가져온 파일 기록: 같은 파일(file id)은 다시 받지 않는다 ──
 create table if not exists public.drive_imports (

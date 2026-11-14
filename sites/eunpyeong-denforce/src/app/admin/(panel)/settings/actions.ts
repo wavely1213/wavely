@@ -77,7 +77,7 @@ export async function savePreviewSettings(_prev: ActionState, fd: FormData): Pro
 }
 
 /**
- * 드라이브 자료함 연결 (D-081) — 최고 관리자만. 폴더 링크에서 ID 만 뽑아 club_settings.drive_folder_id 에 저장한다.
+ * 드라이브 자료함 연결 (D-081) — 최고 관리자만. 폴더 링크에서 ID 만 뽑아 drive_settings.drive_folder_id 에 저장한다.
  * 비우면 연결을 끊는다. 키(GOOGLE_DRIVE_API_KEY)는 여기서 다루지 않는다 (Supabase 함수 비밀값).
  */
 export async function saveDriveFolder(_prev: ActionState, fd: FormData): Promise<ActionState> {
@@ -88,7 +88,7 @@ export async function saveDriveFolder(_prev: ActionState, fd: FormData): Promise
   const id = link ? folderIdFromLink(link) : null;
   if (link && !id) f.reject("drive_folder", "드라이브 폴더 링크(drive.google.com/drive/folders/…)를 넣어 주세요.");
   if (f.hasErrors) return f.state();
-  const { error } = await ctx.supabase.from("club_settings").update({ drive_folder_id: id }).eq("id", 1);
+  const { error } = await ctx.supabase.from("drive_settings").update({ drive_folder_id: id, updated_at: new Date().toISOString() }).eq("id", 1);
   if (error) return { message: dbErrorMessage(error), values: submittedValues(fd) };
   return {
     ok: true,
@@ -99,7 +99,7 @@ export async function saveDriveFolder(_prev: ActionState, fd: FormData): Promise
 
 /**
  * 매치데이 포스터 폴더 (D-096) — 최고 관리자만. 날짜 폴더('MM/DD vs 상대 (HOME|AWAY)')가 든 폴더의 링크에서 ID 만 뽑아
- * club_settings.matchday_folder_id 에 저장한다. 서버 함수 matchday-poster-sync 가 이 폴더를 읽는다.
+ * drive_settings.matchday_folder_id 에 저장한다. 서버 함수 matchday-poster-sync 가 이 폴더를 읽는다.
  */
 export async function saveMatchdayFolder(_prev: ActionState, fd: FormData): Promise<ActionState> {
   const ctx = await requireAdminAction(OWNER_ROLES);
@@ -109,7 +109,7 @@ export async function saveMatchdayFolder(_prev: ActionState, fd: FormData): Prom
   const id = link ? folderIdFromLink(link) : null;
   if (link && !id) f.reject("matchday_folder", "드라이브 폴더 링크(drive.google.com/drive/folders/…)를 넣어 주세요.");
   if (f.hasErrors) return f.state();
-  const { error } = await ctx.supabase.from("club_settings").update({ matchday_folder_id: id }).eq("id", 1);
+  const { error } = await ctx.supabase.from("drive_settings").update({ matchday_folder_id: id, updated_at: new Date().toISOString() }).eq("id", 1);
   if (error) return { message: dbErrorMessage(error), values: submittedValues(fd) };
   return {
     ok: true,

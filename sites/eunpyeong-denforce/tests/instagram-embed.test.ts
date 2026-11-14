@@ -143,3 +143,14 @@ test("2026-27 FULL TIME: 첫 줄에 있을 때만 결과, 점수 줄에 팀 이�
   const bare = parseResult("𝑭𝑼𝑳𝑳 𝑻𝑰𝑴𝑬\n\n🆚 노원제너FS\n3 : 2\n⚽ 김영록");
   assert.deepEqual([bare.opponent, bare.scoreUs, bare.scoreThem, bare.scoreUnclear], ["노원제너FS", null, null, true]);
 });
+
+test("parseResult: 시각 줄(⏰ 11.15 (일) 14:00, 14:00)은 점수 줄이 아니다", () => {
+  const r = parseResult("𝑭𝑼𝑳𝑳 𝑻𝑰𝑴𝑬\n⏰ 11.15 (일) 14:00\n서울은평 덴포스 3 : 2 노원제너FS\n⚽ 김영록");
+  assert.deepEqual([r.opponent, r.scoreUs, r.scoreThem], ["노원제너FS", 3, 2]);
+  assert.deepEqual(parseResult("𝑭𝑼𝑳𝑳 𝑻𝑰𝑴𝑬\n14:00\n노원제너FS 1 : 4 덴포스").scoreUs, 4);
+});
+
+test("ballScorers: 못 읽는 조각(분 표기)이 있으면 null, 빈 조각/자책은 건너뜀", () => {
+  assert.equal(parseResult("FULL TIME\n덴포스 2 : 1 화성FS\n⚽ 김영록 전반 5′, 후반 12′").ballScorers, null);
+  assert.deepEqual(parseResult("FULL TIME\n덴포스 2 : 1 화성FS\n⚽️ 김영록 2,\n⚽ O.G").ballScorers, [["김영록", 2]]);
+});

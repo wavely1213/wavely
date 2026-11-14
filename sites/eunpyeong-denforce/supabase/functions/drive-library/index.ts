@@ -3,6 +3,7 @@
 // 권한: 부른 사람의 토큰으로 DB 함수 admin_role() 을 불러 최고 관리자/관리자/미디어만 통과 (기존 관리자 등급 규칙).
 // 쓰기(저장소 media/drive/…, drive_imports)는 서버 키로만. 자동 게시는 없다 — 저장 주소를 돌려줄 뿐, 글/선수에 넣는 것은 관리자 폼.
 import { createClient } from "npm:@supabase/supabase-js@2.117.3";
+import { redactKey } from "./drive.ts";
 import { handle, type Deps } from "./handler.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
@@ -33,10 +34,10 @@ Deno.serve(async (req) => {
       return typeof data === "string" ? data : null;
     },
     rootFolderId: async () => {
-      const { data } = await db.from("club_settings").select("drive_folder_id").eq("id", 1).maybeSingle<{ drive_folder_id: string | null }>();
+      const { data } = await db.from("drive_settings").select("drive_folder_id").eq("id", 1).maybeSingle<{ drive_folder_id: string | null }>();
       return data?.drive_folder_id ?? null;
     },
-    fetch: (url) => fetch(url, { redirect: "follow" }),
+    fetch: (url) => fetch(url, { redirect: "follow", signal: AbortSignal.timeout(20_000) }),
     findImport: async (fileId) => {
       const { data } = await db.from("drive_imports").select("kind, url, view_url").eq("file_id", fileId).maybeSingle();
       return data ?? null;
@@ -63,7 +64,7 @@ Deno.serve(async (req) => {
     const result = await handle(body, deps);
     return json(result.body, result.status);
   } catch (e) {
-    console.error("drive-library", e instanceof Error ? e.message : e);
+    console.error("drive-library", redactKey(String(e instanceof Error ? e.message : e)));
     return json({ error: "드라이브 자료함에서 오류가 났습니다. 잠시 뒤 다시 시도해 주세요." }, 500);
   }
 });

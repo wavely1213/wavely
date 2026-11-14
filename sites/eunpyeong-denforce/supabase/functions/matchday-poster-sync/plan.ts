@@ -95,3 +95,23 @@ export function shouldRun(now: number, kickoffs: readonly string[], lastOkAt: st
 export function needsPoster(m: PosterMatch, applied: ReadonlySet<string>): boolean {
   return FIELDS.some((f) => !m[f] && !applied.has(appliedKey(m.id, f)));
 }
+
+/**
+ * 같은 (경기, 칸)이 둘 이상이면(두 폴더가 같은 경기에 맞음) 하나만 — 저장소 파일을 덮어쓰기 전에 줄인다.
+ * 먼저 나온 것을 쓰고 나머지는 메모로.
+ */
+export function dedupeUpdates(updates: readonly PosterUpdate[]): { updates: PosterUpdate[]; notes: string[] } {
+  const seen = new Set<string>();
+  const out: PosterUpdate[] = [];
+  const notes: string[] = [];
+  for (const u of updates) {
+    const k = appliedKey(u.matchId, u.field);
+    if (seen.has(k)) {
+      notes.push(`${u.fileName}: 같은 경기 칸에 맞는 폴더가 둘 이상 — 먼저 찾은 것만 넣음, 확인 필요`);
+      continue;
+    }
+    seen.add(k);
+    out.push(u);
+  }
+  return { updates: out, notes };
+}
