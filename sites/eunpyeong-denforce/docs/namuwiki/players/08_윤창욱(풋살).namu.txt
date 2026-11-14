@@ -1,19 +1,17 @@
-[[분류:서울은평 덴포스]][[분류:대한민국의 풋살 선수]]
 [include(틀:서울은평 덴포스/간략)]
-
-||<tablealign=right><tablewidth=420><tablebordercolor=#1A349A><tablebgcolor=#fff,#1c1d1f><tablecolor=#000,#e0e0e0><-2><nopad><bgcolor=#0E0F12> [[파일:서울은평 덴포스 2026-27 8번 윤창욱.jpg|width=100%]] ||
-||<-2><bgcolor=#1A349A><color=#fff> '''서울은평 덴포스 No.8''' ||
-||<-2><bgcolor=#0E0F12><color=#fff> '''윤창욱''' ||
-||<width=35%><bgcolor=#e9edf7,#23262c> '''국적''' || [[파일:대한민국 국기.svg|width=20]] [[대한민국]] ||
-||<bgcolor=#e9edf7,#23262c> '''포지션''' || 픽소(FIXO) ||
-||<bgcolor=#e9edf7,#23262c> '''등번호''' || 8 (2026-27~)[br]3 (2025-26) ||
-||<bgcolor=#e9edf7,#23262c> '''소속팀''' || [[서울은평 덴포스]] (2025~) ||
-||<bgcolor=#e9edf7,#23262c> '''직책''' || 부주장 (2026-27) ||
+||<-2><tablealign=right><tablewidth=420><tablebordercolor=#0E0F12><nopad>[[파일:서울은평 덴포스 2026-27 8번 윤창욱.jpg|width=100%]] ||
+||<-2><bgcolor=#1A349A> '''{{{#ffffff 서울은평 덴포스 No.8 }}}''' ||
+||<-2><bgcolor=#0E0F12> '''{{{#ffffff 윤창욱}}}''' ||
+|| 국적 ||[[파일:대한민국 국기.svg|width=28]] [[대한민국]] ||
+|| 포지션 ||픽소(FIXO) ||
+|| 등번호 ||8 (2026-27~) [br] 3 (2025-26) ||
+|| 소속팀 ||[[서울은평 덴포스]] (2025~) ||
+|| 직책 ||서울은평 덴포스 부주장 (2026-27) ||
 
 [목차]
 [clearfix]
 == 개요 ==
-대한민국의 풋살 선수. [[FK리그(FK1)]] [[서울은평 덴포스]] 소속으로, 포지션은 픽소(FIXO), 등번호는 8번이다.[* [[https://eunpyeong-fs.com/team/players/yoon-changwook|선수 소개]] - 서울은평 덴포스 공식 홈페이지, 2026년 11월 14일 확인.] 2025-26 시즌에는 3번을 달았다.
+[[대한민국]]의 [[풋살]] 선수. [[FK리그(FK1)]] [[서울은평 덴포스]] 소속으로, 포지션은 픽소(FIXO), 등번호는 8번이다.[* [[https://eunpyeong-fs.com/team/players/yoon-changwook|선수 소개]] - 서울은평 덴포스 공식 홈페이지, 2026년 11월 14일 확인.] 2025-26 시즌에는 3번을 달았다.
 
 2026-27 시즌 서울은평 덴포스의 부주장을 맡는다.[* [[https://www.instagram.com/reel/Dfl_gSbT06w/|2026/27 SQUAD NUMBERS]] - 서울은평 덴포스 공식 인스타그램 게시물.]
 == 선수 경력 ==
@@ -25,3 +23,4 @@
 등번호를 3번에서 8번으로 바꿨다. 부주장을 맡는다.
 == 외부 링크 ==
  * [[https://eunpyeong-fs.com/team/players/yoon-changwook|서울은평 덴포스 공식 홈페이지 선수 소개]]
+[[분류:대한민국의 풋살 선수]][[분류:서울은평 덴포스/선수]]

@@ -1,18 +1,15 @@
-[[분류:서울은평 덴포스]][[분류:대한민국의 풋살 선수]]
 [include(틀:서울은평 덴포스/간략)]
-
-||<tablealign=right><tablewidth=420><tablebordercolor=#1A349A><tablebgcolor=#fff,#1c1d1f><tablecolor=#000,#e0e0e0><-2><nopad><bgcolor=#0E0F12> [[파일:서울은평 덴포스 2026-27 5번 강민원.jpg|width=100%]] ||
-||<-2><bgcolor=#1A349A><color=#fff> '''서울은평 덴포스 No.5''' ||
-||<-2><bgcolor=#0E0F12><color=#fff> '''강민원''' ||
-||<width=35%><bgcolor=#e9edf7,#23262c> '''국적''' || [[파일:대한민국 국기.svg|width=20]] [[대한민국]] ||
-||<bgcolor=#e9edf7,#23262c> '''포지션''' || 아라(ALA) ||
-||<bgcolor=#e9edf7,#23262c> '''등번호''' || 5 ||
-||<bgcolor=#e9edf7,#23262c> '''소속팀''' || [[서울은평 덴포스]] (2026~) ||
+||<-2><tablealign=right><tablewidth=420><tablebordercolor=#0E0F12><nopad>[[파일:서울은평 덴포스 2026-27 5번 강민원.jpg|width=100%]] ||
+||<-2><bgcolor=#1A349A> '''{{{#ffffff 서울은평 덴포스 No.5 }}}''' ||
+||<-2><bgcolor=#0E0F12> '''{{{#ffffff 강민원}}}''' ||
+|| 국적 ||[[파일:대한민국 국기.svg|width=28]] [[대한민국]] ||
+|| 포지션 ||아라(ALA) ||
+|| 소속팀 ||[[서울은평 덴포스]] (2026~) ||
 
 [목차]
 [clearfix]
 == 개요 ==
-대한민국의 풋살 선수. [[FK리그(FK1)]] [[서울은평 덴포스]] 소속으로, 포지션은 아라(ALA), 등번호는 5번이다.[* [[https://eunpyeong-fs.com/team/players/kang-minwon|선수 소개]] - 서울은평 덴포스 공식 홈페이지, 2026년 11월 14일 확인.]
+[[대한민국]]의 [[풋살]] 선수. [[FK리그(FK1)]] [[서울은평 덴포스]] 소속으로, 포지션은 아라(ALA), 등번호는 5번이다.[* [[https://eunpyeong-fs.com/team/players/kang-minwon|선수 소개]] - 서울은평 덴포스 공식 홈페이지, 2026년 11월 14일 확인.]
 == 선수 경력 ==
 === 서울은평 덴포스 ===
 2026-27 시즌부터 서울은평 덴포스에서 뛰고 있다.
@@ -20,3 +17,4 @@
 2026년 10월 16일 입단이 발표되었다.[* [[https://eunpyeong-fs.com/news/news/3307136d-7bb3-46d0-8a90-d943383b7114|서울은평 덴포스, '거침없는 질주' 강민원 영입]] - 서울은평 덴포스 공식 홈페이지.] 등번호는 5번이다.
 == 외부 링크 ==
  * [[https://eunpyeong-fs.com/team/players/kang-minwon|서울은평 덴포스 공식 홈페이지 선수 소개]]
+[[분류:대한민국의 풋살 선수]][[분류:서울은평 덴포스/선수]]
