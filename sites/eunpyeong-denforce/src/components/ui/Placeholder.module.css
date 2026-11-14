@@ -1,0 +1,21 @@
+.box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 120px;
+  padding: 16px;
+  background: var(--c-bg-soft);
+  border-radius: var(--radius-m);
+  color: var(--c-text-sub);
+  font-size: 14px;
+  text-align: center;
+  text-wrap: balance;
+}
+
+/* 문구 아래에 바로가기가 있을 때 — 위아래로 쌓는다 */
+.stack {
+  flex-direction: column;
+  gap: 16px;
+  padding: 28px 16px;
+}

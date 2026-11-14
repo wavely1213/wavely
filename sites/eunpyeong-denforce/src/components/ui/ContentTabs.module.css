@@ -1,0 +1,44 @@
+/* 한 페이지 안의 탭 — 위 PageHeader 메뉴(왼쪽 정렬)와 구분되게 칸을 나눠 꽉 채운다 (강원FC 엠블럼 페이지 참고) */
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--c-line);
+  margin-bottom: 48px;
+}
+
+.tab {
+  flex: 1;
+  padding: 18px 8px 16px;
+  margin-bottom: -1px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: none;
+  color: var(--c-text-sub);
+  font-size: 19px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tab:hover {
+  color: var(--c-text);
+}
+
+.tab[aria-selected="true"] {
+  color: var(--c-blue);
+  border-bottom-color: var(--c-blue);
+}
+
+.panel:focus-visible {
+  outline: 2px solid var(--c-blue);
+  outline-offset: 8px;
+}
+
+@media (max-width: 760px) {
+  .tabs {
+    margin-bottom: 32px;
+  }
+
+  .tab {
+    padding: 14px 8px 12px;
+    font-size: 17px;
+  }
+}

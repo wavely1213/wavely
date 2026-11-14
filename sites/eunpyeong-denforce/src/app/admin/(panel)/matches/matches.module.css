@@ -1,0 +1,4 @@
+/* 경기 목록 — 예정·종료 두 표 사이 간격 (admin.module.css 의 .dangerZone 과 같은 32px) */
+.section + .section {
+  margin-top: 32px;
+}

@@ -1,0 +1,44 @@
+||<-5><tablewidth=100%><tablebordercolor=#0E0F12><bgcolor=#1A349A> {{{#!wiki style="margin: -5px -10px; padding: 5px 10px; background-image: repeating-linear-gradient(-65deg, #1A349A 0px, #1A349A 26px, #2341B4 26px, #2341B4 30px)"
+{{{#!wiki style="margin: -5px -10px; padding: 5px 10px; background-image: linear-gradient(to right, #0E0F12 0%, transparent 30%, transparent 70%, #0E0F12 100%), linear-gradient(to bottom, transparent 45%, #0E0F12 160%)"
+{{{#!wiki style="margin: -5px -10px; padding: 5px 10px; background-image: linear-gradient(to left, #FFC000 0.5%, #0E0F12 0.5%, #0E0F12 1%, #FFC000 1%, #FFC000 2%, #0E0F12 2%, #0E0F12 3.5%, transparent 3.5%), linear-gradient(to right, #FFC000 0.5%, #0E0F12 0.5%, #0E0F12 1%, #FFC000 1%, #FFC000 2%, #0E0F12 2%, #0E0F12 3.5%, transparent 3.5%)"
+[[서울은평 덴포스|[[파일:서울은평 덴포스 엠블럼.png|height=60]]]][br]'''{{{#fff 서울은평 덴포스 2026-27 시즌 스쿼드}}}'''}}}}}}}}} ||
+||<-5><bgcolor=#0E0F12><color=#fff> {{{#!wiki style="margin: 0 -10px -5px; min-height: calc(1.5em + 5px)"
+{{{#!folding [ 펼치기 · 접기 ]
+{{{#!wiki style="margin: -6px -1px -11px"
+||<tablewidth=100%><tablebgcolor=#fff,#1c1d1f><tablecolor=#000,#e0e0e0><rowbgcolor=#1A349A><rowcolor=#fff><width=18%> '''포지션''' ||<width=12%> '''등번호''' ||<width=14%> '''국적''' ||<width=24%> '''성명''' || '''비고''' ||
+|| GOLEIRO || 1 || [[파일:대한민국 국기.svg|width=30]] || [[임우성(풋살)|임우성]] || 2026-27 입단 ||
+|| GOLEIRO || 2 || [[파일:대한민국 국기.svg|width=30]] || [[정대연(풋살)|정대연]] || 2026-27 입단 ||
+|| GOLEIRO || 12 || [[파일:대한민국 국기.svg|width=30]] || [[조현웅(풋살)|조현웅]] || 2026-27 입단 ||
+|| GOLEIRO || 37 || [[파일:대한민국 국기.svg|width=30]] || [[양지훈(풋살)|양지훈]] ||  ||
+|| FIXO || 6 || [[파일:대한민국 국기.svg|width=30]] || [[김대현(풋살, 8번)|김대현]] ||<bgcolor=#1A349A><color=#fff> '''부주장 / 동명이인''' ||
+|| FIXO || 8 || [[파일:대한민국 국기.svg|width=30]] || [[윤창욱(풋살)|윤창욱]] ||<bgcolor=#1A349A><color=#fff> '''부주장''' ||
+|| FIXO || 11 || [[파일:대한민국 국기.svg|width=30]] || [[부성인(풋살)|부성인]] || 2026-27 입단 ||
+|| FIXO || 15 || [[파일:대한민국 국기.svg|width=30]] || [[이준형(풋살)|이준형]] ||  ||
+|| FIXO || 18 || [[파일:대한민국 국기.svg|width=30]] || [[김대현(풋살, 18번)|김대현]] || 동명이인 ||
+|| FIXO || 44 || [[파일:대한민국 국기.svg|width=30]] || [[정우민(풋살)|정우민]] ||  ||
+|| FIXO || 88 || [[파일:대한민국 국기.svg|width=30]] || [[문직수(풋살)|문직수]] ||  ||
+|| ALA || 4 || [[파일:대한민국 국기.svg|width=30]] || [[김영민(풋살)|김영민]] ||  ||
+|| ALA || 5 || [[파일:대한민국 국기.svg|width=30]] || [[강민원(풋살)|강민원]] || 2026-27 입단 ||
+|| ALA || 7 || [[파일:대한민국 국기.svg|width=30]] || [[최진규(풋살)|최진규]] ||<bgcolor=#FFC000><color=#0E0F12> '''주장''' ||
+|| ALA || 14 || [[파일:대한민국 국기.svg|width=30]] || [[안현국(풋살)|안현국]] || 2026-27 입단 ||
+|| ALA || 16 || [[파일:대한민국 국기.svg|width=30]] || [[김진수(풋살)|김진수]] ||  ||
+|| ALA || 17 || [[파일:대한민국 국기.svg|width=30]] || [[서진영(풋살)|서진영]] || 2026-27 입단 ||
+|| ALA || 19 || [[파일:대한민국 국기.svg|width=30]] || [[이효수(풋살)|이효수]] || 2026-27 입단 ||
+|| ALA || 20 || [[파일:대한민국 국기.svg|width=30]] || [[오영택(풋살)|오영택]] || 2026-27 입단 ||
+|| ALA || 23 || [[파일:대한민국 국기.svg|width=30]] || [[김선빈(풋살)|김선빈]] || 2026-27 입단 ||
+|| ALA || 24 || [[파일:대한민국 국기.svg|width=30]] || [[이지훈(풋살)|이지훈]] ||  ||
+|| ALA || 27 || [[파일:대한민국 국기.svg|width=30]] || [[김남석(풋살)|김남석]] || 2026-27 입단 ||
+|| ALA || 30 || [[파일:대한민국 국기.svg|width=30]] || [[김종호(풋살, 30번)|김종호]] || 2026-27 입단 / 동명이인 ||
+|| ALA || 33 || [[파일:대한민국 국기.svg|width=30]] || [[이상호(풋살)|이상호]] ||  ||
+|| ALA || 47 || [[파일:대한민국 국기.svg|width=30]] || [[이상욱(풋살)|이상욱]] || 2026-27 입단 ||
+|| ALA || 66 || [[파일:대한민국 국기.svg|width=30]] || [[박재희(풋살)|박재희]] || 2026-27 입단 ||
+|| ALA || 77 || [[파일:대한민국 국기.svg|width=30]] || [[원해연(풋살)|원해연]] ||  ||
+|| PIVO || 9 || [[파일:대한민국 국기.svg|width=30]] || [[안성혁(풋살)|안성혁]] || 2026-27 입단 ||
+|| PIVO || 10 || [[파일:대한민국 국기.svg|width=30]] || [[김영록(풋살)|김영록]] ||  ||
+|| PIVO || 13 || [[파일:대한민국 국기.svg|width=30]] || [[김종문(풋살)|김종문]] ||<bgcolor=#1A349A><color=#fff> '''부주장 / 2026-27 입단''' ||
+|| PIVO || 22 || [[파일:대한민국 국기.svg|width=30]] || [[김종호(풋살)|김종호]] || 동명이인 ||
+|| PIVO || 99 || [[파일:대한민국 국기.svg|width=30]] || [[한견희(풋살)|한견희]] || 2026-27 입단 ||
+||<-5><bgcolor=#1A349A><color=#fff> '''구단 정보''' ||
+||<-5><bgcolor=#0E0F12><color=#fff> 단장: 배종현 / 감독: [[정상현(감독)|정상현]] / 주장: 최진규 / 홈구장: 은평다목적체육관 ||
+||<-5><bgcolor=#1A349A> [[https://eunpyeong-fs.com/team/players|{{{#fff '''출처: 서울은평 덴포스 공식 홈페이지'''}}}]] {{{-1 {{{#fff (2026년 11월 14일 확인, 주장단은 구단 인스타그램 [[https://www.instagram.com/reel/Dfl_gSbT06w/|{{{#FFC000 2026/27 SQUAD NUMBERS}}}]] 기준)}}}}}} ||
+}}}}}}}}} ||

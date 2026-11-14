@@ -1,0 +1,165 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.grid li {
+  min-width: 0;
+}
+
+/* 사진 = 크게 보기 버튼 (모양은 사진 그대로) */
+.open {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-m);
+  background: none;
+  cursor: zoom-in;
+}
+
+.open:focus-visible {
+  outline: 2px solid var(--c-blue);
+  outline-offset: 3px;
+}
+
+/* 사진 한 장이면 한 칸 (썸네일만 있는 글) — PC 4:3(800x600), 휴대폰 358:430 (총괄 결정, 세로 포스터 글자가 읽히게), radius/l */
+.single {
+  grid-template-columns: 1fr;
+}
+
+.frame {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-l);
+  overflow: hidden;
+  background: var(--c-black-soft);
+}
+
+/* '크게 보기 ↗' 표시 — 사진 오른쪽 아래, 검정 반투명 알약(overlay-strong) + on-dark kfa/caption */
+.zoom {
+  position: absolute;
+  right: var(--space-s);
+  bottom: var(--space-s);
+  padding: var(--space-2xs) var(--space-s);
+  border-radius: var(--radius-pill);
+  background: var(--c-overlay-strong);
+  color: var(--c-on-dark);
+  font-size: 12px;
+  line-height: 1.6;
+  pointer-events: none;
+}
+
+.image {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-m);
+  background: var(--c-bg-soft);
+}
+
+/* 크게 보기 — 화면 가득 어두운 판 (닫혀 있을 때는 브라우저 기본값대로 숨김) */
+.viewer {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--c-black);
+  color: var(--c-on-dark);
+  overscroll-behavior: contain;
+}
+
+.viewer[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.viewer::backdrop {
+  background: var(--c-black);
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px var(--gutter);
+}
+
+.counter {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--c-on-dark-sub);
+  font-variant-numeric: tabular-nums;
+}
+
+.stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  margin: 0 var(--gutter) var(--gutter);
+}
+
+.stage .photo {
+  object-fit: contain;
+}
+
+.control {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--c-on-dark) 35%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--c-black) 60%, transparent);
+  color: var(--c-on-dark);
+  cursor: pointer;
+}
+
+.control:hover {
+  border-color: var(--c-on-dark);
+}
+
+.control:focus-visible {
+  outline: 2px solid var(--c-on-dark);
+  outline-offset: 2px;
+}
+
+.close {
+  margin-left: auto;
+}
+
+.prev,
+.next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.prev {
+  left: 0;
+}
+
+.next {
+  right: 0;
+}
+
+@media (max-width: 720px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 720px) {
+  .frame {
+    aspect-ratio: 358 / 430;
+  }
+}

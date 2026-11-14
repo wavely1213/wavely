@@ -1,0 +1,2043 @@
+[
+ {
+  "gameNumber": 1,
+  "us": "home",
+  "total": [
+   2,
+   5
+  ],
+  "forfeit": false,
+  "players": [
+   {
+    "no": 5,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 13,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 14,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 23,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 25,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 1,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 7,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 8,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 10,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 11,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [
+     7
+    ],
+    "ownGoals": []
+   },
+   {
+    "no": 12,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 18,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 21,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 77,
+    "starter": false,
+    "bench": true,
+    "yellows": [
+     15
+    ],
+    "reds": [],
+    "goals": [
+     36
+    ],
+    "ownGoals": []
+   }
+  ],
+  "opponentOwnGoals": 0
+ },
+ {
+  "gameNumber": 4,
+  "us": "home",
+  "total": [
+   1,
+   7
+  ],
+  "forfeit": false,
+  "players": [
+   {
+    "no": 5,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 18,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 20,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 23,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 25,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 1,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 7,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 9,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 10,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 11,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 15,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 24,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 37,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 77,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [
+     24
+    ],
+    "ownGoals": []
+   }
+  ],
+  "opponentOwnGoals": 0
+ },
+ {
+  "gameNumber": 9,
+  "us": "home",
+  "total": [
+   0,
+   8
+  ],
+  "forfeit": false,
+  "players": [
+   {
+    "no": 1,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 5,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 11,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 18,
+    "starter": true,
+    "bench": false,
+    "yellows": [
+     11
+    ],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 22,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 9,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 10,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 12,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 14,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 15,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 17,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 20,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 23,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 37,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   }
+  ],
+  "opponentOwnGoals": 0
+ },
+ {
+  "gameNumber": 10,
+  "us": "home",
+  "total": [
+   1,
+   2
+  ],
+  "forfeit": false,
+  "players": [
+   {
+    "no": 5,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 14,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 22,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 23,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 25,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 1,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 7,
+    "starter": false,
+    "bench": true,
+    "yellows": [
+     31
+    ],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 11,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 15,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 17,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 18,
+    "starter": false,
+    "bench": true,
+    "yellows": [
+     29
+    ],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 21,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [
+     25
+    ],
+    "ownGoals": []
+   },
+   {
+    "no": 37,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 77,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   }
+  ],
+  "opponentOwnGoals": 0
+ },
+ {
+  "gameNumber": 13,
+  "us": "away",
+  "total": [
+   5,
+   1
+  ],
+  "forfeit": false,
+  "players": [
+   {
+    "no": 1,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 5,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 7,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 11,
+    "starter": true,
+    "bench": false,
+    "yellows": [
+     12
+    ],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 37,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 4,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 14,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 15,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 18,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 20,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 22,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 23,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 25,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 77,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [
+     26
+    ],
+    "ownGoals": []
+   }
+  ],
+  "opponentOwnGoals": 0
+ },
+ {
+  "gameNumber": 18,
+  "us": "away",
+  "total": [
+   4,
+   4
+  ],
+  "forfeit": false,
+  "players": [
+   {
+    "no": 8,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 9,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 11,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 23,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 25,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 5,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 6,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 7,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [
+     17
+    ],
+    "ownGoals": []
+   },
+   {
+    "no": 14,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 15,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 18,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [
+     28
+    ],
+    "ownGoals": []
+   },
+   {
+    "no": 20,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 37,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [
+     27
+    ],
+    "ownGoals": []
+   },
+   {
+    "no": 77,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [
+     18
+    ],
+    "ownGoals": []
+   }
+  ],
+  "opponentOwnGoals": 0
+ },
+ {
+  "gameNumber": 21,
+  "us": "away",
+  "total": [
+   6,
+   1
+  ],
+  "forfeit": false,
+  "players": [
+   {
+    "no": 3,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 5,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 7,
+    "starter": true,
+    "bench": false,
+    "yellows": [
+     34
+    ],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 26,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 77,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 4,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 8,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 11,
+    "starter": false,
+    "bench": true,
+    "yellows": [
+     10
+    ],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 14,
+    "starter": false,
+    "bench": true,
+    "yellows": [
+     35
+    ],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 16,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [
+     38
+    ],
+    "ownGoals": []
+   },
+   {
+    "no": 19,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 20,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 23,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 30,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   }
+  ],
+  "opponentOwnGoals": 0
+ },
+ {
+  "gameNumber": 23,
+  "us": "home",
+  "total": [
+   4,
+   4
+  ],
+  "forfeit": false,
+  "players": [
+   {
+    "no": 5,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 7,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": [
+     15
+    ]
+   },
+   {
+    "no": 26,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 37,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [
+     15,
+     34
+    ],
+    "ownGoals": []
+   },
+   {
+    "no": 77,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [
+     37
+    ],
+    "ownGoals": []
+   },
+   {
+    "no": 3,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 8,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [
+     24
+    ],
+    "ownGoals": []
+   },
+   {
+    "no": 11,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 14,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 15,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 16,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 22,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 23,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 27,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   }
+  ],
+  "opponentOwnGoals": 0
+ },
+ {
+  "gameNumber": 25,
+  "us": "away",
+  "total": [
+   15,
+   1
+  ],
+  "forfeit": false,
+  "players": [
+   {
+    "no": 7,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 11,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 18,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 30,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 77,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [
+     39
+    ],
+    "ownGoals": []
+   },
+   {
+    "no": 2,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 3,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": [
+     8
+    ]
+   },
+   {
+    "no": 5,
+    "starter": false,
+    "bench": true,
+    "yellows": [
+     14,
+     25
+    ],
+    "reds": [
+     25
+    ],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 8,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 14,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 19,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 23,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 27,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 37,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   }
+  ],
+  "opponentOwnGoals": 0
+ },
+ {
+  "gameNumber": 28,
+  "us": "away",
+  "total": [
+   0,
+   3
+  ],
+  "forfeit": true,
+  "players": [],
+  "opponentOwnGoals": 0
+ },
+ {
+  "gameNumber": 31,
+  "us": "home",
+  "total": [
+   4,
+   4
+  ],
+  "forfeit": false,
+  "players": [
+   {
+    "no": 1,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 7,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 18,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 23,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 37,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [
+     7
+    ],
+    "ownGoals": []
+   },
+   {
+    "no": 3,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [
+     36
+    ],
+    "ownGoals": []
+   },
+   {
+    "no": 6,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [
+     28
+    ],
+    "ownGoals": []
+   },
+   {
+    "no": 11,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 14,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 15,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 19,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 27,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [
+     40
+    ],
+    "ownGoals": []
+   },
+   {
+    "no": 29,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 77,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   }
+  ],
+  "opponentOwnGoals": 0
+ },
+ {
+  "gameNumber": 35,
+  "us": "away",
+  "total": [
+   8,
+   2
+  ],
+  "forfeit": false,
+  "players": [
+   {
+    "no": 1,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": [
+     1
+    ]
+   },
+   {
+    "no": 7,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 14,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 18,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 37,
+    "starter": true,
+    "bench": false,
+    "yellows": [
+     22
+    ],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 3,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [
+     32
+    ],
+    "ownGoals": []
+   },
+   {
+    "no": 5,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 6,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 8,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 11,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [
+     10
+    ],
+    "ownGoals": []
+   },
+   {
+    "no": 15,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 19,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 23,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 27,
+    "starter": false,
+    "bench": true,
+    "yellows": [
+     25
+    ],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   }
+  ],
+  "opponentOwnGoals": 0
+ },
+ {
+  "gameNumber": 37,
+  "us": "home",
+  "total": [
+   2,
+   7
+  ],
+  "forfeit": false,
+  "players": [
+   {
+    "no": 1,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 5,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 7,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 15,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 37,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 3,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 6,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 8,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 11,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [
+     38
+    ],
+    "ownGoals": []
+   },
+   {
+    "no": 14,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 18,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 23,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 27,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 77,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [
+     22
+    ],
+    "ownGoals": []
+   }
+  ],
+  "opponentOwnGoals": 0
+ },
+ {
+  "gameNumber": 40,
+  "us": "away",
+  "total": [
+   9,
+   1
+  ],
+  "forfeit": false,
+  "players": [
+   {
+    "no": 2,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 3,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [
+     33
+    ],
+    "ownGoals": []
+   },
+   {
+    "no": 7,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 18,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 77,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 4,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 5,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 8,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": [
+     19
+    ]
+   },
+   {
+    "no": 9,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 14,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 23,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 25,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 27,
+    "starter": false,
+    "bench": true,
+    "yellows": [
+     31
+    ],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 29,
+    "starter": false,
+    "bench": true,
+    "yellows": [
+     23
+    ],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   }
+  ],
+  "opponentOwnGoals": 0
+ },
+ {
+  "gameNumber": 43,
+  "us": "home",
+  "total": [
+   7,
+   5
+  ],
+  "forfeit": false,
+  "players": [
+   {
+    "no": 7,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 18,
+    "starter": true,
+    "bench": false,
+    "yellows": [
+     15
+    ],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 25,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 37,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [
+     6,
+     27,
+     35
+    ],
+    "ownGoals": []
+   },
+   {
+    "no": 77,
+    "starter": true,
+    "bench": false,
+    "yellows": [],
+    "reds": [],
+    "goals": [
+     15,
+     36,
+     40
+    ],
+    "ownGoals": []
+   },
+   {
+    "no": 1,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 3,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [
+     13
+    ],
+    "ownGoals": []
+   },
+   {
+    "no": 5,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 8,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 10,
+    "starter": false,
+    "bench": true,
+    "yellows": [
+     40
+    ],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 11,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 14,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 23,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   },
+   {
+    "no": 27,
+    "starter": false,
+    "bench": true,
+    "yellows": [],
+    "reds": [],
+    "goals": [],
+    "ownGoals": []
+   }
+  ],
+  "opponentOwnGoals": 0
+ }
+]

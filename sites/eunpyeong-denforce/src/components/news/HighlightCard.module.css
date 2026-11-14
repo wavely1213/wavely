@@ -1,0 +1,114 @@
+/* 은평 경기 하이라이트 (D-091, 피그마 283:27104) — 구단영상 VideoCard 짜임 그대로, 썸네일만 16:9.
+   PC 4칸(사이 space/ml), 휴대폰 280 가로 넘김(사이 space/s) */
+.row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-xl) var(--space-ml);
+}
+
+.row > li {
+  display: flex;
+  min-width: 0;
+}
+
+.card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+  min-width: 0;
+}
+
+/* 썸네일 16:9, black-soft, radius/m — 유튜브 hqdefault(4:3, 위아래 검정 띠)를 cover 로 채워 띠를 자른다 */
+.thumb {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-m);
+  overflow: hidden;
+  background: var(--c-black-soft);
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.card:hover .image {
+  transform: scale(1.04);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  min-width: 0;
+}
+
+/* 분류 '하이라이트 ↗' kfa/caption blue */
+.category {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--c-blue);
+}
+
+/* 제목 = 대진 kfa/m/h4 16 Bold, 스코어만 blue, 낱말 경계 줄바꿈 */
+.title {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  /* 2줄까지 */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.score {
+  color: var(--c-blue);
+}
+
+.card:hover .title {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* 날짜 + 대회 kfa/caption text-sub */
+.meta {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--c-text-sub);
+}
+
+@media (max-width: 960px) {
+  .row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .row {
+    display: flex;
+    gap: var(--space-s);
+    margin: 0 calc(var(--gutter) * -1);
+    padding: 0 var(--gutter);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding: 0 var(--gutter);
+    scrollbar-width: none;
+  }
+
+  .row > li {
+    flex: 0 0 280px;
+    scroll-snap-align: start;
+  }
+}
+
+/* 하이라이트 줄 묶음 아래 여백 — 홈은 스폰서 띠, 구단영상은 영상 격자와 사이 section-gap (다른 섹션 사이와 같은 리듬) */
+.block {
+  padding-bottom: var(--section-gap);
+}

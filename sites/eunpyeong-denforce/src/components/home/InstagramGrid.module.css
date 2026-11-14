@@ -1,0 +1,46 @@
+/* 6칸 정사각, 사이 space/l, radius/m (휴대폰 3x2, 사이 space/xs) */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--space-l);
+}
+
+.tile {
+  position: relative;
+  display: block;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: var(--radius-m);
+  background: var(--c-bg-soft);
+}
+
+.image {
+  object-fit: cover;
+  transition: transform 0.2s ease;
+}
+
+.tile:hover .image {
+  transform: scale(1.03);
+}
+
+/* 릴스 줄 — 게시물 줄 아래 같은 간격 (D-095) */
+.reels {
+  margin-top: var(--space-l);
+}
+
+@media (max-width: 720px) {
+  .reels {
+    margin-top: var(--space-xs);
+  }
+
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-xs);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .image {
+    transition: none;
+  }
+}

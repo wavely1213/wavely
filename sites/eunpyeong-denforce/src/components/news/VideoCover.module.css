@@ -1,0 +1,51 @@
+/* 구단영상 상세 표지 + 원본 재생 버튼 (D-074) — 빈 공간 없이 꽉 채움 */
+.wrap {
+  margin: 0 0 var(--space-xl);
+}
+
+.frame {
+  position: relative;
+  overflow: hidden;
+  margin: 0 auto;
+  border-radius: var(--radius-m);
+  background: var(--c-black);
+}
+
+.vertical .frame {
+  max-width: 360px;
+  aspect-ratio: 9 / 16;
+}
+
+.wide .frame {
+  aspect-ratio: 16 / 9;
+}
+
+.cover {
+  object-fit: cover;
+}
+
+/* 가운데 재생 표시 (꾸밈) */
+.play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--c-black) 70%, transparent);
+  color: var(--c-on-dark);
+  transform: translate(-50%, -50%);
+}
+
+.caption {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-m);
+}
+
+.button {
+  column-gap: var(--space-2xs);
+  min-height: 44px;
+}

@@ -1,0 +1,13 @@
+{
+  "name": "Eunpyeong Denforce Sync",
+  "id": "eunpyeong-denforce-sync",
+  "api": "1.0.0",
+  "main": "dist/code.js",
+  "ui": "dist/ui.html",
+  "editorType": ["figma"],
+  "documentAccess": "dynamic-page",
+  "networkAccess": {
+    "allowedDomains": ["https://eunpyeong-fs.com"],
+    "reasoning": "서울은평 덴포스 사이트의 공개 포스터 데이터(/api/figma/feed)와 이미지(/api/figma/image)를 읽는다"
+  }
+}

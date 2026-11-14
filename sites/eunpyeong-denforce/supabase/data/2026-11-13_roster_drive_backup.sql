@@ -1,0 +1,28 @@
+-- 2026-11-13 드라이브 로스터 정리 전 상태 (되돌리기용). 새로 넣은 9명은 지우고, 바뀐 행은 원래 값으로.
+begin;
+delete from public.players where slug in ('kim-youngmin', 'kim-jinsu', 'won-haeyeon', 'lee-jihoon', 'moon-jiksoo', 'yoon-changwook', 'lee-junhyung', 'jung-woomin', 'yang-jihoon');
+update public.players set number = null, position = 'ALA', photo_url = 'https://vunnzagbsrujdernvetl.supabase.co/storage/v1/object/public/media/players/kang-minwon-instagram.jpg', is_active = true where slug = 'kang-minwon';
+update public.players set number = null, position = 'ALA', photo_url = 'https://vunnzagbsrujdernvetl.supabase.co/storage/v1/object/public/media/players/kim-jongho-instagram.jpg', is_active = true where slug = 'kim-jongho';
+update public.players set number = null, position = 'ALA', photo_url = 'https://vunnzagbsrujdernvetl.supabase.co/storage/v1/object/public/media/players/kim-namseok-instagram.jpg', is_active = true where slug = 'kim-namseok';
+update public.players set number = null, position = 'GK', photo_url = 'https://vunnzagbsrujdernvetl.supabase.co/storage/v1/object/public/media/players/lim-woosung-instagram.jpg', is_active = true where slug = 'lim-woosung';
+update public.players set number = null, position = 'ALA', photo_url = 'https://vunnzagbsrujdernvetl.supabase.co/storage/v1/object/public/media/players/no-10-profile.jpg', is_active = true where slug = 'no-10';
+update public.players set number = null, position = 'FIXO', photo_url = 'https://vunnzagbsrujdernvetl.supabase.co/storage/v1/object/public/media/players/no-11-instagram.jpg', is_active = true where slug = 'no-11';
+update public.players set number = null, position = 'GK', photo_url = 'https://vunnzagbsrujdernvetl.supabase.co/storage/v1/object/public/media/players/no-12-instagram.jpg', is_active = true where slug = 'no-12';
+update public.players set number = null, position = 'FIXO', photo_url = 'https://vunnzagbsrujdernvetl.supabase.co/storage/v1/object/public/media/players/no-13-instagram.jpg', is_active = true where slug = 'no-13';
+update public.players set number = null, position = 'ALA', photo_url = 'https://vunnzagbsrujdernvetl.supabase.co/storage/v1/object/public/media/players/no-14-instagram.jpg', is_active = true where slug = 'no-14';
+update public.players set number = null, position = 'ALA', photo_url = 'https://vunnzagbsrujdernvetl.supabase.co/storage/v1/object/public/media/players/no-17-instagram.jpg', is_active = true where slug = 'no-17';
+update public.players set number = null, position = 'FIXO', photo_url = 'https://vunnzagbsrujdernvetl.supabase.co/storage/v1/object/public/media/players/no-18-profile.jpg', is_active = true where slug = 'no-18';
+update public.players set number = null, position = 'ALA', photo_url = 'https://vunnzagbsrujdernvetl.supabase.co/storage/v1/object/public/media/players/no-19-instagram.jpg', is_active = true where slug = 'no-19';
+update public.players set number = null, position = 'GK', photo_url = 'https://vunnzagbsrujdernvetl.supabase.co/storage/v1/object/public/media/players/no-2-instagram.jpg', is_active = true where slug = 'no-2';
+update public.players set number = null, position = 'ALA', photo_url = 'https://vunnzagbsrujdernvetl.supabase.co/storage/v1/object/public/media/players/no-20-instagram.jpg', is_active = true where slug = 'no-20';
+update public.players set number = null, position = 'PIVO', photo_url = 'https://vunnzagbsrujdernvetl.supabase.co/storage/v1/object/public/media/players/no-22-profile.jpg', is_active = true where slug = 'no-22';
+update public.players set number = null, position = 'ALA', photo_url = 'https://vunnzagbsrujdernvetl.supabase.co/storage/v1/object/public/media/players/no-23-instagram.jpg', is_active = true where slug = 'no-23';
+update public.players set number = null, position = 'GK', photo_url = 'https://vunnzagbsrujdernvetl.supabase.co/storage/v1/object/public/media/players/no-26-profile.jpg', is_active = true where slug = 'no-26';
+update public.players set number = null, position = 'ALA', photo_url = 'https://vunnzagbsrujdernvetl.supabase.co/storage/v1/object/public/media/players/no-47-instagram.jpg', is_active = true where slug = 'no-47';
+update public.players set number = null, position = 'ALA', photo_url = 'https://vunnzagbsrujdernvetl.supabase.co/storage/v1/object/public/media/players/no-7-profile.jpg', is_active = true where slug = 'no-7';
+update public.players set number = null, position = 'PIVO', photo_url = 'https://vunnzagbsrujdernvetl.supabase.co/storage/v1/object/public/media/players/no-77-profile.jpg', is_active = true where slug = 'no-77';
+update public.players set number = null, position = 'FIXO', photo_url = 'https://vunnzagbsrujdernvetl.supabase.co/storage/v1/object/public/media/players/no-8-profile.jpg', is_active = true where slug = 'no-8';
+update public.players set number = null, position = 'PIVO', photo_url = 'https://vunnzagbsrujdernvetl.supabase.co/storage/v1/object/public/media/players/no-9-instagram.jpg', is_active = true where slug = 'no-9';
+update public.players set number = null, position = 'PIVO', photo_url = 'https://vunnzagbsrujdernvetl.supabase.co/storage/v1/object/public/media/players/no-99-instagram.jpg', is_active = true where slug = 'no-99';
+update public.players set number = null, position = 'PIVO', photo_url = 'https://vunnzagbsrujdernvetl.supabase.co/storage/v1/object/public/media/players/park-jaehee-instagram.jpg', is_active = true where slug = 'park-jaehee';
+commit;

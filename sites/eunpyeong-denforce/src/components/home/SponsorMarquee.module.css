@@ -1,0 +1,152 @@
+/* 높이 96, bg, 로고 40 — 오른쪽 끝 멈춤 버튼 44 (리디자인 D-067) */
+.band {
+  display: flex;
+  align-items: center;
+  gap: var(--space-m);
+  min-height: 96px;
+  padding-right: var(--gutter);
+  border-bottom: 1px solid var(--c-line);
+  background: var(--c-bg);
+}
+
+.pause {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-pill);
+  background: var(--c-bg);
+  color: var(--c-text);
+  cursor: pointer;
+}
+
+.paused .track {
+  animation-play-state: paused;
+}
+
+/* 양 끝을 흐리게 — 띠가 화면 밖에서 들어오고 나가는 느낌 */
+.viewport {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, var(--c-black) 6%, var(--c-black) 94%, transparent);
+}
+
+.track {
+  display: flex;
+  align-items: center;
+  width: max-content;
+  animation: marquee var(--marquee-duration, 48s) linear infinite;
+}
+
+.band:hover .track {
+  animation-play-state: paused;
+}
+
+.item {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 64px;
+  padding: 0 var(--space-xl);
+}
+
+/* 로고 링크 — 누르는 영역 높이 44 이상 (로고가 작아도) */
+.item a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+}
+
+/* 같은 상자(160×64) 안에 맞춘다 — 가로로 긴 로고는 폭, 네모난 로고는 높이 기준이라 눈대중 크기가 비슷해진다 */
+.logo {
+  width: auto;
+  height: auto;
+  max-width: 160px;
+  max-height: 40px;
+}
+
+.name {
+  font-size: 20px;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--c-text);
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* 멈춘 목록 — 실제(복제 아닌) 칸만 가운데 정렬로, 좁으면 여러 줄.
+   ① 키보드로 링크에 들어오면(멈춤 버튼 초점은 아님 — G6): 흐르던 자리에 따라 링크가 화면 밖이거나 끝에 걸쳐 초점이 안 보일 수 있어서.
+      :focus-visible 이라 마우스로 누른 뒤에는 그대로 흐른다
+   ② 움직임 줄이기 설정이면 처음부터 */
+.band:has(.viewport :focus-visible) .viewport {
+  mask-image: none;
+  /* 펼친 목록의 링크 초점 링 위아래가 잘리지 않게 (검토 #5) */
+  padding-block: var(--space-2xs);
+}
+
+.band:has(.viewport :focus-visible) .track {
+  flex-wrap: wrap;
+  justify-content: center;
+  width: auto;
+  row-gap: 12px;
+  animation: none;
+}
+
+.band:has(.viewport :focus-visible) .item[aria-hidden="true"] {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pause {
+    display: none;
+  }
+
+  .viewport {
+    mask-image: none;
+    padding-block: var(--space-2xs);
+  }
+
+  .track {
+    flex-wrap: wrap;
+    justify-content: center;
+    width: auto;
+    row-gap: 12px;
+    animation: none;
+  }
+
+  .item[aria-hidden="true"] {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  /* 오른쪽 여백 gutter — 멈춤 버튼 초점 링이 화면 끝에서 잘리지 않게 (G6) */
+  .band {
+    padding: 20px var(--gutter) 20px 0;
+  }
+
+  .item {
+    height: 48px;
+    padding: 0 26px;
+  }
+
+  .logo {
+    max-width: 120px;
+    max-height: 40px;
+  }
+
+  .name {
+    font-size: 17px;
+  }
+}

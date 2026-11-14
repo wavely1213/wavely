@@ -1,0 +1,7 @@
+/* 포스팅 목록 — 분류 필터 탭 (버튼 모양은 admin.module.css 의 button / buttonGhost) */
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}

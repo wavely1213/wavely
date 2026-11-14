@@ -1,0 +1,89 @@
+// 포스팅 목록 도우미 단위 테스트 — 실행: npm test
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { byPostedDesc, countByKind, filterPostings, instagramTiles, isPreshrunkThumbnail, plainText, platformCounts } from "../src/lib/postings.ts";
+import type { Posting } from "../src/types/index.ts";
+
+const p = (id: string, kind: Posting["kind"], platform: Posting["platform"], date: string, title = id): Posting => ({
+  id,
+  kind,
+  platform,
+  title,
+  author: "",
+  url: `https://example.com/${id}`,
+  thumbnail: null,
+  date,
+});
+
+const list = [
+  p("a", "club", "youtube", "2026-01-02"),
+  p("b", "news", "article", "2026-03-01"),
+  p("c", "fan", "naver_blog", "2026-03-01", "가"),
+  p("d", "fan", "naver_cafe", "2025-12-31"),
+  p("e", "fan", "naver_blog", "2024-05-05"),
+];
+
+test("byPostedDesc: 최근 먼저, 같은 날이면 제목 가나다순", () => {
+  assert.deepEqual([...list].sort(byPostedDesc).map((x) => x.id), ["c", "b", "a", "d", "e"]);
+});
+
+test("filterPostings: 분류/출처 (null = 전체)", () => {
+  assert.equal(filterPostings(list, { kind: null, platform: null }).length, 5);
+  assert.deepEqual(filterPostings(list, { kind: "fan", platform: null }).map((x) => x.id), ["c", "d", "e"]);
+  assert.deepEqual(filterPostings(list, { kind: "fan", platform: "naver_blog" }).map((x) => x.id), ["c", "e"]);
+  assert.deepEqual(filterPostings(list, { kind: "club", platform: "naver_blog" }), []);
+});
+
+test("filterPostings/platformCounts: '전체'에는 FK리그(연맹 영상)를 넣지 않고 FK리그 탭에서만", () => {
+  const withLeague = [...list, p("f", "league", "youtube", "2026-02-01"), p("g", "league", "youtube", "2026-02-02")];
+  assert.deepEqual(filterPostings(withLeague, { kind: null, platform: "youtube" }).map((x) => x.id), ["a"]);
+  assert.equal(filterPostings(withLeague, { kind: null, platform: null }).length, 5);
+  assert.deepEqual(filterPostings(withLeague, { kind: "league", platform: null }).map((x) => x.id), ["f", "g"]);
+  assert.deepEqual(platformCounts(withLeague, null).find((c) => c.platform === "youtube"), { platform: "youtube", count: 1 });
+  assert.deepEqual(platformCounts(withLeague, "league"), [{ platform: "youtube", count: 2 }]);
+});
+
+test("countByKind: 전체/분류별 개수", () => {
+  assert.deepEqual(countByKind(list), { all: 5, club: 1, news: 1, fan: 3, league: 0 });
+  assert.deepEqual(countByKind([]), { all: 0, club: 0, news: 0, fan: 0, league: 0 });
+  // FK리그는 '전체'에 세지 않는다
+  assert.deepEqual(countByKind([...list, p("f", "league", "youtube", "2026-02-01")]), { all: 5, club: 1, news: 1, fan: 3, league: 1 });
+});
+
+test("platformCounts: 고른 분류 안에서 글 있는 출처만, 많은 순 → 같으면 정해진 순서", () => {
+  assert.deepEqual(platformCounts(list, "fan"), [
+    { platform: "naver_blog", count: 2 },
+    { platform: "naver_cafe", count: 1 },
+  ]);
+  assert.deepEqual(
+    platformCounts(list, null).map((c) => c.platform),
+    ["naver_blog", "naver_cafe", "article", "youtube"],
+  );
+});
+
+test("isPreshrunkThumbnail: 일괄 적재 사진(url 해시 16자 .jpg)만 true, 관리자 업로드(uuid)는 false", () => {
+  const base = "https://x.supabase.co/storage/v1/object/public/media/postings/";
+  assert.equal(isPreshrunkThumbnail(`${base}f204c86537b82aa3.jpg`), true);
+  assert.equal(isPreshrunkThumbnail(`${base}0b6f2a4e-1c2d-4e5f-8a9b-0c1d2e3f4a5b.jpg`), false);
+  assert.equal(isPreshrunkThumbnail(`${base}f204c86537b82aa3.png`), false);
+  assert.equal(isPreshrunkThumbnail("https://x.supabase.co/storage/v1/object/public/media/news/f204c86537b82aa3.jpg"), false);
+});
+
+test("instagramTiles: 구단 인스타그램 게시물 중 표지 있는 것만, 순서대로 최대 6", () => {
+  const p = (id: string, over: Partial<Posting> = {}): Posting => ({ id, kind: "club", platform: "instagram", title: id, author: "", url: "https://www.instagram.com/p/x/", thumbnail: "/t.jpg", date: "2026-11-01", ...over });
+  const list = [p("a"), p("b", { thumbnail: null }), p("c", { platform: "naver_blog" }), p("d", { kind: "fan" }), p("e"), p("f"), p("g"), p("h"), p("i"), p("j")];
+  assert.deepEqual(instagramTiles(list).map((x) => x.id), ["a", "e", "f", "g", "h", "i"]);
+  assert.deepEqual(instagramTiles([]), []);
+});
+
+test("plainText: 수학 굵은 문자를 보통 글자로, 한글/이모지는 그대로", () => {
+  assert.equal(plainText("𝑾𝑬𝑳𝑪𝑶𝑴𝑬 🤝 서울은평덴포스"), "WELCOME 🤝 서울은평덴포스");
+  assert.equal(plainText("유니폼 어디서 사셨어요?"), "유니폼 어디서 사셨어요?");
+  // 수학 영숫자 밖은 그대로 — 구분자 'ㅣ'(U+3163), 호환 자모, 원문자, 말줄임표 (재검증 #1)
+  assert.equal(plainText("GOALㅣflex 2024-25 FK LEAGUE1ㅣ…"), "GOALㅣflex 2024-25 FK LEAGUE1ㅣ…");
+  assert.equal(plainText("ㅎㅎ ③ 𝐆𝐎𝐀𝐋"), "ㅎㅎ ③ GOAL");
+  // 수학 빈자리 글자(Letterlike)도 보통 글자로, 같은 블록의 ℃ № ™ 는 그대로 (재검증 2차 #6)
+  assert.equal(plainText("𝑡ℎ𝑒"), "the");
+  assert.equal(plainText("ℂ𝕆𝕄𝔼"), "COME");
+  assert.equal(plainText("25℃ №1 ™"), "25℃ №1 ™");
+});

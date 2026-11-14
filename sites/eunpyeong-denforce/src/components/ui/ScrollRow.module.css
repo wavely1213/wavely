@@ -1,0 +1,33 @@
+/* 가로로 넘치는 탭 줄의 끝 흐림 (ScrollRow) — 가려진 탭이 있는 쪽만.
+   mask 는 색이 아니라 투명도만 쓰므로 바탕색(흰 판·어두운 판)과 상관없이 맞는다. --fade 는 ScrollRow.tsx FADE_PX 와 같게 */
+.fadeStart,
+.fadeEnd {
+  --fade: 32px;
+}
+
+.fadeEnd {
+  -webkit-mask-image: linear-gradient(to right, var(--c-black) calc(100% - var(--fade)), transparent);
+  mask-image: linear-gradient(to right, var(--c-black) calc(100% - var(--fade)), transparent);
+}
+
+.fadeStart {
+  -webkit-mask-image: linear-gradient(to left, var(--c-black) calc(100% - var(--fade)), transparent);
+  mask-image: linear-gradient(to left, var(--c-black) calc(100% - var(--fade)), transparent);
+}
+
+.fadeStart.fadeEnd {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    var(--c-black) var(--fade),
+    var(--c-black) calc(100% - var(--fade)),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    var(--c-black) var(--fade),
+    var(--c-black) calc(100% - var(--fade)),
+    transparent
+  );
+}

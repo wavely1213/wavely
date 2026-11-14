@@ -1,0 +1,108 @@
+@import "../styles/tokens.css";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font);
+  color: var(--c-text);
+  background: var(--c-bg);
+  line-height: 1.6;
+  word-break: keep-all;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+main {
+  flex: 1;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+h1,
+h2,
+h3,
+h4,
+p,
+ul,
+ol {
+  margin: 0;
+}
+
+ul,
+ol {
+  padding: 0;
+  list-style: none;
+}
+
+button {
+  font: inherit;
+}
+
+.container {
+  width: 100%;
+  max-width: var(--container);
+  margin: 0 auto;
+  /* 상하 padding 은 각 모듈이 정하도록 좌우만 지정 */
+  padding-left: var(--gutter);
+  padding-right: var(--gutter);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* '본문 바로가기'로 초점을 받은 main 은 테두리를 그리지 않는다 (본문 첫 링크부터 링이 보임) */
+#main:focus {
+  outline: none;
+}
+
+/* 공개 화면 레이아웃 래퍼 — 상자를 만들지 않아 body 의 세로 배치(main 늘이기)를 그대로 둔다 */
+.site-root {
+  display: contents;
+}
+
+/* 공통 초점 표시 (리디자인 D-067, D-069 1단계) — 키보드 초점일 때 바깥 2px.
+   밝은 면은 blue, 어두운 면(data-surface="dark": Header, PageHeader, Footer 등)은 on-dark, 파랑 면은 on-blue */
+.site-root :focus-visible {
+  outline: 2px solid var(--c-blue);
+  outline-offset: 2px;
+}
+
+.site-root [data-surface="dark"] :focus-visible {
+  outline-color: var(--c-on-dark);
+}
+
+.site-root [data-surface="blue"] :focus-visible {
+  outline-color: var(--c-on-blue);
+}
+
+/* 붙어 있는 헤더에 초점 요소/앵커가 가려지지 않게 (공개 화면만 — SiteRootMarker 가 공개 레이아웃이 보일 때만 html 에 붙인다) */
+html.site-html {
+  scroll-padding-top: var(--header-h);
+}
