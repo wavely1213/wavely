@@ -103,8 +103,12 @@ function PhoneStrip({ match, ourName, textured, style }: Props) {
   return (
     <section className={styles.stripWrap} data-surface="dark" aria-labelledby="next-home-match-strip">
       <LiveLink window={live} href="/match/schedule" className={`${styles.card} ${styles.strip} ${textured ? styles.textured : ""}`} style={style}>
-        <span id="next-home-match-strip" role="heading" aria-level={2} className={styles.label}>
-          NEXT HOME MATCH
+        {/* 라벨 오른쪽 LIVE (D-092 L4 (가), 높이 그대로) */}
+        <span className={styles.labelRow}>
+          <span id="next-home-match-strip" role="heading" aria-level={2} className={styles.label}>
+            NEXT HOME MATCH
+          </span>
+          <LiveBadge window={live} />
         </span>
         <CompetitionTag text={matchLabel(match)} surface="dark" />
         <span className={styles.stripTeams}>

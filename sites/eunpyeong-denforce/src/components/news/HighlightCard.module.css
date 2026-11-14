@@ -61,6 +61,11 @@
   letter-spacing: -0.02em;
   word-break: keep-all;
   overflow-wrap: anywhere;
+  /* 2줄까지 */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .score {
