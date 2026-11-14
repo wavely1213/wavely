@@ -154,10 +154,18 @@ export async function updateMatch(id: string, _prev: ActionState, fd: FormData):
     return f.state();
   }
 
-  const { error } = await ctx.supabase.from("matches").update({ ...values, ...links, ...posters.changes }).eq("id", id);
-  if (error) {
+  // 폼을 연 뒤 그 행이 바뀌었으면(경기 날 동기화가 영상/결과/포스터를 채움 등) 저장하지 않는다 — 낡은 값으로 덮고,
+  // 지운 칸 기록 트리거가 '관리자가 지움'으로 남겨 다시 안 채우는 일을 막는다 (총괄 검토 2026-11-15)
+  const openedAt = f.optText("updated_at_initial", { label: "열린 시각", max: 60 });
+  let query = ctx.supabase.from("matches").update({ ...values, ...links, ...posters.changes }).eq("id", id);
+  if (openedAt) query = query.eq("updated_at", openedAt);
+  const { data: saved, error } = await query.select("id");
+  if (error || !saved?.length) {
     for (const u of posters.uploaded) await removeImage(ctx, u);
-    return { message: dbErrorMessage(error), values: submittedValues(fd) };
+    return {
+      message: error ? dbErrorMessage(error) : "그 사이 다른 곳에서 이 경기가 바뀌었습니다. 새로고침한 뒤 다시 저장해 주세요.",
+      values: submittedValues(fd),
+    };
   }
   for (const old of posters.replaced) await removeImage(ctx, old);
 

@@ -2,6 +2,11 @@
 -- 자동 연결(kfl-video-sync, matchday-poster-sync)은 '자기가 넣었던 칸이 지금 비어 있으면 관리자가 지운 것'으로 보는데,
 -- 관리자가 직접 넣었다가 지운 칸은 기록이 없어 다시 채워졌다. matches 에서 값 → null 로 바뀌면 그 칸을 기록 표에 남긴다.
 -- 동기화는 null 인 칸만 채우므로(값 → 값, null → 값) 이 트리거를 스스로 부르지 않는다. 다시 실행해도 된다.
+--
+-- 되돌리기 (관리자가 지운 칸을 다시 자동으로 채우게 하려면 — 그 경기/칸의 '지운 기록'만 지운다. ID 가 null 인 줄이 관리자가 지운 기록):
+--   delete from public.kfl_video_sync_applied      where match_id = '<경기 id>' and field = 'replay_url'          and video_id is null;
+--   delete from public.matchday_poster_sync_applied where match_id = '<경기 id>' and field = 'matchday_poster_url' and file_id  is null;
+-- 다음 동기화(영상 3시간, 포스터 15분/3시간)가 빈 칸을 다시 채운다.
 
 -- 관리자가 지운 칸은 영상/파일 ID 가 없다
 alter table public.kfl_video_sync_applied alter column video_id drop not null;

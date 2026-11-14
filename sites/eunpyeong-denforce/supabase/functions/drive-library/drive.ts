@@ -136,12 +136,12 @@ export function imageType(contentType: string | null): string | null {
   return IMAGE_TYPES[t] ? t : null;
 }
 
-/** Drive API 오류 → 안내 문구 */
 /** 오류 문구/기록에 섞인 API 키(…?key=값)를 *** 로 (함수 응답, 상태 표, 로그에 키가 남지 않게) */
 export function redactKey(text: string): string {
   return text.replace(/([?&]key=)[^&\s)"']*/g, "$1***");
 }
 
+/** Drive API 오류 → 안내 문구 */
 export function driveError(status: number, body: string): string {
   if (status === 404) return MSG.notShared;
   if (status === 429 || /rateLimitExceeded|userRateLimitExceeded/.test(body)) return MSG.quota;

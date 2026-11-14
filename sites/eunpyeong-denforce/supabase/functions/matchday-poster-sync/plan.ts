@@ -33,7 +33,15 @@ export function posterKind(fileName: string): PosterField | null {
 }
 
 export type DriveFile = { id: string; name: string; mimeType: string; thumbnailLink?: string; modifiedTime?: string };
-export type PosterMatch = { id: string; kickoff: string; opponent: string; matchday_poster_url: string | null; fulltime_poster_url: string | null };
+export type PosterMatch = {
+  id: string;
+  kickoff: string;
+  opponent: string;
+  /** 사이트 홈/원정 — 폴더 이름의 (HOME|AWAY) 가 맞는 폴더를 먼저 쓴다 */
+  is_home?: boolean;
+  matchday_poster_url: string | null;
+  fulltime_poster_url: string | null;
+};
 
 /** 서울 날짜 'YYYY-MM-DD' */
 export const seoulDay = (ms: number) => new Date(ms + KST_MS).toISOString().slice(0, 10);
@@ -46,7 +54,18 @@ export function matchForFolder(f: FolderName, matches: readonly PosterMatch[], n
   return [...found].sort((a, b) => Math.abs(Date.parse(a.kickoff) - now) - Math.abs(Date.parse(b.kickoff) - now))[0];
 }
 
-export type PosterUpdate = { matchId: string; field: PosterField; fileId: string; thumb: string; fileName: string };
+export type PosterUpdate = {
+  matchId: string;
+  field: PosterField;
+  fileId: string;
+  thumb: string;
+  fileName: string;
+  /** 메모용 폴더 이름 */
+  folderName: string;
+  /** 폴더의 HOME/AWAY 가 사이트 경기와 맞음 */
+  sideMatch: boolean;
+  modifiedTime: string;
+};
 
 /** 넣은 칸 기록 키 */
 export const appliedKey = (matchId: string, field: PosterField) => `${matchId}:${field}`;
@@ -57,24 +76,39 @@ export function sizedThumb(link: string, side: number): string {
 }
 
 /**
- * 한 경기 폴더의 파일들 → 넣을 칸. 칸이 비어 있고, 이 함수가 넣은 적이 없을 때만(넣었는데 비어 있으면 관리자가 지운 것).
- * 같은 종류가 여러 장이면 가장 최근에 바뀐 것.
+ * 한 경기 폴더의 파일들 → 넣을 후보. 칸이 비어 있고, 넣은 적/지운 적이 없을 때만(기록 표).
+ * 같은 종류의 이미지는 모두 후보로 낸다 — 받기에 실패하면 다음 후보를 쓴다(candidateGroups).
  */
-export function planFolder(match: PosterMatch, files: readonly DriveFile[], applied: ReadonlySet<string>): { updates: PosterUpdate[]; notes: string[] } {
+export function planFolder(
+  match: PosterMatch,
+  files: readonly DriveFile[],
+  applied: ReadonlySet<string>,
+  folder: { name: string; side?: "HOME" | "AWAY" } = { name: "" },
+): { updates: PosterUpdate[]; notes: string[] } {
   const updates: PosterUpdate[] = [];
   const notes: string[] = [];
+  const sideMatch = folder.side === undefined || match.is_home === undefined || (folder.side === "HOME") === match.is_home;
   for (const field of FIELDS) {
+    if (match[field] || applied.has(appliedKey(match.id, field))) continue;
     const list = files
       .filter((f) => f.mimeType.startsWith("image/") && posterKind(f.name) === field)
       .sort((a, b) => (b.modifiedTime ?? "").localeCompare(a.modifiedTime ?? ""));
-    if (!list.length || match[field]) continue;
-    if (applied.has(appliedKey(match.id, field))) continue;
-    const file = list[0];
-    if (!file.thumbnailLink) {
-      notes.push(`${file.name}: 드라이브 미리보기가 아직 없음(다음 실행에 다시)`);
-      continue;
+    for (const file of list) {
+      if (!file.thumbnailLink) {
+        notes.push(`${folder.name} / ${file.name}: 드라이브 미리보기가 아직 없음(다음 실행에 다시)`);
+        continue;
+      }
+      updates.push({
+        matchId: match.id,
+        field,
+        fileId: file.id,
+        thumb: sizedThumb(file.thumbnailLink, POSTER_LONG_SIDE),
+        fileName: file.name,
+        folderName: folder.name,
+        sideMatch,
+        modifiedTime: file.modifiedTime ?? "",
+      });
     }
-    updates.push({ matchId: match.id, field, fileId: file.id, thumb: sizedThumb(file.thumbnailLink, POSTER_LONG_SIDE), fileName: file.name });
   }
   return { updates, notes };
 }
@@ -97,21 +131,16 @@ export function needsPoster(m: PosterMatch, applied: ReadonlySet<string>): boole
 }
 
 /**
- * 같은 (경기, 칸)이 둘 이상이면(두 폴더가 같은 경기에 맞음) 하나만 — 저장소 파일을 덮어쓰기 전에 줄인다.
- * 먼저 나온 것을 쓰고 나머지는 메모로.
+ * 같은 (경기, 칸)의 후보를 묶어 쓸 순서로 — HOME/AWAY 가 경기와 맞는 폴더 먼저, 그다음 최근에 바뀐 파일 먼저.
+ * 받기에 실패하면 다음 후보, 올리면 그 칸은 멈춘다(저장소 파일은 칸마다 한 번만 덮어쓴다).
  */
-export function dedupeUpdates(updates: readonly PosterUpdate[]): { updates: PosterUpdate[]; notes: string[] } {
-  const seen = new Set<string>();
-  const out: PosterUpdate[] = [];
-  const notes: string[] = [];
+export function candidateGroups(updates: readonly PosterUpdate[]): PosterUpdate[][] {
+  const groups = new Map<string, PosterUpdate[]>();
   for (const u of updates) {
     const k = appliedKey(u.matchId, u.field);
-    if (seen.has(k)) {
-      notes.push(`${u.fileName}: 같은 경기 칸에 맞는 폴더가 둘 이상 — 먼저 찾은 것만 넣음, 확인 필요`);
-      continue;
-    }
-    seen.add(k);
-    out.push(u);
+    groups.set(k, [...(groups.get(k) ?? []), u]);
   }
-  return { updates: out, notes };
+  return [...groups.values()].map((list) =>
+    [...list].sort((a, b) => Number(b.sideMatch) - Number(a.sideMatch) || b.modifiedTime.localeCompare(a.modifiedTime)),
+  );
 }

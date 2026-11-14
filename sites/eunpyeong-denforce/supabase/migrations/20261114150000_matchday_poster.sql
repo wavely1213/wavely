@@ -14,7 +14,22 @@ alter table public.matches
   add column if not exists fulltime_post_url text
     constraint matches_fulltime_post_url_check check (fulltime_post_url is null or (fulltime_post_url ~ '^https://www\.instagram\.com/' and length(fulltime_post_url) <= 500));
 
--- 포스터 폴더 (관리자 › 설정, 최고 관리자) — 관리자 전용 drive_settings(20261113100000)에. 처음 값은 소유자가 준 폴더(2026-11-15)
+-- 관리자 전용 1행 설정 표 (드라이브 폴더 ID). drive_library / matchday_poster 마이그레이션이 각자 이 블록을 갖고 자기 칸만 더한다
+-- — 어느 하나만 적용돼도 동작하게 (총괄 검토 2026-11-15). 조회는 관리자(is_admin), 바꾸기는 최고 관리자(is_owner). anon 권한 없음.
+create table if not exists public.drive_settings (
+  id smallint primary key default 1 check (id = 1),
+  updated_at timestamptz not null default now()
+);
+insert into public.drive_settings (id) values (1) on conflict (id) do nothing;
+alter table public.drive_settings enable row level security;
+drop policy if exists drive_settings_admin_read on public.drive_settings;
+create policy drive_settings_admin_read on public.drive_settings for select to authenticated using (public.is_admin());
+drop policy if exists drive_settings_admin_update on public.drive_settings;
+drop policy if exists drive_settings_owner_update on public.drive_settings;
+create policy drive_settings_owner_update on public.drive_settings for update to authenticated using (public.is_owner()) with check (public.is_owner());
+revoke all on public.drive_settings from anon, authenticated;
+grant select, update on public.drive_settings to authenticated;
+-- 포스터 폴더 (관리자 › 설정, 최고 관리자). 처음 값은 소유자가 준 폴더(2026-11-15)
 alter table public.drive_settings
   add column if not exists matchday_folder_id text;
 alter table public.drive_settings drop constraint if exists drive_settings_matchday_folder_id_check;

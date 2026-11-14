@@ -115,6 +115,8 @@ export function MatchForm({
           currentUrl={initial?.fulltime_poster_url}
         />
       </Row>
+      {/* 폼을 연 때의 행 시각 — 그사이 동기화(영상, 결과, 포스터)나 다른 관리자가 바꿨으면 저장을 막는다 (낡은 값으로 덮지 않게) */}
+      {initial?.updated_at && <input type="hidden" name="updated_at_initial" value={initial.updated_at} />}
       {/* 폼을 연 때의 게시물 값 — 저장할 때 이것과 비교해 바뀐 칸만 보낸다 (그사이 자동으로 채워진 칸을 지우지 않게) */}
       <input type="hidden" name="matchday_post_url_initial" value={initial?.matchday_post_url ?? ""} />
       <input type="hidden" name="fulltime_post_url_initial" value={initial?.fulltime_post_url ?? ""} />

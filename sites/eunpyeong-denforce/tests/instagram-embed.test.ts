@@ -83,7 +83,8 @@ test("parseResult: 상대/점수(우리 기준)/득점 줄", () => {
     scoreThem: 5,
     scorerLines: ["백승하 전반 5, 후반 6, 14", "윤창욱 전반 11"],
     ballScorers: [],
-    scoreUnclear: false,
+    ownGoals: 0,
+    scoreIssue: null,
   });
   assert.deepEqual(parseResult("⚪플레이오프 경기결과🔵\n\n화성FS 4 : 3 서울은평덴포스\n\n백승하 전반 '18\nO.G 후반 '6"), {
     opponent: "화성FS",
@@ -91,9 +92,10 @@ test("parseResult: 상대/점수(우리 기준)/득점 줄", () => {
     scoreThem: 4,
     scorerLines: ["백승하 전반 '18", "O.G 후반 '6"],
     ballScorers: [],
-    scoreUnclear: false,
+    ownGoals: 1,
+    scoreIssue: null,
   });
-  assert.deepEqual(parseResult("⚪경기결과🔵\n아쉽게 졌습니다"), { opponent: null, scoreUs: null, scoreThem: null, scorerLines: [], ballScorers: [], scoreUnclear: false });
+  assert.deepEqual(parseResult("⚪경기결과🔵\n아쉽게 졌습니다"), { opponent: null, scoreUs: null, scoreThem: null, scorerLines: [], ballScorers: [], ownGoals: 0, scoreIssue: null });
 });
 
 test("knownCodes: 포스팅 주소에서 게시물 코드", () => {
@@ -132,25 +134,42 @@ test("2026-27 MATCH DAY: 꾸민 글꼴 머리말, '🆚 상대' 한쪽만, ⏰ �
 });
 
 test("2026-27 FULL TIME: 첫 줄에 있을 때만 결과, 점수 줄에 팀 이름 있으면 우리 기준, 없으면 확인 필요", () => {
-  const ft = "𝑭𝑼𝑳𝑳 𝑻𝑰𝑴𝑬 🔵⚪️\n\n서울은평 덴포스 3 : 2 노원제너FS\n\n⚽ 김영록 2, 윤창욱\n⚽️ O.G\n\n#서울은평덴포스";
+  const ft = "𝑭𝑼𝑳𝑳 𝑻𝑰𝑴𝑬 🔵⚪️\n\n🔵 서울은평 덴포스 4 : 2 노원제너FS ⚪️\n\n⚽ 김영록 2, 윤창욱\n⚽️ O.G\n\n#서울은평덴포스";
   assert.equal(classifyPost({ caption: ft, isVideo: false }), "result");
   assert.equal(classifyPost({ caption: "오늘 경기 감사합니다\nfull time 응원", isVideo: false }), "other");
   // MATCH DAY 글 본문에 FULL TIME 이 있어도 MATCH DAY
   assert.equal(classifyPost({ caption: MD2627 + "\nFULL TIME 까지 응원해 주세요", isVideo: false }), "matchday");
   const r = parseResult(ft);
-  assert.deepEqual([r.opponent, r.scoreUs, r.scoreThem, r.scoreUnclear], ["노원제너FS", 3, 2, false]);
-  assert.deepEqual(r.ballScorers, [["김영록", 2], ["윤창욱", 1]]);
+  // 줄 앞뒤 꾸밈 이모지는 떼고 읽는다
+  assert.deepEqual([r.opponent, r.scoreUs, r.scoreThem, r.scoreIssue], ["노원제너FS", 4, 2, null]);
+  assert.deepEqual([r.ballScorers, r.ownGoals], [[["김영록", 2], ["윤창욱", 1]], 1]);
   const bare = parseResult("𝑭𝑼𝑳𝑳 𝑻𝑰𝑴𝑬\n\n🆚 노원제너FS\n3 : 2\n⚽ 김영록");
-  assert.deepEqual([bare.opponent, bare.scoreUs, bare.scoreThem, bare.scoreUnclear], ["노원제너FS", null, null, true]);
+  assert.deepEqual([bare.opponent, bare.scoreUs, bare.scoreThem, bare.scoreIssue], ["노원제너FS", null, null, "no-team"]);
 });
 
 test("parseResult: 시각 줄(⏰ 11.15 (일) 14:00, 14:00)은 점수 줄이 아니다", () => {
   const r = parseResult("𝑭𝑼𝑳𝑳 𝑻𝑰𝑴𝑬\n⏰ 11.15 (일) 14:00\n서울은평 덴포스 3 : 2 노원제너FS\n⚽ 김영록");
   assert.deepEqual([r.opponent, r.scoreUs, r.scoreThem], ["노원제너FS", 3, 2]);
   assert.deepEqual(parseResult("𝑭𝑼𝑳𝑳 𝑻𝑰𝑴𝑬\n14:00\n노원제너FS 1 : 4 덴포스").scoreUs, 4);
+  // 'D:DD' 점수는 시각으로 빼지 않는다 (2025-26 실제 1:15)
+  assert.deepEqual([parseResult("경기결과\n서울은평 덴포스 1:15 경기LBFS").scoreUs, parseResult("경기결과\n서울은평 덴포스 1:15 경기LBFS").scoreThem], [1, 15]);
+  // 날짜가 든 줄은 빼고, 팀 점수 줄이 둘 이상이면 쓰지 않는다
+  const two = parseResult("FULL TIME\n11.15 서울은평 덴포스 경기\n전반 서울은평 덴포스 1 : 0 노원제너FS\n서울은평 덴포스 3 : 2 노원제너FS");
+  assert.deepEqual([two.scoreUs, two.scoreIssue, two.opponent], [null, "many", "노원제너FS"]);
+});
+
+test("classifyPost: FULL TIME 첫 줄이 가장 먼저, 장식 숫자 '𝟭𝗥 𝗙𝗨𝗟𝗟 𝗧𝗜𝗠𝗘' 도", () => {
+  assert.equal(classifyPost({ caption: "𝟭𝗥 𝗙𝗨𝗟𝗟 𝗧𝗜𝗠𝗘\n응원 감사합니다 THANK YOU", isVideo: false }), "result");
+  assert.equal(classifyPost({ caption: "FULL TIME\nWELCOME 새 팬 여러분", isVideo: false }), "result");
 });
 
 test("ballScorers: 못 읽는 조각(분 표기)이 있으면 null, 빈 조각/자책은 건너뜀", () => {
   assert.equal(parseResult("FULL TIME\n덴포스 2 : 1 화성FS\n⚽ 김영록 전반 5′, 후반 12′").ballScorers, null);
-  assert.deepEqual(parseResult("FULL TIME\n덴포스 2 : 1 화성FS\n⚽️ 김영록 2,\n⚽ O.G").ballScorers, [["김영록", 2]]);
+  const joined = parseResult("FULL TIME\n덴포스 3 : 1 화성FS\n⚽️ 김영록 2,\n⚽ O.G");
+  assert.deepEqual([joined.ballScorers, joined.ownGoals], [[["김영록", 2]], 1]);
+  // 괄호 숫자는 이름(등번호), 머리 단어 거르기, '골' 붙은 숫자, 쉼표 끝 줄 이어 읽기
+  const r = parseResult("FULL TIME\n덴포스 4 : 1 화성FS\n⚽ GOALS 김대현(18), 김영록 2골,\n윤창욱");
+  assert.deepEqual(r.ballScorers, [["김대현(18)", 1], ["김영록", 2], ["윤창욱", 1]]);
+  // ⚽ 줄이 있으면 전반/후반 문장 줄은 보지 않는다
+  assert.deepEqual(parseResult("FULL TIME\n덴포스 1 : 0 화성FS\n후반 5분 김영록 골\n⚽ 김영록").scorerLines, []);
 });
