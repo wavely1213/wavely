@@ -178,3 +178,21 @@ test("작은 함수들", () => {
   assert.equal(driveError(429, ""), MSG.quota);
   assert.equal(driveError(403, '{"reason":"accessNotConfigured"}'), MSG.badKey);
 });
+
+test("엠블럼(crest)은 투명 바탕을 지키려고 원본(alt=media)을 먼저 받는다 (D-094)", async () => {
+  const LOGO = "logoFile00007";
+  const { f } = fakeFetch();
+  const calls: string[] = [];
+  const d = deps({
+    fetch: async (url: string) => {
+      calls.push(url);
+      if (url.includes(`/files/${LOGO}?`) && url.includes("alt=media")) return new Response(new Uint8Array([9, 9]), { headers: { "content-type": "image/png" } });
+      if (url.includes(`/files/${LOGO}?`)) return Response.json({ id: LOGO, name: "제천FS.png", mimeType: "image/png", parents: [ROOT], size: "40000", thumbnailLink: "https://lh3.example/t/logo=s220" });
+      return f(url);
+    },
+  });
+  const r = await handle({ action: "import", fileIds: [LOGO], purpose: "crest" }, d.d);
+  assert.deepEqual((r.body as { results: Array<{ url: string }> }).results.map((x) => x.url.split("/").pop()), [`${LOGO}.png`]);
+  assert.ok(calls.some((c) => c.includes("alt=media")));
+  assert.ok(!calls.some((c) => c.includes("=s1600")));
+});

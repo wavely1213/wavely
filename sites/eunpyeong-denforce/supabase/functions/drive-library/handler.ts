@@ -169,10 +169,14 @@ async function importOne(api: DriveApi, deps: Deps, id: string, purpose: Purpose
   }
 
   if (kind !== "image") return { id, error: MSG.notImage };
-  // 긴 변 약 1600 썸네일을 먼저 (무료 요금제 용량에 맞게 작게), 안 되면 원본(5MB 이하, jpg/png/webp)
-  let got = thumb ? await api.image(thumb) : null;
+  const size = file.size !== undefined ? Number(file.size) : NaN;
+  const originalOk = imageType(file.mimeType ?? "") !== null && !(Number.isFinite(size) && size > MAX_IMPORT_BYTES);
+  // 엠블럼은 투명 바탕을 지켜야 해서 원본(PNG/WebP) 먼저 — 썸네일은 JPG 로 바뀔 수 있다 (D-094)
+  // 그 밖의 사진은 긴 변 약 1600 썸네일을 먼저 (무료 요금제 용량에 맞게 작게), 안 되면 원본(5MB 이하, jpg/png/webp)
+  let got: [Uint8Array, string] | null = null;
+  if (purpose === "crest" && originalOk) got = await api.image(mediaUrl(id, deps.apiKey));
+  if (!got && thumb) got = await api.image(thumb);
   if (!got) {
-    const size = file.size !== undefined ? Number(file.size) : NaN;
     if (Number.isFinite(size) && size > MAX_IMPORT_BYTES) return { id, error: MSG.tooBig };
     if (!imageType(file.mimeType ?? "")) return { id, error: MSG.notImage };
     got = await api.image(mediaUrl(id, deps.apiKey));

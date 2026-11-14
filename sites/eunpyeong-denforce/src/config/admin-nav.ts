@@ -30,6 +30,8 @@ export const ADMIN_NAV_GROUPS: readonly AdminNavGroup[] = [
     items: [
       { href: "/admin/matches", label: "경기" },
       { href: "/admin/standings", label: "리그순위" },
+      // 상대팀 엠블럼 — 코드 기본값 + 관리자 업로드 (D-094, I-048)
+      { href: "/admin/crests", label: "상대팀 엠블럼" },
     ],
   },
   {

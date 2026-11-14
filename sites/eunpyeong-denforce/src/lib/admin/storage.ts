@@ -24,11 +24,13 @@ function driveUrls(reader: FormReader, name: string): string[] | null {
   return urls.every((u) => isDriveImportUrl(u, DRIVE_PREFIX)) ? urls : null;
 }
 
-export type ImageFolder = "news" | "players" | "staff" | "sponsors" | "postings" | "og" | "content";
+export type ImageFolder = "news" | "players" | "staff" | "sponsors" | "postings" | "og" | "content" | "crests";
 
 /** 받을 이미지 형식 제한 — 링크 미리보기(카카오톡·SNS)는 JPG·PNG 만 확실히 보인다 (D-037) */
 export type ImageAccept = { types: readonly string[]; label: string };
 export const PREVIEW_IMAGE_ACCEPT: ImageAccept = { types: ["image/jpeg", "image/png"], label: "JPG/PNG" };
+/** 상대팀 엠블럼 — 투명 바탕이 되는 형식만 (D-094) */
+export const CREST_IMAGE_ACCEPT: ImageAccept = { types: ["image/png", "image/webp"], label: "투명 PNG/WebP" };
 
 /** 형식·크기 검사. 문제가 있으면 오류 문구 */
 function checkImage(file: File, accept?: ImageAccept): string | null {
