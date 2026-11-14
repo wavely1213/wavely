@@ -22,8 +22,9 @@ const hrefs = (role: (typeof ADMIN_ROLES)[number]) => navGroupsFor(role).flatMap
 const NO_PERMS: PostPerms = { publish: false, feature: false, setDate: false, editPublished: false };
 const perms0 = { can_publish: false, can_feature: false, can_set_date: false, can_edit_published: false };
 
-test("navGroupsFor: 미디어는 구단소식/포스팅만, 관리자 계정은 최고 관리자만", () => {
-  assert.deepEqual(hrefs("media"), ["/admin/news", "/admin/postings"]);
+test("navGroupsFor: 미디어는 구단소식/포스팅/드라이브 자료함만, 관리자 계정은 최고 관리자만", () => {
+  // 드라이브 자료함은 미디어 메뉴에도 (D-081)
+  assert.deepEqual(hrefs("media"), ["/admin/news", "/admin/postings", "/admin/drive"]);
   assert.ok(hrefs("owner").includes("/admin/accounts"));
   assert.ok(!hrefs("admin").includes("/admin/accounts"));
   // 관리자 계정 말고는 최고 관리자와 관리자의 메뉴가 같다
@@ -101,6 +102,8 @@ test("isPendingReview: 최고 관리자/관리자가 아닌 계정이 올린 비
 test("dbErrorMessage: 미디어 규칙 거절은 이유 그대로, 그 밖의 권한 오류는 다시 로그인 안내", () => {
   assert.equal(dbErrorMessage({ code: "42501", message: "미디어 계정은 글을 공개할 수 없습니다 (검토 후 공개)" }), "미디어 계정은 글을 공개할 수 없습니다 (검토 후 공개)");
   assert.match(dbErrorMessage({ code: "42501", message: "permission denied for table players" }), /다시 로그인/);
+  // 출전 기록이 있는 선수 등 다른 기록이 쓰는 항목 (D-082)
+  assert.equal(dbErrorMessage({ code: "23503" }), "다른 기록이 이 항목을 쓰고 있어 지울 수 없습니다.");
 });
 
 test("reviewAlerts: 검토 대기 구단소식/포스팅", () => {

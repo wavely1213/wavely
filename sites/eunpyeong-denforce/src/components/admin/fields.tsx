@@ -1,8 +1,16 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import type { DrivePurpose } from "@/lib/admin/drive";
 import { useFieldDefault, useFieldError } from "./AdminForm";
 import styles from "./admin.module.css";
+import { DrivePicker } from "./drive/DrivePicker";
+
+/** 다른 칸이 이 사진 칸에 드라이브 사진을 넣을 때 (예: 영상을 고르면 표지를 썸네일 칸에) — D-081 */
+const DRIVE_EVENT = "admin-drive-image";
+export function pushDriveImage(name: string, url: string) {
+  window.dispatchEvent(new CustomEvent(DRIVE_EVENT, { detail: { name, url } }));
+}
 
 // 관리자 폼 입력 필드 — name 이 서버 액션의 FormReader 키와 같아야 오류가 표시된다.
 
@@ -158,18 +166,48 @@ export function ImageField({
   defaultUrl,
   accept = "image/jpeg,image/png,image/webp,image/gif",
   removable = true,
+  drive,
   ...base
-}: Base & { currentUrl?: string | null; defaultUrl?: string; accept?: string; removable?: boolean }) {
+}: Base & {
+  currentUrl?: string | null;
+  defaultUrl?: string;
+  accept?: string;
+  removable?: boolean;
+  /** 드라이브 자료함에서 고르기 (가져온 곳 기록용) — D-081. 파일을 함께 고르면 파일이 먼저 */
+  drive?: DrivePurpose;
+}) {
   const error = useFieldError(base.name);
-  const previewUrl = currentUrl || defaultUrl;
+  const [driveUrl, setDriveUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (!drive) return;
+    const on = (e: Event) => {
+      const d = (e as CustomEvent<{ name: string; url: string }>).detail;
+      if (d.name === base.name) setDriveUrl(d.url);
+    };
+    window.addEventListener(DRIVE_EVENT, on);
+    return () => window.removeEventListener(DRIVE_EVENT, on);
+  }, [drive, base.name]);
+  const previewUrl = driveUrl || currentUrl || defaultUrl;
   return (
     <FieldShell {...base} hint={base.hint ?? "JPG/PNG/WEBP/GIF, 5MB 이하"}>
       {previewUrl && (
         // 관리자 미리보기는 원본 그대로 보여준다 (최적화 불필요)
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={previewUrl} alt={currentUrl ? "현재 이미지" : "기본 이미지"} className={styles.imagePreview} />
+        <img src={previewUrl} alt={driveUrl ? "드라이브에서 가져온 이미지" : currentUrl ? "현재 이미지" : "기본 이미지"} className={styles.imagePreview} />
       )}
-      {!currentUrl && defaultUrl && <span className={styles.hint}>지금은 기본 이미지를 쓰고 있습니다</span>}
+      {driveUrl && <span className={styles.hint}>드라이브에서 가져온 사진입니다. 저장하면 바뀝니다.</span>}
+      {!currentUrl && !driveUrl && defaultUrl && <span className={styles.hint}>지금은 기본 이미지를 쓰고 있습니다</span>}
+      {drive && (
+        <div className={styles.actions}>
+          <DrivePicker purpose={drive} accept={["image"]} max={1} onPick={(r) => r[0]?.url && setDriveUrl(r[0].url)} />
+          {driveUrl && (
+            <button type="button" className={styles.buttonGhost} onClick={() => setDriveUrl(null)}>
+              드라이브 사진 빼기
+            </button>
+          )}
+          {driveUrl && <input type="hidden" name={`${base.name}_drive`} value={driveUrl} />}
+        </div>
+      )}
       <input
         id={`f-${base.name}`}
         name={base.name}
@@ -192,10 +230,18 @@ export function ImageField({
 export function ImagesField({
   currentUrls = [],
   batchBytes,
+  drive,
   ...base
-}: Base & { currentUrls?: string[]; batchBytes: number }) {
+}: Base & {
+  currentUrls?: string[];
+  batchBytes: number;
+  /** 드라이브 자료함에서 여러 장 고르기 — max 는 칸 전체 최대 장수 (D-081) */
+  drive?: { purpose: DrivePurpose; max: number };
+}) {
   const error = useFieldError(base.name);
   const [tooLarge, setTooLarge] = useState(false);
+  const [driveUrls, setDriveUrls] = useState<string[]>([]);
+  const room = drive ? Math.max(0, drive.max - currentUrls.length - driveUrls.length) : 0;
   return (
     <FieldShell {...base}>
       {currentUrls.length > 0 && (
@@ -232,6 +278,35 @@ export function ImagesField({
         <span className={styles.error} role="alert">
           한 번에 합계 {Math.floor(batchBytes / 1024 / 1024)}MB 이하로 골라 주세요. 나눠서 여러 번 저장하면 됩니다.
         </span>
+      )}
+      {drive && (
+        <>
+          {driveUrls.length > 0 && (
+            <ul className={styles.imageList} aria-label="드라이브에서 가져온 사진">
+              {driveUrls.map((url, i) => (
+                <li key={url}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={url} alt={`드라이브 사진 ${i + 1}`} className={styles.imagePreview} />
+                  <input type="hidden" name={`${base.name}_drive`} value={url} />
+                  <button type="button" className={styles.buttonGhost} onClick={() => setDriveUrls((cur) => cur.filter((u) => u !== url))}>
+                    빼기
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className={styles.actions}>
+            <DrivePicker
+              purpose={drive.purpose}
+              accept={["image"]}
+              max={room}
+              onPick={(r) =>
+                setDriveUrls((cur) => [...cur, ...r.map((x) => x.url).filter((u): u is string => Boolean(u) && !cur.includes(u as string))])
+              }
+            />
+            {driveUrls.length > 0 && <span className={styles.hint}>드라이브 사진 {driveUrls.length}장은 새로 올린 사진 뒤에 붙습니다. 저장하면 반영됩니다.</span>}
+          </div>
+        </>
       )}
     </FieldShell>
   );

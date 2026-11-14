@@ -4,6 +4,8 @@
 // - cacheLife('minutes'): 태그 갱신이 다른 서버 인스턴스에 닿지 않아도 1분 안에 새 데이터로 바뀐다
 import { cacheLife, cacheTag } from "next/cache";
 import { LEAGUE } from "@/config/league";
+import { TEAM_CRESTS, type TeamCrestEntry } from "@/config/team-crests";
+import { mergeCrests } from "@/lib/crests";
 import { POSITION_ORDER } from "@/data/people";
 import { TAGS } from "@/lib/cache-tags";
 import type { ListKey } from "@/lib/content/lists";
@@ -192,4 +194,12 @@ export async function getSponsors() {
   cacheTag(TAGS.sponsors);
   cacheLife("minutes");
   return source().sponsors();
+}
+
+/** 상대팀 엠블럼 — 코드 목록(기본값) + 관리자가 올린 DB 줄 (D-094, I-048) */
+export async function getTeamCrests(): Promise<TeamCrestEntry[]> {
+  "use cache";
+  cacheTag(TAGS.crests);
+  cacheLife("minutes");
+  return mergeCrests(TEAM_CRESTS, await source().teamCrests());
 }

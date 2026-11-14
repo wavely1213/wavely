@@ -12,6 +12,8 @@ export type Player = {
   birth: string | null; // YYYY-MM-DD
   heightCm: number | null;
   stats: { apps: number; goals: number; assists: number };
+  /** 주장단 — 'C' 주장 / 'VC' 부주장 (D-093). 정적 데이터에는 없다 */
+  captain?: "C" | "VC" | null;
 };
 
 export type Staff = {
@@ -38,6 +40,13 @@ export type Match = {
   replayUrl: string | null;
   /** 우리 팀 득점자 한 줄, 관리자 입력 그대로 (예: "원해연 2, 김민성") */
   scorers: string | null;
+  /** 매치데이 포스터 (D-096) — 경기 날 0시 ~ 경기 끝 홈 팝업. 마이그레이션 전/정적 자료에는 없다 */
+  matchdayPoster?: string | null;
+  /** FULL TIME 포스터 (D-096) — 올라오면 그날 23:59 까지 홈 팝업 */
+  fulltimePoster?: string | null;
+  /** 포스터를 누르면 갈 인스타 게시물 (D-096, 새 창) */
+  matchdayPost?: string | null;
+  fulltimePost?: string | null;
 };
 
 export type StandingRow = {

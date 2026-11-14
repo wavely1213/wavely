@@ -1,7 +1,8 @@
-/* 매치데이 포스터 팝업 (임시) — 시안 P3 '포스터만 크게'(피그마 295:31549 / 295:31434), X 없음(소유자 지시).
+/* 매치데이 포스터 팝업 (D-096, 운영 임시판과 같은 모양) — 시안 P3 '포스터만 크게'(피그마 295:31549 / 295:31434), X 없음(소유자 지시).
    카드 없이 overlay-strong 위에 포스터(radius/m) + 아래 줄 [오늘 하루 보지 않기 | 닫기](각 44, kfa/body-s, 사이 space/s).
    위치: 휴대폰 가운데(양옆 space/m), PC 오른쪽 아래 space/xl(P2 자리, 폭 360).
-   넘침: 포스터 3:4 — 폭 = min(최대 폭, 남는 높이 x 3/4), 240 아래로는 줄이지 않고 세로로 넘김 */
+   넘침: 폭 = min(최대 폭, 남는 높이 x 포스터 비율), 240 아래로는 줄이지 않고 세로로 넘김.
+   포스터 비율(--poster-ratio)은 그림을 받은 뒤 원래 비율로 (MATCH DAY / FULL TIME 이 다를 수 있음, 받기 전 3:4) */
 .dialog {
   /* 100% = 스크롤 막대를 뺀 화면 폭(맨 앞 층의 기준 상자) — 100vw 는 PC 좁은 창에서 막대만큼 넓다 (검토) */
   --popup-max: calc(100% - 2 * var(--space-m));
@@ -9,8 +10,8 @@
   /* 초점 테두리(2 + 바깥 2)가 스크롤 상자 가장자리에 잘리지 않게 안쪽 여백 4 — 상자만 키우고 내용 자리는 그대로 (검토) */
   --popup-pad: var(--space-2xs);
   --popup-room: calc(100vh - 2 * var(--popup-edge) - var(--space-s) - 44px);
-  /* 포스터 원본 1199x1600 비율로 — 3/4 로 셈하면 0.1% 차이로 1px 세로 넘김이 생긴다 (검토) */
-  width: calc(max(240px, min(var(--popup-max), (var(--popup-room) - 1px) * 1199 / 1600)) + 2 * var(--popup-pad));
+  /* 그림의 원래 비율로 — 1px 덜어 반올림 차이로 생기는 세로 넘김을 막는다 (검토 c97fbd3) */
+  width: calc(max(240px, min(var(--popup-max), (var(--popup-room) - 1px) * var(--poster-ratio, 0.75))) + 2 * var(--popup-pad));
   max-width: none;
   max-height: calc(100vh - 2 * var(--popup-edge) + 2 * var(--popup-pad));
   padding: var(--popup-pad);

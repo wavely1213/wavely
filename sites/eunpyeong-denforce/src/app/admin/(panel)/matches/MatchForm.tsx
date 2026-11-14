@@ -1,7 +1,7 @@
 "use client";
 
 import { AdminForm } from "@/components/admin/AdminForm";
-import { Row, SelectField, TextField } from "@/components/admin/fields";
+import { ImageField, Row, SelectField, TextField } from "@/components/admin/fields";
 import { LEAGUE } from "@/config/league";
 import { isoToKst, type ActionState } from "@/lib/admin/form";
 import type { MatchRow } from "@/lib/data/rows";
@@ -100,6 +100,41 @@ export function MatchForm({
         hint="우리 팀만, 쉼표로 구분. 상태가 '종료'일 때만 저장됩니다"
         defaultValue={initial?.scorers}
       />
+      {/* D-096: 경기 날 홈 화면 팝업. 드라이브 포스터 폴더의 날짜 폴더에서 빈 칸에만 자동으로 들어온다. 여기서 올리면 그 값이 우선 */}
+      <Row>
+        <ImageField
+          name="matchday_poster"
+          label="MATCH DAY 포스터"
+          hint="경기 날 0시부터 경기 끝까지 홈 팝업. 지우면 자동으로 다시 채우지 않습니다"
+          currentUrl={initial?.matchday_poster_url}
+        />
+        <ImageField
+          name="fulltime_poster"
+          label="FULL TIME 포스터"
+          hint="올라오면 그날 23:59 까지 홈 팝업. 지우면 자동으로 다시 채우지 않습니다"
+          currentUrl={initial?.fulltime_poster_url}
+        />
+      </Row>
+      <Row>
+        <TextField
+          name="matchday_post_url"
+          label="MATCH DAY 게시물"
+          type="url"
+          maxLength={500}
+          placeholder="https://www.instagram.com/p/…"
+          hint="포스터를 누르면 갈 인스타 게시물 (새 창). 인스타 MATCH DAY 글이 올라오면 빈 칸에 자동으로 들어옵니다"
+          defaultValue={initial?.matchday_post_url}
+        />
+        <TextField
+          name="fulltime_post_url"
+          label="FULL TIME 게시물"
+          type="url"
+          maxLength={500}
+          placeholder="https://www.instagram.com/p/…"
+          hint="FULL TIME 포스터를 누르면 갈 게시물. 인스타 경기결과 글이 올라오면 빈 칸에 자동으로 들어옵니다"
+          defaultValue={initial?.fulltime_post_url}
+        />
+      </Row>
     </AdminForm>
   );
 }

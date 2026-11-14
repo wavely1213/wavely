@@ -17,6 +17,7 @@ import type {
   Staff,
   StandingRow,
 } from "@/types";
+import type { TeamCrestEntry } from "@/config/team-crests";
 import type { ContentItem } from "@/lib/content/lists";
 
 export type PlayerRow = {
@@ -32,6 +33,8 @@ export type PlayerRow = {
   goals: number;
   assists: number;
   is_active: boolean;
+  /** 마이그레이션(20261114120000) 전 DB 에는 열이 없다 */
+  captain?: "C" | "VC" | null;
 };
 
 export type StaffRow = { id: string; role: string; name: string; photo_url: string | null; sort_order: number };
@@ -50,6 +53,11 @@ export type MatchRow = {
   highlight_url: string | null;
   replay_url: string | null;
   scorers: string | null;
+  /** 마이그레이션(20261114150000) 전 DB 에는 열이 없다 (D-096) */
+  matchday_poster_url?: string | null;
+  fulltime_poster_url?: string | null;
+  matchday_post_url?: string | null;
+  fulltime_post_url?: string | null;
 };
 
 export type StandingDbRow = {
@@ -139,6 +147,30 @@ export function splitParagraphs(text: string): string[] {
     .filter(Boolean);
 }
 
+/** team_crests (D-094) */
+export type TeamCrestRow = {
+  name: string;
+  aliases: string[] | null;
+  file_url: string | null;
+  file_on_light_url: string | null;
+  width: number | null;
+  height: number | null;
+  source: string | null;
+  note: string | null;
+  updated_at: string | null;
+};
+
+export const toTeamCrest = (r: TeamCrestRow): TeamCrestEntry => ({
+  name: r.name,
+  aliases: r.aliases ?? [],
+  file: r.file_url,
+  ...(r.file_on_light_url ? { fileOnLight: r.file_on_light_url } : {}),
+  pixels: r.width && r.height ? [r.width, r.height] : null,
+  source: r.source,
+  fetchedAt: r.updated_at ? r.updated_at.slice(0, 10) : null,
+  note: r.note ?? "",
+});
+
 export const toPlayer = (r: PlayerRow): Player => ({
   id: r.id,
   slug: r.slug,
@@ -149,6 +181,7 @@ export const toPlayer = (r: PlayerRow): Player => ({
   birth: r.birth,
   heightCm: r.height_cm,
   stats: { apps: r.apps, goals: r.goals, assists: r.assists },
+  captain: r.captain ?? null,
 });
 
 export const toStaff = (r: StaffRow): Staff => ({ id: r.id, role: r.role, name: r.name, photo: r.photo_url });
@@ -170,6 +203,10 @@ export const toMatch = (r: MatchRow): Match => ({
   highlightUrl: r.highlight_url ?? null,
   replayUrl: r.replay_url ?? null,
   scorers: r.scorers ?? null,
+  matchdayPoster: r.matchday_poster_url ?? null,
+  fulltimePoster: r.fulltime_poster_url ?? null,
+  matchdayPost: r.matchday_post_url ?? null,
+  fulltimePost: r.fulltime_post_url ?? null,
 });
 
 export const toStanding = (r: StandingDbRow): StandingRow => ({

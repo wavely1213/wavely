@@ -418,6 +418,14 @@ enabled = true
 [functions.instagram-sync]
 verify_jwt = false
 
+# 드라이브 자료함 (D-081) — 관리자 로그인 토큰으로만 부른다. 등급 확인(admin_role)은 함수 안에서. 키는 함수 비밀값 GOOGLE_DRIVE_API_KEY
+[functions.drive-library]
+verify_jwt = true
+
 # 연맹 유튜브 경기 영상 자동 연결 (D-090) — pg_cron 이 JWT 없이 x-sync-secret 헤더로 부른다. 호출 확인은 함수 안에서 (Vault 값 비교)
 [functions.kfl-video-sync]
+verify_jwt = false
+
+# 매치데이 포스터 자동 연결 (D-096) — pg_cron 이 JWT 없이 x-sync-secret 헤더로 부른다. 드라이브 키는 함수 비밀값 GOOGLE_DRIVE_API_KEY (D-081 과 같음)
+[functions.matchday-poster-sync]
 verify_jwt = false

@@ -17,6 +17,14 @@
   background: var(--c-black-soft);
 }
 
+/* 이름 + 주장단 배지, 사이 space/xs */
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-width: 0;
+}
+
 .name {
   font-size: 18px;
   line-height: 1.2;

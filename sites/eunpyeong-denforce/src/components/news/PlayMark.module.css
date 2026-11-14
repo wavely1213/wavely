@@ -23,3 +23,18 @@
   width: 14px;
   height: 14px;
 }
+
+/* PC 36 / 휴대폰 28, 왼쪽 아래 space/xs 8 (홈 릴스 줄, D-095) */
+@media (max-width: 720px) {
+  .phoneSmall {
+    left: var(--space-xs);
+    bottom: var(--space-xs);
+    width: 28px;
+    height: 28px;
+  }
+
+  .phoneSmall svg {
+    width: 14px;
+    height: 14px;
+  }
+}

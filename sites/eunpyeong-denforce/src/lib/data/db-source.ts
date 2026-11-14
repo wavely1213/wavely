@@ -15,6 +15,7 @@ import {
   toSponsor,
   toStaff,
   toStanding,
+  toTeamCrest,
   type AlumniRow,
   type ClubSettingsRow,
   type ContentItemRow,
@@ -27,6 +28,7 @@ import {
   type SponsorRow,
   type StaffRow,
   type StandingDbRow,
+  type TeamCrestRow,
 } from "./rows";
 
 // Supabase 데이터 소스 — anon 권한으로 공개 데이터만 읽는다 (RLS: 비공개 글 제외).
@@ -34,6 +36,11 @@ import {
 function unwrap<T>(table: string, res: { data: T[] | null; error: { message: string } | null }): T[] {
   if (res.error) throw new Error(`[db] ${table} 조회 실패: ${res.error.message}`);
   return res.data ?? [];
+}
+
+/** 표가 아직 없음(마이그레이션 전) — PostgREST 42P01 / PGRST205 */
+function isMissingTable(error: { code?: string; message: string }): boolean {
+  return error.code === "42P01" || error.code === "PGRST205" || /does not exist|schema cache/i.test(error.message);
 }
 
 export const dbSource: DataSource = {
@@ -101,5 +108,11 @@ export const dbSource: DataSource = {
       .order("sort_order")
       .returns<ContentItemRow[]>();
     return unwrap("content_items", res).map(toContentItem);
+  },
+  async teamCrests() {
+    const res = await createPublicClient().from("team_crests").select("*").order("name").returns<TeamCrestRow[]>();
+    // 마이그레이션 전에는 표가 없다 — 코드 목록만 쓰게 빈 목록 (화면이 깨지지 않게)
+    if (res.error && isMissingTable(res.error)) return [];
+    return unwrap("team_crests", res).map(toTeamCrest);
   },
 };

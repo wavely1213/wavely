@@ -13,6 +13,8 @@ export const TAGS = {
   /** 홈페이지 내용 — 한 칸짜리 값 / 목록 (D-046) */
   content: "content",
   contentItems: "content-items",
+  /** 상대팀 엠블럼 (D-094) */
+  crests: "crests",
 } as const;
 
 export type CacheTag = (typeof TAGS)[keyof typeof TAGS];

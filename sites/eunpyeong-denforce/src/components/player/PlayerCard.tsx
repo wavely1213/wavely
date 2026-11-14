@@ -4,6 +4,7 @@ import { EmblemFallback } from "@/components/ui/EmblemFallback";
 import { POSITION_LABEL } from "@/data/people";
 import { playerAppsLine } from "@/lib/player-profile";
 import type { Player } from "@/types";
+import { CaptainBadge } from "./CaptainBadge";
 import styles from "./PlayerCard.module.css";
 
 /**
@@ -25,6 +26,8 @@ export function PlayerCard({ player, appsSeason = null }: { player: Player; apps
         {/* 등번호가 비어 있으면(시즌 번호 확정 전, BR-025) 이름만 */}
         {player.number != null && <span className={styles.number}>{player.number}</span>}
         <strong className={styles.name}>{player.name}</strong>
+        {/* 주장단 C / VC (D-093) — 이름 옆 */}
+        <CaptainBadge captain={player.captain} />
       </div>
       <span className={styles.position}>{POSITION_LABEL[player.position]}</span>
       {appsSeason && (

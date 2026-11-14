@@ -74,5 +74,33 @@ check("종료 경기 스코어 없으면 DB 가 거부", bad.error?.code === "23
 // 6) 제약: 경기 영상 주소는 https 만 (20261018100000)
 const badVideo = await admin.from("matches").insert({ competition: "c", kickoff: "2026-01-01T00:00:00Z", opponent: "o", highlight_url: "http://example.com/v" });
 check("경기 영상 주소가 https 가 아니면 DB 가 거부", badVideo.error?.code === "23514");
+// 6-1) 매치데이 포스터도 https 만 (20261114150000, D-096)
+const badPoster = await admin.from("matches").insert({ competition: "c", kickoff: "2026-01-01T00:00:00Z", opponent: "o", matchday_poster_url: "http://example.com/p.jpg" });
+check("매치데이 포스터 주소가 https 가 아니면 DB 가 거부", badPoster.error?.code === "23514");
+// 7) 연맹 기록 표 (D-082, 명세 1.3) — 시드(supabase/data/2026-11-14_kfl_seed.sql)가 실행된 로컬 DB
+const view = await anon.from("player_season_stats").select("player_id");
+check("anon 선수 시즌 기록 뷰 조회 가능", !view.error);
+check("anon kfl_games 공개 열 조회 가능", !(await anon.from("kfl_games").select("league_seq, game_number, match_id")).error);
+for (const [t, col] of [["kfl_games", "note"], ["match_appearances", "note"], ["match_appearances", "suggested_player_id"], ["match_appearances", "updated_by"], ["kfl_clubs", "updated_by"], ["kfl_leagues", "updated_by"], ["kfl_games", "applied_hash"]]) {
+  check(`anon ${t}.${col} 조회 거부`, Boolean((await anon.from(t).select(col).limit(1)).error));
+}
+for (const t of ["kfl_sync_state", "kfl_sheet_snapshots", "player_season_numbers", "namu_player_docs"]) {
+  const r = await anon.from(t).select("*").limit(1);
+  check(`anon ${t} 조회 거부`, Boolean(r.error));
+  const u = await user.from(t).select("*").limit(1);
+  check(`비관리자 ${t} 행 안 보임`, !u.error && u.data.length === 0);
+}
+check("관리자 kfl_sync_state 보임", (await admin.from("kfl_sync_state").select("id")).data?.length === 1);
+const lg = await user.from("kfl_leagues").update({ stats_live: true }).eq("league_seq", 116).select("league_seq");
+check("비관리자 kfl_leagues 쓰기 거부", !lg.data?.length);
+const lgA = await admin.from("kfl_leagues").update({ stats_live: false }).eq("league_seq", 116).select("league_seq");
+check("관리자 kfl_leagues 쓰기 허용", lgA.data?.length === 1);
+check("관리자 kfl_games 허용 열(state) 수정 가능", !(await admin.from("kfl_games").update({ state: "reviewed" }).eq("league_seq", 0)).error);
+check("관리자 kfl_games 허용 밖 열(home_score) 수정 거부", Boolean((await admin.from("kfl_games").update({ home_score: 1 }).eq("league_seq", 0)).error));
+check("관리자 kfl_sync_state 허용 열(paused_until) 수정 가능", (await admin.from("kfl_sync_state").update({ paused_until: null }).eq("id", 1).select("id")).data?.length === 1);
+check("관리자 kfl_sync_state 허용 밖 열(last_error) 수정 거부", Boolean((await admin.from("kfl_sync_state").update({ last_error: "x" }).eq("id", 1)).error));
+check("관리자 match_appearances 허용 밖 열(goal_minutes) 수정 거부", Boolean((await admin.from("match_appearances").update({ goal_minutes: [1] }).eq("shirt_number", -1)).error));
+// 출전 기록이 있는 선수 삭제는 23503 — 서버 키 없이 만들 수 없어, 관리자가 쓸 수 있는 표만으로는 확인하지 못한다.
+// 로컬에서 psql 로 확인: supabase/tests/kfl-records.sql
 console.log(fail ? `\n${fail} FAILED` : "\nALL PASS");
 process.exit(fail ? 1 : 0);

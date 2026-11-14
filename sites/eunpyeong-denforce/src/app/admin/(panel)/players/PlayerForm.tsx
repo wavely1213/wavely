@@ -2,6 +2,13 @@
 
 import { AdminForm } from "@/components/admin/AdminForm";
 import { CheckboxField, ImageField, Row, SelectField, TextField } from "@/components/admin/fields";
+
+/** 주장단 고르기 (D-093) — 빈 값 = 없음 */
+const CAPTAIN_OPTIONS = [
+  { value: "", label: "없음" },
+  { value: "C", label: "주장 (C)" },
+  { value: "VC", label: "부주장 (VC)" },
+];
 import { POSITION_LABEL, POSITION_ORDER } from "@/data/people";
 import type { ActionState } from "@/lib/admin/form";
 import type { PlayerRow } from "@/lib/data/rows";
@@ -34,6 +41,13 @@ export function PlayerForm({
           defaultValue={initial?.position}
         />
       </Row>
+      <SelectField
+        name="captain"
+        label="주장단"
+        options={CAPTAIN_OPTIONS}
+        hint="선수 카드 이름 옆 C / VC 배지와 선수 상세 '주장' / '부주장' 글자로 보입니다."
+        defaultValue={initial?.captain ?? ""}
+      />
       <TextField
         name="slug"
         label="주소"
@@ -56,7 +70,7 @@ export function PlayerForm({
         <TextField name="goals" label="득점" type="number" required defaultValue={initial?.goals ?? 0} />
         <TextField name="assists" label="도움" type="number" required defaultValue={initial?.assists ?? 0} />
       </Row>
-      <ImageField name="photo" label="사진" currentUrl={initial?.photo_url} />
+      <ImageField name="photo" label="사진" currentUrl={initial?.photo_url} drive="players" />
       <CheckboxField
         name="is_active"
         label="활동 중 (끄면 홈페이지에서 숨깁니다)"

@@ -11,7 +11,7 @@
 - 테스트 프레임워크: Node 내장 테스트 러너 (`node --test`, 추가 의존성 없음)
 - 전체 실행: `npm test`
 - 단일 파일 실행: `node --experimental-strip-types --test tests/form.test.ts`
-- 테스트 파일 위치·네이밍: `tests/*.test.ts`. 대상은 순수 함수만 (Node 가 `@/` 별칭을 모르므로 상대경로 + `.ts` 확장자로 import, 대상 파일도 값 import 없이 `import type` 만)
+- 테스트 파일 위치·네이밍: `tests/*.test.ts`. 대상은 순수 함수만 (Node 가 `@/` 별칭을 모르므로 테스트는 상대경로 + `.ts` 확장자로 import. 대상 파일에서 금지는 '`@/` 별칭 값 import' 이고, 상대경로 `.ts` 값 import 는 허용 — 예 `src/lib/player-profile.ts`, `supabase/functions/*/plan.ts`. `@/` 는 `import type` 만)
 - 권한(RLS) 검사: `supabase/tests/rls-check.mjs` — 로컬 Supabase 전용. anon / 비관리자 / 관리자 각각의 쓰기 허용·거부, 비공개 글 노출, 감사 기록, DB 제약을 확인
 - 완료 기준(관리자·데이터 변경 시): `npm run lint` + `npm test` + 고정 데이터 모드 `npm run build` + DB 모드(로컬 Supabase env) `npm run build` + rls-check
 

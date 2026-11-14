@@ -3,7 +3,9 @@
 import { updateTag } from "next/cache";
 import { TAGS } from "@/lib/cache-tags";
 import { NOT_ADMIN_MESSAGE, requireAdminAction } from "@/lib/admin/auth";
+import { folderIdFromLink, folderLink } from "@/lib/admin/drive";
 import { dbErrorMessage, FormReader, submittedValues, type ActionState } from "@/lib/admin/form";
+import { OWNER_ROLES } from "@/lib/admin/roles";
 import { PREVIEW_IMAGE_ACCEPT, removeImages, resolveImage } from "@/lib/admin/storage";
 
 // 링크 미리보기(club_settings.og_* · admin_og_*) 서버 액션 (D-037·D-038) — 관리자 › 설정 (D-048)
@@ -71,5 +73,47 @@ export async function savePreviewSettings(_prev: ActionState, fd: FormData): Pro
     message: "저장했습니다. 카카오톡에 예전 미리보기가 계속 보이면 아래 안내대로 카카오 캐시를 초기화해 주세요.",
     // 저장한 글을 폼 기본값으로 — 폼 초기화가 예전 값으로 되돌리지 않게 (삭제 체크는 풀림)
     values: Object.fromEntries(Object.entries(texts).map(([k, v]) => [k, v ?? ""])),
+  };
+}
+
+/**
+ * 드라이브 자료함 연결 (D-081) — 최고 관리자만. 폴더 링크에서 ID 만 뽑아 club_settings.drive_folder_id 에 저장한다.
+ * 비우면 연결을 끊는다. 키(GOOGLE_DRIVE_API_KEY)는 여기서 다루지 않는다 (Supabase 함수 비밀값).
+ */
+export async function saveDriveFolder(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const ctx = await requireAdminAction(OWNER_ROLES);
+  if (!ctx) return { message: "최고 관리자만 드라이브 폴더를 연결할 수 있습니다." };
+  const f = new FormReader(fd);
+  const link = f.optText("drive_folder", { label: "드라이브 폴더 링크", max: 500 });
+  const id = link ? folderIdFromLink(link) : null;
+  if (link && !id) f.reject("drive_folder", "드라이브 폴더 링크(drive.google.com/drive/folders/…)를 넣어 주세요.");
+  if (f.hasErrors) return f.state();
+  const { error } = await ctx.supabase.from("club_settings").update({ drive_folder_id: id }).eq("id", 1);
+  if (error) return { message: dbErrorMessage(error), values: submittedValues(fd) };
+  return {
+    ok: true,
+    message: id ? "드라이브 폴더를 연결했습니다. 드라이브 자료함에서 열어 보세요." : "드라이브 연결을 끊었습니다.",
+    values: { drive_folder: id ? folderLink(id) : "" },
+  };
+}
+
+/**
+ * 매치데이 포스터 폴더 (D-096) — 최고 관리자만. 날짜 폴더('MM/DD vs 상대 (HOME|AWAY)')가 든 폴더의 링크에서 ID 만 뽑아
+ * club_settings.matchday_folder_id 에 저장한다. 서버 함수 matchday-poster-sync 가 이 폴더를 읽는다.
+ */
+export async function saveMatchdayFolder(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const ctx = await requireAdminAction(OWNER_ROLES);
+  if (!ctx) return { message: "최고 관리자만 포스터 폴더를 바꿀 수 있습니다." };
+  const f = new FormReader(fd);
+  const link = f.optText("matchday_folder", { label: "포스터 폴더 링크", max: 500 });
+  const id = link ? folderIdFromLink(link) : null;
+  if (link && !id) f.reject("matchday_folder", "드라이브 폴더 링크(drive.google.com/drive/folders/…)를 넣어 주세요.");
+  if (f.hasErrors) return f.state();
+  const { error } = await ctx.supabase.from("club_settings").update({ matchday_folder_id: id }).eq("id", 1);
+  if (error) return { message: dbErrorMessage(error), values: submittedValues(fd) };
+  return {
+    ok: true,
+    message: id ? "포스터 폴더를 연결했습니다. 15분 안에 자동 확인이 이 폴더를 읽습니다." : "포스터 폴더 연결을 끊었습니다.",
+    values: { matchday_folder: id ? folderLink(id) : "" },
   };
 }

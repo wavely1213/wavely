@@ -13,6 +13,7 @@ import {
   parseWelcome,
   planFarewell,
   planMatchday,
+  postLinkTarget,
   planResult,
   planWelcome,
   positionLabel,
@@ -170,7 +171,7 @@ async function apply(db: Db, post: IgPost, roster: RosterPlayer[], matches: Matc
   } else if (type === "matchday") {
     const plan = planMatchday(post, matches);
     if (plan.insert) {
-      const [row] = await must(db.from("matches").insert(plan.insert).select("id, kickoff, opponent, status, score_us, score_them, venue"), "경기 넣기");
+      const [row] = await must(db.from("matches").insert(plan.insert).select("*"), "경기 넣기");
       matches.push(row as MatchLite);
       out.actions.push(`경기 일정: ${plan.insert.competition} ${plan.insert.round} vs ${plan.insert.opponent} (${plan.insert.kickoff.slice(0, 16).replace("T", " ")})`);
     }
@@ -185,6 +186,17 @@ async function apply(db: Db, post: IgPost, roster: RosterPlayer[], matches: Matc
       out.actions.push(`경기 결과: ${values.score_us}:${values.score_them}${values.scorers ? ` (득점 ${values.scorers})` : ""}`);
     }
     if (plan.note) out.notes.push(plan.note);
+  }
+
+  // 매치데이 팝업 포스터 링크 (D-096): MATCH DAY / 경기결과 글 주소를 그 경기의 빈 칸에. 그사이 관리자가 넣었으면 is null 로 건너뛴다
+  const link = postLinkTarget(post, type, matches);
+  if (link) {
+    const set = await must(db.from("matches").update({ [link.field]: link.url }).eq("id", link.matchId).is(link.field, null).select("id"), "포스터 링크 넣기");
+    if (set?.length) {
+      const m = matches.find((x) => x.id === link.matchId);
+      if (m) m[link.field] = link.url;
+      out.actions.push(link.field === "matchday_post_url" ? "매치데이 포스터 링크" : "FULL TIME 포스터 링크");
+    }
   }
 
   // 모든 게시물 → 포스팅 (BR-029). 마지막에 넣어 '이미 넣은 게시물' 표시가 된다
@@ -230,7 +242,7 @@ async function sync(db: Db) {
   const roster = (await must(db.from("players").select("id, name, is_active, position, slug"), "선수 읽기")) as RosterPlayer[];
   const since = new Date(Date.now() - 60 * 86_400_000).toISOString();
   const matches = (await must(
-    db.from("matches").select("id, kickoff, opponent, status, score_us, score_them, venue").gte("kickoff", since),
+    db.from("matches").select("*").gte("kickoff", since),
     "경기 읽기",
   )) as MatchLite[];
 
