@@ -44,7 +44,8 @@ test("crestFor: 12팀과 별칭 모두 찾음 (총괄 863f54b, 58ed10d)", () => 
 test("crestFor: 못 구한 팀, 모르는 팀, 빈 이름은 null", () => {
   assert.equal(crestFor("인천ZD스포츠"), "/crests/incheon-zd.png");
   assert.equal(crestFor("인천ZD"), "/crests/incheon-zd.png");
-  assert.equal(crestFor("제천FS"), null);
+  // 제천FS: 소유자 지정 원형 엠블럼 (2026-11-15, I-051)
+  assert.equal(crestFor("제천FS"), "/crests/jecheon.png");
   assert.equal(crestFor("없는팀"), null);
   assert.equal(crestFor("   "), null);
 });
@@ -59,12 +60,14 @@ test("TEAM_CRESTS: 이름 겹침 없음, 파일은 실제로 있고 출처와 �
       // PNG 머리(IHDR)의 가로/세로가 적어 둔 픽셀과 같고, 긴 변 256 이상
       const png = readFileSync(url);
       assert.deepEqual([png.readUInt32BE(16), png.readUInt32BE(20)], e.pixels, e.file);
-      assert.ok(Math.max(...(e.pixels ?? [0])) >= 256, e.file);
+      // 소유자가 직접 준 원본은 받은 크기 그대로(200 이상) — 그 밖은 긴 변 256 이상
+      const ownerGiven = e.source?.startsWith("소유자 제공") ?? false;
+      assert.ok(Math.max(...(e.pixels ?? [0])) >= (ownerGiven ? 200 : 256), e.file);
       if (e.fileOnLight) {
         const light = readFileSync(new URL(`../public${e.fileOnLight}`, import.meta.url));
         assert.deepEqual([light.readUInt32BE(16), light.readUInt32BE(20)], e.pixels, e.fileOnLight);
       }
-      assert.ok(e.source?.startsWith("https://") && /^\d{4}-\d{2}-\d{2}$/.test(e.fetchedAt ?? ""), e.name);
+      assert.ok((e.source?.startsWith("https://") || ownerGiven) && /^\d{4}-\d{2}-\d{2}$/.test(e.fetchedAt ?? ""), e.name);
     } else {
       assert.match(e.note, /^못 구함: /, e.name);
       assert.equal(e.pixels, null, e.name);

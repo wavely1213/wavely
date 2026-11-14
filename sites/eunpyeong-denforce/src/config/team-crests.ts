@@ -1,5 +1,6 @@
 // 상대팀 엠블럼 원본 목록 (D-069 2단계 보류 중 자료 모으기).
 // 조건: 투명 PNG/SVG, 긴 변 256px 이상, 원/그림자/흰 원판이 들어가지 않은 것, 공식 경로(구단 홈페이지, 공식 SNS, 연맹 공식 자료)만.
+// 예외: 소유자가 직접 준 원본(source 가 '소유자 제공')은 받은 그대로 쓴다(긴 변 200 이상).
 // futsal.or.kr 의 team_*.png(92px, 흰 원과 그림자 포함)는 쓰지 않는다. 못 구한 팀은 file 을 null 로 두고 note 에 이유를 적는다.
 // 관리자 화면 업로드 칸은 아직 없다 (KNOWN_ISSUES [관리자 칸 필요]).
 
@@ -135,10 +136,10 @@ export const TEAM_CRESTS: TeamCrestEntry[] = [
   {
     name: "제천FS",
     aliases: [],
-    file: null,
-    pixels: null,
-    source: null,
-    fetchedAt: null,
-    note: "못 구함: 후보(제천시민축구단 방패)가 풋살팀 엠블럼인지 확인되지 않음 — 대체 방패로 둔다(총괄 2026-11-10, I-051)",
+    file: "/crests/jecheon.png",
+    pixels: [200, 200],
+    source: "소유자 제공 (2026-11-15, JECHEON FUTSAL CLUB 원형 엠블럼)",
+    fetchedAt: "2026-11-15",
+    note: "소유자 지정(I-051 해결). 200x200 투명 PNG — 긴 변 256 기준보다 작아 PC 가장 큰 자리(112)에서 2배 화면이면 살짝 늘어남. 바깥 검정 원은 엠블럼 자체 모양",
   },
 ];
