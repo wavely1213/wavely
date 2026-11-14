@@ -130,9 +130,9 @@ test("planFolder: 빈 칸만, 관리자 값 우선, 지운 칸 다시 안 채움
   );
   assert.deepEqual(planFolder(pm({ matchday_poster_url: MD }), files, new Set()).updates.map((u) => u.field), ["fulltime_poster_url"]);
   assert.deepEqual(planFolder(pm(), files, new Set(["m1:matchday_poster_url"])).updates.map((u) => u.field), ["fulltime_poster_url"]);
+  // 미리보기 없는 파일도 후보(thumb 빈칸) — 1등이면 함수가 그 칸을 건너뛴다
   const noThumb = planFolder(pm(), [file("MATCH-DAY.jpg", { thumbnailLink: "" })], new Set());
-  assert.deepEqual(noThumb.updates, []);
-  assert.equal(noThumb.notes.length, 1);
+  assert.deepEqual(noThumb.updates.map((u) => u.thumb), [""]);
   // 같은 종류 여러 장 → 최근에 바뀐 것부터 (모두 후보)
   const newer = planFolder(pm(), [file("MATCH-DAY.jpg", { modifiedTime: "2026-11-10" }), file("MATCH-DAY 2.jpg", { modifiedTime: "2026-11-12", id: "newer_file_id_123" })], new Set());
   assert.equal(newer.updates[0].fileId, "newer_file_id_123");
@@ -143,8 +143,8 @@ test("needsPoster, storagePath, sizedThumb", () => {
   assert.equal(needsPoster(pm(), new Set()), true);
   assert.equal(needsPoster(pm({ matchday_poster_url: MD, fulltime_poster_url: FT }), new Set()), false);
   assert.equal(needsPoster(pm({ matchday_poster_url: MD }), new Set(["m1:fulltime_poster_url"])), false);
-  assert.equal(storagePath("m1", "matchday_poster_url"), "matchday/m1.jpg");
-  assert.equal(storagePath("m1", "fulltime_poster_url"), "matchday/m1-ft.jpg");
+  // 파일마다 따로 (고정 경로 덮어쓰기 없음)
+  assert.equal(storagePath("m1", "fileA_0000000000"), "matchday/m1-fileA_0000000000.jpg");
   assert.equal(sizedThumb("https://a/b", 1600), "https://a/b=s1600");
 });
 
@@ -162,8 +162,8 @@ test("포스터 링크: 인스타그램 게시물 주소만 창에 실린다", (
   assert.equal(w.fulltimePost, null);
 });
 
-test("candidateGroups: 같은 (경기, 칸) 후보를 묶어 HOME/AWAY 맞는 폴더, 최신 순", async () => {
-  const { candidateGroups } = await import("../supabase/functions/matchday-poster-sync/plan.ts");
+test("firstCandidates: (경기, 칸)마다 1등 하나만 — HOME/AWAY 맞는 폴더, 그다음 최신", async () => {
+  const { firstCandidates } = await import("../supabase/functions/matchday-poster-sync/plan.ts");
   const u = (fileName: string, sideMatch: boolean, modifiedTime: string, field: "matchday_poster_url" | "fulltime_poster_url" = "matchday_poster_url") => ({
     matchId: "m1",
     field,
@@ -174,10 +174,13 @@ test("candidateGroups: 같은 (경기, 칸) 후보를 묶어 HOME/AWAY 맞는 �
     sideMatch,
     modifiedTime,
   });
-  const g = candidateGroups([u("old.jpg", true, "2026-11-01"), u("wrongside.jpg", false, "2026-11-20"), u("new.jpg", true, "2026-11-10"), u("FULL.jpg", true, "", "fulltime_poster_url")]);
+  const g = firstCandidates([u("old.jpg", true, "2026-11-01"), u("wrongside.jpg", false, "2026-11-20"), u("new.jpg", true, "2026-11-10"), u("FULL.jpg", true, "", "fulltime_poster_url")]);
   assert.deepEqual(
-    g.map((x) => x.map((y) => y.fileName)),
-    [["new.jpg", "old.jpg", "wrongside.jpg"], ["FULL.jpg"]],
+    g.map((x) => [x.pick.fileName, x.count]),
+    [
+      ["new.jpg", 3],
+      ["FULL.jpg", 1],
+    ],
   );
 });
 
@@ -207,9 +210,9 @@ test("redactKey: 오류 문구 속 API 키를 가린다", async () => {
   assert.equal(redactKey("TimeoutError: Signal timed out. url=https://x/y?key=AIzaSyA-b_c"), "TimeoutError: Signal timed out. url=https://x/y?key=***");
 });
 
-test("planFolder: 가장 최근 파일에 미리보기가 아직 없으면 그 칸은 이번에 건너뜀 (옛 파일 안 올림)", () => {
+test("가장 최근 파일에 미리보기가 아직 없으면 1등이 그 파일 — 옛 파일로 내려가지 않음", async () => {
+  const { firstCandidates } = await import("../supabase/functions/matchday-poster-sync/plan.ts");
   const files = [file("MATCH-DAY.jpg", { modifiedTime: "2026-11-10" }), file("MATCH-DAY 2.jpg", { modifiedTime: "2026-11-12", id: "newer_file_id_123", thumbnailLink: "" })];
-  const p = planFolder(pm(), files, new Set(), { name: "11/15 vs 노원제너FS (AWAY)" });
-  assert.deepEqual(p.updates, []);
-  assert.match(p.notes[0], /미리보기가 아직 없음/);
+  const [first] = firstCandidates(planFolder(pm(), files, new Set(), { name: "11/15 vs 노원제너FS (AWAY)" }).updates);
+  assert.deepEqual([first.pick.fileId, first.pick.thumb, first.count], ["newer_file_id_123", "", 2]);
 });

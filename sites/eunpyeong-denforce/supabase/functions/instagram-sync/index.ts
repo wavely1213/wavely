@@ -177,7 +177,7 @@ async function apply(db: Db, post: IgPost, roster: RosterPlayer[], matches: Matc
     }
     if (plan.note) out.notes.push(plan.note);
   } else if (type === "result") {
-    const plan = planResult(post, matches);
+    const plan = planResult(post, matches, roster);
     if (plan.update) {
       const { id, ...values } = plan.update;
       // 그사이 관리자가 결과를 넣었으면 덮지 않는다 — 예정이고 점수가 빈 행만
@@ -242,7 +242,7 @@ async function sync(db: Db) {
     .reverse();
   if (!todo.length) return { checked: posts.length, processed: 0, warning };
 
-  const roster = (await must(db.from("players").select("id, name, is_active, position, slug"), "선수 읽기")) as RosterPlayer[];
+  const roster = (await must(db.from("players").select("id, name, is_active, position, slug, number"), "선수 읽기")) as RosterPlayer[];
   const since = new Date(Date.now() - 60 * 86_400_000).toISOString();
   const matches = (await must(
     db.from("matches").select("*").gte("kickoff", since),

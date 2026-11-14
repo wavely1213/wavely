@@ -93,18 +93,13 @@ export function planFolder(
     const list = files
       .filter((f) => f.mimeType.startsWith("image/") && posterKind(f.name) === field)
       .sort((a, b) => (b.modifiedTime ?? "").localeCompare(a.modifiedTime ?? ""));
-    // 가장 최근 파일의 미리보기가 아직 없으면 이 칸은 이번 실행에서 통째로 건너뛴다 — 옛 파일을 올리고 기록으로 잠그지 않게
-    if (list.length && !list[0].thumbnailLink) {
-      notes.push(`${folder.name} / ${list[0].name}: 드라이브 미리보기가 아직 없음(다음 실행에 다시)`);
-      continue;
-    }
+    // 미리보기가 없는 파일도 후보로 낸다 — 1등이 미리보기 없음이면 그 칸은 이번 실행에서 건너뛴다(firstCandidates)
     for (const file of list) {
-      if (!file.thumbnailLink) continue;
       updates.push({
         matchId: match.id,
         field,
         fileId: file.id,
-        thumb: sizedThumb(file.thumbnailLink, POSTER_LONG_SIDE),
+        thumb: file.thumbnailLink ? sizedThumb(file.thumbnailLink, POSTER_LONG_SIDE) : "",
         fileName: file.name,
         folderName: folder.name,
         sideMatch,
@@ -115,9 +110,9 @@ export function planFolder(
   return { updates, notes };
 }
 
-/** 저장소 경로 — 경기마다 한 자리 (다시 넣어도 같은 파일) */
-export function storagePath(matchId: string, field: PosterField): string {
-  return field === "fulltime_poster_url" ? `matchday/${matchId}-ft.jpg` : `matchday/${matchId}.jpg`;
+/** 저장소 경로 — 파일마다 따로 (고정 경로를 덮어쓰지 않는다, 총괄 4차 검토) */
+export function storagePath(matchId: string, fileId: string): string {
+  return `matchday/${matchId}-${fileId}.jpg`;
 }
 
 /** 이번 호출에 드라이브를 읽을지 — 경기 날(서울)이면 매번, 아니면 마지막 성공 뒤 3시간 */
@@ -133,16 +128,17 @@ export function needsPoster(m: PosterMatch, applied: ReadonlySet<string>): boole
 }
 
 /**
- * 같은 (경기, 칸)의 후보를 묶어 쓸 순서로 — HOME/AWAY 가 경기와 맞는 폴더 먼저, 그다음 최근에 바뀐 파일 먼저.
- * 받기에 실패하면 다음 후보, 올리면 그 칸은 멈춘다(저장소 파일은 칸마다 한 번만 덮어쓴다).
+ * (경기, 칸)마다 모든 폴더의 후보 중 1등 하나만 — HOME/AWAY 가 경기와 맞는 폴더 먼저, 그다음 최근에 바뀐 파일.
+ * 1등이 미리보기 없음/받기 실패/올리기 실패면 그 칸은 이번 실행에서 건너뛴다(다음 후보로 내려가지 않는다, 총괄 4차 검토).
  */
-export function candidateGroups(updates: readonly PosterUpdate[]): PosterUpdate[][] {
+export function firstCandidates(updates: readonly PosterUpdate[]): Array<{ pick: PosterUpdate; count: number }> {
   const groups = new Map<string, PosterUpdate[]>();
   for (const u of updates) {
     const k = appliedKey(u.matchId, u.field);
     groups.set(k, [...(groups.get(k) ?? []), u]);
   }
-  return [...groups.values()].map((list) =>
-    [...list].sort((a, b) => Number(b.sideMatch) - Number(a.sideMatch) || b.modifiedTime.localeCompare(a.modifiedTime)),
-  );
+  return [...groups.values()].map((list) => {
+    const sorted = [...list].sort((a, b) => Number(b.sideMatch) - Number(a.sideMatch) || b.modifiedTime.localeCompare(a.modifiedTime));
+    return { pick: sorted[0], count: sorted.length };
+  });
 }

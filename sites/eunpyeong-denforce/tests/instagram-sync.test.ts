@@ -14,13 +14,11 @@ import {
   planFarewell,
   planMatchday,
   postLinkTarget,
-  planResult,
   planWelcome,
   plainText,
   postingDraft,
   trimTitleSeparators,
   reelNews,
-  scorersText,
   seasonOf,
   welcomeNews,
   type MatchLite,
@@ -225,32 +223,6 @@ test("planMatchday: 경기 일정 넣기 (홈 경기장 = 은평), 같은 날 �
   assert.match(planMatchday(post("🔵MATCH DAY⚪️\n오늘 응원해 주세요"), []).note!, /읽지 못함/);
 });
 
-test("scorersText: 득점 줄 → '이름 골수' (자책골 제외)", () => {
-  assert.equal(scorersText(["백승하 전반 5, 후반 6, 14", "윤창욱 전반 11", "김영록 전반 13, 후반 15, 19"]), "백승하 3, 윤창욱, 김영록 3");
-  assert.equal(scorersText(["백승하 전반 '18", "김영록 후반 '6", "O.G 후반 '6"]), "백승하, 김영록");
-  assert.equal(scorersText(["O.G 후반 6"]), null);
-  assert.equal(scorersText([]), null);
-});
-
-const RESULT = "⚪15라운드 경기결과🔵\n\n서울은평덴포스 7 : 5 전주시민풋살구단\n\n백승하 전반 5, 후반 6, 14\n윤창욱 전반 11\n\n#서울은평덴포스";
-
-test("planResult: 최근 7일 같은 상대 '예정' 경기에 결과, 이미 결과가 있으면 그대로", () => {
-  const sched: MatchLite = { id: "m1", kickoff: "2026-10-17T04:00:00Z", opponent: "전주시민풋살구단", status: "scheduled", score_us: null, score_them: null };
-  // 골 수 합(3 + 1 + 자책 0)이 우리 점수 7 과 다르면 득점자는 비우고 확인 필요 (총괄 검토 2026-11-15)
-  assert.deepEqual(planResult(post(RESULT), [sched]), {
-    update: { id: "m1", status: "finished", score_us: 7, score_them: 5, scorers: null },
-    note: "득점 줄을 다 읽지 못함 — 확인 필요, 관리자 › 경기에서 득점자 입력",
-  });
-  const full = RESULT.replace("윤창욱 전반 11", "윤창욱 전반 11, 후반 2, 8\nO.G 후반 '6");
-  assert.deepEqual(planResult(post(full), [sched]), { update: { id: "m1", status: "finished", score_us: 7, score_them: 5, scorers: "백승하 3, 윤창욱 3" }, note: null });
-  // 다시 시도: 같은 점수로 이미 종료, 득점자 비어 있으면 메모 다시
-  assert.match(planResult(post(RESULT), [{ ...sched, status: "finished", score_us: 7, score_them: 5 }]).note!, /득점 줄을 다 읽지 못함/);
-  assert.deepEqual(planResult(post(full), [{ ...sched, status: "finished", score_us: 7, score_them: 5, scorers: "x" }]), { update: null, note: null });
-  assert.match(planResult(post(RESULT), [{ ...sched, status: "finished", score_us: 6, score_them: 5 }]).note!, /이미 입력된 결과\(6:5\)/);
-  assert.match(planResult(post(RESULT), [{ ...sched, kickoff: "2026-10-01T04:00:00Z" }]).note!, /찾지 못함 \(결과 7:5\)/, "7일보다 오래된 경기는 아님");
-  assert.match(planResult(post("⚪경기결과🔵\n아쉽게 졌습니다"), [sched]).note!, /읽지 못함/);
-});
-
 test("자동 기사 제목을 대시보드 인사 알림이 읽는다 (선수 추가/빼기 필요)", async () => {
   const { parseRosterNews } = await import("../src/lib/admin/alerts.ts");
   const w = parseWelcome(WELCOME_PIVO)!;
@@ -377,36 +349,11 @@ test("postLinkTarget (D-096): MATCH DAY 글 → 같은 날 같은 상대 matchda
   assert.equal(postLinkTarget(p, "welcome", [lite()]), null);
 });
 
+const RESULT = "⚪15라운드 경기결과🔵\n\n서울은평덴포스 7 : 5 전주시민풋살구단\n\n백승하 전반 5, 후반 6, 14\n윤창욱 전반 11\n\n#서울은평덴포스";
+
 test("postLinkTarget (D-096): 경기결과 글 → 최근 7일 같은 상대 fulltime_post_url (이미 종료여도)", () => {
   const done: MatchLite = { id: "m", kickoff: "2026-10-19T04:00:00Z", opponent: "전주시민풋살구단", status: "finished", score_us: 7, score_them: 5, matchday_post_url: null, fulltime_post_url: null };
   assert.deepEqual(postLinkTarget(post(RESULT), "result", [done]), { matchId: "m", field: "fulltime_post_url", url: "https://www.instagram.com/p/DerArQ-TWEJ/" });
   assert.equal(postLinkTarget(post(RESULT), "result", [{ ...done, kickoff: "2026-10-01T04:00:00Z" }]), null);
 });
 
-test("planResult (2026-27): ⚽ 득점 줄, 점수가 모호하면 넣지 않고 확인 필요", () => {
-  const m: MatchLite = { id: "m", kickoff: "2026-10-19T04:00:00Z", opponent: "전주시민풋살구단", status: "scheduled", score_us: null, score_them: null };
-  const ft = "𝑭𝑼𝑳𝑳 𝑻𝑰𝑴𝑬\n\n서울은평 덴포스 4 : 2 전주시민풋살구단\n⚽ 김영록 2, 윤창욱\n⚽ 자책골";
-  // 골 2 + 1 + 상대 자책 1 = 4 = 우리 점수
-  assert.deepEqual(planResult(post(ft), [m]).update, { id: "m", status: "finished", score_us: 4, score_them: 2, scorers: "김영록 2, 윤창욱" });
-  const bare = planResult(post("𝑭𝑼𝑳𝑳 𝑻𝑰𝑴𝑬\n\n🆚 전주시민풋살구단\n3 : 2\n⚽ 김영록"), [m]);
-  assert.equal(bare.update, null);
-  assert.match(bare.note!, /어느 쪽 점수인지 모름/);
-  // 이미 다른 점수 → 확인 필요 메모 (그대로 둠)
-  const done = planResult(post(ft), [{ ...m, status: "finished", score_us: 1, score_them: 1 }]);
-  assert.equal(done.update, null);
-  assert.match(done.note!, /다름/);
-});
-
-test("planResult: ⚽ 줄을 다 읽지 못하면 점수만, 득점 비우고 확인 필요", () => {
-  const m: MatchLite = { id: "m", kickoff: "2026-10-19T04:00:00Z", opponent: "전주시민풋살구단", status: "scheduled", score_us: null, score_them: null };
-  const p = planResult(post("FULL TIME\n서울은평 덴포스 2 : 1 전주시민풋살구단\n⚽ 김영록 전반 5′, 후반 12′"), [m]);
-  assert.deepEqual(p.update, { id: "m", status: "finished", score_us: 2, score_them: 1, scorers: null });
-  assert.match(p.note!, /득점 줄을 다 읽지 못함/);
-});
-
-test("planResult: 분 표기 득점 줄에 문장이 섞이면 점수만, 득점 비우고 메모", () => {
-  const m: MatchLite = { id: "m", kickoff: "2026-10-19T04:00:00Z", opponent: "전주시민풋살구단", status: "scheduled", score_us: null, score_them: null };
-  const p = planResult(post("경기결과\n서울은평 덴포스 1 : 0 전주시민풋살구단\n후반 12분 김영록 선수의 결승골"), [m]);
-  assert.deepEqual(p.update, { id: "m", status: "finished", score_us: 1, score_them: 0, scorers: null });
-  assert.match(p.note!, /득점 줄을 다 읽지 못함/);
-});

@@ -1,6 +1,6 @@
 // 인스타그램 게시물 → 사이트에 넣을 행 (D-065, BR-029) — AI 없이 정해진 규칙으로. 순수 함수만 (테스트: instagram-sync.test.ts).
 // 판단이 필요한 값(포지션 없음, 같은 이름, 홈/원정, 경기 못 찾음)은 넣지 않거나 넣은 뒤 note 로 '확인 필요'를 남긴다.
-import { kstDateTime, minuteScorers, parseMatchday, parseResult, type IgPost, type IgPostType, type ResultHint } from "./embed.ts";
+import { kstDateTime, OWN_GOAL_NAMES, parseMatchday, parseResult, type IgPost, type IgPostType, type ResultHint } from "./embed.ts";
 import { josa, nameSlug } from "./korean.ts";
 
 export const ACCOUNT = "eunpyeong_denforce";
@@ -275,7 +275,7 @@ export function farewellNews(post: IgPost, f: Farewell, imageUrl: string, positi
 
 // ── 선수단 ──
 
-export type RosterPlayer = { id: string; name: string; is_active: boolean; position: string; slug: string };
+export type RosterPlayer = { id: string; name: string; is_active: boolean; position: string; slug: string; number?: number | null };
 export type NewPlayer = { slug: string; name: string; position: Position };
 
 /** 영입 → 선수 추가 여부. 포지션이 글에 없거나 같은 이름이 있으면 추가하지 않고 확인을 남긴다 (BR-025 동명이인) */
@@ -407,49 +407,65 @@ export function ballScorersText(list: ReadonlyArray<readonly [string, number]>):
   return cut(list.map(([name, n]) => (n > 1 ? `${name} ${n}` : name)).join(", "), 300);
 }
 
-/** 분 표기 득점 줄 → "백승하 3, 김영록, 윤창욱" (자책골 제외, 한 골이면 숫자 없음). 못 읽는 줄이 있으면 null */
-export function scorersText(lines: readonly string[]): string | null {
-  const m = minuteScorers(lines);
-  return m ? ballScorersText(m.list) : null;
-}
-
 export type ResultUpdate = { id: string; status: "finished"; score_us: number; score_them: number; scorers: string | null };
+/** 득점자 확인에 쓰는 명단 — 활동 선수 */
+export type ScorerRoster = ReadonlyArray<{ name: string; number?: number | null; is_active: boolean }>;
 
 const UNREADABLE_SCORERS = "득점 줄을 다 읽지 못함 — 확인 필요, 관리자 › 경기에서 득점자 입력";
 
 /**
- * 득점자 글 — 득점 줄을 모두 읽었고 골 수 합(상대 자책골 포함) = 우리 점수일 때만. 아니면 null + 읽지 못함.
- * 득점 줄이 아예 없고 우리 점수가 0 이면 null(메모 없음).
+ * 득점 조각 → 득점자 글 (총괄 4차 검토: 확실할 때만).
+ * 이름은 활동 선수 이름과 정확히 같아야 한다('이름(No.N)' 이면 그 번호의 같은 이름 선수). 자책골은 OWN_GOAL_NAMES 만.
+ * 합(자책골 포함) = 우리 점수일 때만 글. 못 읽은 조각/명단에 없는 이름이면 'unreadable', 다 읽었는데 합이 다르면 'mismatch'.
  */
-export function resultScorers(r: Pick<ResultHint, "goals" | "ownGoals">, scoreUs: number): { scorers: string | null; unreadable: boolean } {
-  const list = r.goals;
-  if (list === null) return { scorers: null, unreadable: true };
-  const total = list.reduce((n, [, g]) => n + g, 0) + r.ownGoals;
-  if (total !== scoreUs) return { scorers: null, unreadable: scoreUs > 0 || total > 0 };
-  return { scorers: ballScorersText(list), unreadable: false };
+export function resultScorers(
+  goals: ResultHint["goals"],
+  scoreUs: number,
+  roster: ScorerRoster,
+): { scorers: string | null; problem: "unreadable" | "mismatch" | null } {
+  if (goals === null) return { scorers: null, problem: "unreadable" };
+  const active = roster.filter((p) => p.is_active);
+  const list: Array<[string, number]> = [];
+  let total = 0;
+  for (const [raw, n] of goals) {
+    const name = raw.replace(/\s+/g, " ").trim();
+    total += n;
+    if (OWN_GOAL_NAMES.includes(name)) continue;
+    const no = /^(.+?)\s*\(\s*No\.\s*(\d{1,2})\s*\)$/i.exec(name);
+    const ok = no ? active.some((p) => p.name === no[1].trim() && p.number === Number(no[2])) : active.some((p) => p.name === name);
+    if (!ok) return { scorers: null, problem: "unreadable" };
+    const label = no ? no[1].trim() : name;
+    const prev = list.find((x) => x[0] === label);
+    if (prev) prev[1] += n;
+    else list.push([label, n]);
+  }
+  if (goals.length === 0) return { scorers: null, problem: scoreUs > 0 ? "unreadable" : null };
+  if (total !== scoreUs) return { scorers: null, problem: "mismatch" };
+  return { scorers: ballScorersText(list), problem: null };
 }
 
 /** 경기결과 → 최근 7일 안 같은 상대 경기에 점수/득점. 이미 결과가 있으면 그대로 둔다 */
-export function planResult(post: IgPost, matches: readonly MatchLite[]): { update: ResultUpdate | null; note: string | null } {
+export function planResult(post: IgPost, matches: readonly MatchLite[], roster: ScorerRoster = []): { update: ResultUpdate | null; note: string | null } {
   const r = parseResult(post.caption);
-  if (r.opponent && r.scoreIssue === "no-team") return { update: null, note: `경기결과 글의 점수 줄에 팀 이름이 없어 어느 쪽 점수인지 모름 (상대 ${r.opponent}) — 확인 필요, 관리자 › 경기에서 입력` };
-  if (r.scoreIssue === "many") return { update: null, note: `경기결과 글에 팀 점수 줄이 둘 이상(전반/최종 등)이라 어느 것이 최종인지 모름${r.opponent ? ` (상대 ${r.opponent})` : ""} — 확인 필요, 관리자 › 경기에서 입력` };
-  if (!r.opponent || r.scoreUs === null || r.scoreThem === null) return { update: null, note: "경기결과 글에서 상대/점수를 읽지 못함 — 관리자 › 경기에서 입력" };
+  if (r.scoreUs === null || r.scoreThem === null || !r.opponent)
+    return { update: null, note: `경기결과 글의 점수를 쓰지 않음 (${r.scoreIssue ?? "상대를 읽지 못함"}${r.opponent ? `, 상대 ${r.opponent}` : ""}) — 확인 필요, 관리자 › 경기에서 입력` };
   const at = post.takenAt * 1000;
   const found = matches
     .filter((m) => sameTeam(m.opponent, r.opponent!) && Date.parse(m.kickoff) <= at + 3_600_000 && Date.parse(m.kickoff) >= at - 7 * 86_400_000)
     .sort((a, b) => Date.parse(b.kickoff) - Date.parse(a.kickoff))[0];
   const score = `${r.scoreUs}:${r.scoreThem}`;
   if (!found) return { update: null, note: `최근 7일 안 ${r.opponent} 경기를 찾지 못함 (결과 ${score}) — 관리자 › 경기에서 입력` };
-  const s = resultScorers(r, r.scoreUs);
+  const s = resultScorers(r.goals, r.scoreUs, roster);
+  // 득점 줄을 다 읽었는데 합이 점수와 다르면 점수도 믿지 않는다
+  if (s.problem === "mismatch") return { update: null, note: `경기결과 글의 득점 합이 점수(${score})와 다름 — 확인 필요, 관리자 › 경기에서 입력` };
   if (found.status === "finished") {
     const same = found.score_us === r.scoreUs && found.score_them === r.scoreThem;
     if (!same) return { update: null, note: `이미 입력된 결과(${found.score_us}:${found.score_them})와 글(${score})이 다름 — 확인 필요` };
     // 다시 시도할 때도 메모가 남게 — 같은 점수로 이미 넣었지만 득점자가 비어 있고 글의 득점 줄을 다 읽지 못했으면 다시 알린다
-    return { update: null, note: s.unreadable && !found.scorers ? UNREADABLE_SCORERS : null };
+    return { update: null, note: s.problem === "unreadable" && !found.scorers ? UNREADABLE_SCORERS : null };
   }
   return {
     update: { id: found.id, status: "finished", score_us: r.scoreUs, score_them: r.scoreThem, scorers: s.scorers },
-    note: s.unreadable ? UNREADABLE_SCORERS : null,
+    note: s.problem === "unreadable" ? UNREADABLE_SCORERS : null,
   };
 }
