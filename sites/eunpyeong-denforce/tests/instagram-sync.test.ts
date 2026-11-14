@@ -403,3 +403,10 @@ test("planResult: ⚽ 줄을 다 읽지 못하면 점수만, 득점 비우고 �
   assert.deepEqual(p.update, { id: "m", status: "finished", score_us: 2, score_them: 1, scorers: null });
   assert.match(p.note!, /득점 줄을 다 읽지 못함/);
 });
+
+test("planResult: 분 표기 득점 줄에 문장이 섞이면 점수만, 득점 비우고 메모", () => {
+  const m: MatchLite = { id: "m", kickoff: "2026-10-19T04:00:00Z", opponent: "전주시민풋살구단", status: "scheduled", score_us: null, score_them: null };
+  const p = planResult(post("경기결과\n서울은평 덴포스 1 : 0 전주시민풋살구단\n후반 12분 김영록 선수의 결승골"), [m]);
+  assert.deepEqual(p.update, { id: "m", status: "finished", score_us: 1, score_them: 0, scorers: null });
+  assert.match(p.note!, /득점 줄을 다 읽지 못함/);
+});

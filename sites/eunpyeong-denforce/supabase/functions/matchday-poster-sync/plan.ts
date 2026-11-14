@@ -93,11 +93,13 @@ export function planFolder(
     const list = files
       .filter((f) => f.mimeType.startsWith("image/") && posterKind(f.name) === field)
       .sort((a, b) => (b.modifiedTime ?? "").localeCompare(a.modifiedTime ?? ""));
+    // 가장 최근 파일의 미리보기가 아직 없으면 이 칸은 이번 실행에서 통째로 건너뛴다 — 옛 파일을 올리고 기록으로 잠그지 않게
+    if (list.length && !list[0].thumbnailLink) {
+      notes.push(`${folder.name} / ${list[0].name}: 드라이브 미리보기가 아직 없음(다음 실행에 다시)`);
+      continue;
+    }
     for (const file of list) {
-      if (!file.thumbnailLink) {
-        notes.push(`${folder.name} / ${file.name}: 드라이브 미리보기가 아직 없음(다음 실행에 다시)`);
-        continue;
-      }
+      if (!file.thumbnailLink) continue;
       updates.push({
         matchId: match.id,
         field,

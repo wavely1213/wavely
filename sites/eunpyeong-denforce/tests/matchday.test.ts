@@ -206,3 +206,10 @@ test("redactKey: 오류 문구 속 API 키를 가린다", async () => {
   );
   assert.equal(redactKey("TimeoutError: Signal timed out. url=https://x/y?key=AIzaSyA-b_c"), "TimeoutError: Signal timed out. url=https://x/y?key=***");
 });
+
+test("planFolder: 가장 최근 파일에 미리보기가 아직 없으면 그 칸은 이번에 건너뜀 (옛 파일 안 올림)", () => {
+  const files = [file("MATCH-DAY.jpg", { modifiedTime: "2026-11-10" }), file("MATCH-DAY 2.jpg", { modifiedTime: "2026-11-12", id: "newer_file_id_123", thumbnailLink: "" })];
+  const p = planFolder(pm(), files, new Set(), { name: "11/15 vs 노원제너FS (AWAY)" });
+  assert.deepEqual(p.updates, []);
+  assert.match(p.notes[0], /미리보기가 아직 없음/);
+});

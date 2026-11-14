@@ -132,15 +132,18 @@ Deno.serve(async (req) => {
         const url = `${db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl}?v=${u.fileId}`;
         // 비어 있을 때만 — 그사이 관리자가 넣었으면 0행이 바뀌고 넘어간다
         const { data: set, error: setErr } = await db.from("matches").update({ [u.field]: url }).eq("id", u.matchId).is(u.field, null).select("id");
-        if (setErr) notes.push(`${label}: 넣기 실패 ${setErr.message}`);
-        else if (set?.length) {
+        if (setErr || !set?.length) {
+          // 넣지 못함(그사이 관리자가 칸을 채움 등) — 방금 올린 파일은 지운다
+          await db.storage.from(BUCKET).remove([path]);
+          if (setErr) notes.push(`${label}: 넣기 실패 ${setErr.message}`);
+        } else {
           appliedList.push(`${u.matchId} ${u.field} ${label}`);
           const { error: logErr } = await db
             .from("matchday_poster_sync_applied")
             .upsert({ match_id: u.matchId, field: u.field, file_id: u.fileId, applied_at: new Date().toISOString() }, { onConflict: "match_id,field" });
           if (logErr) notes.push(`${label}: 기록 실패 ${logErr.message}`);
+          if (group.length > 1) notes.push(`${u.folderName}: 같은 칸 후보 ${group.length}개 중 ${u.fileName} 를 씀`);
         }
-        if (group.length > 1 && u !== group[group.length - 1]) notes.push(`${u.folderName}: 같은 칸 후보 ${group.length}개 중 ${u.fileName} 를 씀`);
         break; // 올렸으면(또는 칸이 그사이 찼으면) 이 칸은 끝
       }
     }
