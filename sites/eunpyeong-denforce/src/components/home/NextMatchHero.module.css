@@ -181,6 +181,8 @@
     --nmh-split-bottom: 30px;
     gap: var(--space-s);
     padding: var(--nmh-pad);
+    /* 391~720 넓은 휴대폰(412 / 430 등): 카드는 358 그대로 가운데 (D-087). 390 이하는 꽉 차서 그대로 */
+    margin-inline: auto;
   }
 
   .team {
