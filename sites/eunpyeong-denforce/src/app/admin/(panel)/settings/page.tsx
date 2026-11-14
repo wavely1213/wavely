@@ -80,7 +80,7 @@ async function PreviewPanel() {
 /** 드라이브 자료함 연결 (D-081) — 최고 관리자만 바꾼다. 관리자는 연결 상태만 본다 */
 async function DrivePanel() {
   const { supabase, role } = await requireAdminPage();
-  const { data, error } = await supabase.from("club_settings").select("drive_folder_id").eq("id", 1).maybeSingle<{ drive_folder_id: string | null }>();
+  const { data, error } = await supabase.from("drive_settings").select("drive_folder_id").eq("id", 1).maybeSingle<{ drive_folder_id: string | null }>();
   const id = data?.drive_folder_id ?? null;
   return (
     <section className={styles.panel}>
@@ -128,7 +128,7 @@ const kst = (iso: string | null) => (iso ? new Date(Date.parse(iso) + 9 * 3600_0
 async function MatchdayPosterPanel() {
   const { supabase, role } = await requireAdminPage();
   const [folder, state] = await Promise.all([
-    supabase.from("club_settings").select("matchday_folder_id").eq("id", 1).maybeSingle<{ matchday_folder_id: string | null }>(),
+    supabase.from("drive_settings").select("matchday_folder_id").eq("id", 1).maybeSingle<{ matchday_folder_id: string | null }>(),
     supabase.from("matchday_poster_sync_state").select("*").eq("id", 1).maybeSingle<PosterSyncState>(),
   ]);
   const id = folder.data?.matchday_folder_id ?? null;

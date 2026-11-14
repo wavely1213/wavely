@@ -387,3 +387,10 @@ test("planResult (2026-27): ⚽ 득점 줄, 점수가 모호하면 넣지 않고
   assert.equal(done.update, null);
   assert.match(done.note!, /다름/);
 });
+
+test("planResult: ⚽ 줄을 다 읽지 못하면 점수만, 득점 비우고 확인 필요", () => {
+  const m: MatchLite = { id: "m", kickoff: "2026-10-19T04:00:00Z", opponent: "전주시민풋살구단", status: "scheduled", score_us: null, score_them: null };
+  const p = planResult(post("FULL TIME\n서울은평 덴포스 2 : 1 전주시민풋살구단\n⚽ 김영록 전반 5′, 후반 12′"), [m]);
+  assert.deepEqual(p.update, { id: "m", status: "finished", score_us: 2, score_them: 1, scorers: null });
+  assert.match(p.note!, /득점 줄을 다 읽지 못함/);
+});

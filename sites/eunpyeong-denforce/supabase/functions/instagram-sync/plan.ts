@@ -434,5 +434,11 @@ export function planResult(post: IgPost, matches: readonly MatchLite[]): { updat
     const same = found.score_us === r.scoreUs && found.score_them === r.scoreThem;
     return { update: null, note: same ? null : `이미 입력된 결과(${found.score_us}:${found.score_them})와 글(${score})이 다름 — 확인 필요` };
   }
-  return { update: { id: found.id, status: "finished", score_us: r.scoreUs, score_them: r.scoreThem, scorers: r.scorerLines.length ? scorersText(r.scorerLines) : ballScorersText(r.ballScorers) }, note: null };
+  // ⚽ 줄을 다 읽지 못하면 점수만 넣고 득점은 비운다 (일부만 넣지 않음)
+  const unreadable = !r.scorerLines.length && r.ballScorers === null;
+  const scorers = r.scorerLines.length ? scorersText(r.scorerLines) : r.ballScorers ? ballScorersText(r.ballScorers) : null;
+  return {
+    update: { id: found.id, status: "finished", score_us: r.scoreUs, score_them: r.scoreThem, scorers },
+    note: unreadable ? "득점 줄을 다 읽지 못함 — 확인 필요, 관리자 › 경기에서 득점자 입력" : null,
+  };
 }

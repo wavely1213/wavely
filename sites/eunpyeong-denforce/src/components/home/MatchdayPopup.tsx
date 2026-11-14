@@ -88,6 +88,8 @@ export function MatchdayPopup({ windows }: { windows: PosterWindow[] }) {
       key={shown.image}
       src={shown.image}
       className={styles.poster}
+      // 불러오기 전에도 자리를 잡아 둔다(0px 였다가 늘어나면 '닫기'를 누르려다 포스터를 누를 수 있음). 받으면 원래 비율로
+      style={{ aspectRatio: String(ratio) }}
       alt={altOf(shown)}
       onLoad={(e) => {
         const { naturalWidth: w, naturalHeight: h } = e.currentTarget;

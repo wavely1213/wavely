@@ -14,13 +14,13 @@ alter table public.matches
   add column if not exists fulltime_post_url text
     constraint matches_fulltime_post_url_check check (fulltime_post_url is null or (fulltime_post_url ~ '^https://www\.instagram\.com/' and length(fulltime_post_url) <= 500));
 
--- 포스터 폴더 (관리자 › 설정, 최고 관리자). 처음 값은 소유자가 준 폴더(2026-11-15, 링크 공개 폴더 ID — 비밀값 아님)
-alter table public.club_settings
+-- 포스터 폴더 (관리자 › 설정, 최고 관리자) — 관리자 전용 drive_settings(20261113100000)에. 처음 값은 소유자가 준 폴더(2026-11-15)
+alter table public.drive_settings
   add column if not exists matchday_folder_id text;
-alter table public.club_settings drop constraint if exists club_settings_matchday_folder_id_check;
-alter table public.club_settings add constraint club_settings_matchday_folder_id_check
+alter table public.drive_settings drop constraint if exists drive_settings_matchday_folder_id_check;
+alter table public.drive_settings add constraint drive_settings_matchday_folder_id_check
   check (matchday_folder_id is null or matchday_folder_id ~ '^[A-Za-z0-9_-]{10,100}$');
-update public.club_settings set matchday_folder_id = '1qqH_3qT6zSOm63gbtaHpUCxlEDmiu5Wo' where id = 1 and matchday_folder_id is null;
+update public.drive_settings set matchday_folder_id = '1qqH_3qT6zSOm63gbtaHpUCxlEDmiu5Wo' where id = 1 and matchday_folder_id is null;
 
 -- 실행 상태 (한 줄). last_status: ok / no_key(드라이브 키 없음) / no_folder / error / skipped(경기 날 아님, 3시간 안 됨)
 create table if not exists public.matchday_poster_sync_state (

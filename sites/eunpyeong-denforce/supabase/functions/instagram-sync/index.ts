@@ -180,10 +180,13 @@ async function apply(db: Db, post: IgPost, roster: RosterPlayer[], matches: Matc
     const plan = planResult(post, matches);
     if (plan.update) {
       const { id, ...values } = plan.update;
-      await must(db.from("matches").update(values).eq("id", id), "경기 결과 넣기");
-      const m = matches.find((x) => x.id === id);
-      if (m) Object.assign(m, values);
-      out.actions.push(`경기 결과: ${values.score_us}:${values.score_them}${values.scorers ? ` (득점 ${values.scorers})` : ""}`);
+      // 그사이 관리자가 결과를 넣었으면 덮지 않는다 — 예정이고 점수가 빈 행만
+      const set = await must(db.from("matches").update(values).eq("id", id).eq("status", "scheduled").is("score_us", null).select("id"), "경기 결과 넣기");
+      if (set?.length) {
+        const m = matches.find((x) => x.id === id);
+        if (m) Object.assign(m, values);
+        out.actions.push(`경기 결과: ${values.score_us}:${values.score_them}${values.scorers ? ` (득점 ${values.scorers})` : ""}`);
+      } else out.notes.push(`경기 결과를 넣지 않음 — 그사이 결과가 입력됨 (글 ${values.score_us}:${values.score_them}), 확인 필요`);
     }
     if (plan.note) out.notes.push(plan.note);
   }

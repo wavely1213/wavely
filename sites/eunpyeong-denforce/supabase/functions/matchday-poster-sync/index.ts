@@ -4,9 +4,10 @@
 // 키: 함수 비밀값 GOOGLE_DRIVE_API_KEY (D-081 과 같음). 없으면 '키 필요' 상태만 남긴다(드라이브 웹 페이지를 긁지 않음).
 // 쓰기는 이 함수 안에서만 서버 키로 (D-065 와 같음). 호출 확인: x-sync-secret = Vault matchday_poster_sync_secret.
 import { createClient } from "npm:@supabase/supabase-js@2.117.3";
-import { driveError, FOLDER_MIME, listUrl } from "../drive-library/drive.ts";
+import { driveError, FOLDER_MIME, listUrl, redactKey } from "../drive-library/drive.ts";
 import {
   appliedKey,
+  dedupeUpdates,
   matchForFolder,
   needsPoster,
   parseFolderName,
@@ -34,7 +35,7 @@ async function listAll(folderId: string): Promise<DriveFile[]> {
   const out: DriveFile[] = [];
   let token: string | undefined;
   for (let i = 0; i < MAX_PAGES; i++) {
-    const res = await fetch(listUrl(folderId, API_KEY, token));
+    const res = await fetch(listUrl(folderId, API_KEY, token), { signal: AbortSignal.timeout(20_000) });
     if (!res.ok) throw new Error(driveError(res.status, await res.text().catch(() => "")));
     const page = (await res.json()) as { files?: DriveFile[]; nextPageToken?: string };
     out.push(...(page.files ?? []).filter((f) => f.id && f.name && f.mimeType));
@@ -74,7 +75,7 @@ Deno.serve(async (req) => {
       await setState({ last_status: "no_key", last_error: "GOOGLE_DRIVE_API_KEY 없음 (Supabase 함수 비밀값)" });
       return json({ ok: false, status: "no_key" });
     }
-    const { data: cs } = await db.from("club_settings").select("matchday_folder_id").eq("id", 1).maybeSingle<{ matchday_folder_id: string | null }>();
+    const { data: cs } = await db.from("drive_settings").select("matchday_folder_id").eq("id", 1).maybeSingle<{ matchday_folder_id: string | null }>();
     const root = cs?.matchday_folder_id ?? null;
     if (!root) {
       await setState({ last_status: "no_folder", last_error: "포스터 폴더가 설정되지 않음 (관리자 › 설정)" });
@@ -98,9 +99,11 @@ Deno.serve(async (req) => {
       notes.push(...plan.notes);
     }
 
+    const unique = dedupeUpdates(updates);
+    notes.push(...unique.notes);
     const appliedList: string[] = [];
-    for (const u of updates) {
-      const img = await fetch(u.thumb, { redirect: "follow" });
+    for (const u of unique.updates) {
+      const img = await fetch(u.thumb, { redirect: "follow", signal: AbortSignal.timeout(20_000) });
       const type = (img.headers.get("content-type") ?? "").split(";")[0].trim();
       if (!img.ok || !/^image\/(jpeg|png|webp)$/.test(type)) {
         notes.push(`${u.fileName}: 이미지를 받지 못함 (${img.status})`);
@@ -136,11 +139,12 @@ Deno.serve(async (req) => {
       last_status: "ok",
       last_error: null,
       last_applied: appliedList.join("\n").slice(0, 2000) || null,
-      last_notes: notes.join("\n").slice(0, 2000) || null,
+      last_notes: redactKey(notes.join("\n")).slice(0, 2000) || null,
     });
-    return json({ ok: true, applied: appliedList, notes });
+    return json({ ok: true, applied: appliedList, notes: notes.map(redactKey) });
   } catch (e) {
-    const message = String(e instanceof Error ? e.message : e).slice(0, 500);
+    // 바깥 요청 오류 문구에 주소(…?key=)가 섞일 수 있어 키를 가린다
+    const message = redactKey(String(e instanceof Error ? e.message : e)).slice(0, 500);
     await setState({ last_status: "error", last_error: message });
     return json({ ok: false, error: message }, 500);
   }

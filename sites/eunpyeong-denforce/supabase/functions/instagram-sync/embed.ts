@@ -122,25 +122,34 @@ export type ResultHint = {
   scoreThem: number | null;
   /** '이름 전반 5, 후반 6' 모양 (숫자 = 분) */
   scorerLines: string[];
-  /** '⚽ 김영록 2, 윤창욱' 모양 (숫자 = 골 수, 2026-27) */
-  ballScorers: Array<[string, number]>;
+  /** '⚽ 김영록 2, 윤창욱' 모양 (숫자 = 골 수, 2026-27). 못 읽는 조각이 하나라도 있으면 null (득점 일부만 넣지 않는다) */
+  ballScorers: Array<[string, number]> | null;
   /** 점수 줄에 팀 이름이 없어 어느 쪽 점수인지 모름 — 반영하지 않고 확인 필요 */
   scoreUnclear: boolean;
 };
 
-/** '⚽ 김영록 2, 윤창욱' / '⚽️ 김영록' → [이름, 골 수]. 자책골(O.G, 자책)은 뺀다 */
-export function ballScorers(lines: readonly string[]): Array<[string, number]> {
+/**
+ * '⚽ 김영록 2, 윤창욱' / '⚽️ 김영록' → [이름, 골 수]. 자책골(O.G, 자책)은 뺀다.
+ * 이름(+ 골 수) 모양이 아닌 조각(예: '⚽ 김영록 전반 5′, 후반 12′' 의 분 표기)이 하나라도 있으면 null — 일부만 넣지 않는다.
+ */
+export function ballScorers(lines: readonly string[]): Array<[string, number]> | null {
   const out = new Map<string, number>();
   for (const line of lines) {
     if (!line.startsWith("⚽")) continue;
-    for (const part of line.replace(/^⚽\uFE0F?\s*/u, "").split(/[,，]/)) {
-      const m = /^\s*(\S+?)\s*(?:\(?\s*(\d+)\s*(?:골)?\s*\)?)?\s*$/u.exec(part);
-      if (!m || /^(O\.?G\.?|자책)/i.test(m[1])) continue;
+    // ⚽ 뒤 변형 선택자(U+FE0F)는 글자 그대로 (함수 파일에 \u 이스케이프를 쓰지 않는다, D-074)
+    for (const part of line.replace(/^⚽️?\s*/u, "").split(/[,，]/)) {
+      if (!part.trim()) continue;
+      const m = /^\s*([가-힣A-Za-z.]+)\s*(?:\(?\s*(\d+)\s*(?:골)?\s*\)?)?\s*$/u.exec(part);
+      if (!m) return null;
+      if (/^(O\.?G\.?|자책)/i.test(m[1])) continue;
       out.set(m[1], (out.get(m[1]) ?? 0) + (m[2] ? Number(m[2]) : 1));
     }
   }
   return [...out];
 }
+
+/** 시각 줄 — 점수 줄로 잘못 고르지 않게 ('⏰ 11.15 (일) 14:00', '🕑 13:00', '14:00') */
+const isTimeLine = (l: string) => /^(⏰|🕑)/u.test(l) || /^\D*\d{1,2}:\d{2}\D*$/.test(l);
 
 /**
  * 경기결과 글 → 상대, 점수, 득점 줄. 예:
@@ -148,7 +157,7 @@ export function ballScorers(lines: readonly string[]): Array<[string, number]> {
  */
 export function parseResult(caption: string): ResultHint {
   const lines = caption.split("\n").map((l) => l.trim()).filter(Boolean);
-  const scoreLine = lines.find((l) => /\d+\s*:\s*\d+/.test(l));
+  const scoreLine = lines.find((l) => /\d+\s*:\s*\d+/.test(l) && !isTimeLine(l));
   let opponent: string | null = null;
   let scoreUs: number | null = null;
   let scoreThem: number | null = null;

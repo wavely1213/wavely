@@ -160,3 +160,21 @@ test("포스터 링크: 인스타그램 게시물 주소만 창에 실린다", (
   assert.equal(w.matchdayPost, "https://www.instagram.com/p/AAA/");
   assert.equal(w.fulltimePost, null);
 });
+
+test("dedupeUpdates: 같은 (경기, 칸)은 하나만, 나머지는 메모", async () => {
+  const { dedupeUpdates } = await import("../supabase/functions/matchday-poster-sync/plan.ts");
+  const u = (fileName: string, field: "matchday_poster_url" | "fulltime_poster_url" = "matchday_poster_url") => ({ matchId: "m1", field, fileId: `f_${fileName}_00000000`, thumb: "https://x", fileName });
+  const r = dedupeUpdates([u("a.jpg"), u("b.jpg"), u("FULL.jpg", "fulltime_poster_url")]);
+  assert.deepEqual(r.updates.map((x) => x.fileName), ["a.jpg", "FULL.jpg"]);
+  assert.equal(r.notes.length, 1);
+});
+
+test("redactKey: 오류 문구 속 API 키를 가린다", async () => {
+  const { redactKey } = await import("../supabase/functions/drive-library/drive.ts");
+  assert.equal(
+    redactKey("fetch failed https://www.googleapis.com/drive/v3/files?q=x&key=AIzaSECRET123&pageSize=100 (timeout)"),
+    "fetch failed https://www.googleapis.com/drive/v3/files?q=x&key=***&pageSize=100 (timeout)",
+  );
+  assert.equal(redactKey("https://a/b?key=AIza) end"), "https://a/b?key=***) end");
+  assert.equal(redactKey("no key here"), "no key here");
+});

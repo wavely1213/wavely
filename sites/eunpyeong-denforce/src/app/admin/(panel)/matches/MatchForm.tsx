@@ -115,6 +115,9 @@ export function MatchForm({
           currentUrl={initial?.fulltime_poster_url}
         />
       </Row>
+      {/* 폼을 연 때의 게시물 값 — 저장할 때 이것과 비교해 바뀐 칸만 보낸다 (그사이 자동으로 채워진 칸을 지우지 않게) */}
+      <input type="hidden" name="matchday_post_url_initial" value={initial?.matchday_post_url ?? ""} />
+      <input type="hidden" name="fulltime_post_url_initial" value={initial?.fulltime_post_url ?? ""} />
       <Row>
         <TextField
           name="matchday_post_url"
