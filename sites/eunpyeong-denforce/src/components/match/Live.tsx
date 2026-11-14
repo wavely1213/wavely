@@ -27,7 +27,8 @@ export function useLive(w: LiveWindow | null): boolean {
     tick();
     return () => window.clearTimeout(timer);
   }, [start, end]);
-  return live;
+  // 창이 없어지면(종료 입력, 주소 지움) 이전 값과 상관없이 LIVE 아님 — 열려 있던 화면에 LIVE 가 남지 않게
+  return start !== undefined && end !== undefined ? live : false;
 }
 
 /** LIVE 배지 — LIVE 시간에만 */

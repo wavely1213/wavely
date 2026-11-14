@@ -12,6 +12,8 @@ import { HighlightBlock, HighlightRow } from "@/components/news/HighlightCard";
 import { matchHighlights } from "@/lib/highlights";
 import { homeReels } from "@/lib/reels";
 import { MatchStrip } from "@/components/home/MatchStrip";
+import { MatchdayPopup } from "@/components/home/MatchdayPopup";
+import { MATCHDAY_POPUP } from "@/config/matchday";
 import { Section } from "@/components/ui/Section";
 import { SITE } from "@/config/site";
 import { instagramHandle, snsLinks } from "@/lib/club";
@@ -83,6 +85,7 @@ export default async function HomePage() {
 
   return (
     <>
+      {MATCHDAY_POPUP && <MatchdayPopup config={MATCHDAY_POPUP} />}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(jsonLd) }} />
       <Hero nextHome={nextHome} content={heroContent(c)} ourName={ourName} />
 

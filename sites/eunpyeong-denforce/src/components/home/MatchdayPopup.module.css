@@ -1,0 +1,72 @@
+/* 매치데이 포스터 팝업 (임시) — 포스터 3:4, 화면 높이 안에 들어가게. 바탕 덮개는 사진 덮개 토큰(overlay-mid) */
+.dialog {
+  width: min(480px, calc(100vw - 2 * var(--space-m)));
+  max-width: none;
+  max-height: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  overflow: visible;
+}
+
+.dialog::backdrop {
+  background: var(--c-overlay-strong);
+}
+
+.panel {
+  position: relative;
+  border-radius: var(--radius-l);
+  background: var(--c-black);
+  overflow: hidden;
+}
+
+.poster {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: calc(100dvh - 2 * var(--space-l) - 48px);
+  object-fit: contain;
+  background: var(--c-black);
+}
+
+/* 우측 위 X — 누르는 면적 44 */
+.close {
+  position: absolute;
+  top: var(--space-xs);
+  right: var(--space-xs);
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--c-overlay-mid);
+  color: var(--c-on-dark);
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.close:focus-visible,
+.today:focus-visible {
+  outline: 2px solid var(--c-on-dark);
+  outline-offset: 2px;
+}
+
+.bar {
+  display: flex;
+  justify-content: flex-start;
+  padding: 0 var(--space-m);
+  border-top: 1px solid var(--c-black-soft);
+}
+
+.today {
+  min-height: 48px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--c-on-dark);
+  font-size: 14px;
+  cursor: pointer;
+}
