@@ -84,7 +84,7 @@ function WideCard({ match, ourName, textured, style }: Props) {
 
 /**
  * 휴대폰 작은 띠 A 가운데 3줄 (D-088, 피그마 274:26717 / 274:26795 / 274:26873 / 274:26951) — 폭 화면 - 32.
- * [NEXT HOME MATCH + 대회] / [엠블럼 32 + 우리 이름, VS, 상대 이름 + 엠블럼] / [날짜 + @장소 + HOME + →].
+ * [NEXT HOME MATCH + 날짜] / [엠블럼 32 + 우리 이름, VS, 상대 이름 + 엠블럼] / [대회 + (@장소 + HOME + →)] — 줄 규칙은 KFA고딕 실측 기준(I-062, 디자인 f46f3d6).
  * 카드 전체가 /match/schedule 링크 하나. 읽기 프로그램에는 대진, 날짜, 장소를 담은 이름을 준다(→ 는 숨김).
  */
 function PhoneStrip({ match, ourName, textured, style }: Props) {
@@ -103,7 +103,9 @@ function PhoneStrip({ match, ourName, textured, style }: Props) {
       <Link href="/match/schedule" className={`${styles.card} ${styles.strip} ${textured ? styles.textured : ""}`} style={style} aria-label={name}>
         <span className={styles.stripRow}>
           <span className={styles.label}>NEXT HOME MATCH</span>
-          <CompetitionTag text={matchLabel(match)} surface="dark" />
+          <span className={styles.stripDate}>
+            {date} {time}
+          </span>
         </span>
         <span className={styles.stripTeams}>
           <span className={styles.stripTeam}>
@@ -117,9 +119,7 @@ function PhoneStrip({ match, ourName, textured, style }: Props) {
           </span>
         </span>
         <span className={styles.stripRow}>
-          <span className={styles.stripDate}>
-            {date} {time}
-          </span>
+          <CompetitionTag text={matchLabel(match)} surface="dark" />
           <span className={styles.venue}>
             {match.venue && <>@{match.venue}</>}
             <HomeAwayBadge isHome={match.isHome} surface="dark" />
