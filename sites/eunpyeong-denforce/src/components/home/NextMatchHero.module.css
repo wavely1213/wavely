@@ -275,7 +275,7 @@
     text-decoration: none;
   }
 
-  /* 줄 1(라벨 + 대회), 줄 3(날짜 + 장소 덩어리) — 좁으면 덩어리째 다음 줄로 */
+  /* 줄 1(라벨 + 날짜), 줄 3(대회 + 장소 덩어리) — 좁으면 덩어리째 다음 줄로, 사이 space/2xs (I-062, 디자인 f46f3d6) */
   .stripRow {
     position: relative;
     display: flex;
