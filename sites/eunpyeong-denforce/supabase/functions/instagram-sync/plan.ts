@@ -494,7 +494,7 @@ export function matchWhen(kickoff: string): string {
 /**
  * 이 글이 가리키는 경기 행. 못 찾거나 여럿이면 null.
  *  MATCH DAY — 글 날짜(서울)와 같은 날 + 같은 상대 / 경기결과 — 최근 7일 같은 상대(점수를 못 읽어도 '🆚 상대' 로)
- *  MATCH PHOTO — 글 시각 기준 3일 안에 열린 경기가 정확히 하나
+ *  MATCH PHOTO — 최근 7일 안 경기가 정확히 하나이고 그게 3일 안 (연속 경기 때 앞 경기 사진이 뒤 경기에 붙지 않게)
  */
 export function matchForPost(post: IgPost, type: IgPostType, matches: readonly MatchLite[]): MatchLite | null {
   const at = post.takenAt * 1000;
@@ -514,8 +514,8 @@ export function matchForPost(post: IgPost, type: IgPostType, matches: readonly M
     return found[0] ?? null;
   }
   if (type === "photo") {
-    const found = matches.filter((x) => Date.parse(x.kickoff) <= at && Date.parse(x.kickoff) >= at - 3 * 86_400_000);
-    return found.length === 1 ? found[0] : null;
+    const week = matches.filter((x) => Date.parse(x.kickoff) <= at && Date.parse(x.kickoff) >= at - 7 * 86_400_000);
+    return week.length === 1 && Date.parse(week[0].kickoff) >= at - 3 * 86_400_000 ? week[0] : null;
   }
   return null;
 }
@@ -527,12 +527,16 @@ const captionBody = (post: IgPost) => captionLines(siteCaption(post.caption)).ma
 const igLink = (post: IgPost) => `구단 공식 인스타그램 게시물: https://www.instagram.com/p/${post.code}/`;
 
 /** MATCH DAY → 구단뉴스 '[1R] 노원제너FS전 매치데이 — 11.15 (일) 14:00 파주NFC풋살장' */
-export function matchdayNews(post: IgPost, m: MatchLite, imageUrl: string | null): NewsDraft {
+/**
+ * withCaption: 그 글 처리에서 확인 필요 메모가 하나라도 생겼으면 false — 글(캡션)을 본문에 싣지 않고 경기 행 값만
+ * (제목은 DB 3:3 인데 본문에 글의 2:3 이 같이 나가지 않게)
+ */
+export function matchdayNews(post: IgPost, m: MatchLite, imageUrl: string | null, withCaption = true): NewsDraft {
   const when = matchWhen(m.kickoff);
   const place = m.venue ? ` ${m.venue}` : "";
   const title = `${roundTag(m)}${m.opponent}전 매치데이 — ${when}${place}`;
   const summary = `${[m.competition, m.round].filter(Boolean).join(" ")} ${m.opponent}전, ${when}${place}${m.is_home === undefined ? "" : m.is_home ? " (홈)" : " (원정)"}`.trim();
-  const body = [summary, captionBody(post), igLink(post)].filter(Boolean).join("\n\n");
+  const body = [summary, withCaption ? captionBody(post) : "", igLink(post)].filter(Boolean).join("\n\n");
   return { category: "news", title: cut(title, 120), date: kstDate(post.takenAt), summary: cut(summary, 300), body, images: imageUrl ? [imageUrl] : [], thumbnail_url: null, video_url: null, published: true };
 }
 
@@ -540,22 +544,33 @@ export function matchdayNews(post: IgPost, m: MatchLite, imageUrl: string | null
  * FULL TIME / 경기결과 → 구단뉴스. 경기 행이 종료(점수 있음)면 '[1R 결과] 노원제너FS 7 : 0 서울은평 덴포스'(홈팀 먼저),
  * 아니면 '[1R] 노원제너FS전 경기 결과' (점수 없이). 점수는 글이 아니라 DB 값(동기화가 쓴 값이든 관리자 값이든).
  */
-export function resultNews(post: IgPost | null, m: MatchLite, imageUrl: string | null, date: string): NewsDraft {
-  const known = m.status === "finished" && m.score_us !== null && m.score_them !== null;
-  const home = m.is_home !== false;
-  const line = known ? (home ? `${CLUB_NAME} ${m.score_us} : ${m.score_them} ${m.opponent}` : `${m.opponent} ${m.score_them} : ${m.score_us} ${CLUB_NAME}`) : null;
+/** 결과 기사 점수 줄 (홈팀 먼저). 경기 행이 종료가 아니면 null */
+function resultLine(m: MatchLite): string | null {
+  if (m.status !== "finished" || m.score_us === null || m.score_them === null) return null;
+  return m.is_home !== false ? `${CLUB_NAME} ${m.score_us} : ${m.score_them} ${m.opponent}` : `${m.opponent} ${m.score_them} : ${m.score_us} ${CLUB_NAME}`;
+}
+
+/** 같은 경기 결과 기사로 볼 제목들 — 점수 제목 + 점수 없는 제목 (같은 경기 두 번째 글이면 넣지 않게) */
+export function resultTitles(m: MatchLite): string[] {
+  const line = resultLine(m);
+  return [...(line ? [cut(`${roundTag(m, " 결과")}${line}`, 120)] : []), cut(`${roundTag(m)}${m.opponent}전 경기 결과`, 120)];
+}
+
+export function resultNews(post: IgPost | null, m: MatchLite, imageUrl: string | null, date: string, withCaption = true): NewsDraft {
+  const line = resultLine(m);
+  const known = line !== null;
   const title = line ? `${roundTag(m, " 결과")}${line}` : `${roundTag(m)}${m.opponent}전 경기 결과`;
   const comp = [m.competition, m.round].filter(Boolean).join(" ");
   const summary = `${comp} ${m.opponent}전${line ? ` ${line}` : " 경기 결과"} (${matchWhen(m.kickoff)}${m.venue ? ` ${m.venue}` : ""})`.trim();
   const scorers = known && m.scorers ? `득점: ${m.scorers}` : "";
-  const body = [summary, scorers, post ? captionBody(post) : "", post ? igLink(post) : ""].filter(Boolean).join("\n\n");
+  const body = [summary, scorers, post && withCaption ? captionBody(post) : "", post ? igLink(post) : ""].filter(Boolean).join("\n\n");
   return { category: "news", title: cut(title, 120), date, summary: cut(summary, 300), body, images: imageUrl ? [imageUrl] : [], thumbnail_url: null, video_url: null, published: true };
 }
 
 /** MATCH PHOTO → 구단사진 '1R 노원제너FS전 경기 사진' */
-export function photoNews(post: IgPost, m: MatchLite, imageUrls: string[]): NewsDraft {
+export function photoNews(post: IgPost, m: MatchLite, imageUrls: string[], withCaption = true): NewsDraft {
   const title = `${m.round ? `${m.round} ` : ""}${m.opponent}전 경기 사진`;
   const summary = `${[m.competition, m.round].filter(Boolean).join(" ")} ${m.opponent}전 (${matchWhen(m.kickoff)}${m.venue ? ` ${m.venue}` : ""})`.trim();
-  const body = [summary, captionBody(post), igLink(post)].filter(Boolean).join("\n\n");
+  const body = [summary, withCaption ? captionBody(post) : "", igLink(post)].filter(Boolean).join("\n\n");
   return { category: "photo", title: cut(title, 120), date: kstDate(post.takenAt), summary: cut(summary, 300), body, images: imageUrls, thumbnail_url: null, video_url: null, published: true };
 }

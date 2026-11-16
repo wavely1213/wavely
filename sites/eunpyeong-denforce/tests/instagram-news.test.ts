@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { IgPost } from "../supabase/functions/instagram-sync/embed.ts";
-import { matchdayNews, matchForPost, matchWhen, photoNews, resultNews, type MatchLite } from "../supabase/functions/instagram-sync/plan.ts";
+import { matchdayNews, matchForPost, matchWhen, photoNews, resultNews, resultTitles, type MatchLite } from "../supabase/functions/instagram-sync/plan.ts";
 
 // 2026-11-15 09:00 KST
 const T = Date.parse("2026-11-15T09:00:00+09:00") / 1000;
@@ -71,4 +71,31 @@ test("경기를 못 찾으면 null (다른 날, 다른 상대)", () => {
   assert.equal(matchForPost(post(MD, Date.parse("2026-11-14T09:00:00+09:00") / 1000), "matchday", [R1]), null);
   assert.equal(matchForPost(post(MD.replace("노원제너FS", "화성FS")), "matchday", [R1]), null);
   assert.equal(matchForPost(post(MD), "welcome", [R1]), null);
+});
+
+test("MATCH PHOTO: 최근 7일 안 경기가 하나이고 3일 안일 때만 — 연속 경기(7R 1/16, 8R 1/17) 뒤 1/19 글은 null", () => {
+  const r7 = { ...R1, id: "r7", round: "7R", kickoff: "2027-01-16T05:00:00Z" };
+  const r8 = { ...R1, id: "r8", round: "8R", kickoff: "2027-01-17T08:00:00Z" };
+  assert.equal(matchForPost(post("MATCH PHOTO", Date.parse("2027-01-19T05:36:00Z") / 1000), "photo", [r7, r8]), null);
+  // 하나뿐이어도 3일 넘으면 null, 3일 안이면 그 경기
+  assert.equal(matchForPost(post("MATCH PHOTO", Date.parse("2027-01-21T05:36:00Z") / 1000), "photo", [r8]), null);
+  assert.equal(matchForPost(post("MATCH PHOTO", Date.parse("2027-01-19T05:36:00Z") / 1000), "photo", [r8])?.id, "r8");
+});
+
+test("확인 필요 메모가 있던 글은 본문에 글을 싣지 않는다 (경기 행 값만)", () => {
+  const ft = "경기결과\n서울은평덴포스 2 : 3 노원제너FS";
+  const done = { ...R1, status: "finished", score_us: 3, score_them: 3 };
+  const withCap = resultNews(post(ft), done, IMG, "2026-11-15");
+  const noCap = resultNews(post(ft), done, IMG, "2026-11-15", false);
+  assert.match(withCap.body, /2 : 3/);
+  assert.doesNotMatch(noCap.body, /2 : 3/);
+  assert.match(noCap.body, /노원제너FS 3 : 3 서울은평 덴포스/);
+  assert.doesNotMatch(matchdayNews(post(MD), R1, IMG, false).body, /MATCH DAY/);
+  assert.doesNotMatch(photoNews(post("MATCH PHOTO 멋진 경기"), R1, [IMG], false).body, /멋진/);
+});
+
+test("resultTitles: 점수 제목 + 점수 없는 제목 (같은 경기 두 번째 글 막기)", () => {
+  const done = { ...R1, status: "finished", score_us: 0, score_them: 7 };
+  assert.deepEqual(resultTitles(done), ["[1R 결과] 노원제너FS 7 : 0 서울은평 덴포스", "[1R] 노원제너FS전 경기 결과"]);
+  assert.deepEqual(resultTitles(R1), ["[1R] 노원제너FS전 경기 결과"]);
 });
