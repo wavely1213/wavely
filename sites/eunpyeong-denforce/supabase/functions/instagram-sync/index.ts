@@ -18,6 +18,7 @@ import {
   planMatchday,
   postLinkTarget,
   resultNews,
+  resultTitles,
   planResult,
   planWelcome,
   positionLabel,
@@ -201,9 +202,16 @@ async function apply(db: Db, post: IgPost, roster: RosterPlayer[], matches: Matc
     const m = matchForPost(post, type, matches);
     if (!m) out.notes.push("구단 소식 기사를 만들지 않음 — 이 글의 경기를 찾지 못함 (관리자 › 구단소식에서 직접)");
     else {
+      // 이 글 처리에서 확인 필요 메모가 생겼으면 글(캡션)은 본문에 싣지 않고 경기 행 값만
+      const withCaption = out.notes.length === 0;
       const url = await newsImage();
-      const draft = type === "matchday" ? matchdayNews(post, m, url) : type === "result" ? resultNews(post, m, url, date) : photoNews(post, m, [url]);
-      if (await insertNews(db, draft, newsByImage(url))) out.actions.push(`${draft.category === "photo" ? "구단사진" : "구단뉴스"}: ${draft.title}`);
+      const draft =
+        type === "matchday" ? matchdayNews(post, m, url, withCaption) : type === "result" ? resultNews(post, m, url, date, withCaption) : photoNews(post, m, [url], withCaption);
+      // 같은 경기 두 번째 글(다시 올린 글, FULL TIME 뒤 경기결과 글 등) — 같은 종류, 같은 제목(결과는 점수 없는 제목도) 기사가 있으면 넣지 않는다
+      const titles = type === "result" ? resultTitles(m) : [draft.title];
+      const same = await must(db.from("news_posts").select("id").eq("category", draft.category).in("title", titles).limit(1), "같은 경기 기사 확인");
+      if (same?.length && !(await must(newsByImage(url)(), "구단소식 확인"))?.length) out.notes.push(`같은 경기 기사가 이미 있어 구단 소식 기사는 넣지 않음 ('${draft.title}')`);
+      else if (await insertNews(db, draft, newsByImage(url))) out.actions.push(`${draft.category === "photo" ? "구단사진" : "구단뉴스"}: ${draft.title}`);
     }
   }
 
