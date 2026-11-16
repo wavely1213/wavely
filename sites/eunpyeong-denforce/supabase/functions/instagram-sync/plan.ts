@@ -128,7 +128,7 @@ export function postingDraft(post: IgPost, type: IgPostType): PostingDraft {
 // ── 구단소식 ──
 
 export type NewsDraft = {
-  category: "news" | "video";
+  category: "news" | "video" | "photo";
   title: string;
   date: string;
   summary: string;
@@ -317,6 +317,10 @@ export type MatchLite = {
   score_us: number | null;
   score_them: number | null;
   venue?: string;
+  /** 기사 제목/본문용 (matches select * 로 읽는다) */
+  competition?: string;
+  round?: string;
+  is_home?: boolean;
   /** 득점자 (다시 시도할 때 메모 판단) */
   scorers?: string | null;
   /** 매치데이 팝업 포스터를 누르면 갈 게시물 (D-096). 열이 없는 DB(마이그레이션 전)에서는 키 자체가 없다 */
@@ -471,4 +475,87 @@ export function planResult(post: IgPost, matches: readonly MatchLite[], roster: 
     update: { id: found.id, status: "finished", score_us: r.scoreUs, score_them: r.scoreThem, scorers: s.scorers },
     note: s.problem === "unreadable" ? UNREADABLE_SCORERS : null,
   };
+}
+
+// ── 경기 글 → 구단 소식 (총괄 2026-11-16, 소유자 ㄱㄱ: 인스타 경기 글을 구단 소식에도) ──
+// 라운드/상대/일시/장소/홈원정은 글이 아니라 연결된 경기 행에서. 경기를 못 찾으면 기사를 만들지 않고 메모.
+
+/** 화면에 쓰는 우리 구단 이름 */
+export const CLUB_NAME = "서울은평 덴포스";
+const WEEKDAY = "일월화수목금토";
+
+/** 경기 시각 → '11.15 (일) 14:00' (한국 시간) */
+export function matchWhen(kickoff: string): string {
+  const d = new Date(Date.parse(kickoff) + 9 * 3_600_000);
+  const mm = d.getUTCMonth() + 1;
+  return `${mm}.${String(d.getUTCDate()).padStart(2, "0")} (${WEEKDAY[d.getUTCDay()]}) ${d.toISOString().slice(11, 16)}`;
+}
+
+/**
+ * 이 글이 가리키는 경기 행. 못 찾거나 여럿이면 null.
+ *  MATCH DAY — 글 날짜(서울)와 같은 날 + 같은 상대 / 경기결과 — 최근 7일 같은 상대(점수를 못 읽어도 '🆚 상대' 로)
+ *  MATCH PHOTO — 글 시각 기준 3일 안에 열린 경기가 정확히 하나
+ */
+export function matchForPost(post: IgPost, type: IgPostType, matches: readonly MatchLite[]): MatchLite | null {
+  const at = post.takenAt * 1000;
+  if (type === "matchday") {
+    const hint = parseMatchday(post.caption);
+    if (!hint.opponent) return null;
+    const date = kstDate(post.takenAt);
+    const found = matches.filter((x) => kstDateTime(Date.parse(x.kickoff) / 1000).slice(0, 10) === date && sameTeam(x.opponent, hint.opponent!));
+    return found.length === 1 ? found[0] : null;
+  }
+  if (type === "result") {
+    const r = parseResult(post.caption);
+    if (!r.opponent) return null;
+    const found = matches
+      .filter((x) => sameTeam(x.opponent, r.opponent!) && Date.parse(x.kickoff) <= at + 3_600_000 && Date.parse(x.kickoff) >= at - 7 * 86_400_000)
+      .sort((a, b) => Date.parse(b.kickoff) - Date.parse(a.kickoff));
+    return found[0] ?? null;
+  }
+  if (type === "photo") {
+    const found = matches.filter((x) => Date.parse(x.kickoff) <= at && Date.parse(x.kickoff) >= at - 3 * 86_400_000);
+    return found.length === 1 ? found[0] : null;
+  }
+  return null;
+}
+
+/** '[1R] ' 같은 머리 — 라운드가 없으면 빈칸 */
+const roundTag = (m: MatchLite, suffix = "") => (m.round ? `[${m.round}${suffix}] ` : "");
+/** 본문용 글 — 꾸민 글씨는 보통 글자로, 이모지 빼고, 해시태그 줄 빼고 */
+const captionBody = (post: IgPost) => captionLines(siteCaption(post.caption)).map(plainText).filter(Boolean).join("\n");
+const igLink = (post: IgPost) => `구단 공식 인스타그램 게시물: https://www.instagram.com/p/${post.code}/`;
+
+/** MATCH DAY → 구단뉴스 '[1R] 노원제너FS전 매치데이 — 11.15 (일) 14:00 파주NFC풋살장' */
+export function matchdayNews(post: IgPost, m: MatchLite, imageUrl: string | null): NewsDraft {
+  const when = matchWhen(m.kickoff);
+  const place = m.venue ? ` ${m.venue}` : "";
+  const title = `${roundTag(m)}${m.opponent}전 매치데이 — ${when}${place}`;
+  const summary = `${[m.competition, m.round].filter(Boolean).join(" ")} ${m.opponent}전, ${when}${place}${m.is_home === undefined ? "" : m.is_home ? " (홈)" : " (원정)"}`.trim();
+  const body = [summary, captionBody(post), igLink(post)].filter(Boolean).join("\n\n");
+  return { category: "news", title: cut(title, 120), date: kstDate(post.takenAt), summary: cut(summary, 300), body, images: imageUrl ? [imageUrl] : [], thumbnail_url: null, video_url: null, published: true };
+}
+
+/**
+ * FULL TIME / 경기결과 → 구단뉴스. 경기 행이 종료(점수 있음)면 '[1R 결과] 노원제너FS 7 : 0 서울은평 덴포스'(홈팀 먼저),
+ * 아니면 '[1R] 노원제너FS전 경기 결과' (점수 없이). 점수는 글이 아니라 DB 값(동기화가 쓴 값이든 관리자 값이든).
+ */
+export function resultNews(post: IgPost | null, m: MatchLite, imageUrl: string | null, date: string): NewsDraft {
+  const known = m.status === "finished" && m.score_us !== null && m.score_them !== null;
+  const home = m.is_home !== false;
+  const line = known ? (home ? `${CLUB_NAME} ${m.score_us} : ${m.score_them} ${m.opponent}` : `${m.opponent} ${m.score_them} : ${m.score_us} ${CLUB_NAME}`) : null;
+  const title = line ? `${roundTag(m, " 결과")}${line}` : `${roundTag(m)}${m.opponent}전 경기 결과`;
+  const comp = [m.competition, m.round].filter(Boolean).join(" ");
+  const summary = `${comp} ${m.opponent}전${line ? ` ${line}` : " 경기 결과"} (${matchWhen(m.kickoff)}${m.venue ? ` ${m.venue}` : ""})`.trim();
+  const scorers = known && m.scorers ? `득점: ${m.scorers}` : "";
+  const body = [summary, scorers, post ? captionBody(post) : "", post ? igLink(post) : ""].filter(Boolean).join("\n\n");
+  return { category: "news", title: cut(title, 120), date, summary: cut(summary, 300), body, images: imageUrl ? [imageUrl] : [], thumbnail_url: null, video_url: null, published: true };
+}
+
+/** MATCH PHOTO → 구단사진 '1R 노원제너FS전 경기 사진' */
+export function photoNews(post: IgPost, m: MatchLite, imageUrls: string[]): NewsDraft {
+  const title = `${m.round ? `${m.round} ` : ""}${m.opponent}전 경기 사진`;
+  const summary = `${[m.competition, m.round].filter(Boolean).join(" ")} ${m.opponent}전 (${matchWhen(m.kickoff)}${m.venue ? ` ${m.venue}` : ""})`.trim();
+  const body = [summary, captionBody(post), igLink(post)].filter(Boolean).join("\n\n");
+  return { category: "photo", title: cut(title, 120), date: kstDate(post.takenAt), summary: cut(summary, 300), body, images: imageUrls, thumbnail_url: null, video_url: null, published: true };
 }
