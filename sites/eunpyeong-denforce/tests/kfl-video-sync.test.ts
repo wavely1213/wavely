@@ -209,6 +209,9 @@ test("parsePlaylist: 응답 → RSS 와 같은 모양, 비공개/삭제/형식 �
 test("youtubeError: 할당량, 키, API 꺼짐, 404", async () => {
   const { youtubeError } = await import("../supabase/functions/kfl-video-sync/plan.ts");
   assert.match(youtubeError(403, '{"error":{"errors":[{"reason":"quotaExceeded"}]}}'), /할당량/);
+  // 키의 API 제한에 YouTube 가 빠진 경우 / IP 제한 (총괄 검토)
+  assert.match(youtubeError(403, '{"error":{"code":403,"message":"Requests to this API youtube method youtube.api.v3.V3DataPlaylistItemService.List are blocked.","status":"PERMISSION_DENIED","details":[{"reason":"API_KEY_SERVICE_BLOCKED"}]}}'), /API 제한사항에 YouTube/);
+  assert.match(youtubeError(403, '{"error":{"details":[{"reason":"API_KEY_IP_ADDRESS_BLOCKED"}]}}'), /애플리케이션 제한사항/);
   assert.match(youtubeError(400, "API key not valid. Please pass a valid API key."), /키가 맞지 않음/);
   assert.match(youtubeError(403, "YouTube Data API v3 has not been used in project 1 before or it is disabled"), /켜져 있지 않음/);
   assert.match(youtubeError(404, "playlistNotFound"), /재생목록/);

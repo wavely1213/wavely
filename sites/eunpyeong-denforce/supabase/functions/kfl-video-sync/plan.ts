@@ -41,6 +41,9 @@ export function youtubeError(status: number, body: string): string {
   if (/quotaExceeded|dailyLimitExceeded|rateLimitExceeded/.test(body)) return "YouTube API 할당량 초과 — 다음 실행에 다시";
   if (/API key not valid|keyInvalid|API_KEY_INVALID/i.test(body)) return "YouTube API 키가 맞지 않음";
   if (/accessNotConfigured|SERVICE_DISABLED|has not been used|is disabled/i.test(body)) return "이 키에 YouTube Data API v3 가 켜져 있지 않음";
+  // 키의 'API 제한사항'에 YouTube 가 빠짐 (드라이브만 허용한 키를 같이 쓸 때) / IP 등 앱 제한
+  if (/API_KEY_SERVICE_BLOCKED|are blocked/i.test(body)) return "이 키의 API 제한사항에 YouTube Data API v3 추가 필요 (Google Cloud › 사용자 인증 정보)";
+  if (/API_KEY_(IP_ADDRESS|HTTP_REFERRER|ANDROID_APP|IOS_APP)_BLOCKED/i.test(body)) return "이 키의 애플리케이션 제한사항 때문에 막힘 — '없음'으로 (Google Cloud › 사용자 인증 정보)";
   if (status === 404) return "업로드 재생목록을 찾지 못함";
   return `YouTube API 오류 ${status}`;
 }

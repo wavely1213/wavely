@@ -1,5 +1,5 @@
 // 연맹 유튜브 경기 영상 자동 연결 (D-090) — Supabase 예약 실행(pg_cron)이 몇 시간마다 부른다. AI 를 쓰지 않는다.
-// 한국풋살연맹 - KFL 공개 RSS(키 없음)에서 우리 경기 영상을 찾아 matches.replay_url / highlight_url 이 비어 있을 때만 넣는다.
+// 한국풋살연맹 - KFL 유튜브 업로드 목록(YouTube Data API v3, 키 GOOGLE_DRIVE_API_KEY — RSS 는 404, I-066)에서 우리 경기 영상을 찾아 matches.replay_url / highlight_url 이 비어 있을 때만 넣는다.
 // 쓰기는 이 함수 안에서만 서버 키(SUPABASE_SERVICE_ROLE_KEY, Supabase 가 넣어 줌)로 (D-065 와 같음).
 // 호출 확인: x-sync-secret 헤더 = Vault 의 kfl_video_sync_secret (DB 함수 kfl_video_sync_secret_ok 로 비교).
 import { createClient } from "npm:@supabase/supabase-js@2.117.3";
