@@ -660,3 +660,4 @@
 - 2026-11-16 기능: 인스타 경기 글 → 구단 소식(D-097, instagram-sync) + 1R 소급 SQL. 화면 변화 없음.
 - 2026-11-16 총괄: D-097(인스타 경기 글 → 구단 소식) 운영 — instagram-sync v9 배포(4파일 바이트 동일, a85791f), 1R 소급 기사 2건(매치데이 11-15, 결과 '[1R 결과] 노원제너FS 7 : 0 서울은평 덴포스' 11-16, DfydP8oBq0V 링크/사진). 소유자 GOOGLE_DRIVE_API_KEY 저장(포스터 자동 연결 첫 실행 확인 예정). 1R 결과는 v7 이 인스타 결과 글로 자동 반영(0:7).
 - 2026-11-16 기능: kfl-video-sync 를 RSS → YouTube Data API v3 로(I-066). 화면 변화 없음.
+- 2026-11-16 기능: KFL C5 서버 함수 kfl-sync(fetcher.ts, index.ts) + C6 cron 파일, dry 확인. 화면 변화 없음.
