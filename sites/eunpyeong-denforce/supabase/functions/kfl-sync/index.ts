@@ -335,16 +335,6 @@ Deno.serve(async (req) => {
             touch(g.game_number, { note: g.note, state: "review" });
           }
         }
-        // 구단 페이지 명단 (비교 경고용, 시즌 표시 없음)
-        if (fetcher.canRequest()) {
-          const roster = parseClubRoster(await fetcher.get(CLUB_PAGE));
-          const hash = await sha256(JSON.stringify(roster));
-          if (state.club_roster_hash !== hash) {
-            finalState.club_roster = roster;
-            finalState.club_roster_hash = hash;
-            if (state.club_roster_hash) finalState.club_roster_changed_at = nowIso;
-          }
-        }
       }
     }
     plan.games = games.size;
@@ -371,13 +361,26 @@ Deno.serve(async (req) => {
         if (!pages.has(g.list_page)) await readPage(g.list_page);
         const listed = pages.get(g.list_page)?.find((x) => x.gameNumber === g.game_number);
         if (!listed) {
-          // 쪽은 날짜순이라 일정이 바뀌면 옮겨 간다 — 다음 실행에서 전체 일정을 다시 읽는다
-          finalState.list_due = true;
+          // 쪽은 날짜순이라 일정이 바뀌면 옮겨 간다 — 이번에 전체 일정을 읽지 않았으면 다음 실행에서 다시(하루 한 번).
+          // 그 경기는 실패로 미뤄(지수) 매 실행 다시 찾느라 하루 예산을 다 쓰지 않게
+          if (!fullDone) finalState.list_due = true;
+          const fails = Math.min(g.fails + 1, 99);
+          const n = nextCheckAt({ kickoff: g.kickoff, appliedHash: g.applied_hash, rechecksLeft: g.rechecks_left, fails, note: g.note }, now);
+          const msg = `일정표에서 경기 ${g.game_number}번을 찾지 못함`;
+          touch(g.game_number, {
+            fails,
+            next_check_at: n.nextCheckAt,
+            note: (g.note ?? "").includes(msg) ? g.note : prependNote(g.note, [msg, ...(n.note ? [n.note] : [])]),
+            ...(n.review ? { state: "review" } : {}),
+          });
+          if (!warnings.includes(msg)) warnings.push(msg);
           continue;
         }
         const timing = { kickoff: g.kickoff, appliedHash: g.applied_hash, rechecksLeft: g.rechecks_left, fails: 0, note: g.note };
         /** 지난번 모양 오류(error)였다가 정상으로 읽히면 상태를 되돌린다 */
-        const recover: Partial<GameDb> = g.state === "error" ? { state: g.applied_hash ? "recorded" : "waiting" } : {};
+        // 회복 때 명단 확인 전(공개 꺼짐)이었던 경기는 review 로 (recorded 로 올라가지 않게)
+        const needsReview = !L.stats_live || (g.note ?? "").includes("명단 확인 전");
+        const recover: Partial<GameDb> = g.state === "error" ? { state: g.applied_hash ? (needsReview ? "review" : "recorded") : "waiting" } : {};
         if (!listed.score) {
           const n = nextCheckAt(timing, now);
           touch(g.game_number, { next_check_at: n.nextCheckAt, fails: 0, ...recover, ...(n.note ? { note: prependNote(g.note, [n.note]), state: "review" } : {}) });
@@ -497,6 +500,26 @@ Deno.serve(async (req) => {
         for (const u of st.updates) {
           await must(db.from("standings").update({ win: u.win, draw: u.draw, loss: u.loss, goals_for: u.goalsFor, goals_against: u.goalsAgainst, updated_by: BY }).eq("id", u.id), "순위 쓰기");
         }
+      }
+    }
+
+    // 구단 페이지 명단 (비교 경고용, 시즌 표시 없음) — 맨 끝에, 일정표 전체를 읽은 날(하루 한 번)만.
+    // 실패해도 이미 한 반영은 그대로: 모양 오류는 경고만, 요청 실패는 백오프만
+    if (fullDone && !dry && !requestFailed && fetcher.canRequest()) {
+      try {
+        const roster = parseClubRoster(await fetcher.get(CLUB_PAGE));
+        const hash = await sha256(JSON.stringify(roster));
+        if (state.club_roster_hash !== hash) {
+          finalState.club_roster = roster;
+          finalState.club_roster_hash = hash;
+          if (state.club_roster_hash) finalState.club_roster_changed_at = nowIso;
+        }
+      } catch (e) {
+        if (e instanceof KflShapeError) warnings.push(`구단 페이지 모양 오류: ${e.message}`);
+        else if (e instanceof KflRequestError) {
+          markRequestFailed();
+          warnings.push(`구단 페이지: ${e.message}`);
+        } else if (!(e instanceof BudgetExhausted)) throw e;
       }
     }
 
