@@ -292,6 +292,8 @@ Deno.serve(async (req) => {
     const lastList = state.last_list_at ? Date.parse(String(state.last_list_at)) : 0;
     const seoulHour = new Date(startedAt + 9 * 3_600_000).getUTCHours();
     const fullDue = state.list_due === true || (startedAt - lastList >= LIST_EVERY_MS && seoulHour >= 6) || !lastList;
+    /** 오늘(서울) 이미 일정표 전체를 읽었나 — 전체 다시 읽기 / 구단 페이지는 하루 한 번만 (총괄 검증 be02f9b) */
+    const listedToday = lastList > 0 && seoulDay(lastList) === today;
     let fullDone = false;
     /** 일정표 줄 모양 오류 — 우리 경기 확인은 계속하되 이번 실행은 순위를 계산하지 않는다 */
     let listShapeError = false;
@@ -363,7 +365,7 @@ Deno.serve(async (req) => {
         if (!listed) {
           // 쪽은 날짜순이라 일정이 바뀌면 옮겨 간다 — 이번에 전체 일정을 읽지 않았으면 다음 실행에서 다시(하루 한 번).
           // 그 경기는 실패로 미뤄(지수) 매 실행 다시 찾느라 하루 예산을 다 쓰지 않게
-          if (!fullDone) finalState.list_due = true;
+          if (!fullDone && !listedToday) finalState.list_due = true;
           const fails = Math.min(g.fails + 1, 99);
           const n = nextCheckAt({ kickoff: g.kickoff, appliedHash: g.applied_hash, rechecksLeft: g.rechecks_left, fails, note: g.note }, now);
           const msg = `일정표에서 경기 ${g.game_number}번을 찾지 못함`;
@@ -378,9 +380,9 @@ Deno.serve(async (req) => {
         }
         const timing = { kickoff: g.kickoff, appliedHash: g.applied_hash, rechecksLeft: g.rechecks_left, fails: 0, note: g.note };
         /** 지난번 모양 오류(error)였다가 정상으로 읽히면 상태를 되돌린다 */
-        // 회복 때 명단 확인 전(공개 꺼짐)이었던 경기는 review 로 (recorded 로 올라가지 않게)
-        const needsReview = !L.stats_live || (g.note ?? "").includes("명단 확인 전");
-        const recover: Partial<GameDb> = g.state === "error" ? { state: g.applied_hash ? (needsReview ? "review" : "recorded") : "waiting" } : {};
+        // 모양 오류(error)에서 회복: 경기 메모가 있으면(확인할 것이 남음) review, 반영된 경기면 recorded, 아니면 waiting
+        // (오류 전 상태를 따로 두지 않으므로 메모로 판단 — 총괄 검증 be02f9b: 메모 있는 review 가 recorded/waiting 으로 떨어지지 않게)
+        const recover: Partial<GameDb> = g.state === "error" ? { state: g.note ? "review" : g.applied_hash ? "recorded" : "waiting" } : {};
         if (!listed.score) {
           const n = nextCheckAt(timing, now);
           touch(g.game_number, { next_check_at: n.nextCheckAt, fails: 0, ...recover, ...(n.note ? { note: prependNote(g.note, [n.note]), state: "review" } : {}) });
@@ -505,7 +507,7 @@ Deno.serve(async (req) => {
 
     // 구단 페이지 명단 (비교 경고용, 시즌 표시 없음) — 맨 끝에, 일정표 전체를 읽은 날(하루 한 번)만.
     // 실패해도 이미 한 반영은 그대로: 모양 오류는 경고만, 요청 실패는 백오프만
-    if (fullDone && !dry && !requestFailed && fetcher.canRequest()) {
+    if (fullDone && !listedToday && !dry && !requestFailed && fetcher.canRequest()) {
       try {
         const roster = parseClubRoster(await fetcher.get(CLUB_PAGE));
         const hash = await sha256(JSON.stringify(roster));
