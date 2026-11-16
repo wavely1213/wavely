@@ -171,3 +171,46 @@ test("RSS: 범위 밖 숫자 참조는 그 항목만 버린다, &amp;amp; 는 &a
 </feed>`;
   assert.deepEqual(parseFeed(xml), [{ videoId: "Good_entry1", title: "A &amp; B A", published: "2026-11-02T00:00:00+00:00" }]);
 });
+
+/* YouTube Data API v3 업로드 목록 (I-066: RSS 가 전부 404 라 바꿈) */
+test("playlistUrl: 업로드 재생목록(UC → UU), 50개, 다음 쪽 토큰", async () => {
+  const { playlistUrl, UPLOADS_PLAYLIST, KFL_CHANNEL_ID } = await import("../supabase/functions/kfl-video-sync/plan.ts");
+  assert.equal(UPLOADS_PLAYLIST, "UU" + KFL_CHANNEL_ID.slice(2));
+  const u = new URL(playlistUrl("KEY", "TOK"));
+  assert.equal(u.origin + u.pathname, "https://www.googleapis.com/youtube/v3/playlistItems");
+  assert.deepEqual([u.searchParams.get("playlistId"), u.searchParams.get("maxResults"), u.searchParams.get("part"), u.searchParams.get("pageToken")], [UPLOADS_PLAYLIST, "50", "snippet,contentDetails", "TOK"]);
+});
+
+test("parsePlaylist: 응답 → RSS 와 같은 모양, 비공개/삭제/형식 틀린 항목 버림, 다음 쪽", async () => {
+  const { parsePlaylist, planVideos } = await import("../supabase/functions/kfl-video-sync/plan.ts");
+  const body = {
+    nextPageToken: "NEXT",
+    items: [
+      { snippet: { title: "[FK1] 노원제너FS VS 서울은평덴포스 (2026.11.15.) - 1R", publishedAt: "2026-11-15T09:00:00Z", resourceId: { videoId: "abcDEF12345" } }, contentDetails: { videoId: "abcDEF12345", videoPublishedAt: "2026-11-15T04:50:00Z" } },
+      { snippet: { title: "Private video", resourceId: { videoId: "privPRIV123" } }, contentDetails: { videoId: "privPRIV123" } },
+      { snippet: { title: "Deleted video" }, contentDetails: { videoId: "dele7EDvid0" } },
+      { snippet: { title: "잘못된 ID" }, contentDetails: { videoId: "short" } },
+      { snippet: { title: "  [하이라이트] 노원제너FS vs 서울은평덴포스 (2026.11.15)  ", publishedAt: "2026-11-16T01:00:00Z", resourceId: { videoId: "HiGhLiGht01" } } },
+    ],
+  };
+  const r = parsePlaylist(body);
+  assert.equal(r.nextPageToken, "NEXT");
+  assert.deepEqual(r.entries, [
+    { videoId: "abcDEF12345", title: "[FK1] 노원제너FS VS 서울은평덴포스 (2026.11.15.) - 1R", published: "2026-11-15T04:50:00Z" },
+    { videoId: "HiGhLiGht01", title: "[하이라이트] 노원제너FS vs 서울은평덴포스 (2026.11.15)", published: "2026-11-16T01:00:00Z" },
+  ]);
+  assert.deepEqual(parsePlaylist({ items: [] }), { entries: [], nextPageToken: null });
+  assert.deepEqual(parsePlaylist(null), { entries: [], nextPageToken: null });
+  // 짝짓기 규칙은 그대로 — 같은 경기에 다시보기 + 하이라이트
+  const plan = planVideos(r.entries, [{ id: "m1", date: "2026-11-15", opponent: "노원제너FS", highlight_url: null, replay_url: null }]);
+  assert.deepEqual(plan.updates.map((u) => [u.field, u.videoId]).sort(), [["highlight_url", "HiGhLiGht01"], ["replay_url", "abcDEF12345"]]);
+});
+
+test("youtubeError: 할당량, 키, API 꺼짐, 404", async () => {
+  const { youtubeError } = await import("../supabase/functions/kfl-video-sync/plan.ts");
+  assert.match(youtubeError(403, '{"error":{"errors":[{"reason":"quotaExceeded"}]}}'), /할당량/);
+  assert.match(youtubeError(400, "API key not valid. Please pass a valid API key."), /키가 맞지 않음/);
+  assert.match(youtubeError(403, "YouTube Data API v3 has not been used in project 1 before or it is disabled"), /켜져 있지 않음/);
+  assert.match(youtubeError(404, "playlistNotFound"), /재생목록/);
+  assert.equal(youtubeError(500, ""), "YouTube API 오류 500");
+});

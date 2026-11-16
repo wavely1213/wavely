@@ -3,10 +3,15 @@
 // 쓰기는 이 함수 안에서만 서버 키(SUPABASE_SERVICE_ROLE_KEY, Supabase 가 넣어 줌)로 (D-065 와 같음).
 // 호출 확인: x-sync-secret 헤더 = Vault 의 kfl_video_sync_secret (DB 함수 kfl_video_sync_secret_ok 로 비교).
 import { createClient } from "npm:@supabase/supabase-js@2.117.3";
-import { appliedKey, FEED_URL, parseFeed, planVideos, seoulDate, type MatchLite } from "./plan.ts";
+import { redactKey } from "../drive-library/drive.ts";
+import { appliedKey, parsePlaylist, planVideos, playlistUrl, seoulDate, youtubeError, type FeedEntry, type MatchLite } from "./plan.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+/** 드라이브 자료함과 같은 키 — 같은 키에 YouTube Data API v3 를 켠다 (I-066) */
+const API_KEY = Deno.env.get("GOOGLE_DRIVE_API_KEY") ?? "";
+/** 업로드 목록은 최근 50개씩, 다음 쪽 1번까지 (100개) */
+const MAX_PAGES = 2;
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
@@ -25,11 +30,23 @@ Deno.serve(async (req) => {
 
   const started = new Date().toISOString();
   try {
-    const res = await fetch(FEED_URL, { headers: { "User-Agent": "eunpyeong-denforce-site/1.0 (kfl-video-sync)" } });
-    if (!res.ok) throw new Error(`feed ${res.status}`);
-    const entries = parseFeed(await res.text());
+    if (!API_KEY) {
+      // 키가 없으면 아무것도 읽거나 쓰지 않고 상태만
+      await db.from("kfl_video_sync_state").update({ last_run_at: started, last_error: "키 필요 — GOOGLE_DRIVE_API_KEY (YouTube Data API v3 켜기)" }).eq("id", 1);
+      return json({ ok: false, status: "no_key" });
+    }
+    const entries: FeedEntry[] = [];
+    let token: string | undefined;
+    for (let page = 0; page < MAX_PAGES; page++) {
+      const res = await fetch(playlistUrl(API_KEY, token), { signal: AbortSignal.timeout(20_000) });
+      if (!res.ok) throw new Error(youtubeError(res.status, await res.text().catch(() => "")));
+      const pageData = parsePlaylist(await res.json());
+      entries.push(...pageData.entries);
+      if (!pageData.nextPageToken) break;
+      token = pageData.nextPageToken;
+    }
 
-    // 피드는 최근 15개 — 그중 가장 오래된 게시일(또는 지금)에서 60일 전 이후 경기만 읽는다(게시가 경기보다 늦는 경우 대비)
+    // 목록은 최근 100개까지 — 그중 가장 오래된 게시일(또는 지금)에서 60일 전 이후 경기만 읽는다(게시가 경기보다 늦는 경우 대비)
     const times = entries.map((e) => Date.parse(e.published)).filter(Number.isFinite);
     const from = new Date(Math.min(...times, Date.now()) - 60 * 86400_000).toISOString();
     const { data: rows, error } = await db
@@ -72,7 +89,8 @@ Deno.serve(async (req) => {
       .eq("id", 1);
     return json({ ok: true, entries: entries.length, applied: appliedList, notes: plan.notes });
   } catch (e) {
-    const message = String(e instanceof Error ? e.message : e).slice(0, 500);
+    // 바깥 요청 오류 문구에 주소(…?key=)가 섞일 수 있어 키를 가린다
+    const message = redactKey(String(e instanceof Error ? e.message : e)).slice(0, 500);
     await db.from("kfl_video_sync_state").update({ last_run_at: started, last_error: message }).eq("id", 1);
     return json({ ok: false, error: message }, 500);
   }

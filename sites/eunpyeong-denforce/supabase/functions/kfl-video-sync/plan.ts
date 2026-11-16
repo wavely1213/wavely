@@ -1,10 +1,49 @@
 // 연맹 유튜브 경기 영상 자동 연결 (D-090) — 순수 함수. Deno/Node 둘 다에서 돈다 (테스트: kfl-video-sync.test.ts)
-// 출처: 한국풋살연맹 - KFL 공개 RSS(키 없음, 최근 15개). 제목에 '은평' 또는 '덴포스'가 있는 영상만.
+// 출처: 한국풋살연맹 - KFL 채널의 업로드 재생목록(YouTube Data API v3 playlistItems, 키 GOOGLE_DRIVE_API_KEY) — RSS 가 전부 404 라 바꿈(I-066).
+// 제목에 '은평' 또는 '덴포스'가 있는 영상만.
 // 짝짓기 규칙은 supabase/data/2026-10-18_match_videos.sql 손작업과 같다: 제목 속 경기 날짜(서울) + 상대 팀, 하루 한 경기.
 
 /** 한국풋살연맹 - KFL (@kfl7010) */
 export const KFL_CHANNEL_ID = "UCf8oQ3Clz_d5bpeMEv3AZrg";
 export const FEED_URL = `https://www.youtube.com/feeds/videos.xml?channel_id=${KFL_CHANNEL_ID}`;
+/** 채널 업로드 재생목록 — 채널 ID 의 UC 를 UU 로 */
+export const UPLOADS_PLAYLIST = `UU${KFL_CHANNEL_ID.slice(2)}`;
+const PLAYLIST_API = "https://www.googleapis.com/youtube/v3/playlistItems";
+
+/** 업로드 목록 한 쪽 주소 (50개). 키는 서버 함수 안에서만 붙인다 */
+export function playlistUrl(apiKey: string, pageToken?: string): string {
+  const p = new URLSearchParams({ part: "snippet,contentDetails", playlistId: UPLOADS_PLAYLIST, maxResults: "50", key: apiKey });
+  if (pageToken) p.set("pageToken", pageToken);
+  return `${PLAYLIST_API}?${p}`;
+}
+
+type PlaylistItem = {
+  snippet?: { title?: string; publishedAt?: string; resourceId?: { videoId?: string } };
+  contentDetails?: { videoId?: string; videoPublishedAt?: string };
+};
+
+/** playlistItems 응답 → RSS 파서가 내던 모양(FeedEntry) + 다음 쪽 토큰. 비공개/삭제 영상과 형식이 틀린 항목은 버린다 */
+export function parsePlaylist(body: unknown): { entries: FeedEntry[]; nextPageToken: string | null } {
+  const b = (body ?? {}) as { items?: PlaylistItem[]; nextPageToken?: string };
+  const entries: FeedEntry[] = [];
+  for (const it of b.items ?? []) {
+    const videoId = (it.contentDetails?.videoId ?? it.snippet?.resourceId?.videoId ?? "").trim();
+    const title = (it.snippet?.title ?? "").trim();
+    const published = (it.contentDetails?.videoPublishedAt ?? it.snippet?.publishedAt ?? "").trim();
+    if (!VIDEO_ID.test(videoId) || !title || /^(Private|Deleted) video$/i.test(title)) continue;
+    entries.push({ videoId, title, published });
+  }
+  return { entries, nextPageToken: typeof b.nextPageToken === "string" && b.nextPageToken ? b.nextPageToken : null };
+}
+
+/** YouTube API 오류 → 상태에 남길 문구 (할당량, 키, 그 밖) */
+export function youtubeError(status: number, body: string): string {
+  if (/quotaExceeded|dailyLimitExceeded|rateLimitExceeded/.test(body)) return "YouTube API 할당량 초과 — 다음 실행에 다시";
+  if (/API key not valid|keyInvalid|API_KEY_INVALID/i.test(body)) return "YouTube API 키가 맞지 않음";
+  if (/accessNotConfigured|SERVICE_DISABLED|has not been used|is disabled/i.test(body)) return "이 키에 YouTube Data API v3 가 켜져 있지 않음";
+  if (status === 404) return "업로드 재생목록을 찾지 못함";
+  return `YouTube API 오류 ${status}`;
+}
 
 export type FeedEntry = { videoId: string; title: string; published: string };
 export type VideoKind = "replay" | "highlight";

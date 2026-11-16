@@ -40,7 +40,7 @@
 - **해결 방향**: 관리자 › 구단소식에서 사진을 더 올리거나, 묶음 사진 주소를 얻는 방법(공식 API 등)이 생기면 그때.
 
 ## I-066 | 2026-11-16 | 연맹 유튜브 영상 자동 연결(kfl-video-sync, D-090)이 RSS 404 로 동작하지 않음
-- **상태**: 열림
+- **상태**: 기능 브랜치에서 해결 — YouTube Data API v3 업로드 목록(playlistItems, UU… 재생목록, 키 GOOGLE_DRIVE_API_KEY)으로 바꿈(2026-11-16). 운영은 함수 재배포 + 같은 키에 YouTube Data API v3 켜기 확인 뒤 닫힘. 키가 없으면 상태에 '키 필요'만, API 가 꺼져 있으면 '이 키에 YouTube Data API v3 가 켜져 있지 않음'
 - **심각도**: 중간 (다시보기/하이라이트 자동 연결 안 됨 — 관리자 입력으로 대신)
 - **내용**: 운영 배포(2026-11-16) 첫 실행이 'feed 404'. youtube.com/feeds/videos.xml?channel_id=… 가 연맹 채널(UCf8oQ3Clz_d5bpeMEv3AZrg, @kfl7010 — 1R 영상 oEmbed 로 같은 채널 확인)뿐 아니라 다른 채널(Google Developers)도 404 — 채널 ID 문제가 아니라 유튜브 RSS 자체가 막힘(이 네트워크/클라우드 기준). 함수는 3시간마다 상태에 오류만 남기고 아무것도 쓰지 않는다(안전).
 - **해결 방향**: 소유자가 GOOGLE_DRIVE_API_KEY 를 넣을 때 같은 키에 YouTube Data API v3 를 켜면, 업로드 목록(playlistItems, UU… 재생목록)으로 바꿔 읽는다(소유자 확인 필요). 그 전까지 영상 주소는 관리자 › 경기에서 입력.
