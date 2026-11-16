@@ -65,3 +65,30 @@ test("멈춤: 1h × 2^(n-1), 24시간 상한 / 서울 날짜", () => {
   assert.equal(pauseUntil(9, 0), new Date(24 * 3_600_000).toISOString());
   assert.equal(seoulDay(Date.parse("2026-11-15T15:30:00Z")), "2026-11-16");
 });
+
+test("본문 읽기 중 끊김/시간 초과도 요청 실패, 간격은 앞 요청이 끝난 때부터", async () => {
+  const broken = () => {
+    const body = new ReadableStream({ start(c) { c.error(new Error("timed out")); } });
+    return new Response(body, { status: 200, headers: { "content-type": "text/html;charset=UTF-8" } });
+  };
+  await assert.rejects(fake([broken]).f.get("/x"), (e: unknown) => e instanceof KflRequestError && /timed out/.test((e as Error).message));
+  // 느린 응답(5초) 뒤에도 다음 요청까지 1.5초를 더 기다린다
+  let t = 0;
+  const at: number[] = [];
+  const f = new Fetcher({
+    fetch: async () => {
+      at.push(t);
+      t += 5000;
+      return new Response("x", { status: 200, headers: { "content-type": "text/html;charset=UTF-8" } });
+    },
+    now: () => t,
+    sleep: async (ms) => {
+      t += ms;
+    },
+    dayCount: 0,
+    startedAt: 0,
+  });
+  await f.get("/a");
+  await f.get("/b");
+  assert.ok(at[1] - (at[0] + 5000) >= GAP_MS);
+});

@@ -12,6 +12,8 @@ export const GAP_MS = 1500;
 export const TIMEOUT_MS = 20_000;
 export const MAX_PER_RUN = 8;
 export const MAX_PER_DAY = 60;
+/** 응답 본문 상한 (기록지 원본은 약 60KB) */
+export const MAX_BODY_BYTES = 2 * 1024 * 1024;
 /** 실행이 이만큼 지나면 새 요청을 하지 않는다 (무료 플랜 150초 벽시계) */
 export const RUN_BUDGET_MS = 90_000;
 
@@ -83,21 +85,28 @@ export class Fetcher {
   /** GET 하나 — 예산, 간격, 시간 제한, UTF-8 만. 실패는 KflRequestError */
   async get(path: string): Promise<string> {
     if (!this.canRequest()) throw new BudgetExhausted(`요청 예산 끝 (이번 ${this.count}, 오늘 ${this.deps.dayCount + this.count})`);
+    // 간격은 앞 요청이 끝난 때부터 1.5초
     const wait = this.last + GAP_MS - this.deps.now();
     if (this.last && wait > 0) await this.deps.sleep(wait);
-    this.last = this.deps.now();
     this.count++;
     let res: Response;
+    let bytes: Uint8Array;
     try {
       res = await this.deps.fetch(`${HOST}${path}`, { headers: HEADERS, redirect: "manual", signal: AbortSignal.timeout(TIMEOUT_MS) });
+      if (res.status !== 200) {
+        await res.body?.cancel().catch(() => {});
+        throw new KflRequestError(`연맹 응답 ${res.status} (${path.split("?")[0]})`, res.status);
+      }
+      // 본문 읽기 중 시간 초과/끊김도 요청 실패
+      bytes = new Uint8Array(await res.arrayBuffer());
     } catch (e) {
+      if (e instanceof KflRequestError) throw e;
       throw new KflRequestError(`네트워크 오류: ${String(e instanceof Error ? e.message : e).slice(0, 200)}`, null);
+    } finally {
+      this.last = this.deps.now();
     }
-    if (res.status !== 200) {
-      await res.body?.cancel().catch(() => {});
-      throw new KflRequestError(`연맹 응답 ${res.status} (${path.split("?")[0]})`, res.status);
-    }
-    const text = decodeUtf8(new Uint8Array(await res.arrayBuffer()), res.headers.get("content-type"));
+    if (bytes.byteLength > MAX_BODY_BYTES) throw new KflRequestError(`응답이 너무 큼 (${bytes.byteLength})`, res.status);
+    const text = decodeUtf8(bytes, res.headers.get("content-type"));
     this.anyOk = true;
     return text;
   }

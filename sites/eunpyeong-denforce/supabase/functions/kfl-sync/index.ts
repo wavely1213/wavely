@@ -154,6 +154,14 @@ Deno.serve(async (req) => {
   const actions = plan.actions as unknown[];
   const finalState: Record<string, unknown> = {};
   let failStreak = Number(state.fail_streak ?? 0);
+  /** 이번 실행에 연맹 요청 실패(403/429/5xx/네트워크)가 있었음 — 요청을 멈추고 지수로 쉰다 */
+  let requestFailed = false;
+  const markRequestFailed = () => {
+    if (requestFailed) return;
+    requestFailed = true;
+    failStreak = Math.min(failStreak + 1, 20);
+    finalState.paused_until = pauseUntil(failStreak, startedAt);
+  };
   /** 예산이 끝나 멈출 때도 그때까지 읽은 경기 값을 쓰려고 (try 안에서 정해진다) */
   const flushRef: { fn: () => Promise<void> } = { fn: async () => {} };
   let shapeOk = false;
@@ -171,11 +179,12 @@ Deno.serve(async (req) => {
         last_run_at: nowIso,
         req_day: today,
         req_count: reqCount,
-        fail_streak: fetcher.anyOk ? 0 : failStreak,
+        // 요청 실패가 한 번이라도 있었으면 0 으로 되돌리지 않는다
+        fail_streak: requestFailed ? failStreak : fetcher.anyOk ? 0 : failStreak,
         last_warning: warnings.length ? warnings.join(" / ").slice(0, 500) : null,
         ...(shapeOk ? { shape_error_at: null } : {}),
         ...finalState,
-        ...extra,
+        ...Object.fromEntries(Object.entries(extra).filter(([, v]) => v !== undefined)),
       })
       .eq("id", 1);
   };
@@ -284,20 +293,36 @@ Deno.serve(async (req) => {
     const seoulHour = new Date(startedAt + 9 * 3_600_000).getUTCHours();
     const fullDue = state.list_due === true || (startedAt - lastList >= LIST_EVERY_MS && seoulHour >= 6) || !lastList;
     let fullDone = false;
+    /** 일정표 줄 모양 오류 — 우리 경기 확인은 계속하되 이번 실행은 순위를 계산하지 않는다 */
+    let listShapeError = false;
     if (fullDue) {
       let page = 1;
       let complete = false;
       for (; page <= MAX_PAGES; page++) {
         if (!fetcher.canRequest()) break;
-        if (!(await readPage(page))) {
-          complete = true;
-          break;
+        try {
+          if (!(await readPage(page))) {
+            complete = true;
+            break;
+          }
+        } catch (e) {
+          if (e instanceof KflShapeError) {
+            listShapeError = true;
+            finalState.shape_error_at = nowIso;
+            warnings.push(`일정표 ${page}쪽 모양 오류: ${e.message}`);
+            break;
+          }
+          if (e instanceof KflRequestError) {
+            markRequestFailed();
+            warnings.push(e.message);
+            break;
+          }
+          throw e;
         }
       }
       if (complete) {
+        // last_list_at / list_due 는 순위까지 끝난 뒤에 (아래) — 중간에 멈추면 다음 실행에서 일정표를 다시
         fullDone = true;
-        finalState.last_list_at = nowIso;
-        finalState.list_due = false;
         // 연결 안 된 우리 경기
         for (const g of games.values()) {
           if (!g.is_ours || g.match_id) continue;
@@ -337,8 +362,11 @@ Deno.serve(async (req) => {
       if (p) numbers.set(n.number, p);
     }
 
+    // 처음 본 경기 행을 먼저 쓴다 — 기록지 스냅샷/출전 줄이 kfl_games 를 참조한다(FK)
+    await flushGames();
+
     for (const g of due) {
-      if (!fetcher.canRequest()) break;
+      if (requestFailed || !fetcher.canRequest()) break;
       try {
         if (!pages.has(g.list_page)) await readPage(g.list_page);
         const listed = pages.get(g.list_page)?.find((x) => x.gameNumber === g.game_number);
@@ -348,9 +376,11 @@ Deno.serve(async (req) => {
           continue;
         }
         const timing = { kickoff: g.kickoff, appliedHash: g.applied_hash, rechecksLeft: g.rechecks_left, fails: 0, note: g.note };
+        /** 지난번 모양 오류(error)였다가 정상으로 읽히면 상태를 되돌린다 */
+        const recover: Partial<GameDb> = g.state === "error" ? { state: g.applied_hash ? "recorded" : "waiting" } : {};
         if (!listed.score) {
           const n = nextCheckAt(timing, now);
-          touch(g.game_number, { next_check_at: n.nextCheckAt, fails: 0, ...(n.note ? { note: prependNote(g.note, [n.note]), state: "review" } : {}) });
+          touch(g.game_number, { next_check_at: n.nextCheckAt, fails: 0, ...recover, ...(n.note ? { note: prependNote(g.note, [n.note]), state: "review" } : {}) });
           actions.push({ game: g.game_number, wait: "일정표 스코어 없음", next: n.nextCheckAt });
           continue;
         }
@@ -359,7 +389,7 @@ Deno.serve(async (req) => {
         shapeOk = true;
         if (!isFinished(listed, sheet)) {
           const n = nextCheckAt(timing, now);
-          touch(g.game_number, { next_check_at: n.nextCheckAt, fails: 0 });
+          touch(g.game_number, { next_check_at: n.nextCheckAt, fails: 0, ...recover });
           actions.push({ game: g.game_number, wait: "기록지 아직", next: n.nextCheckAt });
           continue;
         }
@@ -428,10 +458,19 @@ Deno.serve(async (req) => {
           touch(g.game_number, { seen_hash: hash, state: "review", note: p.notes.length ? prependNote(g.note, p.notes) : g.note, next_check_at: n.nextCheckAt, fails: 0 });
         } else {
           const n = nextCheckAt(timing, now);
-          touch(g.game_number, { seen_hash: hash, next_check_at: n.nextCheckAt, rechecks_left: n.rechecksLeft, fails: 0 });
+          touch(g.game_number, { seen_hash: hash, next_check_at: n.nextCheckAt, rechecks_left: n.rechecksLeft, fails: 0, ...recover });
         }
       } catch (e) {
-        if (e instanceof BudgetExhausted || e instanceof KflRequestError) throw e;
+        if (e instanceof BudgetExhausted) break;
+        if (e instanceof KflRequestError) {
+          // 그 경기는 실패로 미루고, 이번 실행은 요청을 멈춘다
+          markRequestFailed();
+          const fails = Math.min(g.fails + 1, 99);
+          const n = nextCheckAt({ kickoff: g.kickoff, appliedHash: g.applied_hash, rechecksLeft: g.rechecks_left, fails, note: g.note }, now);
+          touch(g.game_number, { fails, next_check_at: n.nextCheckAt, ...(n.note ? { note: prependNote(g.note, [n.note]), state: "review" } : {}) });
+          warnings.push(e.message);
+          break;
+        }
         if (!(e instanceof KflShapeError)) throw e;
         // 모양이 바뀜 — 그 경기만 오류로, 일부만 반영하지 않는다
         finalState.shape_error_at = nowIso;
@@ -443,7 +482,7 @@ Deno.serve(async (req) => {
     }
 
     // ── 순위 (BR-034): 일정표를 다 읽었거나 스코어가 바뀌었을 때 ──
-    if (fullDone || scoresChanged) {
+    if ((fullDone || scoresChanged) && !listShapeError) {
       const list = [...games.values()].map((g) => ({ homeClub: g.home_club, awayClub: g.away_club, score: g.home_score === null || g.away_score === null ? null : ([g.home_score, g.away_score] as [number, number]) }));
       const { records, unknown } = standingsFromGames(list, clubNames);
       const rows = (await must(db.from("standings").select("id, team, win, draw, loss, goals_for, goals_against").eq("season", L.competition), "순위 읽기")) as Array<{ id: string; team: string; win: number; draw: number; loss: number; goals_for: number; goals_against: number }>;
@@ -461,20 +500,28 @@ Deno.serve(async (req) => {
       }
     }
 
+    if (fullDone && !listShapeError) {
+      finalState.last_list_at = nowIso;
+      finalState.list_due = false;
+    } else if (scoresChanged && listShapeError) finalState.list_due = true;
+
     await flushGames();
     plan.requests = fetcher.count;
-    await finish({ last_ok_at: new Date().toISOString(), last_error: null });
+    await finish({ last_ok_at: requestFailed ? undefined : new Date().toISOString(), last_error: requestFailed ? warnings.at(-1) ?? "연맹 요청 실패" : null });
     return json({ ok: true, ...plan, warnings });
   } catch (e) {
     const message = String(e instanceof Error ? e.message : e).slice(0, 500);
-    if (e instanceof KflRequestError) {
-      // 403/429/5xx/네트워크 — 이번 실행 요청을 멈추고 지수로 쉰다
-      failStreak = Math.min(failStreak + 1, 20);
-      if (!fetcher.anyOk) finalState.paused_until = pauseUntil(failStreak, startedAt);
-    }
+    if (e instanceof KflRequestError) markRequestFailed();
     if (e instanceof KflShapeError) finalState.shape_error_at = nowIso;
-    if (e instanceof BudgetExhausted) {
+    // 그때까지 모은 경기 값은 쓴다(실패해도 다음 실행이 같은 일을 다시 — 멱등). last_list_at 은 바꾸지 않는다
+    delete finalState.last_list_at;
+    delete finalState.list_due;
+    try {
       await flushRef.fn();
+    } catch (fe) {
+      warnings.push(`경기 값 쓰기 실패: ${String(fe instanceof Error ? fe.message : fe).slice(0, 200)}`);
+    }
+    if (e instanceof BudgetExhausted) {
       plan.requests = fetcher.count;
       await finish({ last_ok_at: new Date().toISOString(), last_error: null });
       return json({ ok: true, budget: message, ...plan, warnings });
