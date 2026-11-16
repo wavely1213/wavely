@@ -12,8 +12,12 @@ import {
   parseFarewell,
   parseWelcome,
   planFarewell,
+  matchdayNews,
+  matchForPost,
+  photoNews,
   planMatchday,
   postLinkTarget,
+  resultNews,
   planResult,
   planWelcome,
   positionLabel,
@@ -189,6 +193,18 @@ async function apply(db: Db, post: IgPost, roster: RosterPlayer[], matches: Matc
       } else out.notes.push(`경기 결과를 넣지 않음 — 그사이 결과가 입력됨 (글 ${values.score_us}:${values.score_them}), 확인 필요`);
     }
     if (plan.note) out.notes.push(plan.note);
+  }
+
+  // 경기 글 → 구단 소식 (2026-11-16): MATCH DAY / 경기결과 → 구단뉴스, MATCH PHOTO → 구단사진.
+  // 경기 행(라운드/상대/일시/장소/점수)은 위에서 반영한 뒤의 값. 못 찾으면 기사를 만들지 않고 메모. 같은 글로 두 번 만들지 않는다(사진 주소로 확인)
+  if (type === "matchday" || type === "result" || type === "photo") {
+    const m = matchForPost(post, type, matches);
+    if (!m) out.notes.push("구단 소식 기사를 만들지 않음 — 이 글의 경기를 찾지 못함 (관리자 › 구단소식에서 직접)");
+    else {
+      const url = await newsImage();
+      const draft = type === "matchday" ? matchdayNews(post, m, url) : type === "result" ? resultNews(post, m, url, date) : photoNews(post, m, [url]);
+      if (await insertNews(db, draft, newsByImage(url))) out.actions.push(`${draft.category === "photo" ? "구단사진" : "구단뉴스"}: ${draft.title}`);
+    }
   }
 
   // 매치데이 팝업 포스터 링크 (D-096): MATCH DAY / 경기결과 글 주소를 그 경기의 빈 칸에. 그사이 관리자가 넣었으면 is null 로 건너뛴다
