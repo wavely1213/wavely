@@ -7,7 +7,7 @@ import { ADMIN_PAGE_MAP } from "@/config/admin-pages";
 import { PRIVACY_PAGE_ENABLED } from "@/config/site";
 import { NEWS_CATEGORY_LABEL } from "@/data/news";
 import { POSTING_PLATFORM_LABEL } from "@/data/postings";
-import { instagramAlerts, numberAlerts, reviewAlerts, rosterAlerts, siteGapAlerts, sortAlerts, type AdminAlert, type AlertLevel } from "@/lib/admin/alerts";
+import { instagramAlerts, kflAlerts, numberAlerts, reviewAlerts, rosterAlerts, siteGapAlerts, sortAlerts, type AdminAlert, type AlertLevel } from "@/lib/admin/alerts";
 import { requireAdminPage } from "@/lib/admin/auth";
 import { adminUserIds } from "@/lib/admin/review";
 import { isPendingReview } from "@/lib/admin/roles";
@@ -29,6 +29,52 @@ export default function DashboardPage() {
       </Suspense>
     </>
   );
+}
+
+/**
+ * 연맹 기록 수집 알림 (명세 2.7) — 활성 리그의 우리 경기와 확인할 출전 줄.
+ * 표가 없거나(마이그레이션 전) 못 읽으면 이 알림만 건너뛴다
+ */
+async function kflAlertsFor(supabase: Awaited<ReturnType<typeof requireAdminPage>>["supabase"], now: Date): Promise<AdminAlert[]> {
+  const [state, leagues] = await Promise.all([
+    supabase
+      .from("kfl_sync_state")
+      .select("last_run_at, last_ok_at, last_error, last_warning, last_list_at, shape_error_at, paused_until, club_roster_changed_at, club_roster_ack_at")
+      .eq("id", 1)
+      .maybeSingle(),
+    supabase.from("kfl_leagues").select("league_seq, season, stats_live").eq("active", true),
+  ]);
+  if (state.error || leagues.error) return [];
+  const seqs = (leagues.data ?? []).map((l) => l.league_seq);
+  const games = seqs.length
+    ? await supabase.from("kfl_games").select("state, kickoff, match_id, applied_hash").in("league_seq", seqs).eq("is_ours", true)
+    : { data: [], error: null };
+  if (games.error) return [];
+  const ids = (games.data ?? []).map((g) => g.match_id).filter(Boolean);
+  const review = ids.length
+    ? await supabase.from("match_appearances").select("id", { count: "exact", head: true }).in("match_id", ids).eq("link", "review")
+    : { count: 0, error: null };
+  if (review.error) return [];
+  const st = state.data;
+  return kflAlerts({
+    state: st
+      ? {
+          lastRunAt: st.last_run_at,
+          lastOkAt: st.last_ok_at,
+          lastError: st.last_error,
+          lastWarning: st.last_warning,
+          lastListAt: st.last_list_at,
+          shapeErrorAt: st.shape_error_at,
+          pausedUntil: st.paused_until,
+          clubRosterChangedAt: st.club_roster_changed_at,
+          clubRosterAckAt: st.club_roster_ack_at,
+        }
+      : null,
+    games: (games.data ?? []).map((g) => ({ state: g.state, kickoff: g.kickoff, recorded: Boolean(g.applied_hash && g.match_id) })),
+    reviewRows: review.count ?? 0,
+    leagues: (leagues.data ?? []).map((l) => ({ season: l.season, statsLive: l.stats_live })),
+    now,
+  });
 }
 
 /** 오늘 날짜 (한국 시간, YYYY-MM-DD) */
@@ -77,6 +123,7 @@ async function Dashboard() {
     supabase.from("instagram_posts").select("status").in("status", ["review", "error"]),
   ]);
 
+  const kfl = await kflAlertsFor(supabase, now);
   const playerRows = players.data ?? [];
   const activePlayers = playerRows.filter((p) => p.is_active);
   const lite = playerRows.map((p) => ({ id: p.id, name: p.name, number: p.number, isActive: p.is_active, hasPhoto: Boolean(p.photo_url) }));
@@ -101,6 +148,7 @@ async function Dashboard() {
           errors: igRows.filter((r) => r.status === "error").length,
           now,
         }),
+        ...kfl,
         ...siteGapAlerts({
           upcomingMatches: scheduledRows.length,
           pastScheduled: scheduledRows.filter((m) => new Date(m.kickoff) < now).length,

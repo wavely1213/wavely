@@ -30,8 +30,13 @@ export default function MatchesAdminPage() {
 
 async function MatchLists() {
   const { supabase } = await requireAdminPage();
-  const { data } = await supabase.from("matches").select("*").order("kickoff").returns<MatchRow[]>();
+  const [{ data }, kfl] = await Promise.all([
+    supabase.from("matches").select("*").order("kickoff").returns<MatchRow[]>(),
+    // 연맹 결과기록지와 연결된 경기 (명세 4.4) — 스코어/득점자는 기록지가 바뀌면 다시 쓰인다. 표가 없으면 표시 없음
+    supabase.from("kfl_games").select("match_id").not("match_id", "is", null),
+  ]);
   const rows = data ?? [];
+  const linked = new Set((kfl.data ?? []).map((g) => g.match_id as string));
   const upcoming = rows.filter((m) => m.status === "scheduled");
   const finished = rows.filter((m) => m.status === "finished").reverse();
 
@@ -39,17 +44,17 @@ async function MatchLists() {
     <>
       <section className={local.section}>
         <h2 className={styles.panelTitle}>예정</h2>
-        <MatchTable rows={upcoming} empty="예정된 경기가 없습니다." />
+        <MatchTable rows={upcoming} linked={linked} empty="예정된 경기가 없습니다." />
       </section>
       <section className={local.section}>
         <h2 className={styles.panelTitle}>종료</h2>
-        <MatchTable rows={finished} empty="종료된 경기가 없습니다." />
+        <MatchTable rows={finished} linked={linked} empty="종료된 경기가 없습니다." />
       </section>
     </>
   );
 }
 
-function MatchTable({ rows, empty }: { rows: MatchRow[]; empty: string }) {
+function MatchTable({ rows, linked, empty }: { rows: MatchRow[]; linked: Set<string>; empty: string }) {
   if (rows.length === 0) return <p className={`${styles.panel} ${styles.empty}`}>{empty}</p>;
 
   return (
@@ -83,6 +88,14 @@ function MatchTable({ rows, empty }: { rows: MatchRow[]; empty: string }) {
                   <Link href={`/admin/matches/${m.id}`} className={styles.rowLink}>
                     {m.opponent}
                   </Link>
+                  {linked.has(m.id) && (
+                    <>
+                      {" "}
+                      <span className={styles.badge} title="스코어와 득점자는 연맹 결과기록지가 바뀌면 다시 쓰입니다">
+                        연맹 기록
+                      </span>
+                    </>
+                  )}
                 </td>
                 <td>{m.score_us !== null && m.score_them !== null ? `${m.score_us} : ${m.score_them}` : "-"}</td>
                 <td>{m.venue || "-"}</td>

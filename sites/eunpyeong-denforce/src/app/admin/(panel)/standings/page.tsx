@@ -39,12 +39,20 @@ function groupBySeason(rows: StandingRow[]) {
 
 async function StandingList() {
   const { supabase } = await requireAdminPage();
-  const { data } = await supabase.from("standings").select("*").returns<StandingDbRow[]>();
+  const [{ data }, kfl] = await Promise.all([
+    supabase.from("standings").select("*").returns<StandingDbRow[]>(),
+    // 연맹 기록 자동 수집이 한 번이라도 성공했으면 안내 (명세 4.4). 표가 없으면(마이그레이션 전) 안내 없음
+    supabase.from("kfl_sync_state").select("last_ok_at").eq("id", 1).maybeSingle<{ last_ok_at: string | null }>(),
+  ]);
   const groups = groupBySeason((data ?? []).map(toStanding));
 
   if (groups.length === 0) return <p className={`${styles.panel} ${styles.empty}`}>등록된 팀이 없습니다.</p>;
 
-  return groups.map(({ season, rows }) => (
+  const auto = Boolean(kfl.data?.last_ok_at);
+  return (
+    <>
+      {auto && <p className={styles.formMessage}>활성 리그 순위는 연맹 일정표 스코어로 자동 계산됩니다(직접 고친 값은 다음 갱신 때 바뀝니다).</p>}
+      {groups.map(({ season, rows }) => (
     <section key={season} className={styles.panel}>
       <h2 className={styles.panelTitle}>
         {season}
@@ -93,5 +101,7 @@ async function StandingList() {
         </table>
       </div>
     </section>
-  ));
+      ))}
+    </>
+  );
 }

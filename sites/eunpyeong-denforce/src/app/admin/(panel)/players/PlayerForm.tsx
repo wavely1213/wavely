@@ -66,9 +66,10 @@ export function PlayerForm({
         />
       </Row>
       <Row>
-        <TextField name="apps" label="출전" type="number" required defaultValue={initial?.apps ?? 0} />
-        <TextField name="goals" label="득점" type="number" required defaultValue={initial?.goals ?? 0} />
-        <TextField name="assists" label="도움" type="number" required defaultValue={initial?.assists ?? 0} />
+        {/* 2025-26 고정 기록 (명세 1.6) — 2026-27 부터는 연맹 결과기록지 출전 줄에서 계산한다 */}
+        <TextField name="apps" label="2025-26 출전 (고정 기록)" type="number" required defaultValue={initial?.apps ?? 0} />
+        <TextField name="goals" label="2025-26 득점 (고정 기록)" type="number" required defaultValue={initial?.goals ?? 0} />
+        <TextField name="assists" label="2025-26 도움 (고정 기록)" type="number" required defaultValue={initial?.assists ?? 0} />
       </Row>
       <ImageField name="photo" label="사진" currentUrl={initial?.photo_url} drive="players" />
       <CheckboxField

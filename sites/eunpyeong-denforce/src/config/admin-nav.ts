@@ -32,6 +32,8 @@ export const ADMIN_NAV_GROUPS: readonly AdminNavGroup[] = [
       { href: "/admin/standings", label: "리그순위" },
       // 상대팀 엠블럼 — 코드 기본값 + 관리자 업로드 (D-094, I-048)
       { href: "/admin/crests", label: "상대팀 엠블럼" },
+      // 한국풋살연맹 일정표와 결과기록지를 30분마다 읽은 기록, 출전 줄 확인, 기록 공개 (D-082)
+      { href: "/admin/kfl", label: "연맹 기록 수집" },
     ],
   },
   {

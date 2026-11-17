@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { TAGS } from "@/lib/cache-tags";
 import { NOT_ADMIN_MESSAGE, requireAdminAction } from "@/lib/admin/auth";
 import { dbErrorMessage, FormReader, isoToKst, kstToIso, submittedValues, type ActionState } from "@/lib/admin/form";
+import { gkConcededProblem, gkDbMessage, parseGkForm, type GkRow } from "@/lib/admin/kfl";
 import { removeImage, resolveImage } from "@/lib/admin/storage";
 import { MATCH_SIDES, MATCH_STATUSES } from "./labels";
 
@@ -107,6 +108,55 @@ function readMatch(f: FormReader) {
   return { competition, round, kickoff, venue, is_home, opponent, status, score_us, score_them, highlight_url, replay_url, scorers };
 }
 
+type Ctx = NonNullable<Awaited<ReturnType<typeof requireAdminAction>>>;
+
+/**
+ * 골키퍼 실점 줄 (D-098) — 폼에 칸이 있을 때만. 끝난 경기만, 합계 ≤ 상대 득점(DB 트리거도 같은 검사).
+ * null = 이 폼에 골키퍼 칸 없음(건드리지 않음)
+ */
+async function readGk(ctx: Ctx, f: FormReader, fd: FormData, status: string, scoreThem: number | null): Promise<GkRow[] | null> {
+  if (fd.get("gk_present") !== "1") return null;
+  const players = fd.getAll("gk_player").map(String);
+  const ids = [...new Set(players.filter(Boolean))];
+  const { data } = ids.length ? await ctx.supabase.from("players").select("id, name, position").in("id", ids) : { data: [] };
+  const parsed = parseGkForm({
+    players,
+    conceded: fd.getAll("gk_conceded").map(String),
+    force: fd.getAll("gk_force").map(String),
+    positions: new Map((data ?? []).map((p) => [p.id as string, { name: p.name as string, position: p.position as string }])),
+  });
+  if ("error" in parsed) {
+    f.reject("gk", parsed.error);
+    return null;
+  }
+  if (status !== "finished" && parsed.rows.length > 0) {
+    f.reject("gk", "골키퍼 실점은 상태가 '종료'인 경기에만 넣을 수 있습니다. 줄을 빼거나 상태를 바꿔 주세요.");
+    return null;
+  }
+  const problem = gkConcededProblem(parsed.rows, scoreThem);
+  if (problem) f.reject("gk", problem);
+  return parsed.rows;
+}
+
+/** 골키퍼 줄 맞추기 — 뺀 선수는 지우고, 나머지는 한 번에 넣기/고치기. 실패하면 화면 문구 */
+async function saveGk(ctx: Ctx, matchId: string, rows: GkRow[]): Promise<string | null> {
+  const { data: before, error: readErr } = await ctx.supabase.from("match_gk_conceded").select("player_id, conceded").eq("match_id", matchId);
+  if (readErr) return dbErrorMessage(readErr);
+  const same =
+    (before ?? []).length === rows.length && rows.every((r) => (before ?? []).some((b) => b.player_id === r.playerId && b.conceded === r.conceded));
+  if (same) return null;
+  const keep = rows.map((r) => r.playerId);
+  let del = ctx.supabase.from("match_gk_conceded").delete().eq("match_id", matchId);
+  if (keep.length) del = del.not("player_id", "in", `(${keep.join(",")})`);
+  const { error: delErr } = await del;
+  if (delErr) return dbErrorMessage(delErr);
+  if (rows.length === 0) return null;
+  const { error } = await ctx.supabase
+    .from("match_gk_conceded")
+    .upsert(rows.map((r) => ({ match_id: matchId, player_id: r.playerId, conceded: r.conceded })), { onConflict: "match_id,player_id" });
+  return error ? (gkDbMessage(error) ?? dbErrorMessage(error)) : null;
+}
+
 export async function createMatch(_prev: ActionState, fd: FormData): Promise<ActionState> {
   const ctx = await requireAdminAction();
   if (!ctx) return { message: NOT_ADMIN_MESSAGE };
@@ -147,6 +197,7 @@ export async function updateMatch(id: string, _prev: ActionState, fd: FormData):
   if (f.hasErrors) return f.state();
 
   const links = readPostLinks(f);
+  const gk = await readGk(ctx, f, fd, values.status, values.score_them);
   if (f.hasErrors) return f.state();
   const posters = await resolvePosters(ctx, f, current);
   if (f.hasErrors) {
@@ -168,8 +219,14 @@ export async function updateMatch(id: string, _prev: ActionState, fd: FormData):
     };
   }
   for (const old of posters.replaced) await removeImage(ctx, old);
-
   updateTag(TAGS.matches);
+
+  // 골키퍼 실점 (D-098) — 경기를 저장한 뒤(새 스코어 기준으로 DB 가 검사). 실패하면 경기는 저장된 채로 알린다
+  if (gk) {
+    const gkError = await saveGk(ctx, id, gk);
+    if (gkError) return { message: `경기는 저장했습니다. 골키퍼 실점은 저장하지 못했습니다: ${gkError} 새로고침한 뒤 다시 넣어 주세요.` };
+    updateTag(TAGS.records);
+  }
   redirect("/admin/matches");
 }
 

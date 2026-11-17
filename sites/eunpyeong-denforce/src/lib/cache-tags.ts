@@ -15,6 +15,8 @@ export const TAGS = {
   contentItems: "content-items",
   /** 상대팀 엠블럼 (D-094) */
   crests: "crests",
+  /** 연맹 기록 — 출전 줄, 시즌 기록, 기록 공개, 골키퍼 실점 (D-082, D-098) */
+  records: "records",
 } as const;
 
 export type CacheTag = (typeof TAGS)[keyof typeof TAGS];
