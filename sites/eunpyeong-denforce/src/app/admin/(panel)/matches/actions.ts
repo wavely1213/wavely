@@ -138,23 +138,30 @@ async function readGk(ctx: Ctx, f: FormReader, fd: FormData, status: string, sco
   return parsed.rows;
 }
 
-/** 골키퍼 줄 맞추기 — 뺀 선수는 지우고, 나머지는 한 번에 넣기/고치기. 실패하면 화면 문구 */
-async function saveGk(ctx: Ctx, matchId: string, rows: GkRow[]): Promise<string | null> {
+/**
+ * 골키퍼 줄 맞추기 — 뺀 선수는 지우고, 나머지는 한 번에 넣기/고치기.
+ * 두 번의 쓰기라 지우기 뒤 넣기가 실패하면 일부만 바뀐다(partial) — 화면이 그렇게 알리고 공개 기록 캐시도 비운다
+ */
+async function saveGk(ctx: Ctx, matchId: string, rows: GkRow[]): Promise<{ error: string | null; partial: boolean; changed: boolean }> {
   const { data: before, error: readErr } = await ctx.supabase.from("match_gk_conceded").select("player_id, conceded").eq("match_id", matchId);
-  if (readErr) return dbErrorMessage(readErr);
-  const same =
-    (before ?? []).length === rows.length && rows.every((r) => (before ?? []).some((b) => b.player_id === r.playerId && b.conceded === r.conceded));
-  if (same) return null;
+  if (readErr) return { error: dbErrorMessage(readErr), partial: false, changed: false };
+  const old = before ?? [];
+  const same = old.length === rows.length && rows.every((r) => old.some((b) => b.player_id === r.playerId && b.conceded === r.conceded));
+  if (same) return { error: null, partial: false, changed: false };
   const keep = rows.map((r) => r.playerId);
-  let del = ctx.supabase.from("match_gk_conceded").delete().eq("match_id", matchId);
-  if (keep.length) del = del.not("player_id", "in", `(${keep.join(",")})`);
-  const { error: delErr } = await del;
-  if (delErr) return dbErrorMessage(delErr);
-  if (rows.length === 0) return null;
+  const removing = old.some((b) => !keep.includes(b.player_id));
+  if (removing) {
+    let del = ctx.supabase.from("match_gk_conceded").delete().eq("match_id", matchId);
+    if (keep.length) del = del.not("player_id", "in", `(${keep.join(",")})`);
+    const { error: delErr } = await del;
+    if (delErr) return { error: dbErrorMessage(delErr), partial: false, changed: false };
+  }
+  if (rows.length === 0) return { error: null, partial: false, changed: true };
   const { error } = await ctx.supabase
     .from("match_gk_conceded")
     .upsert(rows.map((r) => ({ match_id: matchId, player_id: r.playerId, conceded: r.conceded })), { onConflict: "match_id,player_id" });
-  return error ? (gkDbMessage(error) ?? dbErrorMessage(error)) : null;
+  if (error) return { error: gkDbMessage(error) ?? dbErrorMessage(error), partial: removing, changed: removing };
+  return { error: null, partial: false, changed: true };
 }
 
 export async function createMatch(_prev: ActionState, fd: FormData): Promise<ActionState> {
@@ -223,9 +230,14 @@ export async function updateMatch(id: string, _prev: ActionState, fd: FormData):
 
   // 골키퍼 실점 (D-098) — 경기를 저장한 뒤(새 스코어 기준으로 DB 가 검사). 실패하면 경기는 저장된 채로 알린다
   if (gk) {
-    const gkError = await saveGk(ctx, id, gk);
-    if (gkError) return { message: `경기는 저장했습니다. 골키퍼 실점은 저장하지 못했습니다: ${gkError} 새로고침한 뒤 다시 넣어 주세요.` };
-    updateTag(TAGS.records);
+    const saved = await saveGk(ctx, id, gk);
+    if (saved.changed) updateTag(TAGS.records);
+    if (saved.error)
+      return {
+        message: saved.partial
+          ? `경기는 저장했습니다. 골키퍼 실점은 일부만 저장됐습니다(뺀 줄은 지워졌고 나머지 줄은 저장하지 못함): ${saved.error} 새로고침한 뒤 남은 줄을 다시 넣어 주세요.`
+          : `경기는 저장했습니다. 골키퍼 실점은 저장하지 못했습니다: ${saved.error} 새로고침한 뒤 다시 넣어 주세요.`,
+      };
   }
   redirect("/admin/matches");
 }

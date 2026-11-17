@@ -36,4 +36,8 @@ export const staticSource: DataSource = {
   contentItems: async () => STATIC_ITEMS,
   // 정적 모드는 코드 목록(src/config/team-crests.ts)만 쓴다
   teamCrests: async () => [],
+  // 정적 모드에는 연맹 기록이 없다 — 선수 기록은 고정 칸(2025-26) 그대로
+  kflLeagues: async () => [],
+  seasonStats: async () => [],
+  gkSeason: async () => [],
 };

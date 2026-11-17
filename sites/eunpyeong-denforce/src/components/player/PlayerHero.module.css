@@ -77,6 +77,53 @@
   letter-spacing: -0.02em;
 }
 
+/* 기록 줄 안A 작은 줄 (피그마 302:29949) — 칸 사이 space/m, 칸 안 space/2xs. 이름 kfa/body-s on-dark-sub, 숫자 kfa/pc/h3 24 (휴대폰 kfa/m/h3 20) */
+.small {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2xs) var(--space-m);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  white-space: nowrap;
+}
+
+.itemLabel {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--c-on-dark-sub);
+}
+
+.itemValue {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--c-on-dark);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 경고/퇴장 카드 8x11, 라운드 1.5 (경고 color/yellow, 퇴장 color/loss) */
+.cardYellow,
+.cardRed {
+  flex: none;
+  width: 8px;
+  height: 11px;
+  border-radius: 1.5px;
+  background: var(--c-yellow);
+}
+
+.cardRed {
+  background: var(--c-loss);
+}
+
 /* kfa/caption on-dark-sub */
 .source {
   font-size: 12px;
@@ -122,6 +169,10 @@
   }
 
   .join {
+    font-size: 20px;
+  }
+
+  .itemValue {
     font-size: 20px;
   }
 }

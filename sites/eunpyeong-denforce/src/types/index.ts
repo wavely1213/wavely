@@ -16,6 +16,37 @@ export type Player = {
   captain?: "C" | "VC" | null;
 };
 
+/** 연맹 리그 (D-082) — stats_live 가 켜진 활성 리그가 선수 기록 시즌이 된다 (명세 1.6) */
+export type KflLeague = {
+  leagueSeq: number;
+  /** 'YYYY-YY' */
+  season: string;
+  /** 대회 이름 — matches.competition 과 같다 */
+  competition: string;
+  active: boolean;
+  statsLive: boolean;
+};
+
+/** 연맹 결과기록지 출전 줄에서 계산한 시즌 기록 (뷰 player_season_stats) */
+export type PlayerSeasonStat = {
+  competition: string;
+  season: string;
+  playerId: string;
+  apps: number;
+  starts: number;
+  goals: number;
+  yellows: number;
+  reds: number;
+};
+
+/** 골키퍼 시즌 실점 — 구단 입력 (뷰 player_gk_season, D-098) */
+export type GkSeasonStat = {
+  competition: string;
+  playerId: string;
+  games: number;
+  conceded: number;
+};
+
 export type Staff = {
   id: string;
   role: string;
