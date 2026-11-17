@@ -7,6 +7,7 @@ import styles from "@/components/admin/admin.module.css";
 import { requireAdminPage } from "@/lib/admin/auth";
 import type { MatchRow } from "@/lib/data/rows";
 import { deleteMatch, updateMatch } from "../actions";
+import type { GkInitialRow, GkPlayer } from "../GkConcededField";
 import { MatchForm } from "../MatchForm";
 
 export const metadata: Metadata = { title: "경기 수정" };
@@ -28,12 +29,18 @@ export default function EditMatchPage({ params }: { params: Params }) {
 async function Editor({ params }: { params: Params }) {
   const { supabase } = await requireAdminPage();
   const { id } = await params;
-  const { data } = await supabase.from("matches").select("*").eq("id", id).maybeSingle<MatchRow>();
+  const [{ data }, players, gkRows] = await Promise.all([
+    supabase.from("matches").select("*").eq("id", id).maybeSingle<MatchRow>(),
+    supabase.from("players").select("id, name, number, position, is_active").order("number", { nullsFirst: false }).returns<GkPlayer[]>(),
+    // 골키퍼 실점 (D-098) — 표가 없으면(마이그레이션 전) 칸을 숨긴다
+    supabase.from("match_gk_conceded").select("player_id, conceded").eq("match_id", id).returns<GkInitialRow[]>(),
+  ]);
   if (!data) notFound();
+  const gk = players.error || gkRows.error ? undefined : { players: players.data ?? [], rows: gkRows.data ?? [] };
 
   return (
     <>
-      <MatchForm action={updateMatch.bind(null, id)} initial={data} />
+      <MatchForm action={updateMatch.bind(null, id)} initial={data} gk={gk} />
       <div className={styles.dangerZone}>
         <DeleteButton action={deleteMatch.bind(null, id)} label="경기 삭제" />
       </div>

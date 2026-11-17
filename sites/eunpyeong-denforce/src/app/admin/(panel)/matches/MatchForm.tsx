@@ -5,17 +5,21 @@ import { ImageField, Row, SelectField, TextField } from "@/components/admin/fiel
 import { LEAGUE } from "@/config/league";
 import { isoToKst, type ActionState } from "@/lib/admin/form";
 import type { MatchRow } from "@/lib/data/rows";
+import { GkConcededField, type GkInitialRow, type GkPlayer } from "./GkConcededField";
 import { MATCH_SIDE_OPTIONS, MATCH_STATUS_OPTIONS } from "./labels";
 
 export function MatchForm({
   action,
   initial,
   defaultVenue,
+  gk,
 }: {
   action: (prev: ActionState, fd: FormData) => Promise<ActionState>;
   initial?: MatchRow;
   /** 새 경기의 기본 장소 — 관리자 › 홈페이지 내용 › 기본 정보 '홈구장 이름' (D-046) */
   defaultVenue?: string;
+  /** 골키퍼 실점 칸 (D-098) — 수정 화면에서만. 새 경기는 저장한 뒤 수정에서 넣는다 */
+  gk?: { players: GkPlayer[]; rows: GkInitialRow[] };
 }) {
   const kickoff = initial ? isoToKst(initial.kickoff) : null;
 
@@ -100,6 +104,7 @@ export function MatchForm({
         hint="우리 팀만, 쉼표로 구분. 상태가 '종료'일 때만 저장됩니다"
         defaultValue={initial?.scorers}
       />
+      {gk && <GkConcededField players={gk.players} initial={gk.rows} />}
       {/* D-096: 경기 날 홈 화면 팝업. 드라이브 포스터 폴더의 날짜 폴더에서 빈 칸에만 자동으로 들어온다. 여기서 올리면 그 값이 우선 */}
       <Row>
         <ImageField

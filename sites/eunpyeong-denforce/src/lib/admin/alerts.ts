@@ -223,6 +223,76 @@ export function instagramAlerts(s: InstagramSyncStatus): AdminAlert[] {
   return out;
 }
 
+/** 연맹 기록 자동 수집 (D-082, 명세 2.7) — 30분마다 도는데 2시간 넘게 성공이 없으면 멈춘 것으로 본다 */
+export const KFL_STALE_MS = 2 * 60 * 60_000;
+/** 일정표는 하루 한 번 이상 읽는다 — 30시간 넘으면 알림 */
+export const KFL_LIST_STALE_MS = 30 * 60 * 60_000;
+/** 경기 시작 뒤 이만큼 지나도 결과기록지가 없으면 알림 */
+export const KFL_SHEET_WAIT_MS = 48 * 60 * 60_000;
+
+export type KflSyncStatus = {
+  state: {
+    lastRunAt: string | null;
+    lastOkAt: string | null;
+    lastError: string | null;
+    lastWarning: string | null;
+    lastListAt: string | null;
+    shapeErrorAt: string | null;
+    pausedUntil: string | null;
+    clubRosterChangedAt: string | null;
+    clubRosterAckAt: string | null;
+  } | null;
+  /** 활성 리그의 우리 경기 */
+  games: Array<{ state: string; kickoff: string; recorded: boolean }>;
+  /** 활성 리그 우리 경기의 확인할 출전 줄 수 */
+  reviewRows: number;
+  /** 활성 리그 */
+  leagues: Array<{ season: string; statsLive: boolean }>;
+  now: Date;
+};
+
+/** 2026-11-17 15:30 (한국 시간) — 알림 문구용 */
+function kstShort(iso: string): string {
+  const d = new Date(Date.parse(iso) + 9 * 3_600_000).toISOString();
+  return `${d.slice(0, 10)} ${d.slice(11, 16)}`;
+}
+
+/** 연맹 기록 수집 — 멈춤 / 일정표 / 모양 바뀜 / 요청 멈춤 / 오류 경기 / 경고 / 구단 명단 / 확인할 것 / 기록지 대기 / 공개 켜기 */
+export function kflAlerts(s: KflSyncStatus): AdminAlert[] {
+  const out: AdminAlert[] = [];
+  const href = "/admin/kfl";
+  const action = "연맹 기록 수집";
+  const now = s.now.getTime();
+  const st = s.state;
+  if (st?.lastRunAt && (!st.lastOkAt || now - Date.parse(st.lastOkAt) > KFL_STALE_MS))
+    out.push({
+      level: "warn",
+      title: "연맹 기록 자동 수집이 2시간 넘게 성공하지 못했습니다",
+      detail: st.lastError ?? (st.lastOkAt ? undefined : "아직 한 번도 성공하지 않았습니다."),
+      href,
+      action,
+    });
+  if (st?.lastRunAt && (!st.lastListAt || now - Date.parse(st.lastListAt) > KFL_LIST_STALE_MS))
+    out.push({ level: "warn", title: "연맹 일정표를 하루 넘게 읽지 못했습니다", href, action });
+  if (st?.shapeErrorAt)
+    out.push({ level: "warn", title: "연맹 결과기록지 모양이 바뀐 것 같습니다 (자동 반영 멈춤)", detail: "개발 확인이 필요합니다.", href, action });
+  if (st?.pausedUntil && Date.parse(st.pausedUntil) > now)
+    out.push({ level: "warn", title: `연맹 요청을 ${kstShort(st.pausedUntil)}까지 멈췄습니다`, detail: st.lastError ?? undefined, href, action });
+  const errors = s.games.filter((g) => g.state === "error").length;
+  if (errors > 0) out.push({ level: "warn", title: `연맹 기록을 가져오지 못한 경기 ${errors}개`, href, action });
+  if (st?.lastWarning) out.push({ level: "warn", title: `연맹 수집 경고: ${st.lastWarning}`, href, action });
+  if (st?.clubRosterChangedAt && Date.parse(st.clubRosterChangedAt) > (st.clubRosterAckAt ? Date.parse(st.clubRosterAckAt) : 0))
+    out.push({ level: "warn", title: "연맹 구단 페이지 명단이 바뀌었습니다. 번호표와 비교해 주세요", href: "/admin/kfl/numbers", action: "시즌 번호표" });
+  const review = s.games.filter((g) => g.state === "review").length + s.reviewRows;
+  if (review > 0) out.push({ level: "check", title: `연맹 기록에서 확인할 것 ${review}개`, href, action });
+  const waiting = s.games.filter((g) => g.state === "waiting" && now - Date.parse(g.kickoff) > KFL_SHEET_WAIT_MS).length;
+  if (waiting > 0) out.push({ level: "check", title: `결과기록지를 기다리는 경기 ${waiting}개`, detail: "연맹이 아직 올리지 않았습니다. 자동으로 계속 확인합니다.", href, action });
+  if (s.reviewRows === 0 && s.games.some((g) => g.recorded))
+    for (const l of s.leagues.filter((x) => !x.statsLive))
+      out.push({ level: "check", title: `명단 확인이 끝났습니다. ${l.season} 기록 공개를 켜 주세요`, href, action });
+  return out;
+}
+
 const ORDER: Record<AlertLevel, number> = { warn: 0, check: 1, info: 2 };
 
 /** 중요한 것부터 */

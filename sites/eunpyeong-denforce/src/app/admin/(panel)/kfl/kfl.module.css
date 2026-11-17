@@ -1,0 +1,80 @@
+/* 관리자 › 연맹 기록 수집 (명세 4.1) — 토큰만 */
+.stack {
+  display: grid;
+  gap: 24px;
+  min-width: 0;
+}
+
+.boxAction {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.group + .group {
+  margin-top: 24px;
+}
+
+.groupHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  margin-top: 16px;
+}
+
+/* 줄 목록 = 클린(구분선만) */
+.rows {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: grid;
+  gap: 6px;
+  padding: 14px 0;
+  border-top: 1px solid var(--c-line);
+  min-width: 0;
+}
+
+.rowHead {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.no {
+  display: inline-block;
+  min-width: 2ch;
+  font-variant-numeric: tabular-nums;
+}
+
+.rowForm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.pick {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* 표 안 선수 고르기 — 좁은 화면에서는 표가 가로로 밀린다(tableWrap 스크롤) */
+.cellForm {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 16em;
+}
