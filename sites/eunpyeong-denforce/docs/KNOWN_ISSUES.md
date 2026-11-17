@@ -34,7 +34,7 @@
 - **해결 방향**: eslint-config-next / typescript-eslint 가 고친 버전으로 올라올 때 함께 올린다(npm audit fix 는 린트 설정을 바꿀 수 있어 검증 후).
 
 ## I-070 | 2026-11-17 | 빌드가 Next.js 16.4.1 보안 권고로 한 번 멈춤 (다시 실행하면 통과)
-- **상태**: 열림 (스코프 밖, 보고만)
+- **상태**: 해결(2026-11-17) — 총괄이 next / eslint-config-next 16.4.6 보안 패치로 올림(ed7a4fc). 남은 개발 도구 취약점은 I-071
 - **심각도**: 중간
 - **증상/내용**: `npm run build` 가 경로 생성까지 끝낸 뒤 'SecurityFatalError: Your version of Next.js is affected by a known security vulnerability' 로 한 번 실패하고, 같은 명령을 다시 실행하면 통과한다. 출력은 `next upgrade --agent=security` 실행을 권한다.
 - **위치**: package.json next 16.4.1
