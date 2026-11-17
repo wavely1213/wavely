@@ -1,7 +1,7 @@
 // 데이터 소스 계약 — 정적 / DB 두 구현이 같은 모양을 돌려준다. 정렬·필터는 repo.ts 가 한다.
 import type { TeamCrestEntry } from "@/config/team-crests";
 import type { ContentItem } from "@/lib/content/lists";
-import type { ClubSettings, HistoryItem, Match, NationalTeamAlumnus, NewsPost, Player, Posting, Sponsor, Staff, StandingRow } from "@/types";
+import type { ClubSettings, GkSeasonStat, HistoryItem, KflLeague, Match, NationalTeamAlumnus, NewsPost, Player, PlayerSeasonStat, Posting, Sponsor, Staff, StandingRow } from "@/types";
 
 export type DataSource = {
   clubSettings(): Promise<ClubSettings>;
@@ -27,4 +27,10 @@ export type DataSource = {
   contentItems(): Promise<ContentItem[]>;
   /** 관리자가 올린 상대팀 엠블럼 (D-094) — 코드 목록을 덮는 줄만. 표가 없으면(마이그레이션 전) 빈 목록 */
   teamCrests(): Promise<TeamCrestEntry[]>;
+  /** 연맹 리그 (D-082). 표가 없으면 빈 목록 */
+  kflLeagues(): Promise<KflLeague[]>;
+  /** 연맹 기록지 시즌 기록 (명세 3.1). 뷰가 없으면 빈 목록 */
+  seasonStats(): Promise<PlayerSeasonStat[]>;
+  /** 골키퍼 시즌 실점 (D-098). 뷰가 없으면 빈 목록 */
+  gkSeason(): Promise<GkSeasonStat[]>;
 };

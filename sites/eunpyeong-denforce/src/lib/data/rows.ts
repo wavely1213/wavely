@@ -2,12 +2,15 @@
 // 순수 함수만 둔다 (테스트: rows.test.ts).
 import type {
   ClubSettings,
+  GkSeasonStat,
   HistoryItem,
+  KflLeague,
   Match,
   NationalTeamAlumnus,
   NewsCategory,
   NewsPost,
   Player,
+  PlayerSeasonStat,
   Position,
   Posting,
   PostingKind,
@@ -314,3 +317,29 @@ export const toContentItem = (r: ContentItemRow): ContentItem => ({
 export function contentMap(rows: SiteContentRow[]): Record<string, string> {
   return Object.fromEntries(rows.map((r) => [r.key, r.value]));
 }
+
+// ── 연맹 기록 (D-082, D-098) ─────────────────────
+
+export type KflLeagueRow = { league_seq: number; season: string; competition: string; active: boolean; stats_live: boolean };
+export const toKflLeague = (r: KflLeagueRow): KflLeague => ({
+  leagueSeq: r.league_seq,
+  season: r.season,
+  competition: r.competition,
+  active: r.active,
+  statsLive: r.stats_live,
+});
+
+export type SeasonStatRow = { competition: string; season: string; player_id: string; apps: number; starts: number; goals: number; yellows: number; reds: number };
+export const toSeasonStat = (r: SeasonStatRow): PlayerSeasonStat => ({
+  competition: r.competition,
+  season: r.season,
+  playerId: r.player_id,
+  apps: r.apps,
+  starts: r.starts,
+  goals: r.goals,
+  yellows: r.yellows,
+  reds: r.reds,
+});
+
+export type GkSeasonRow = { competition: string; player_id: string; games: number; conceded: number };
+export const toGkSeason = (r: GkSeasonRow): GkSeasonStat => ({ competition: r.competition, playerId: r.player_id, games: r.games, conceded: r.conceded });

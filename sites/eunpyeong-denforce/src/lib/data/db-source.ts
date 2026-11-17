@@ -6,6 +6,9 @@ import {
   contentMap,
   toAlumnus,
   toContentItem,
+  toGkSeason,
+  toKflLeague,
+  toSeasonStat,
   toClubSettings,
   toHistoryItem,
   toMatch,
@@ -19,6 +22,9 @@ import {
   type AlumniRow,
   type ClubSettingsRow,
   type ContentItemRow,
+  type GkSeasonRow,
+  type KflLeagueRow,
+  type SeasonStatRow,
   type HistoryRow,
   type MatchRow,
   type NewsRow,
@@ -114,5 +120,24 @@ export const dbSource: DataSource = {
     // 마이그레이션 전에는 표가 없다 — 코드 목록만 쓰게 빈 목록 (화면이 깨지지 않게)
     if (res.error && isMissingTable(res.error)) return [];
     return unwrap("team_crests", res).map(toTeamCrest);
+  },
+  // 연맹 기록 (D-082, 명세 3.1) — 표/뷰가 없으면(마이그레이션 전) 빈 목록 = 지금 화면 그대로
+  async kflLeagues() {
+    const res = await createPublicClient().from("kfl_leagues").select("league_seq, season, competition, active, stats_live").returns<KflLeagueRow[]>();
+    if (res.error && isMissingTable(res.error)) return [];
+    return unwrap("kfl_leagues", res).map(toKflLeague);
+  },
+  async seasonStats() {
+    const res = await createPublicClient()
+      .from("player_season_stats")
+      .select("competition, season, player_id, apps, starts, goals, yellows, reds")
+      .returns<SeasonStatRow[]>();
+    if (res.error && isMissingTable(res.error)) return [];
+    return unwrap("player_season_stats", res).map(toSeasonStat);
+  },
+  async gkSeason() {
+    const res = await createPublicClient().from("player_gk_season").select("competition, player_id, games, conceded").returns<GkSeasonRow[]>();
+    if (res.error && isMissingTable(res.error)) return [];
+    return unwrap("player_gk_season", res).map(toGkSeason);
   },
 };

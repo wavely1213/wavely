@@ -13,10 +13,11 @@ import { resolveContent } from "@/lib/content/values";
 import { dbSource } from "@/lib/data/db-source";
 import type { DataSource } from "@/lib/data/source";
 import { staticSource } from "@/lib/data/static-source";
+import { resolveStatsSeason, withSeasonStats, type StatsSeason } from "@/lib/player-season";
 import { byPostedDesc } from "@/lib/postings";
 import { byRank, pastLeagues, seasonYear, type PastLeague } from "@/lib/standings";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import type { Match, NewsCategory, NewsPost, Player, Position, Posting, StandingRow } from "@/types";
+import type { GkSeasonStat, KflLeague, Match, NewsCategory, NewsPost, Player, PlayerSeasonStat, Position, Posting, StandingRow } from "@/types";
 
 function source(): DataSource {
   return isSupabaseConfigured() ? dbSource : staticSource;
@@ -202,4 +203,41 @@ export async function getTeamCrests(): Promise<TeamCrestEntry[]> {
   cacheTag(TAGS.crests);
   cacheLife("minutes");
   return mergeCrests(TEAM_CRESTS, await source().teamCrests());
+}
+
+// ── 연맹 기록 (D-082, 명세 1.6 / 3.1, D-098) ─────────────────
+// 관리자 [공개 켜기], 출전 줄 연결, 골키퍼 실점 저장이 updateTag(TAGS.records) 를 부른다. 서버 함수 반영은 1분 안(cacheLife)
+
+export async function getKflLeagues(): Promise<KflLeague[]> {
+  "use cache";
+  cacheTag(TAGS.records);
+  cacheLife("minutes");
+  return source().kflLeagues();
+}
+
+export async function getSeasonStats(): Promise<PlayerSeasonStat[]> {
+  "use cache";
+  cacheTag(TAGS.records);
+  cacheLife("minutes");
+  return source().seasonStats();
+}
+
+export async function getGkSeason(): Promise<GkSeasonStat[]> {
+  "use cache";
+  cacheTag(TAGS.records);
+  cacheLife("minutes");
+  return source().gkSeason();
+}
+
+/** 보이는 기록 시즌 — 공개가 켜진 활성 리그, 없으면 고정 칸 시즌(LEAGUE.statsSeason) */
+export async function getStatsSeason(): Promise<StatsSeason> {
+  return resolveStatsSeason(await getKflLeagues(), LEAGUE.statsSeason, LEAGUE.statsLeagueName);
+}
+
+/** 기록 시즌 값으로 stats 를 바꾼 선수들 (목록 카드, 프로필 칸, 미리보기 설명) — 공개가 꺼져 있으면 그대로 */
+export async function withStats(players: Player[]): Promise<{ season: StatsSeason; players: Player[] }> {
+  const season = await getStatsSeason();
+  if (!season.league) return { season, players };
+  const rows = await getSeasonStats();
+  return { season, players: players.map((p) => withSeasonStats(p, season, rows)) };
 }

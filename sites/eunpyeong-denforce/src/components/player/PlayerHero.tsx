@@ -2,17 +2,21 @@ import { EmblemFallback } from "@/components/ui/EmblemFallback";
 import { FitImage } from "@/components/ui/FitImage";
 import type { Player } from "@/types";
 import { CAPTAIN_LABEL } from "@/lib/captain";
+import type { SeasonRecord } from "@/lib/player-season";
 import styles from "./PlayerHero.module.css";
 
 /**
  * 선수 상세 머리 (리디자인 2차 시안 PlayerHero 132:816, D-068, BR-031) — 전폭 black-soft 면.
  * 사진(FitImage 3:4, 폭 400) + 포지션 라벨(yellow) + h1 이름 + 기록 '12경기 / 10골'(출처 줄) 또는 '합류 2026-27 시즌'.
  * 등번호는 확정됐을 때만 이름 앞 'No.' (BR-025).
+ * season 이 있으면(연맹 기록 공개 켜짐) 기록 줄 안A (피그마 302:29926 [확정 2026-11-16]): 큰 줄 + 작은 줄 [선발 (득점) 경고 퇴장] + 출처 줄,
+ * 0경기면 '0경기' + 안내 줄.
  */
 export function PlayerHero({
   player,
   positionLabel,
   record,
+  season = null,
   joinSeason,
   source,
 }: {
@@ -20,6 +24,8 @@ export function PlayerHero({
   positionLabel: string;
   /** '12경기 / 10골' — 합류 선수면 null */
   record: string | null;
+  /** 연맹 기록 시즌 기록 줄 (안A) — 있으면 record 대신 */
+  season?: SeasonRecord | null;
   /** 합류 시즌 '2026-27' — record 가 없을 때 */
   joinSeason: string | null;
   /** 기록 출처 줄 — 실데이터일 때만 */
@@ -45,7 +51,27 @@ export function PlayerHero({
             {player.number != null && <span className={styles.number}>No.{player.number} </span>}
             {player.name}
           </h1>
-          {record ? (
+          {season ? (
+            <>
+              <p className={styles.record}>{season.big}</p>
+              {season.kind === "played" ? (
+                <>
+                  <ul className={styles.small}>
+                    {season.small.map((item) => (
+                      <li key={item.label} className={styles.item}>
+                        {item.card && <span className={item.card === "yellow" ? styles.cardYellow : styles.cardRed} aria-hidden />}
+                        <span className={styles.itemLabel}>{item.label}</span>
+                        <span className={styles.itemValue}>{item.value}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className={styles.source}>{season.source}</p>
+                </>
+              ) : (
+                <p className={styles.source}>{season.guide}</p>
+              )}
+            </>
+          ) : record ? (
             <>
               <p className={styles.record}>{record}</p>
               {source && <p className={styles.source}>{source}</p>}

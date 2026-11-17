@@ -5,7 +5,7 @@ import { Placeholder } from "@/components/ui/Placeholder";
 import { LEAGUE } from "@/config/league";
 import { POSITION_LABEL } from "@/data/people";
 import { pageMetadata } from "@/lib/page-meta";
-import { getPlayersByPosition, isLiveData } from "@/lib/repo";
+import { getPlayersByPosition, isLiveData, withStats } from "@/lib/repo";
 import { seasonYear } from "@/lib/standings";
 import styles from "./players.module.css";
 
@@ -15,10 +15,14 @@ export function generateMetadata(): Promise<Metadata> {
 
 /** 선수 목록 (리디자인 2차 시안, 동명이인 구분안 2: 카드 아래 출전 줄 + 목록 아래 출처) */
 export default async function PlayersPage() {
-  const groups = (await getPlayersByPosition()).map(([position, players]) => ({ position, label: POSITION_LABEL[position], players }));
+  // 기록 시즌: 연맹 기록 공개가 켜졌으면 그 시즌(기록지 합계), 아니면 고정 칸 시즌 (명세 1.6, 3.1)
+  const byPosition = await getPlayersByPosition();
+  const { season, players: shown } = await withStats(byPosition.flatMap(([, players]) => players));
+  const byId = new Map(shown.map((p) => [p.id, p]));
+  const groups = byPosition.map(([position, players]) => ({ position, label: POSITION_LABEL[position], players: players.map((p) => byId.get(p.id) ?? p) }));
   const live = isLiveData();
   // 대회명 어디에 있든 시즌 'YYYY-YY' (D-072 '키움증권 2026-27 FK리그1' 형식도) — 모르면 출전 줄과 출처 줄을 숨긴다
-  const statsYear = seasonYear(LEAGUE.statsSeason);
+  const statsYear = seasonYear(season.label);
   const appsSeason = live ? statsYear : null;
   const anyApps = groups.some((g) => g.players.some((p) => p.stats.apps > 0));
   return (
