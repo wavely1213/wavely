@@ -227,6 +227,8 @@ export async function updateMatch(id: string, _prev: ActionState, fd: FormData):
   }
   for (const old of posters.replaced) await removeImage(ctx, old);
   updateTag(TAGS.matches);
+  // 대회 이름/상태가 바뀌면 선수 시즌 기록(골키퍼 실점 합계 포함)도 달라진다 (총괄 검토 C7)
+  updateTag(TAGS.records);
 
   // 골키퍼 실점 (D-098) — 경기를 저장한 뒤(새 스코어 기준으로 DB 가 검사). 실패하면 경기는 저장된 채로 알린다
   if (gk) {
@@ -250,5 +252,7 @@ export async function deleteMatch(id: string): Promise<void> {
   await removeImage(ctx, data?.matchday_poster_url);
   await removeImage(ctx, data?.fulltime_poster_url);
   updateTag(TAGS.matches);
+  // 경기를 지우면 그 경기 출전 줄/골키퍼 실점도 함께 지워진다(on delete cascade) — 선수 시즌 기록도 새로 (총괄 검토 C7)
+  updateTag(TAGS.records);
   redirect("/admin/matches");
 }
