@@ -27,6 +27,12 @@
 
 <!-- 최신 항목을 위에 추가. 심각도 '높음'은 발견 즉시 소유자에게 별도 보고 -->
 
+## I-071 | 2026-11-17 | 개발용 린트 도구(typescript-eslint → minimatch) 중간 등급 취약점 7건
+- **상태**: 열림
+- **심각도**: 낮음 (개발용 의존성만, 운영 사이트 번들에 들어가지 않음)
+- **내용**: Next.js 보안 패치(16.4.1 → 16.4.6, GHSA-mfr8-8qww-v76h) 뒤 npm audit 에 남은 것: @typescript-eslint/* 6.16.0~8.72.2 가 쓰는 minimatch 7~11 의 DoS(globparts) — 전부 eslint-config-next 아래 간접 의존성.
+- **해결 방향**: eslint-config-next / typescript-eslint 가 고친 버전으로 올라올 때 함께 올린다(npm audit fix 는 린트 설정을 바꿀 수 있어 검증 후).
+
 ## I-070 | 2026-11-17 | 빌드가 Next.js 16.4.1 보안 권고로 한 번 멈춤 (다시 실행하면 통과)
 - **상태**: 열림 (스코프 밖, 보고만)
 - **심각도**: 중간
