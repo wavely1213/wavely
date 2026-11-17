@@ -51,6 +51,7 @@ select m.competition, c.player_id,
        coalesce(sum(c.conceded), 0)::int as conceded
 from public.match_gk_conceded c
 join public.matches m on m.id = c.match_id
+where m.status = 'finished'  -- 경기를 다시 '예정'으로 돌리면 그 경기 줄은 합계에서 빠진다 (총괄 검토)
 group by m.competition, c.player_id;
 
 revoke all on public.match_gk_conceded, public.player_gk_season from anon, authenticated;

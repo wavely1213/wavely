@@ -76,10 +76,13 @@ export async function recheckGame(leagueSeq: number, gameNumber: number): Promis
 /** [확인함] — review → reviewed. 그 경기에 확인할 출전 줄이 남아 있으면 바꾸지 않는다 */
 export async function markGameReviewed(leagueSeq: number, gameNumber: number): Promise<void> {
   const ctx = await ctxOrLogin();
-  const { data: g } = await ctx.supabase.from("kfl_games").select("state, match_id").eq("league_seq", leagueSeq).eq("game_number", gameNumber).maybeSingle();
+  const { data: g, error: e1 } = await ctx.supabase.from("kfl_games").select("state, match_id").eq("league_seq", leagueSeq).eq("game_number", gameNumber).maybeSingle();
+  if (e1) back("save");
   if (!g || g.state !== "review") back();
   if (g!.match_id) {
-    const { count } = await ctx.supabase.from("match_appearances").select("id", { count: "exact", head: true }).eq("match_id", g!.match_id).eq("link", "review");
+    // 읽기 실패를 '남은 줄 0' 으로 보지 않는다 (총괄 검토)
+    const { count, error: e2 } = await ctx.supabase.from("match_appearances").select("id", { count: "exact", head: true }).eq("match_id", g!.match_id).eq("link", "review");
+    if (e2 || count === null) back("save");
     if ((count ?? 0) > 0) back("rows");
   }
   const { error } = await ctx.supabase
@@ -147,7 +150,8 @@ export async function linkAppearance(id: string, fd: FormData): Promise<void> {
     .update({ link: "confirmed", player_id: playerId, suggested_player_id: null })
     .eq("id", row!.id)
     .eq("link", "review");
-  if (error) back("save");
+  // 같은 경기 다른 줄에 이미 연결된 선수면 고유 색인(match_id, player_id) 위반 23505 (총괄 검토)
+  if (error) back(error.code === "23505" ? "twice" : "save");
 
   let numberError = false;
   if (fd.get("add_number") === "on") {
@@ -159,7 +163,8 @@ export async function linkAppearance(id: string, fd: FormData): Promise<void> {
       numberError = Boolean(e2);
     } else numberError = true;
   }
-  await rebuildScorers(ctx, row!.match_id);
+  // 골 줄을 연결했을 때만 득점자 줄을 다시 쓴다 — 골 없는 줄 연결로 관리자가 고친 득점자 줄을 덮지 않게 (총괄 검토)
+  if (row!.goal_minutes.length > 0) await rebuildScorers(ctx, row!.match_id);
   afterRows();
   back(numberError ? "number" : undefined);
 }
@@ -175,7 +180,7 @@ export async function ignoreAppearance(id: string): Promise<void> {
     .eq("id", row!.id)
     .eq("link", "review");
   if (error) back("save");
-  await rebuildScorers(ctx, row!.match_id);
+  // 득점자 줄은 다시 쓰지 않는다: 골 줄을 빼면 '골 줄 모두 연결'이 아니어서 어차피 안 쓰고, 골 없는 줄이면 관리자 값을 덮을 뿐 (총괄 검토)
   afterRows();
   back();
 }
@@ -186,23 +191,39 @@ export async function linkAllSuggested(matchId: string): Promise<void> {
   if (!UUID.test(matchId)) back("gone");
   const { data, error } = await ctx.supabase
     .from("match_appearances")
-    .select("id, suggested_player_id")
-    .eq("match_id", matchId)
-    .eq("link", "review")
-    .not("suggested_player_id", "is", null);
+    .select("id, link, player_id, suggested_player_id, goal_minutes")
+    .eq("match_id", matchId);
   if (error) back("save");
-  for (const r of data ?? []) {
+  const all = (data ?? []) as Array<Pick<AppRow, "id" | "link" | "player_id" | "suggested_player_id" | "goal_minutes">>;
+  // 이미 연결된 선수, 두 줄 이상에 제안된 선수는 사람이 골라야 한다 — 건너뛰고 알린다 (총괄 검토)
+  const linked = new Set(all.filter((r) => r.player_id).map((r) => r.player_id));
+  const suggestedCount = new Map<string, number>();
+  for (const r of all) if (r.link === "review" && r.suggested_player_id) suggestedCount.set(r.suggested_player_id, (suggestedCount.get(r.suggested_player_id) ?? 0) + 1);
+  let skipped = false;
+  let goalLinked = false;
+  for (const r of all) {
+    if (r.link !== "review" || !r.suggested_player_id) continue;
+    if (linked.has(r.suggested_player_id) || (suggestedCount.get(r.suggested_player_id) ?? 0) > 1) {
+      skipped = true;
+      continue;
+    }
     const { error: e2 } = await ctx.supabase
       .from("match_appearances")
       .update({ link: "confirmed", player_id: r.suggested_player_id, suggested_player_id: null })
       .eq("id", r.id)
       .eq("link", "review");
     if (e2) {
+      if (e2.code === "23505") {
+        skipped = true;
+        continue;
+      }
       afterRows();
       back("save");
     }
+    linked.add(r.suggested_player_id);
+    if (r.goal_minutes.length > 0) goalLinked = true;
   }
-  await rebuildScorers(ctx, matchId);
+  if (goalLinked) await rebuildScorers(ctx, matchId);
   afterRows();
-  back();
+  back(skipped ? "twice" : undefined);
 }
