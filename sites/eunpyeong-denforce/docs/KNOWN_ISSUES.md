@@ -27,6 +27,14 @@
 
 <!-- 최신 항목을 위에 추가. 심각도 '높음'은 발견 즉시 소유자에게 별도 보고 -->
 
+## I-072 | 2026-11-18 | Supabase 무료 요금제 캐시 송신량(5GB) 초과로 프로젝트 제한 — 운영 사진 전부 깨짐, 데이터 갱신·관리자·자동 동기화 멈춤
+- **상태**: 열림 (소유자 결정 대기: Pro 업그레이드 또는 다음 결제 주기까지 대기)
+- **심각도**: 치명
+- **증상/내용**: 2026-11-18 07:30 KST(22:30 UTC 11-17)부터 Supabase 의 모든 API(REST/Auth/Storage/Functions)가 HTTP 402 `exceed_cached_egress_quota` ("Service for this project is restricted ... upgrade their plan or remove spend caps"). 조직 'wavely' 는 Free 요금제(송신 5GB + 캐시 송신 5GB/월). 운영 확인: 홈 Supabase 사진 93장 중 91장, 선수 목록 32장 전부 깨짐. 페이지 글은 Vercel 캐시로 200 이지만 새 데이터(선수 기록 공개 stats_live 등)가 반영되지 않음. pg_cron 은 돌지만 함수 호출이 전부 402(net._http_response 52건) — instagram-sync, kfl-sync, kfl-video-sync, matchday-poster-sync 멈춤. 관리자 로그인 불가.
+- **원인**: D-073 으로 이미지 최적화를 끄고 사진 원본을 Supabase Storage 에서 방문자 브라우저로 바로 보낸다. 홈 한 번에 Supabase 사진 약 93장. 방문자 + 배포 검증 전수 점검(여러 쪽 x 여러 폭, Playwright)이 Storage 캐시 송신을 누적시킴. Storage 총량은 약 78MB(postings 35MB, players 20MB, news 17MB, content 6MB).
+- **위치**: next.config.ts `images.unoptimized: true`(D-073), Storage 공개 URL 을 쓰는 모든 이미지
+- **해결 방향**: (1) 즉시 복구는 소유자가 Supabase 조직 Billing 에서 Pro 로 올리기(송신 250GB + 캐시 250GB/월) 또는 다음 결제 주기 시작까지 대기(Billing › Upcoming Invoice 에 날짜). (2) 재발 방지: 사진을 Vercel CDN 으로 캐시해 Supabase 송신을 줄이는 방안 검토(소유자 승인 뒤). 운영 대상 검증은 사진 받기 최소화.
+
 ## I-071 | 2026-11-17 | 개발용 린트 도구(typescript-eslint → minimatch) 중간 등급 취약점 7건
 - **상태**: 열림
 - **심각도**: 낮음 (개발용 의존성만, 운영 사이트 번들에 들어가지 않음)
