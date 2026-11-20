@@ -1,0 +1,105 @@
+/* /sponsors 등급별 카드 격자 — 높은 등급일수록 칸이 넓고 로고가 크다.
+   등급별 값: 칸 최소 폭 / 카드 최소 높이 / 로고 높이(SponsorStrip.tsx LOGO_SIZE 높이와 같게) / 로고 없을 때 이름 글자.
+   .list 의 값 = 서브 스폰서, 다른 등급은 아래 data-tier 에서 바꾼다 */
+.list {
+  --sponsor-min-h: 136px;
+  --sponsor-logo-h: 52px;
+  --sponsor-name: 19px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-l);
+}
+
+/* 네이밍 스폰서 — 두 칸 폭, 칸 높이 196, 로고 96 + 패딩 space/xl (157:19226 / 157:19541, D-053) */
+.list[data-tier="naming"] {
+  --sponsor-min-h: 196px;
+  --sponsor-logo-h: 96px;
+  --sponsor-name: 24px;
+}
+
+.list[data-tier="naming"] .item {
+  grid-column: span 2;
+}
+
+.list[data-tier="naming"] .body {
+  padding: var(--space-xl);
+}
+
+/* 메인 스폰서 — 칸 높이 160, 로고 76 (SponsorTile 146:697) */
+.list[data-tier="official"] {
+  --sponsor-min-h: 160px;
+  --sponsor-logo-h: 76px;
+  --sponsor-name: 21px;
+}
+
+/* 후원사(서브)와 파트너 — 칸 높이 136, 로고 52 */
+.list[data-tier="partner"] {
+  --sponsor-name: 17px;
+}
+
+/* 칸(SponsorTile 146:712) — bg + line 테두리, radius/m. 링크면 칸 전체가 누르는 곳 */
+.item {
+  display: flex;
+  min-width: 0;
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-m);
+  background: var(--c-bg);
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-s);
+  min-width: 0;
+  /* 칸 테두리(위아래 1px)를 뺀 높이 — 칸 전체가 196 / 160 / 136 */
+  min-height: calc(var(--sponsor-min-h) - 2px);
+  padding: var(--space-l);
+  border-radius: inherit;
+}
+
+a.body:hover {
+  box-shadow: inset 0 0 0 1px var(--c-blue);
+}
+
+.body:focus-visible {
+  outline: 2px solid var(--c-blue);
+  outline-offset: 2px;
+}
+
+.name {
+  font-size: var(--sponsor-name);
+  font-weight: 700;
+  text-align: center;
+  word-break: keep-all;
+}
+
+/* 로고 높이를 맞춘다 — 네모난 로고(은평구 등)도 이 높이까지는 보이게, 가로로 긴 로고는 칸 폭에 맞춰 줄어든다 */
+.logo {
+  height: var(--sponsor-logo-h);
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+/* 이름 kfa/body-s text-sub (링크면 '↗') */
+.caption {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--c-text-sub);
+  text-align: center;
+}
+
+a.body:hover .caption {
+  color: var(--c-text);
+}
+
+/* 휴대폰 2열, 네이밍은 한 줄 전체 */
+@media (max-width: 720px) {
+  .list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-m);
+  }
+}

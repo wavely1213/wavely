@@ -1,0 +1,542 @@
+[
+ {
+  "gameNumber": 1,
+  "kickoff": "2025-11-15T15:00:00+09:00",
+  "homeClub": "eunpyeongfs",
+  "awayClub": "gwFSclub",
+  "homeName": "서울은평덴포스",
+  "awayName": "강원FS",
+  "score": [
+   2,
+   5
+  ]
+ },
+ {
+  "gameNumber": 2,
+  "kickoff": "2025-11-15T17:00:00+09:00",
+  "homeClub": "LBFS",
+  "awayClub": "jeonjumag",
+  "homeName": "경기LBFS",
+  "awayName": "전주시민풋살구단",
+  "score": [
+   11,
+   0
+  ]
+ },
+ {
+  "gameNumber": 3,
+  "kickoff": "2025-11-22T17:00:00+09:00",
+  "homeClub": "LBFS",
+  "awayClub": "GoyangBulls",
+  "homeName": "경기LBFS",
+  "awayName": "고양불스풋살클럽",
+  "score": [
+   2,
+   4
+  ]
+ },
+ {
+  "gameNumber": 4,
+  "kickoff": "2025-11-23T13:00:00+09:00",
+  "homeClub": "eunpyeongfs",
+  "awayClub": "fsseoul",
+  "homeName": "서울은평덴포스",
+  "awayName": "노원제너FS",
+  "score": [
+   1,
+   7
+  ]
+ },
+ {
+  "gameNumber": 5,
+  "kickoff": "2025-11-23T14:00:00+09:00",
+  "homeClub": "gwFSclub",
+  "awayClub": "jeonjumag",
+  "homeName": "강원FS",
+  "awayName": "전주시민풋살구단",
+  "score": [
+   3,
+   3
+  ]
+ },
+ {
+  "gameNumber": 6,
+  "kickoff": "2025-11-29T16:00:00+09:00",
+  "homeClub": "jeonjumag",
+  "awayClub": "fsseoul",
+  "homeName": "전주시민풋살구단",
+  "awayName": "노원제너FS",
+  "score": [
+   1,
+   2
+  ]
+ },
+ {
+  "gameNumber": 7,
+  "kickoff": "2025-11-29T17:00:00+09:00",
+  "homeClub": "LBFS",
+  "awayClub": "gwFSclub",
+  "homeName": "경기LBFS",
+  "awayName": "강원FS",
+  "score": [
+   5,
+   1
+  ]
+ },
+ {
+  "gameNumber": 8,
+  "kickoff": "2025-12-06T16:00:00+09:00",
+  "homeClub": "jeonjumag",
+  "awayClub": "GoyangBulls",
+  "homeName": "전주시민풋살구단",
+  "awayName": "고양불스풋살클럽",
+  "score": [
+   5,
+   7
+  ]
+ },
+ {
+  "gameNumber": 9,
+  "kickoff": "2025-12-07T13:00:00+09:00",
+  "homeClub": "eunpyeongfs",
+  "awayClub": "LBFS",
+  "homeName": "서울은평덴포스",
+  "awayName": "경기LBFS",
+  "score": [
+   0,
+   8
+  ]
+ },
+ {
+  "gameNumber": 10,
+  "kickoff": "2025-12-14T13:00:00+09:00",
+  "homeClub": "eunpyeongfs",
+  "awayClub": "jeonjumag",
+  "homeName": "서울은평덴포스",
+  "awayName": "전주시민풋살구단",
+  "score": [
+   1,
+   2
+  ]
+ },
+ {
+  "gameNumber": 11,
+  "kickoff": "2025-12-14T14:00:00+09:00",
+  "homeClub": "gwFSclub",
+  "awayClub": "GoyangBulls",
+  "homeName": "강원FS",
+  "awayName": "고양불스풋살클럽",
+  "score": [
+   0,
+   2
+  ]
+ },
+ {
+  "gameNumber": 12,
+  "kickoff": "2025-12-14T15:00:00+09:00",
+  "homeClub": "fsseoul",
+  "awayClub": "LBFS",
+  "homeName": "노원제너FS",
+  "awayName": "경기LBFS",
+  "score": [
+   4,
+   2
+  ]
+ },
+ {
+  "gameNumber": 13,
+  "kickoff": "2025-12-21T14:00:00+09:00",
+  "homeClub": "gwFSclub",
+  "awayClub": "eunpyeongfs",
+  "homeName": "강원FS",
+  "awayName": "서울은평덴포스",
+  "score": [
+   5,
+   1
+  ]
+ },
+ {
+  "gameNumber": 14,
+  "kickoff": "2025-12-21T15:00:00+09:00",
+  "homeClub": "GoyangBulls",
+  "awayClub": "fsseoul",
+  "homeName": "고양불스풋살클럽",
+  "awayName": "노원제너FS",
+  "score": [
+   4,
+   7
+  ]
+ },
+ {
+  "gameNumber": 15,
+  "kickoff": "2025-12-21T16:00:00+09:00",
+  "homeClub": "jeonjumag",
+  "awayClub": "LBFS",
+  "homeName": "전주시민풋살구단",
+  "awayName": "경기LBFS",
+  "score": [
+   0,
+   7
+  ]
+ },
+ {
+  "gameNumber": 16,
+  "kickoff": "2025-12-25T14:00:00+09:00",
+  "homeClub": "fsseoul",
+  "awayClub": "GoyangBulls",
+  "homeName": "노원제너FS",
+  "awayName": "고양불스풋살클럽",
+  "score": [
+   2,
+   4
+  ]
+ },
+ {
+  "gameNumber": 17,
+  "kickoff": "2025-12-28T19:00:00+09:00",
+  "homeClub": "fsseoul",
+  "awayClub": "gwFSclub",
+  "homeName": "노원제너FS",
+  "awayName": "강원FS",
+  "score": [
+   3,
+   4
+  ]
+ },
+ {
+  "gameNumber": 18,
+  "kickoff": "2025-12-28T15:00:00+09:00",
+  "homeClub": "GoyangBulls",
+  "awayClub": "eunpyeongfs",
+  "homeName": "고양불스풋살클럽",
+  "awayName": "서울은평덴포스",
+  "score": [
+   4,
+   4
+  ]
+ },
+ {
+  "gameNumber": 19,
+  "kickoff": "2026-01-10T11:00:00+09:00",
+  "homeClub": "LBFS",
+  "awayClub": "GoyangBulls",
+  "homeName": "경기LBFS",
+  "awayName": "고양불스풋살클럽",
+  "score": [
+   3,
+   2
+  ]
+ },
+ {
+  "gameNumber": 20,
+  "kickoff": "2026-01-10T14:00:00+09:00",
+  "homeClub": "jeonjumag",
+  "awayClub": "gwFSclub",
+  "homeName": "전주시민풋살구단",
+  "awayName": "강원FS",
+  "score": [
+   3,
+   6
+  ]
+ },
+ {
+  "gameNumber": 21,
+  "kickoff": "2026-01-10T17:00:00+09:00",
+  "homeClub": "fsseoul",
+  "awayClub": "eunpyeongfs",
+  "homeName": "노원제너FS",
+  "awayName": "서울은평덴포스",
+  "score": [
+   6,
+   1
+  ]
+ },
+ {
+  "gameNumber": 22,
+  "kickoff": "2026-01-11T11:00:00+09:00",
+  "homeClub": "gwFSclub",
+  "awayClub": "LBFS",
+  "homeName": "강원FS",
+  "awayName": "경기LBFS",
+  "score": [
+   3,
+   1
+  ]
+ },
+ {
+  "gameNumber": 23,
+  "kickoff": "2026-01-11T14:00:00+09:00",
+  "homeClub": "eunpyeongfs",
+  "awayClub": "GoyangBulls",
+  "homeName": "서울은평덴포스",
+  "awayName": "고양불스풋살클럽",
+  "score": [
+   4,
+   4
+  ]
+ },
+ {
+  "gameNumber": 24,
+  "kickoff": "2026-01-11T17:00:00+09:00",
+  "homeClub": "fsseoul",
+  "awayClub": "jeonjumag",
+  "homeName": "노원제너FS",
+  "awayName": "전주시민풋살구단",
+  "score": [
+   5,
+   3
+  ]
+ },
+ {
+  "gameNumber": 25,
+  "kickoff": "2026-02-07T17:00:00+09:00",
+  "homeClub": "LBFS",
+  "awayClub": "eunpyeongfs",
+  "homeName": "경기LBFS",
+  "awayName": "서울은평덴포스",
+  "score": [
+   15,
+   1
+  ]
+ },
+ {
+  "gameNumber": 26,
+  "kickoff": "2026-02-08T14:00:00+09:00",
+  "homeClub": "gwFSclub",
+  "awayClub": "fsseoul",
+  "homeName": "강원FS",
+  "awayName": "노원제너FS",
+  "score": [
+   2,
+   2
+  ]
+ },
+ {
+  "gameNumber": 27,
+  "kickoff": "2026-02-08T15:00:00+09:00",
+  "homeClub": "GoyangBulls",
+  "awayClub": "jeonjumag",
+  "homeName": "고양불스풋살클럽",
+  "awayName": "전주시민풋살구단",
+  "score": [
+   4,
+   1
+  ]
+ },
+ {
+  "gameNumber": 28,
+  "kickoff": "2026-02-21T16:00:00+09:00",
+  "homeClub": "jeonjumag",
+  "awayClub": "eunpyeongfs",
+  "homeName": "전주시민풋살구단",
+  "awayName": "서울은평덴포스",
+  "score": [
+   0,
+   3
+  ]
+ },
+ {
+  "gameNumber": 29,
+  "kickoff": "2026-02-21T18:00:00+09:00",
+  "homeClub": "LBFS",
+  "awayClub": "fsseoul",
+  "homeName": "경기LBFS",
+  "awayName": "노원제너FS",
+  "score": [
+   5,
+   2
+  ]
+ },
+ {
+  "gameNumber": 30,
+  "kickoff": "2026-02-22T15:00:00+09:00",
+  "homeClub": "GoyangBulls",
+  "awayClub": "gwFSclub",
+  "homeName": "고양불스풋살클럽",
+  "awayName": "강원FS",
+  "score": [
+   3,
+   3
+  ]
+ },
+ {
+  "gameNumber": 31,
+  "kickoff": "2026-02-28T13:00:00+09:00",
+  "homeClub": "eunpyeongfs",
+  "awayClub": "gwFSclub",
+  "homeName": "서울은평덴포스",
+  "awayName": "강원FS",
+  "score": [
+   4,
+   4
+  ]
+ },
+ {
+  "gameNumber": 32,
+  "kickoff": "2026-02-28T19:00:00+09:00",
+  "homeClub": "jeonjumag",
+  "awayClub": "LBFS",
+  "homeName": "전주시민풋살구단",
+  "awayName": "경기LBFS",
+  "score": [
+   0,
+   5
+  ]
+ },
+ {
+  "gameNumber": 33,
+  "kickoff": "2026-03-01T14:00:00+09:00",
+  "homeClub": "fsseoul",
+  "awayClub": "GoyangBulls",
+  "homeName": "노원제너FS",
+  "awayName": "고양불스풋살클럽",
+  "score": [
+   2,
+   1
+  ]
+ },
+ {
+  "gameNumber": 34,
+  "kickoff": "2026-03-07T19:00:00+09:00",
+  "homeClub": "jeonjumag",
+  "awayClub": "gwFSclub",
+  "homeName": "전주시민풋살구단",
+  "awayName": "강원FS",
+  "score": [
+   8,
+   3
+  ]
+ },
+ {
+  "gameNumber": 35,
+  "kickoff": "2026-03-08T14:00:00+09:00",
+  "homeClub": "fsseoul",
+  "awayClub": "eunpyeongfs",
+  "homeName": "노원제너FS",
+  "awayName": "서울은평덴포스",
+  "score": [
+   8,
+   2
+  ]
+ },
+ {
+  "gameNumber": 36,
+  "kickoff": "2026-03-08T15:00:00+09:00",
+  "homeClub": "GoyangBulls",
+  "awayClub": "LBFS",
+  "homeName": "고양불스풋살클럽",
+  "awayName": "경기LBFS",
+  "score": [
+   3,
+   3
+  ]
+ },
+ {
+  "gameNumber": 37,
+  "kickoff": "2026-03-14T13:00:00+09:00",
+  "homeClub": "eunpyeongfs",
+  "awayClub": "GoyangBulls",
+  "homeName": "서울은평덴포스",
+  "awayName": "고양불스풋살클럽",
+  "score": [
+   2,
+   7
+  ]
+ },
+ {
+  "gameNumber": 38,
+  "kickoff": "2026-03-15T14:00:00+09:00",
+  "homeClub": "gwFSclub",
+  "awayClub": "LBFS",
+  "homeName": "강원FS",
+  "awayName": "경기LBFS",
+  "score": [
+   2,
+   6
+  ]
+ },
+ {
+  "gameNumber": 39,
+  "kickoff": "2026-03-15T14:00:00+09:00",
+  "homeClub": "fsseoul",
+  "awayClub": "jeonjumag",
+  "homeName": "노원제너FS",
+  "awayName": "전주시민풋살구단",
+  "score": [
+   5,
+   2
+  ]
+ },
+ {
+  "gameNumber": 40,
+  "kickoff": "2026-03-21T18:00:00+09:00",
+  "homeClub": "LBFS",
+  "awayClub": "eunpyeongfs",
+  "homeName": "경기LBFS",
+  "awayName": "서울은평덴포스",
+  "score": [
+   9,
+   1
+  ]
+ },
+ {
+  "gameNumber": 41,
+  "kickoff": "2026-03-22T12:00:00+09:00",
+  "homeClub": "fsseoul",
+  "awayClub": "gwFSclub",
+  "homeName": "노원제너FS",
+  "awayName": "강원FS",
+  "score": [
+   4,
+   1
+  ]
+ },
+ {
+  "gameNumber": 42,
+  "kickoff": "2026-03-22T15:00:00+09:00",
+  "homeClub": "GoyangBulls",
+  "awayClub": "jeonjumag",
+  "homeName": "고양불스풋살클럽",
+  "awayName": "전주시민풋살구단",
+  "score": [
+   13,
+   3
+  ]
+ },
+ {
+  "gameNumber": 43,
+  "kickoff": "2026-03-28T13:00:00+09:00",
+  "homeClub": "eunpyeongfs",
+  "awayClub": "jeonjumag",
+  "homeName": "서울은평덴포스",
+  "awayName": "전주시민풋살구단",
+  "score": [
+   7,
+   5
+  ]
+ },
+ {
+  "gameNumber": 44,
+  "kickoff": "2026-03-28T18:00:00+09:00",
+  "homeClub": "LBFS",
+  "awayClub": "fsseoul",
+  "homeName": "경기LBFS",
+  "awayName": "노원제너FS",
+  "score": [
+   1,
+   1
+  ]
+ },
+ {
+  "gameNumber": 45,
+  "kickoff": "2026-03-29T14:00:00+09:00",
+  "homeClub": "gwFSclub",
+  "awayClub": "GoyangBulls",
+  "homeName": "강원FS",
+  "awayName": "고양불스풋살클럽",
+  "score": [
+   3,
+   6
+  ]
+ }
+]

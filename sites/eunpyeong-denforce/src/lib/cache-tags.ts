@@ -1,0 +1,22 @@
+// 공개 데이터 캐시 태그 — 관리자 저장 후 updateTag(TAGS.x) 로 해당 데이터만 갱신한다.
+export const TAGS = {
+  club: "club",
+  history: "history",
+  alumni: "alumni",
+  players: "players",
+  staff: "staff",
+  matches: "matches",
+  standings: "standings",
+  news: "news",
+  postings: "postings",
+  sponsors: "sponsors",
+  /** 홈페이지 내용 — 한 칸짜리 값 / 목록 (D-046) */
+  content: "content",
+  contentItems: "content-items",
+  /** 상대팀 엠블럼 (D-094) */
+  crests: "crests",
+  /** 연맹 기록 — 출전 줄, 시즌 기록, 기록 공개, 골키퍼 실점 (D-082, D-098) */
+  records: "records",
+} as const;
+
+export type CacheTag = (typeof TAGS)[keyof typeof TAGS];

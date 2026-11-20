@@ -1,0 +1,302 @@
+/* 다음 홈경기 카드 — v2 ② 좌우 분할 (피그마 223:24911 / 223:25069, 부품 지도 'NextMatchHero v2 ② 좌우 분할').
+   폭 layout/match-hero-w(456 / 휴대폰 358), black, radius/l, 패딩 space/xl(휴대폰 space/m), 줄 간격 space/m(휴대폰 space/s) */
+.card {
+  --nmh-pad: var(--space-xl);
+  --nmh-col: 160px;
+  --nmh-vs: 56px;
+  --nmh-crest: 112px;
+  /* 파랑 반쪽 경계 사선: 위 x = 50% + 16, 아래 x = 50% - 40 (휴대폰 +10 / -30) — VS 가운데를 지난다 */
+  --nmh-split-top: 16px;
+  --nmh-split-bottom: 40px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* A 세로 압축(PC, 2026-11-13): 위아래 space/l, 좌우 space/xl, 줄 사이 space/s — 휴대폰은 아래에서 그대로 */
+  gap: var(--space-s);
+  width: var(--match-hero-w);
+  max-width: 100%;
+  padding: var(--space-l) var(--nmh-pad);
+  border-radius: var(--radius-l);
+  background: var(--c-black);
+  color: var(--c-on-dark);
+  text-align: center;
+  overflow: hidden;
+}
+
+/* 카드 왼쪽 반 파랑, 전체 높이, 카드 라운드로 잘림 (overflow hidden) */
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--c-blue);
+  clip-path: polygon(
+    0 0,
+    calc(50% + var(--nmh-split-top)) 0,
+    calc(50% - var(--nmh-split-bottom)) 100%,
+    0 100%
+  );
+}
+
+/* 파란 반쪽 질감 — 히어로 사진을 같은 사선으로 잘라 흑백 + 대비 1.2 + 곱하기 28% (피그마 240:25587 / 240:25664).
+   곱하기라 blue 보다 밝아지지 않아 글자 대비가 평면 파랑 이상. 카드 안에서만 섞이게 isolation */
+.textured {
+  isolation: isolate;
+}
+
+.textured::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--nmh-texture) center 30% / cover no-repeat;
+  filter: grayscale(1) contrast(1.2);
+  mix-blend-mode: multiply;
+  opacity: 0.28;
+  clip-path: polygon(
+    0 0,
+    calc(50% + var(--nmh-split-top)) 0,
+    calc(50% - var(--nmh-split-bottom)) 100%,
+    0 100%
+  );
+}
+
+/* 모든 내용(대회 태그 포함)을 파랑 면과 질감 위에 */
+.card > *,
+.meta > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* PC: 대회 태그와 @장소 + HOME 한 줄, 사이 space/s (A 세로 압축) */
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs) var(--space-s);
+}
+
+/* 라벨 + LIVE 배지 (D-092 L3), 사이 space/xs */
+.labelRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+}
+
+/* '생중계 보기 ↗' — 버튼 둘 아래 한 줄, 폭은 버튼 둘 + 사이 (D-092 L3) */
+.liveButton {
+  width: calc(2 * 160px + var(--space-xs));
+  min-height: 44px;
+}
+
+/* 휴대폰 띠: LIVE 때만 바뀌는 글자 (LiveLink 의 data-live, D-092 L4) */
+.onlyLive {
+  display: none;
+}
+
+[data-live] .notLive {
+  display: none;
+}
+
+[data-live] .onlyLive {
+  display: inline;
+}
+
+/* NEXT HOME MATCH — kfa/m/h3 20 Bold (휴대폰 kfa/m/h4 16), yellow (소유자 '작게 두지 말고') */
+.label {
+  position: relative;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--c-yellow);
+}
+
+/* [홈 160 | VS 56 | 원정 160], 칸 사이 space/xs (휴대폰 [135 | 40 | 135], 같은 간격) */
+.teams {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  align-items: flex-start;
+  gap: var(--space-xs);
+}
+
+/* 칸 폭 168/128, 좁은 휴대폰(320~360)에서는 줄어든다 — 이름은 낱말 경계 줄바꿈 */
+.team {
+  position: relative;
+  display: flex;
+  flex: 0 1 var(--nmh-col);
+  flex-direction: column;
+  align-items: center;
+  /* 엠블럼과 이름 사이 space/xs (A 세로 압축, 휴대폰은 space/s 그대로) */
+  gap: var(--space-xs);
+  min-width: 0;
+}
+
+/* kfa/pc/h3 24 Bold (휴대폰 kfa/m/h3 20), 2줄까지, 줄임 없음, 낱말 경계 줄바꿈 */
+.teamName {
+  position: relative;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  word-break: keep-all;
+  /* 긴 이름은 TeamName 의 <wbr>(고양불스 / 풋살클럽)에서 끊는다. 그래도 넘치면 마지막 수단으로 글자 사이 */
+  overflow-wrap: anywhere;
+}
+
+/* VS — 칸 가운데, kfa/pc/vs 40 Bold (휴대폰 kfa/m/vs 28), lh 1, ls -2%, on-dark (디자인 a2f9253) */
+.vs {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--nmh-vs);
+  height: var(--nmh-crest);
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--c-on-dark);
+}
+
+/* kfa/pc/match-date 28 Bold (휴대폰 kfa/m/match-date 22), lh 1.1 */
+.date {
+  position: relative;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+/* kfa/body-s on-dark-sub + HOME 배지, 간격 space/xs */
+.venue {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--c-on-dark-sub);
+}
+
+/* 버튼 각 160x44, 간격 space/xs, 가운데 (휴대폰 카드 폭 나눔) */
+.buttons {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  gap: var(--space-xs);
+  width: 100%;
+}
+
+.button {
+  width: 160px;
+  min-height: 44px;
+}
+
+/* ── 휴대폰 작은 띠 A, 순서 바꿈 5줄 (D-089, 피그마 279:27004 / 279:27049 / 279:27094 / 279:27139) ──────────────
+   721 이상은 위 카드(.wide), 720 이하는 띠(.strip) — 휴대폰용 .card 규칙(예전 큰 카드)은 쓰이지 않아 지움(I-063).
+   ① NEXT HOME MATCH ② 대회/라운드 ③ 대진 ④ 날짜/시간 ⑤ @장소 + HOME + →. 줄 안 줄바꿈 없음(긴 상대 이름은 2줄, 320 은 우리 이름도 2줄이라 카드 160).
+   폭 화면 - 32, 안쪽 여백 위아래 space/s 좌우 space/m, 줄 사이 space/2xs. 파랑 반쪽 +10 / -30 + (다) 질감 그대로.
+   높이(KFA고딕) 약 154, 390 긴 이름 160 */
+.stripWrap {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .wide {
+    display: none;
+  }
+
+  .stripWrap {
+    display: block;
+    width: 100%;
+  }
+
+  .strip {
+    --nmh-split-top: 10px;
+    --nmh-split-bottom: 30px;
+    width: 100%;
+    gap: var(--space-2xs);
+    padding: var(--space-s) var(--space-m);
+    margin-inline: 0;
+    text-decoration: none;
+  }
+
+  /* NEXT HOME MATCH — kfa/m/h4 16 Bold yellow (넓은 카드는 20) */
+  .strip .label {
+    font-size: 16px;
+  }
+
+  /* [엠블럼 32 + 이름] VS [이름 + 엠블럼 32] — 엠블럼과 이름 space/xs, 이름과 VS space/s */
+  .stripTeams {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-s);
+    max-width: 100%;
+  }
+
+  .stripTeam {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    min-width: 0;
+  }
+
+  /* 엠블럼(TeamCrest, aria-hidden)만 줄이지 않는다 — 이름은 줄어들며 낱말 경계에서 줄바꿈 */
+  .stripTeam > [aria-hidden="true"] {
+    flex: none;
+  }
+
+  /* kfa/m/h4 16 Bold — 긴 이름은 낱말 경계(TeamName 의 <wbr>)에서만 줄바꿈 */
+  .stripName {
+    min-width: 0;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    word-break: keep-all;
+    /* 낱말 하나가 칸보다 길 때만 마지막 수단으로 끊는다(넓은 카드 .teamName 과 같음) — 엠블럼 위로 넘치지 않게 */
+    overflow-wrap: anywhere;
+    text-align: center;
+  }
+
+  .stripVs {
+    flex: none;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+
+  .stripDate {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+  }
+
+  /* @장소 + HOME + → 는 한 덩어리로 한 줄 — 장소 이름이 한 줄보다 길 때만 덩어리 안에서 줄바꿈(낱말 경계 우선) */
+  .strip .venue {
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 100%;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+  }
+
+  /* 눌림 표시 — 줄 끝 →, on-dark */
+  .arrow {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--c-on-dark);
+  }
+}

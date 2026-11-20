@@ -1,0 +1,21 @@
+/* 평소엔 화면 밖, 초점이 오면 왼쪽 위에 — bg + text, radius/m, 높이 44 */
+.skip {
+  position: fixed;
+  top: var(--space-xs);
+  left: var(--space-xs);
+  z-index: 100;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--space-m);
+  border-radius: var(--radius-m);
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-size: 14px;
+  font-weight: 700;
+  transform: translateY(-200%);
+}
+
+.skip:focus {
+  transform: none;
+}

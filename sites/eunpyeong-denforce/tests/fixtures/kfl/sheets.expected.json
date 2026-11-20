@@ -1,0 +1,1449 @@
+{
+ "rec108_g1": {
+  "title": "flex 2025-26 FK 리그(FK1) (일반(남))",
+  "gameNumber": 1,
+  "date": "2025-11-15",
+  "time": "15:00",
+  "periods": {
+   "first": [
+    1,
+    4
+   ],
+   "second": [
+    1,
+    1
+   ],
+   "extra": null,
+   "pk": null
+  },
+  "home": {
+   "fedName": "서울은평덴포스",
+   "total": 2,
+   "players": [
+    {
+     "no": 5,
+     "name": "",
+     "starter": true,
+     "bench": false,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 13,
+     "name": "",
+     "starter": true,
+     "bench": false,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 14,
+     "name": "",
+     "starter": true,
+     "bench": false,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 23,
+     "name": "",
+     "starter": true,
+     "bench": false,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 25,
+     "name": "",
+     "starter": true,
+     "bench": false,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 1,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 7,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 8,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 10,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 11,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [
+      7
+     ],
+     "ownGoals": []
+    },
+    {
+     "no": 12,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 18,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 21,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 77,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [
+      15
+     ],
+     "reds": [],
+     "goals": [
+      36
+     ],
+     "ownGoals": []
+    }
+   ],
+   "remark": ""
+  },
+  "away": {
+   "fedName": "강원FS",
+   "total": 5,
+   "players": [
+    {
+     "no": 1,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 2,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 6,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [
+      14
+     ],
+     "reds": [],
+     "goals": [
+      15
+     ],
+     "ownGoals": []
+    },
+    {
+     "no": 7,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 8,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [
+      7
+     ],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 10,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [
+      2,
+      9
+     ],
+     "ownGoals": []
+    },
+    {
+     "no": 11,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 14,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [
+      3,
+      29
+     ],
+     "ownGoals": []
+    },
+    {
+     "no": 18,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 20,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 21,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 22,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 23,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 77,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    }
+   ],
+   "remark": ""
+  },
+  "forfeit": false,
+  "hasPlayers": true
+ },
+ "rec108_g23": {
+  "title": "flex 2025-26 FK 리그(FK1) (일반(남))",
+  "gameNumber": 23,
+  "date": "2026-01-11",
+  "time": "14:00",
+  "periods": {
+   "first": [
+    1,
+    1
+   ],
+   "second": [
+    3,
+    3
+   ],
+   "extra": null,
+   "pk": null
+  },
+  "home": {
+   "fedName": "서울은평덴포스",
+   "total": 4,
+   "players": [
+    {
+     "no": 5,
+     "name": "",
+     "starter": true,
+     "bench": false,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 7,
+     "name": "",
+     "starter": true,
+     "bench": false,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": [
+      15
+     ]
+    },
+    {
+     "no": 26,
+     "name": "",
+     "starter": true,
+     "bench": false,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 37,
+     "name": "",
+     "starter": true,
+     "bench": false,
+     "yellows": [],
+     "reds": [],
+     "goals": [
+      15,
+      34
+     ],
+     "ownGoals": []
+    },
+    {
+     "no": 77,
+     "name": "",
+     "starter": true,
+     "bench": false,
+     "yellows": [],
+     "reds": [],
+     "goals": [
+      37
+     ],
+     "ownGoals": []
+    },
+    {
+     "no": 3,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 8,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [
+      24
+     ],
+     "ownGoals": []
+    },
+    {
+     "no": 11,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 14,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 15,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 16,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 22,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 23,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 27,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    }
+   ],
+   "remark": ""
+  },
+  "away": {
+   "fedName": "고양불스풋살클럽",
+   "total": 4,
+   "players": [
+    {
+     "no": 7,
+     "name": "",
+     "starter": true,
+     "bench": false,
+     "yellows": [
+      22
+     ],
+     "reds": [],
+     "goals": [
+      30
+     ],
+     "ownGoals": []
+    },
+    {
+     "no": 10,
+     "name": "",
+     "starter": true,
+     "bench": false,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 13,
+     "name": "",
+     "starter": true,
+     "bench": false,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 55,
+     "name": "",
+     "starter": true,
+     "bench": false,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 77,
+     "name": "",
+     "starter": true,
+     "bench": false,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 3,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 9,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [
+      21
+     ],
+     "ownGoals": []
+    },
+    {
+     "no": 11,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 12,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [
+      24
+     ],
+     "ownGoals": []
+    },
+    {
+     "no": 17,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 19,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 27,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 28,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 34,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    }
+   ],
+   "remark": ""
+  },
+  "forfeit": false,
+  "hasPlayers": true
+ },
+ "rec108_g25": {
+  "title": "flex 2025-26 FK 리그(FK1) (일반(남))",
+  "gameNumber": 25,
+  "date": "2026-02-07",
+  "time": "17:00",
+  "periods": {
+   "first": [
+    12,
+    0
+   ],
+   "second": [
+    3,
+    1
+   ],
+   "extra": null,
+   "pk": null
+  },
+  "home": {
+   "fedName": "경기LBFS",
+   "total": 15,
+   "players": [
+    {
+     "no": 6,
+     "name": "",
+     "starter": true,
+     "bench": false,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 7,
+     "name": "",
+     "starter": true,
+     "bench": false,
+     "yellows": [],
+     "reds": [],
+     "goals": [
+      2
+     ],
+     "ownGoals": []
+    },
+    {
+     "no": 9,
+     "name": "",
+     "starter": true,
+     "bench": false,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 21,
+     "name": "",
+     "starter": true,
+     "bench": false,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 88,
+     "name": "",
+     "starter": true,
+     "bench": false,
+     "yellows": [],
+     "reds": [],
+     "goals": [
+      3,
+      13,
+      19
+     ],
+     "ownGoals": []
+    },
+    {
+     "no": 3,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [
+      8
+     ],
+     "ownGoals": []
+    },
+    {
+     "no": 5,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [
+      11
+     ],
+     "ownGoals": []
+    },
+    {
+     "no": 8,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [
+      40
+     ],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 10,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [
+      13,
+      27
+     ],
+     "ownGoals": []
+    },
+    {
+     "no": 11,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [
+      16,
+      29
+     ],
+     "ownGoals": []
+    },
+    {
+     "no": 13,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [
+      5,
+      36
+     ],
+     "ownGoals": []
+    },
+    {
+     "no": 14,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 24,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 29,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [
+      17,
+      19
+     ],
+     "ownGoals": []
+    }
+   ],
+   "remark": ""
+  },
+  "away": {
+   "fedName": "서울은평덴포스",
+   "total": 1,
+   "players": [
+    {
+     "no": 7,
+     "name": "",
+     "starter": true,
+     "bench": false,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 11,
+     "name": "",
+     "starter": true,
+     "bench": false,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 18,
+     "name": "",
+     "starter": true,
+     "bench": false,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 30,
+     "name": "",
+     "starter": true,
+     "bench": false,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 77,
+     "name": "",
+     "starter": true,
+     "bench": false,
+     "yellows": [],
+     "reds": [],
+     "goals": [
+      39
+     ],
+     "ownGoals": []
+    },
+    {
+     "no": 2,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 3,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": [
+      8
+     ]
+    },
+    {
+     "no": 5,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [
+      14,
+      25
+     ],
+     "reds": [
+      25
+     ],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 8,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 14,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 19,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 23,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 27,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 37,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    }
+   ],
+   "remark": ""
+  },
+  "forfeit": false,
+  "hasPlayers": true
+ },
+ "rec108_g28": {
+  "title": "flex 2025-26 FK 리그(FK1) (일반(남))",
+  "gameNumber": 28,
+  "date": "2026-02-21",
+  "time": "16:00",
+  "periods": {
+   "first": [
+    0,
+    3
+   ],
+   "second": [
+    0,
+    0
+   ],
+   "extra": null,
+   "pk": null
+  },
+  "home": {
+   "fedName": "전주시민풋살구단",
+   "total": 0,
+   "players": [],
+   "remark": "몰수패"
+  },
+  "away": {
+   "fedName": "서울은평덴포스",
+   "total": 3,
+   "players": [],
+   "remark": ""
+  },
+  "forfeit": true,
+  "hasPlayers": false
+ },
+ "rec108_g40": {
+  "title": "flex 2025-26 FK 리그(FK1) (일반(남))",
+  "gameNumber": 40,
+  "date": "2026-03-21",
+  "time": "18:00",
+  "periods": {
+   "first": [
+    6,
+    0
+   ],
+   "second": [
+    3,
+    1
+   ],
+   "extra": null,
+   "pk": null
+  },
+  "home": {
+   "fedName": "경기LBFS",
+   "total": 9,
+   "players": [
+    {
+     "no": 9,
+     "name": "",
+     "starter": true,
+     "bench": false,
+     "yellows": [],
+     "reds": [],
+     "goals": [
+      32
+     ],
+     "ownGoals": []
+    },
+    {
+     "no": 15,
+     "name": "",
+     "starter": true,
+     "bench": false,
+     "yellows": [],
+     "reds": [],
+     "goals": [
+      33
+     ],
+     "ownGoals": []
+    },
+    {
+     "no": 18,
+     "name": "",
+     "starter": true,
+     "bench": false,
+     "yellows": [],
+     "reds": [],
+     "goals": [
+      4
+     ],
+     "ownGoals": []
+    },
+    {
+     "no": 21,
+     "name": "",
+     "starter": true,
+     "bench": false,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 88,
+     "name": "",
+     "starter": true,
+     "bench": false,
+     "yellows": [
+      23
+     ],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 1,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 3,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 5,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 6,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [
+      37
+     ],
+     "reds": [],
+     "goals": [
+      16
+     ],
+     "ownGoals": []
+    },
+    {
+     "no": 10,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 11,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [
+      12,
+      30
+     ],
+     "ownGoals": []
+    },
+    {
+     "no": 13,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [
+      13
+     ],
+     "ownGoals": []
+    },
+    {
+     "no": 14,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 16,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [
+      11
+     ],
+     "ownGoals": []
+    }
+   ],
+   "remark": ""
+  },
+  "away": {
+   "fedName": "서울은평덴포스",
+   "total": 1,
+   "players": [
+    {
+     "no": 2,
+     "name": "",
+     "starter": true,
+     "bench": false,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 3,
+     "name": "",
+     "starter": true,
+     "bench": false,
+     "yellows": [],
+     "reds": [],
+     "goals": [
+      33
+     ],
+     "ownGoals": []
+    },
+    {
+     "no": 7,
+     "name": "",
+     "starter": true,
+     "bench": false,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 18,
+     "name": "",
+     "starter": true,
+     "bench": false,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 77,
+     "name": "",
+     "starter": true,
+     "bench": false,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 4,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 5,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 8,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": [
+      19
+     ]
+    },
+    {
+     "no": 9,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 14,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 23,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 25,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 27,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [
+      31
+     ],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    },
+    {
+     "no": 29,
+     "name": "",
+     "starter": false,
+     "bench": true,
+     "yellows": [
+      23
+     ],
+     "reds": [],
+     "goals": [],
+     "ownGoals": []
+    }
+   ],
+   "remark": ""
+  },
+  "forfeit": false,
+  "hasPlayers": true
+ },
+ "rec108_g43_min": {
+  "title": "flex 2025-26 FK 리그(FK1) (일반(남))",
+  "gameNumber": 43,
+  "date": "2026-03-28",
+  "time": "13:00",
+  "periods": {
+   "first": [
+    3,
+    3
+   ],
+   "second": [
+    4,
+    2
+   ],
+   "extra": null,
+   "pk": null
+  },
+  "home": {
+   "fedName": "서울은평덴포스",
+   "total": 7,
+   "players": [],
+   "remark": ""
+  },
+  "away": {
+   "fedName": "전주시민풋살구단",
+   "total": 5,
+   "players": [],
+   "remark": ""
+  },
+  "forfeit": false,
+  "hasPlayers": false
+ },
+ "rec116_g1": {
+  "title": "키움증권 2026-27 FK 리그(FK1) (일반(남))",
+  "gameNumber": 1,
+  "date": "2026-11-15",
+  "time": "14:00",
+  "periods": {
+   "first": [
+    0,
+    0
+   ],
+   "second": [
+    0,
+    0
+   ],
+   "extra": null,
+   "pk": null
+  },
+  "home": {
+   "fedName": "노원제너FS",
+   "total": 0,
+   "players": [],
+   "remark": ""
+  },
+  "away": {
+   "fedName": "서울은평덴포스",
+   "total": 0,
+   "players": [],
+   "remark": ""
+  },
+  "forfeit": false,
+  "hasPlayers": false
+ }
+}

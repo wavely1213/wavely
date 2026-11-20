@@ -1,0 +1,153 @@
+/* 옆으로 넘기는 카드 줄 — 칸 사이 space/l(휴대폰 space/m), 점/화살표는 오른쪽 아래 */
+.wrap {
+  --gap: var(--space-l);
+}
+
+/* 스크롤 칸 위아래 4px 여유 — 카드 초점 링(바깥 2px)이 잘리지 않게 */
+.row {
+  display: flex;
+  gap: var(--gap);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  padding: var(--space-2xs);
+  margin: calc(-1 * var(--space-2xs));
+  scroll-padding-inline: var(--space-2xs);
+}
+
+.row::-webkit-scrollbar {
+  display: none;
+}
+
+.cell {
+  flex: 0 0 calc((100% - var(--gap) * (var(--per-view) - 1)) / var(--per-view));
+  min-width: 0;
+  scroll-snap-align: start;
+}
+
+/* PC(901 이상): 넘기지 않고 칸이 폭을 나눔 (경기 띠). 721~900 은 2칸 + 스와이프 (G2: 3칸이 칸 밖으로 넘침) */
+@media (min-width: 901px) {
+  .fixed {
+    overflow: visible;
+    scroll-snap-type: none;
+  }
+
+  .fixed .cell {
+    flex: 1 1 0;
+  }
+}
+
+@media (min-width: 721px) and (max-width: 900px) {
+  .fixed .cell {
+    flex: 0 0 calc((100% - var(--gap)) / 2);
+  }
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-m);
+  margin-top: var(--space-l);
+}
+
+/* 점 버튼 사이 0 — 누르는 영역 44 끼리 붙는다 (G4) */
+.dots {
+  display: flex;
+  gap: 0;
+}
+
+/* 보이는 점 8px, 누르는 영역 44x44. 켜진 점은 색과 길이(20)로 구분 */
+.dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.dot::before {
+  content: "";
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--c-text-sub);
+}
+
+.dotActive::before {
+  width: 20px;
+  background: var(--c-text);
+}
+
+.dark .dot::before {
+  background: var(--c-on-dark-sub);
+}
+
+.dark .dotActive::before {
+  background: var(--c-on-dark);
+}
+
+.arrows {
+  display: flex;
+  gap: var(--space-m);
+}
+
+/* 화살표 44 원, 아이콘 24 선 2px */
+.arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--c-text);
+  cursor: pointer;
+}
+
+.dark .arrow {
+  border-color: var(--c-line-on-dark);
+  color: var(--c-on-dark);
+}
+
+.arrow[aria-disabled="true"] {
+  opacity: 0.4;
+  cursor: default;
+}
+
+@media (max-width: 720px) {
+  .wrap {
+    --gap: var(--space-m);
+  }
+
+  /* 휴대폰: 줄은 화면 오른쪽 끝까지 펼치고(G4), 칸 폭 100% - 24px, 칸이 하나면 전폭 */
+  .row {
+    margin-right: calc(-1 * var(--gutter));
+    padding-right: var(--gutter);
+    scroll-padding-inline-end: var(--gutter);
+  }
+
+  .cell,
+  .fixed .cell {
+    flex: 0 0 calc(100% - 24px);
+  }
+
+  .single .cell {
+    flex-basis: 100%;
+  }
+
+  .controls {
+    justify-content: center;
+  }
+
+  .arrows {
+    display: none;
+  }
+}

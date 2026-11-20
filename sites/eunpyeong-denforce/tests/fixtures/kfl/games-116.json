@@ -1,0 +1,407 @@
+[
+ {
+  "gameNumber": 1,
+  "kickoff": "2026-11-15T14:00:00+09:00",
+  "homeClub": "fsseoul",
+  "awayClub": "eunpyeongfs",
+  "homeName": "노원제너FS",
+  "awayName": "서울은평덴포스",
+  "score": null
+ },
+ {
+  "gameNumber": 2,
+  "kickoff": "2026-11-15T15:00:00+09:00",
+  "homeClub": "gwFSclub",
+  "awayClub": "yongintmt",
+  "homeName": "강원FS",
+  "awayName": "용인지솔FS",
+  "score": null
+ },
+ {
+  "gameNumber": 3,
+  "kickoff": "2026-11-15T20:30:00+09:00",
+  "homeClub": "GoyangBulls",
+  "awayClub": "hwaseongFS",
+  "homeName": "고양불스풋살클럽",
+  "awayName": "화성FS",
+  "score": null
+ },
+ {
+  "gameNumber": 4,
+  "kickoff": "2026-11-21T14:00:00+09:00",
+  "homeClub": "gwFSclub",
+  "awayClub": "GoyangBulls",
+  "homeName": "강원FS",
+  "awayName": "고양불스풋살클럽",
+  "score": null
+ },
+ {
+  "gameNumber": 5,
+  "kickoff": "2026-11-21T14:00:00+09:00",
+  "homeClub": "eunpyeongfs",
+  "awayClub": "yongintmt",
+  "homeName": "서울은평덴포스",
+  "awayName": "용인지솔FS",
+  "score": null
+ },
+ {
+  "gameNumber": 6,
+  "kickoff": "2026-11-21T19:30:00+09:00",
+  "homeClub": "hwaseongFS",
+  "awayClub": "fsseoul",
+  "homeName": "화성FS",
+  "awayName": "노원제너FS",
+  "score": null
+ },
+ {
+  "gameNumber": 7,
+  "kickoff": "2026-11-28T16:00:00+09:00",
+  "homeClub": "hwaseongFS",
+  "awayClub": "gwFSclub",
+  "homeName": "화성FS",
+  "awayName": "강원FS",
+  "score": null
+ },
+ {
+  "gameNumber": 8,
+  "kickoff": "2026-11-29T14:00:00+09:00",
+  "homeClub": "fsseoul",
+  "awayClub": "yongintmt",
+  "homeName": "노원제너FS",
+  "awayName": "용인지솔FS",
+  "score": null
+ },
+ {
+  "gameNumber": 9,
+  "kickoff": "2026-12-26T14:00:00+09:00",
+  "homeClub": "eunpyeongfs",
+  "awayClub": "GoyangBulls",
+  "homeName": "서울은평덴포스",
+  "awayName": "고양불스풋살클럽",
+  "score": null
+ },
+ {
+  "gameNumber": 10,
+  "kickoff": "2026-12-05T14:00:00+09:00",
+  "homeClub": "eunpyeongfs",
+  "awayClub": "hwaseongFS",
+  "homeName": "서울은평덴포스",
+  "awayName": "화성FS",
+  "score": null
+ },
+ {
+  "gameNumber": 11,
+  "kickoff": "2026-12-06T14:00:00+09:00",
+  "homeClub": "gwFSclub",
+  "awayClub": "fsseoul",
+  "homeName": "강원FS",
+  "awayName": "노원제너FS",
+  "score": null
+ },
+ {
+  "gameNumber": 12,
+  "kickoff": "2026-12-06T20:30:00+09:00",
+  "homeClub": "GoyangBulls",
+  "awayClub": "yongintmt",
+  "homeName": "고양불스풋살클럽",
+  "awayName": "용인지솔FS",
+  "score": null
+ },
+ {
+  "gameNumber": 13,
+  "kickoff": "2026-12-12T14:00:00+09:00",
+  "homeClub": "eunpyeongfs",
+  "awayClub": "gwFSclub",
+  "homeName": "서울은평덴포스",
+  "awayName": "강원FS",
+  "score": null
+ },
+ {
+  "gameNumber": 14,
+  "kickoff": "2026-12-13T11:00:00+09:00",
+  "homeClub": "yongintmt",
+  "awayClub": "hwaseongFS",
+  "homeName": "용인지솔FS",
+  "awayName": "화성FS",
+  "score": null
+ },
+ {
+  "gameNumber": 15,
+  "kickoff": "2026-12-13T13:00:00+09:00",
+  "homeClub": "fsseoul",
+  "awayClub": "GoyangBulls",
+  "homeName": "노원제너FS",
+  "awayName": "고양불스풋살클럽",
+  "score": null
+ },
+ {
+  "gameNumber": 16,
+  "kickoff": "2026-12-19T14:00:00+09:00",
+  "homeClub": "eunpyeongfs",
+  "awayClub": "fsseoul",
+  "homeName": "서울은평덴포스",
+  "awayName": "노원제너FS",
+  "score": null
+ },
+ {
+  "gameNumber": 17,
+  "kickoff": "2026-12-19T14:00:00+09:00",
+  "homeClub": "gwFSclub",
+  "awayClub": "yongintmt",
+  "homeName": "강원FS",
+  "awayName": "용인지솔FS",
+  "score": null
+ },
+ {
+  "gameNumber": 18,
+  "kickoff": "2026-12-19T16:00:00+09:00",
+  "homeClub": "hwaseongFS",
+  "awayClub": "GoyangBulls",
+  "homeName": "화성FS",
+  "awayName": "고양불스풋살클럽",
+  "score": null
+ },
+ {
+  "gameNumber": 19,
+  "kickoff": "2027-01-16T11:00:00+09:00",
+  "homeClub": "fsseoul",
+  "awayClub": "hwaseongFS",
+  "homeName": "노원제너FS",
+  "awayName": "화성FS",
+  "score": null
+ },
+ {
+  "gameNumber": 20,
+  "kickoff": "2027-01-16T14:00:00+09:00",
+  "homeClub": "eunpyeongfs",
+  "awayClub": "yongintmt",
+  "homeName": "서울은평덴포스",
+  "awayName": "용인지솔FS",
+  "score": null
+ },
+ {
+  "gameNumber": 21,
+  "kickoff": "2027-01-16T17:00:00+09:00",
+  "homeClub": "GoyangBulls",
+  "awayClub": "gwFSclub",
+  "homeName": "고양불스풋살클럽",
+  "awayName": "강원FS",
+  "score": null
+ },
+ {
+  "gameNumber": 22,
+  "kickoff": "2027-01-17T11:00:00+09:00",
+  "homeClub": "yongintmt",
+  "awayClub": "fsseoul",
+  "homeName": "용인지솔FS",
+  "awayName": "노원제너FS",
+  "score": null
+ },
+ {
+  "gameNumber": 23,
+  "kickoff": "2027-01-17T14:00:00+09:00",
+  "homeClub": "gwFSclub",
+  "awayClub": "hwaseongFS",
+  "homeName": "강원FS",
+  "awayName": "화성FS",
+  "score": null
+ },
+ {
+  "gameNumber": 24,
+  "kickoff": "2027-01-17T17:00:00+09:00",
+  "homeClub": "GoyangBulls",
+  "awayClub": "eunpyeongfs",
+  "homeName": "고양불스풋살클럽",
+  "awayName": "서울은평덴포스",
+  "score": null
+ },
+ {
+  "gameNumber": 25,
+  "kickoff": "2027-02-13T18:00:00+09:00",
+  "homeClub": "yongintmt",
+  "awayClub": "GoyangBulls",
+  "homeName": "용인지솔FS",
+  "awayName": "고양불스풋살클럽",
+  "score": null
+ },
+ {
+  "gameNumber": 26,
+  "kickoff": "2027-02-14T13:00:00+09:00",
+  "homeClub": "fsseoul",
+  "awayClub": "gwFSclub",
+  "homeName": "노원제너FS",
+  "awayName": "강원FS",
+  "score": null
+ },
+ {
+  "gameNumber": 27,
+  "kickoff": "2027-02-14T16:00:00+09:00",
+  "homeClub": "hwaseongFS",
+  "awayClub": "eunpyeongfs",
+  "homeName": "화성FS",
+  "awayName": "서울은평덴포스",
+  "score": null
+ },
+ {
+  "gameNumber": 28,
+  "kickoff": "2027-02-20T14:00:00+09:00",
+  "homeClub": "gwFSclub",
+  "awayClub": "eunpyeongfs",
+  "homeName": "강원FS",
+  "awayName": "서울은평덴포스",
+  "score": null
+ },
+ {
+  "gameNumber": 29,
+  "kickoff": "2027-02-21T15:30:00+09:00",
+  "homeClub": "GoyangBulls",
+  "awayClub": "fsseoul",
+  "homeName": "고양불스풋살클럽",
+  "awayName": "노원제너FS",
+  "score": null
+ },
+ {
+  "gameNumber": 30,
+  "kickoff": "2027-02-21T16:00:00+09:00",
+  "homeClub": "hwaseongFS",
+  "awayClub": "yongintmt",
+  "homeName": "화성FS",
+  "awayName": "용인지솔FS",
+  "score": null
+ },
+ {
+  "gameNumber": 31,
+  "kickoff": "2027-02-27T18:00:00+09:00",
+  "homeClub": "yongintmt",
+  "awayClub": "gwFSclub",
+  "homeName": "용인지솔FS",
+  "awayName": "강원FS",
+  "score": null
+ },
+ {
+  "gameNumber": 32,
+  "kickoff": "2027-02-28T13:00:00+09:00",
+  "homeClub": "fsseoul",
+  "awayClub": "eunpyeongfs",
+  "homeName": "노원제너FS",
+  "awayName": "서울은평덴포스",
+  "score": null
+ },
+ {
+  "gameNumber": 33,
+  "kickoff": "2027-02-28T15:30:00+09:00",
+  "homeClub": "GoyangBulls",
+  "awayClub": "hwaseongFS",
+  "homeName": "고양불스풋살클럽",
+  "awayName": "화성FS",
+  "score": null
+ },
+ {
+  "gameNumber": 34,
+  "kickoff": "2027-03-06T18:00:00+09:00",
+  "homeClub": "yongintmt",
+  "awayClub": "eunpyeongfs",
+  "homeName": "용인지솔FS",
+  "awayName": "서울은평덴포스",
+  "score": null
+ },
+ {
+  "gameNumber": 35,
+  "kickoff": "2027-03-07T13:00:00+09:00",
+  "homeClub": "fsseoul",
+  "awayClub": "hwaseongFS",
+  "homeName": "노원제너FS",
+  "awayName": "화성FS",
+  "score": null
+ },
+ {
+  "gameNumber": 36,
+  "kickoff": "2027-03-07T15:30:00+09:00",
+  "homeClub": "GoyangBulls",
+  "awayClub": "gwFSclub",
+  "homeName": "고양불스풋살클럽",
+  "awayName": "강원FS",
+  "score": null
+ },
+ {
+  "gameNumber": 37,
+  "kickoff": "2027-03-13T14:00:00+09:00",
+  "homeClub": "gwFSclub",
+  "awayClub": "hwaseongFS",
+  "homeName": "강원FS",
+  "awayName": "화성FS",
+  "score": null
+ },
+ {
+  "gameNumber": 38,
+  "kickoff": "2027-03-13T18:00:00+09:00",
+  "homeClub": "yongintmt",
+  "awayClub": "fsseoul",
+  "homeName": "용인지솔FS",
+  "awayName": "노원제너FS",
+  "score": null
+ },
+ {
+  "gameNumber": 39,
+  "kickoff": "2027-03-14T15:30:00+09:00",
+  "homeClub": "GoyangBulls",
+  "awayClub": "eunpyeongfs",
+  "homeName": "고양불스풋살클럽",
+  "awayName": "서울은평덴포스",
+  "score": null
+ },
+ {
+  "gameNumber": 40,
+  "kickoff": "2027-03-20T14:00:00+09:00",
+  "homeClub": "gwFSclub",
+  "awayClub": "fsseoul",
+  "homeName": "강원FS",
+  "awayName": "노원제너FS",
+  "score": null
+ },
+ {
+  "gameNumber": 41,
+  "kickoff": "2027-03-21T15:30:00+09:00",
+  "homeClub": "GoyangBulls",
+  "awayClub": "yongintmt",
+  "homeName": "고양불스풋살클럽",
+  "awayName": "용인지솔FS",
+  "score": null
+ },
+ {
+  "gameNumber": 42,
+  "kickoff": "2027-03-21T16:00:00+09:00",
+  "homeClub": "hwaseongFS",
+  "awayClub": "eunpyeongfs",
+  "homeName": "화성FS",
+  "awayName": "서울은평덴포스",
+  "score": null
+ },
+ {
+  "gameNumber": 43,
+  "kickoff": "2027-03-27T14:00:00+09:00",
+  "homeClub": "eunpyeongfs",
+  "awayClub": "gwFSclub",
+  "homeName": "서울은평덴포스",
+  "awayName": "강원FS",
+  "score": null
+ },
+ {
+  "gameNumber": 44,
+  "kickoff": "2027-03-27T18:00:00+09:00",
+  "homeClub": "yongintmt",
+  "awayClub": "hwaseongFS",
+  "homeName": "용인지솔FS",
+  "awayName": "화성FS",
+  "score": null
+ },
+ {
+  "gameNumber": 45,
+  "kickoff": "2027-03-28T13:00:00+09:00",
+  "homeClub": "fsseoul",
+  "awayClub": "GoyangBulls",
+  "homeName": "노원제너FS",
+  "awayName": "고양불스풋살클럽",
+  "score": null
+ }
+]

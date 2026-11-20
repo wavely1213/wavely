@@ -1,0 +1,10 @@
+/* 경기 띠 칸 사이 간격 0 (구분선은 칸의 왼쪽 선) */
+.strip {
+  --gap: 0px;
+}
+
+@media (max-width: 720px) {
+  .strip {
+    --gap: var(--space-m);
+  }
+}

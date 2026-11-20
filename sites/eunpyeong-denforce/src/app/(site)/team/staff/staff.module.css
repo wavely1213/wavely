@@ -1,0 +1,81 @@
+/* 코칭스태프 (3차 시안 155:18888 / 155:19181) — 묶음 사이 space/2xl(휴대폰 space/xl), 제목과 내용 사이 space/l(휴대폰 space/m) */
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xl);
+}
+
+/* kfa/pc/h2 32 Bold (휴대폰 kfa/m/h2 24) */
+.h2 {
+  margin-bottom: var(--space-l);
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+/* 프런트 목록 — 위 text 2px, 3열(태블릿 2, 휴대폰 1) 사이 space/l, 줄 위아래 space/m + 아래 line, 직책 120(휴대폰 104) + 사이 space/m + 이름 */
+.front {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: var(--space-l);
+  border-top: 2px solid var(--c-text);
+}
+
+.frontItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-m);
+  padding: var(--space-m) 0;
+  border-bottom: 1px solid var(--c-line);
+}
+
+/* 직책 kfa/body-s text-sub */
+.frontItem dt {
+  flex: none;
+  width: 120px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--c-text-sub);
+}
+
+/* dd 기본 margin-inline-start 40 없앰 — 직책 96 + 사이 space/m 만 (재검증 #9 와 같은 원인) */
+/* 이름 kfa/pc/h4 18 Bold (휴대폰 kfa/m/h4 16) */
+.frontItem dd {
+  margin: 0;
+  min-width: 0;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 960px) {
+  .front {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .body {
+    gap: var(--space-xl);
+  }
+
+  .h2 {
+    margin-bottom: var(--space-m);
+    font-size: 24px;
+  }
+
+  .front {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .frontItem dt {
+    width: 104px;
+  }
+
+  .frontItem dd {
+    font-size: 16px;
+  }
+}

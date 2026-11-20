@@ -1,0 +1,276 @@
+<!-- 자동 생성 — 직접 고치지 말 것. 원본 figma-plugin/src, 빌드: npm run figma:plugin (D-066) -->
+<!doctype html>
+<!-- 덴포스 피그마 플러그인 화면 (D-066). 네트워크(피드/이미지)는 여기서만 한다 — manifest 가 eunpyeong-fs.com 만 허용.
+     색은 빌드 때 src/styles/tokens.css 의 :root 를 아래 자리에 넣는다 (하드코딩 색 금지). -->
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<style>
+:root {
+  
+  --c-blue: #1a349a;
+  --c-blue-hover: #142a7e;
+  --c-blue-tint: #eef1fa;
+
+  
+  --c-black: #0e0f12;
+  --c-black-soft: #1c1e24;
+
+  
+  --c-yellow: #ffc000;
+
+  --c-bg: #ffffff;
+  --c-bg-soft: #f5f6f8;
+  --c-text: #0e0f12;
+  --c-text-sub: #6b7080;
+  --c-line: #e6e8ec;
+  --c-on-dark: #ffffff;
+  --c-on-dark-sub: rgba(255, 255, 255, 0.64);
+  
+  --c-line-on-dark: rgba(255, 255, 255, 0.12);
+
+  
+  --c-win: #17a34a;
+  --c-draw: #8a8f9c;
+  --c-draw-tint: #eef0f3;
+  --c-loss: #d63b3b;
+  --c-loss-tint: #fdeded;
+
+  
+  --c-on-blue: #ffffff;
+  --c-overlay-strong: rgba(14, 15, 18, 0.9);
+  --c-overlay-mid: rgba(14, 15, 18, 0.55);
+  --c-overlay-weak: rgba(14, 15, 18, 0.35);
+  --c-overlay-faint: rgba(14, 15, 18, 0.15);
+
+  --font: var(--font-kfa), "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
+
+  
+  --space-2xs: 4px;
+  --space-xs: 8px;
+  --space-s: 12px;
+  --space-m: 16px;
+  --space-ml: 20px;
+  --space-l: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+
+  --radius-s: 6px;
+  --radius-m: 10px;
+  --radius-l: 16px;
+  --radius-pill: 999px;
+
+  --container: 1200px;
+  --gutter: 20px;
+  
+  --container-wide: 1480px;
+  --gutter-wide: 40px;
+  --header-h: 80px;
+  --section-gap: 72px;
+  
+  --hero-h: 640px;
+  --aside-w: 280px;
+  --match-hero-w: 456px;
+}
+
+
+@media (min-width: 1281px) {
+  :root {
+    --container: var(--container-wide);
+    --gutter: var(--gutter-wide);
+  }
+}
+
+@media (max-width: 720px) {
+  :root {
+    --gutter: 16px;
+    --header-h: 60px;
+    --section-gap: 48px;
+    --hero-h: 520px;
+    --match-hero-w: 358px;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; padding: 12px; font: 12px/1.5 system-ui, sans-serif; color: var(--c-text); background: var(--c-bg); }
+h2 { margin: 16px 0 6px; font-size: 13px; }
+h2:first-child { margin-top: 0; }
+p { margin: 0 0 6px; color: var(--c-text-sub); }
+button { font: inherit; padding: 6px 10px; border-radius: var(--radius-s); border: 1px solid var(--c-line); background: var(--c-bg); color: var(--c-text); cursor: pointer; }
+button.primary { background: var(--c-blue); border-color: var(--c-blue); color: var(--c-on-dark); }
+button.primary:hover { background: var(--c-blue-hover); }
+button:disabled { opacity: 0.5; cursor: default; }
+select, textarea { font: inherit; width: 100%; padding: 6px; border: 1px solid var(--c-line); border-radius: var(--radius-s); background: var(--c-bg); color: var(--c-text); }
+textarea { height: 96px; font-family: ui-monospace, monospace; font-size: 11px; }
+.row { display: flex; gap: 6px; align-items: center; margin: 6px 0; flex-wrap: wrap; }
+.row > select { flex: 1; width: auto; }
+.box { padding: 8px; border-radius: var(--radius-s); background: var(--c-bg-soft); margin: 6px 0; white-space: pre-wrap; }
+#status.ok { border-left: 3px solid var(--c-win); }
+#status.err { border-left: 3px solid var(--c-loss); }
+#status:empty { display: none; }
+</style>
+</head>
+<body>
+<h2>포스터 채우기</h2>
+<p>사이트 공개 데이터(다음 경기, 결과, 영입/작별, 스폰서)로 '05 Posters' 템플릿을 복제해 채웁니다.</p>
+<div class="row"><button id="load" class="primary">데이터 불러오기</button><span id="feedInfo"></span></div>
+<div class="row">
+  <select id="kind" disabled>
+    <option value="matchday">MATCH DAY (다음 경기)</option>
+    <option value="result">경기결과 (최근 경기)</option>
+    <option value="welcome">WELCOME (영입)</option>
+    <option value="goodluck">GOOD LUCK (작별)</option>
+  </select>
+</div>
+<div class="row"><select id="person" disabled hidden></select></div>
+<div class="row"><button id="fill" class="primary" disabled>포스터 만들기</button></div>
+
+<h2>토큰 내보내기</h2>
+<p>피그마 변수(Color/Space/Radius/Layout/Font) → tokens.json 모양. 저장소 design/figma-variables.json 으로 넣으면 npm test 가 코드와 비교합니다.</p>
+<div class="row"><button id="export">내보내기</button><button id="copy" disabled>복사</button><button id="download" disabled>파일로 저장</button></div>
+<textarea id="exported" readonly placeholder="내보낸 JSON"></textarea>
+
+<h2>토큰 가져오기</h2>
+<p>tokens.json → 피그마 변수. 비워 두면 플러그인을 빌드할 때 넣은 tokens.json 을 씁니다.</p>
+<textarea id="tokensInput" placeholder="tokens.json 내용 붙여 넣기 (선택)"></textarea>
+<div class="row"><input type="file" id="tokensFile" accept=".json,application/json" /><button id="import">가져오기</button></div>
+
+<h2>KFA 글꼴 적용</h2>
+<p>파일의 글꼴 스타일과 텍스트 레이어에서 Noto Sans KR 을 KFAGothic TTF 로 바꿉니다 (Medium 이하는 Regular, SemiBold 이상은 Bold). 이 컴퓨터에 KFA고딕을 먼저 설치해 주세요.</p>
+<div class="row"><button id="kfa">KFA 글꼴 적용</button></div>
+
+<div id="status" class="box"></div>
+
+<script>
+const SITE = "https://eunpyeong-fs.com";
+const FEED_URL = SITE + "/api/figma/feed";
+const $ = (id) => document.getElementById(id);
+let feed = null;
+
+function status(ok, message, details) {
+  const el = $("status");
+  el.className = "box " + (ok ? "ok" : "err");
+  el.textContent = message + (details && details.length ? "\n- " + details.join("\n- ") : "");
+}
+
+function people() {
+  if (!feed) return [];
+  const k = $("kind").value;
+  return k === "welcome" ? feed.recentSignings : k === "goodluck" ? feed.recentFarewells : [];
+}
+
+function refreshPerson() {
+  const list = people();
+  const sel = $("person");
+  const show = $("kind").value === "welcome" || $("kind").value === "goodluck";
+  sel.hidden = !show;
+  sel.disabled = !show || list.length === 0;
+  sel.innerHTML = "";
+  if (!show) return;
+  if (list.length === 0) {
+    sel.add(new Option("최근 180일 소식 없음", ""));
+    return;
+  }
+  list.forEach((p, i) => sel.add(new Option(p.playerName + (p.positionLabel ? " (" + p.positionLabel + ")" : "") + " " + p.newsDate, String(i))));
+  if (list.length > 1) sel.add(new Option("모두 (" + list.length + "명)", "all"));
+}
+
+$("load").onclick = async () => {
+  $("load").disabled = true;
+  try {
+    const res = await fetch(FEED_URL, { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    feed = await res.json();
+    const m = feed.nextMatch;
+    $("feedInfo").textContent = (m ? "다음 경기 " + m.date + " " + m.opponent : "예정 경기 없음") + " / 영입 " + feed.recentSignings.length + " / 작별 " + feed.recentFarewells.length;
+    $("kind").disabled = false;
+    $("fill").disabled = false;
+    refreshPerson();
+    status(true, "데이터를 불러왔습니다 (" + feed.generatedAt + ")");
+  } catch (e) {
+    status(false, "데이터를 불러오지 못했습니다: " + e.message, [FEED_URL]);
+  } finally {
+    $("load").disabled = false;
+  }
+};
+
+$("kind").onchange = refreshPerson;
+
+$("fill").onclick = () => {
+  if (!feed) return;
+  const v = $("person").value;
+  const index = v === "all" ? "all" : Number(v || 0);
+  status(true, "만드는 중…");
+  parent.postMessage({ pluginMessage: { type: "fill", feed, kind: $("kind").value, index } }, "*");
+};
+
+$("kfa").onclick = () => {
+  status(true, "바꾸는 중…");
+  parent.postMessage({ pluginMessage: { type: "apply-kfa" } }, "*");
+};
+
+$("export").onclick = () => parent.postMessage({ pluginMessage: { type: "export-tokens" } }, "*");
+
+$("copy").onclick = () => {
+  const ta = $("exported");
+  ta.select();
+  document.execCommand("copy");
+  status(true, "복사했습니다");
+};
+
+$("download").onclick = () => {
+  const blob = new Blob([$("exported").value], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "figma-variables.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+$("tokensFile").onchange = async (e) => {
+  const f = e.target.files && e.target.files[0];
+  if (f) $("tokensInput").value = await f.text();
+};
+
+$("import").onclick = () => {
+  const json = $("tokensInput").value.trim();
+  parent.postMessage({ pluginMessage: { type: "import-tokens", json: json || undefined } }, "*");
+};
+
+async function fetchImages(requestId, urls) {
+  const images = {};
+  const errors = [];
+  await Promise.all(urls.map(async (url) => {
+    try {
+      const res = await fetch(SITE + "/api/figma/image?src=" + encodeURIComponent(url));
+      if (!res.ok) {
+        let reason = "HTTP " + res.status;
+        try { reason = (await res.json()).error || reason; } catch (_) {}
+        throw new Error(reason);
+      }
+      images[url] = new Uint8Array(await res.arrayBuffer());
+    } catch (e) {
+      images[url] = null;
+      errors.push("이미지 " + url + ": " + e.message);
+    }
+  }));
+  parent.postMessage({ pluginMessage: { type: "images", requestId, images, errors } }, "*");
+}
+
+window.onmessage = (event) => {
+  const msg = event.data && event.data.pluginMessage;
+  if (!msg) return;
+  if (msg.type === "result") status(msg.ok, msg.message, msg.details);
+  else if (msg.type === "need-images") fetchImages(msg.requestId, msg.urls);
+  else if (msg.type === "exported") {
+    $("exported").value = msg.json;
+    $("copy").disabled = false;
+    $("download").disabled = false;
+    status(true, "변수 " + msg.count + "개를 내보냈습니다", msg.skipped);
+  } else if (msg.type === "init") {
+    $("tokensInput").placeholder = "tokens.json 내용 붙여 넣기 (선택) — 비우면 빌드 때 넣은 토큰: " + msg.bundledTokens.join(", ");
+  }
+};
+</script>
+</body>
+</html>

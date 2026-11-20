@@ -1,5 +1,12 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "git": {
+    "deploymentEnabled": {
+      "claude/tender-keller-fd45tu": false,
+      "claude/figma-sync-feature": false,
+      "claude/figma-sync-design": false
+    }
+  },
   "framework": null,
   "installCommand": "",
   "buildCommand": "rm -rf dist && cp -R public/futsal dist",

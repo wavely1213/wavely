@@ -1,0 +1,24 @@
+/* LIVE 배지 (D-092, 피그마 283:27104 L1~L4) — color/yellow 면 + 검정 점 6 + 'LIVE' kfa/label black, radius/pill, 깜빡임 없음.
+   빨강(c-loss)은 '패' 뜻이라 쓰지 않는다 */
+.badge {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-2xs);
+  padding: 2px var(--space-xs);
+  border-radius: var(--radius-pill);
+  background: var(--c-yellow);
+  color: var(--c-black);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  vertical-align: middle;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--c-black);
+}

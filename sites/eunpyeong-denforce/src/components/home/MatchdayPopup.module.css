@@ -1,0 +1,90 @@
+/* 매치데이 포스터 팝업 (D-096, 운영 임시판과 같은 모양) — 시안 P3 '포스터만 크게'(피그마 295:31549 / 295:31434), X 없음(소유자 지시).
+   카드 없이 overlay-strong 위에 포스터(radius/m) + 아래 줄 [오늘 하루 보지 않기 | 닫기](각 44, kfa/body-s, 사이 space/s).
+   위치: 휴대폰 가운데(양옆 space/m), PC 오른쪽 아래 space/xl(P2 자리, 폭 360).
+   넘침: 폭 = min(최대 폭, 남는 높이 x 포스터 비율), 240 아래로는 줄이지 않고 세로로 넘김.
+   포스터 비율(--poster-ratio)은 그림을 받은 뒤 원래 비율로 (MATCH DAY / FULL TIME 이 다를 수 있음, 받기 전 3:4) */
+.dialog {
+  /* 100% = 스크롤 막대를 뺀 화면 폭(맨 앞 층의 기준 상자) — 100vw 는 PC 좁은 창에서 막대만큼 넓다 (검토) */
+  --popup-max: calc(100% - 2 * var(--space-m));
+  --popup-edge: var(--space-m);
+  /* 초점 테두리(2 + 바깥 2)가 스크롤 상자 가장자리에 잘리지 않게 안쪽 여백 4 — 상자만 키우고 내용 자리는 그대로 (검토) */
+  --popup-pad: var(--space-2xs);
+  --popup-room: calc(100vh - 2 * var(--popup-edge) - var(--space-s) - 44px);
+  /* 그림의 원래 비율로 — 1px 덜어 반올림 차이로 생기는 세로 넘김을 막는다 (검토 c97fbd3) */
+  width: calc(max(240px, min(var(--popup-max), (var(--popup-room) - 1px) * var(--poster-ratio, 0.75))) + 2 * var(--popup-pad));
+  max-width: none;
+  max-height: calc(100vh - 2 * var(--popup-edge) + 2 * var(--popup-pad));
+  padding: var(--popup-pad);
+  border: 0;
+  background: transparent;
+  overflow: auto;
+}
+
+@supports (height: 100dvh) {
+  .dialog {
+    --popup-room: calc(100dvh - 2 * var(--popup-edge) - var(--space-s) - 44px);
+    max-height: calc(100dvh - 2 * var(--popup-edge) + 2 * var(--popup-pad));
+  }
+}
+
+/* 대화 상자 자체의 초점(처음 열릴 때)은 테두리 없이 — 버튼 초점은 아래에서 보인다 */
+.dialog:focus,
+.dialog:focus-visible {
+  outline: none;
+}
+
+.dialog::backdrop {
+  background: var(--c-overlay-strong);
+}
+
+.poster {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-m);
+  background: var(--c-black-soft);
+}
+
+/* 포스터 링크(인스타그램) — 초점 표시는 어두운 면 규칙(on-dark 2px, 바깥 2) */
+.posterLink {
+  display: block;
+  border-radius: var(--radius-m);
+}
+
+.posterLink:focus-visible {
+  outline: 2px solid var(--c-on-dark);
+  outline-offset: 2px;
+}
+
+.bar {
+  display: flex;
+  justify-content: space-between;
+  margin-top: var(--space-s);
+}
+
+.textButton {
+  min-height: 44px;
+  padding: 0 var(--space-xs);
+  border: 0;
+  background: transparent;
+  color: var(--c-on-dark);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.6;
+  cursor: pointer;
+}
+
+.textButton:focus-visible {
+  outline: 2px solid var(--c-on-dark);
+  outline-offset: 2px;
+}
+
+/* PC·태블릿: 오른쪽 아래(P2 자리) 폭 360, 가장자리 space/xl */
+@media (min-width: 721px) {
+  .dialog {
+    --popup-max: 360px;
+    --popup-edge: var(--space-xl);
+    inset: auto calc(var(--space-xl) - var(--popup-pad)) calc(var(--space-xl) - var(--popup-pad)) auto;
+    margin: 0;
+  }
+}

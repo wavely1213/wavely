@@ -1,0 +1,25 @@
+/* 잘리지 않는 사진 칸 (FitImage) — 전체 보기 + 흐린 바탕, 비율이 비슷하면 꽉 채움.
+   '.칸 img { object-fit: cover }' 같은 부모 규칙보다 앞서도록 클래스 두 개로 쓴다 */
+.wrap {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.wrap .backdrop {
+  object-fit: cover;
+  filter: blur(20px) brightness(0.8);
+  transform: scale(1.2);
+}
+
+.wrap .main {
+  object-fit: contain;
+}
+
+.wrap.fill .main {
+  object-fit: cover;
+}
+
+.wrap.fill .backdrop {
+  visibility: hidden;
+}
