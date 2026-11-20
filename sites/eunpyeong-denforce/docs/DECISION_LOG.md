@@ -30,7 +30,7 @@
 <!-- 여기서부터 최신 항목을 위에 추가 -->
 
 ## D-101 | 2026-11-20 | 구단 유튜브 '덴포스 DENFORCE SPORTS' 롱폼 → 구단영상 자동 반영 (C9 1부: 동기화 + 가로/세로 구분)
-- **상태**: 채택, 기능 브랜치 (소유자 확정 2026-11-20, 총괄 전달. 운영 적용은 총괄 검토 뒤)
+- **상태**: 채택, 운영 적용 (2026-11-20 총괄 — 마이그레이션 → 사이트 b82acb2 → 함수 club-video-sync v1(7bf9fd8) → 수동 호출 1번(EP.01 넣음, 신세계 안 넣음) → cron 'club-video-sync' 47 */3. FIGMA_SYNC 기록)
 - **규칙(소유자)**: 채널 UC_834SREJnoVt5QTTqL-fuw 의 롱폼만(쇼츠 제외), 제목에 '은평'이 든 영상만. 예: 'EP.01 새로운 시작 | … 서울은평 덴포스 vs 노원제너FS'(iz7zWU3TrvA) 넣음, 'DENFORCE × 신세계 | DESIGN YOUR GROUND'(-sygnpfOfYU) 뺌. 누르면 유튜브 원본 새 창(D-074).
 - **결정**: 새 서버 함수 club-video-sync (plan.ts 순수 + index.ts I/O), 3시간마다(매시 47분) pg_cron. 키는 kfl-video-sync 와 같은 함수 비밀값 GOOGLE_DRIVE_API_KEY(YouTube Data API v3), 없으면 상태만.
   - 목록: 롱폼 전용 재생목록 UULF…(웹 확인: 롱폼 2개). Data API 가 받지 않으면(404/playlistNotFound) 업로드 전체 UU… + https://www.youtube.com/shorts/<id> HEAD(리다이렉트 안 따라감: 쇼츠 200, 롱폼 303 — 2026-11-20 직접 확인)로 거른다. 길이로 거르지 않음.
