@@ -5,6 +5,7 @@ import {
   isClubVideo,
   LONGFORM_PLAYLIST,
   longformUnavailable,
+  MAX_SHORTS_CHECKS,
   parseClubPlaylist,
   pickThumbnail,
   planClubVideos,
@@ -118,11 +119,49 @@ test("planClubVideos: 업로드 전체를 읽었으면 쇼츠 확인 뒤에만 �
   const videos = [V("longform001", "은평 롱폼", "2026-11-19T00:00:00Z"), V("shorts00001", "은평 쇼츠", "2026-11-19T01:00:00Z"), V("unknown0001", "은평 모름", "2026-11-19T02:00:00Z")];
   const first = planClubVideos({ videos, applied: new Set(), existing: new Map(), fromUploads: true });
   assert.deepEqual(first.inserts, []);
-  assert.deepEqual(first.needShortsCheck.map((v) => v.videoId), ["longform001", "shorts00001", "unknown0001"]);
+  // 최신 먼저 확인
+  assert.deepEqual(first.needShortsCheck.map((v) => v.videoId), ["unknown0001", "shorts00001", "longform001"]);
   const shorts = new Map<string, boolean | null>([["longform001", false], ["shorts00001", true], ["unknown0001", null]]);
   const second = planClubVideos({ videos, applied: new Set(), existing: new Map(), fromUploads: true, shorts });
   assert.deepEqual(second.inserts.map((i) => i.video.videoId), ["longform001"]);
+  assert.deepEqual(second.shorts.map((v) => v.videoId), ["shorts00001"]);
   assert.deepEqual(second.notes, ["쇼츠라 뺌: 은평 쇼츠", "쇼츠인지 확인 못 함(다음 실행에 다시): 은평 모름"]);
+});
+
+/** index.ts 한 실행과 같은 순서 — 계획 → 최신 MAX 개 쇼츠 확인 → 다시 계획 → 넣은 것/기록/쇼츠를 applied 에 반영 */
+function simulateRun(videos: ClubVideo[], applied: Set<string>, isShort: (id: string) => boolean | null) {
+  let plan = planClubVideos({ videos, applied, existing: new Map(), fromUploads: true });
+  const checked: string[] = [];
+  if (plan.needShortsCheck.length) {
+    const shorts = new Map<string, boolean | null>();
+    for (const v of plan.needShortsCheck.slice(0, MAX_SHORTS_CHECKS)) {
+      checked.push(v.videoId);
+      shorts.set(v.videoId, isShort(v.videoId));
+    }
+    plan = planClubVideos({ videos, applied, existing: new Map(), fromUploads: true, shorts });
+  }
+  for (const i of plan.inserts) applied.add(i.video.videoId);
+  for (const r of plan.record) applied.add(r.video.videoId);
+  for (const v of plan.shorts) applied.add(v.videoId);
+  return { inserted: plan.inserts.map((i) => i.video.videoId), checked, deferred: plan.needShortsCheck.length };
+}
+
+test("업로드 전체 경로: 오래된 '은평' 쇼츠가 확인 수보다 많아도 새 롱폼이 밀리지 않고, 쇼츠는 다시 확인하지 않는다 (총괄 검토)", () => {
+  const shorts = Array.from({ length: 12 }, (_, i) => V(`oldshort${String(i).padStart(3, "0")}`, `은평 쇼츠 ${i}`, `2026-10-${String(i + 1).padStart(2, "0")}T00:00:00Z`));
+  const longform = V("newlongform", "은평 새 롱폼", "2026-11-19T00:00:00Z");
+  const videos = [...shorts, longform];
+  const applied = new Set<string>();
+  const isShort = (id: string) => id.startsWith("oldshort");
+  const run1 = simulateRun(videos, applied, isShort);
+  assert.deepEqual(run1.inserted, ["newlongform"]); // 최신 먼저 확인하니 1회차에 들어간다
+  assert.equal(run1.checked.length, MAX_SHORTS_CHECKS);
+  assert.equal(run1.checked[0], "newlongform");
+  const run2 = simulateRun(videos, applied, isShort);
+  assert.deepEqual(run2.inserted, []);
+  // 1회차에 쇼츠로 판정한 9개는 다시 확인하지 않고, 남은 3개만 확인
+  assert.equal(run2.checked.length, 3);
+  const run3 = simulateRun(videos, applied, isShort);
+  assert.deepEqual(run3, { inserted: [], checked: [], deferred: 0 });
 });
 
 test("planClubVideos: 썸네일 없으면 넣되 메모, 같은 영상 두 번이면 한 번", () => {

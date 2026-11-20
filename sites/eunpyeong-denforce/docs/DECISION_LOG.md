@@ -41,7 +41,8 @@
 - **2부 화면 (소유자 확정 2026-11-20, 피그마 307:29926, FIGMA_SYNC '구단영상 롱폼 줄')**: /news/video 맨 위 '유튜브 영상'(Section contained=false, 오른쪽 링크 없음) → 경기 하이라이트 → 릴스 세로 칸. 롱폼 = splitVideoPosts 의 가로 묶음, 없으면 줄을 숨김(그때 릴스도 없으면 빈 안내 그대로). 카드는 NewsCard 그대로, NewsGrid wide(썸네일 16:9) + scroll(휴대폰 넘김 78%). 더 보기 없이 전부(하이라이트 줄과 같음).
   - 재생 표시 자리는 NewsCard.tsx LONGFORM_PLAY_PLACE 한 곳(지금 'start' = 하이라이트 카드와 같은 왼쪽 아래, 썸네일 글자와 겹침은 소유자 답 대기, 'end' 면 오른쪽 아래). PlayMark 에 place 추가.
   - NewsCard 에 position: relative — 원본 새 창 카드의 sr-only '새 창' 글(position: absolute)이 넘김 줄 밖으로 나가 휴대폰 페이지가 가로로 897 까지 넓어지던 것을 막음(로컬 운영 빌드에서 발견).
-- **운영 적용(총괄)**: 마이그레이션 20261120100000_club_video_sync.sql(상태/기록 표, Vault 비밀값, 확인 함수) → 함수 배포(verify_jwt=false, config.toml) → 수동 호출 1번 → 20261120110000_club_video_sync_cron.sql. 2부 전에 켜면 I-073.
+- **운영 적용(총괄, 순서 2026-11-20 총괄 확정)**: 마이그레이션 20261120100000_club_video_sync.sql → 함수 club-video-sync 배포(verify_jwt=false) → 사이트 배포(2부 + 검토 반영. 롱폼 0개면 줄을 숨기니 먼저 배포해도 무방) → 수동 호출 1번(EP.01 들어감, 신세계 안 들어감 확인) → 20261120110000_club_video_sync_cron.sql. 사이트가 먼저 나가므로 I-073 증상은 생기지 않는다.
+- **총괄 1부 검토 반영**: 업로드 전체(UU) 경로에서 쇼츠 판정을 기록하지 않아, 오래된 '은평' 쇼츠가 확인 수(MAX_SHORTS_CHECKS 10)보다 많으면 새 롱폼이 계속 밀리던 결함 → club_video_sync_applied.kind('inserted' / 'existing' / 'short') 로 쇼츠 판정을 저장하고, 확인은 최신 먼저. 운영 미적용이라 마이그레이션 100000 파일을 직접 고침. 2회 실행 시뮬레이션 테스트.
 
 ## D-100 | 2026-11-18 | 은평 Supabase 프로젝트를 Pro 조직으로 이전 (무료 조직 캐시 송신 한도 초과 → 402 제한 해소)
 - **상태**: 채택, 운영 적용 (소유자 "a로 했어" 2026-11-18)

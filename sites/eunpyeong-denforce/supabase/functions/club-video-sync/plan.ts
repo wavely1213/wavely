@@ -125,12 +125,17 @@ export function youtubeIdOf(url: string | null): string | null {
   return m ? m[1] : null;
 }
 
+/** 한 실행에서 쇼츠 확인 요청 수 (업로드 전체를 읽었을 때만) */
+export const MAX_SHORTS_CHECKS = 10;
+
 export type ClubPlan = {
   /** 새로 넣을 글 */
   inserts: Array<{ video: ClubVideo; draft: VideoNewsDraft }>;
   /** 이미 사이트에 있는 영상(관리자가 손으로 넣음) — 기록만 남긴다(뒤에 지워도 다시 안 넣게) */
   record: Array<{ video: ClubVideo; newsId: string }>;
-  /** 쇼츠 확인이 필요한 후보 (업로드 전체를 읽었을 때만) */
+  /** 이번에 쇼츠로 판정한 영상 — 기록(kind 'short')해 다음 실행에 다시 확인하지 않는다 */
+  shorts: ClubVideo[];
+  /** 쇼츠 확인이 필요한 후보 (업로드 전체를 읽었을 때만) — 최신 먼저, 오래된 백로그가 새 업로드를 막지 않게 */
   needShortsCheck: ClubVideo[];
   notes: string[];
 };
@@ -147,7 +152,7 @@ export function planClubVideos(input: {
   fromUploads: boolean;
   shorts?: Map<string, boolean | null>;
 }): ClubPlan {
-  const out: ClubPlan = { inserts: [], record: [], needShortsCheck: [], notes: [] };
+  const out: ClubPlan = { inserts: [], record: [], shorts: [], needShortsCheck: [], notes: [] };
   const seen = new Set<string>();
   // 오래된 것부터 넣어 같은 날 여러 영상의 순서가 게시 순서와 같게
   const list = [...input.videos].sort((a, b) => a.published.localeCompare(b.published));
@@ -168,6 +173,7 @@ export function planClubVideos(input: {
         continue;
       }
       if (s === true) {
+        out.shorts.push(v);
         out.notes.push(`쇼츠라 뺌: ${v.title}`);
         continue;
       }
@@ -179,5 +185,6 @@ export function planClubVideos(input: {
     if (!v.thumbnail) out.notes.push(`16:9 썸네일 없음(대체 표지): ${v.title}`);
     out.inserts.push({ video: v, draft: videoNews(v) });
   }
+  out.needShortsCheck.sort((a, b) => b.published.localeCompare(a.published));
   return out;
 }

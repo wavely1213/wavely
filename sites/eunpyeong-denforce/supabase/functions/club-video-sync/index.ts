@@ -8,6 +8,7 @@ import { redactKey } from "../drive-library/drive.ts";
 import {
   LONGFORM_PLAYLIST,
   longformUnavailable,
+  MAX_SHORTS_CHECKS,
   parseClubPlaylist,
   planClubVideos,
   playlistUrl,
@@ -24,8 +25,6 @@ const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const API_KEY = Deno.env.get("GOOGLE_DRIVE_API_KEY") ?? "";
 /** 최근 50개씩 2쪽 (100개) — 3시간마다 도니 충분 */
 const MAX_PAGES = 2;
-/** 한 번에 쇼츠 확인 요청 (업로드 전체를 읽었을 때만) */
-const MAX_SHORTS_CHECKS = 10;
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
@@ -114,14 +113,21 @@ Deno.serve(async (req) => {
 
     const appliedList: string[] = [];
     for (const r of plan.record) {
-      const { error } = await db.from("club_video_sync_applied").upsert({ video_id: r.video.videoId, news_id: r.newsId, title: r.video.title.slice(0, 200) }, { onConflict: "video_id" });
+      const { error } = await db
+        .from("club_video_sync_applied")
+        .upsert({ video_id: r.video.videoId, kind: "existing", news_id: r.newsId, title: r.video.title.slice(0, 200) }, { onConflict: "video_id" });
       if (error) plan.notes.push(`기록 실패 ${r.video.videoId}: ${error.message}`);
+    }
+    // 쇼츠 판정은 기록해 다음 실행에서 다시 확인하지 않는다 (확인 슬롯을 오래된 쇼츠가 계속 차지하지 않게)
+    for (const v of plan.shorts) {
+      const { error } = await db.from("club_video_sync_applied").upsert({ video_id: v.videoId, kind: "short", news_id: null, title: v.title.slice(0, 200) }, { onConflict: "video_id" });
+      if (error) plan.notes.push(`기록 실패 ${v.videoId}: ${error.message}`);
     }
     for (const { video, draft } of plan.inserts) {
       // 그사이 같은 영상 글이 생겼으면(관리자, 다른 실행) 넣지 않는다
       const { data: dup } = await db.from("news_posts").select("id").ilike("video_url", `%${video.videoId}%`).limit(1);
       if (dup?.length) {
-        await db.from("club_video_sync_applied").upsert({ video_id: video.videoId, news_id: dup[0].id, title: video.title.slice(0, 200) }, { onConflict: "video_id" });
+        await db.from("club_video_sync_applied").upsert({ video_id: video.videoId, kind: "existing", news_id: dup[0].id, title: video.title.slice(0, 200) }, { onConflict: "video_id" });
         continue;
       }
       const { data: row, error } = await db.from("news_posts").insert(draft).select("id").single();
@@ -132,7 +138,7 @@ Deno.serve(async (req) => {
       appliedList.push(`${draft.date} ${draft.title}`);
       const { error: logErr } = await db
         .from("club_video_sync_applied")
-        .upsert({ video_id: video.videoId, news_id: row.id, title: video.title.slice(0, 200), applied_at: new Date().toISOString() }, { onConflict: "video_id" });
+        .upsert({ video_id: video.videoId, kind: "inserted", news_id: row.id, title: video.title.slice(0, 200), applied_at: new Date().toISOString() }, { onConflict: "video_id" });
       if (logErr) plan.notes.push(`기록 실패 ${video.videoId}: ${logErr.message}`);
     }
 

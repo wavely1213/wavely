@@ -19,10 +19,12 @@ create policy club_video_sync_state_admin_read on public.club_video_sync_state f
 revoke all on public.club_video_sync_state from anon, authenticated;
 grant select on public.club_video_sync_state to authenticated;
 
--- 이 함수가 넣은(또는 이미 있던) 영상 기록 — 한 번 기록된 영상은 다시 넣지 않는다.
+-- 이 함수가 판정한 영상 기록 — 한 번 기록된 영상은 다시 보지 않는다.
+-- kind: inserted(이 함수가 넣음) / existing(사이트에 이미 있던 글) / short(업로드 전체를 읽을 때 쇼츠로 판정, 글 없음)
 -- 관리자가 그 구단영상 글을 지우면 news_id 만 비고 기록은 남아 다시 들어오지 않는다 (D-090 / D-096 방식)
 create table public.club_video_sync_applied (
   video_id text primary key check (video_id ~ '^[A-Za-z0-9_-]{11}$'),
+  kind text not null default 'inserted' check (kind in ('inserted', 'existing', 'short')),
   news_id uuid references public.news_posts (id) on delete set null,
   title text not null default '' check (length(title) <= 200),
   applied_at timestamptz not null default now()
