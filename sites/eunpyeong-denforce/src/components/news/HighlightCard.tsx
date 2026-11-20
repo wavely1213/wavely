@@ -63,9 +63,10 @@ export function HighlightRow({ items }: { items: HighlightItem[] }) {
 }
 
 /** 줄 묶음(제목 섹션 포함)을 감싸 아래 여백을 준다 — 다음이 스폰서 띠나 격자라 위 여백이 없는 자리 */
-export function HighlightBlock({ id, children }: { id?: string; children: React.ReactNode }) {
+/** gapBelow: 아래 section-gap — 다음 것이 위 여백 없는 격자일 때만 (다음이 Section 이거나 푸터면 그쪽 위 여백 한 번으로 충분, D-101 검토) */
+export function HighlightBlock({ id, gapBelow = true, children }: { id?: string; gapBelow?: boolean; children: React.ReactNode }) {
   return (
-    <div id={id} className={styles.block}>
+    <div id={id} className={gapBelow ? styles.block : undefined}>
       {children}
     </div>
   );

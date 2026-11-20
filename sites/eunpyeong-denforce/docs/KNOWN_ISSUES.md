@@ -27,6 +27,14 @@
 
 <!-- 최신 항목을 위에 추가. 심각도 '높음'은 발견 즉시 소유자에게 별도 보고 -->
 
+## I-074 | 2026-11-20 | 경기 하이라이트 넘김 줄(휴대폰)에서 키보드 초점 링 위아래가 잘림
+- **상태**: 열림 (총괄 검토 2026-11-20, C9 범위 밖이라 기록만)
+- **심각도**: 낮음
+- **증상/내용**: 720 이하에서 HighlightCard .row 가 overflow-x: auto 라 세로도 잘려, 카드 링크의 초점 링 위아래가 보이지 않는다. 같은 문제를 구단영상 롱폼 줄(NewsCard .scroll)은 C9 에서 고쳤다.
+- **위치**: src/components/news/HighlightCard.module.css (720 이하 .row)
+- **해결 방향**: SwipeRow / NewsCard .scroll 과 같이 padding-block: var(--space-2xs) + margin-block: calc(var(--space-2xs) * -1).
+
+
 ## I-073 | 2026-11-20 | club-video-sync 를 2부(/news/video 안 A) 전에 켜면 롱폼이 지금 세로 칸에 잘려 보임 (D-101)
 - **상태**: 해결(2026-11-20, 2부 코드 완료 — 롱폼은 맨 위 '유튜브 영상' 16:9 줄로 간다. 예약 실행은 2부 배포와 같이)
 - **심각도**: 낮음

@@ -98,6 +98,9 @@
     scroll-snap-type: x mandatory;
     scroll-padding: 0 var(--gutter);
     scrollbar-width: none;
+    /* 넘김 줄 안 카드의 키보드 초점 링 위아래가 잘리지 않게 (SwipeRow 와 같은 방법, D-101 검토) */
+    padding-block: var(--space-2xs);
+    margin-block: calc(var(--space-2xs) * -1);
   }
 
   .scroll .card {

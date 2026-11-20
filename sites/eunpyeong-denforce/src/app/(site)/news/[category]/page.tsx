@@ -40,15 +40,16 @@ export default async function NewsCategoryPage({ params }: PageProps<"/news/[cat
     <>
       <PageHeader title={NEWS_CATEGORY_LABEL[category]} current={`/news/${category}`} />
       <div className="container">
+        {/* 줄 사이 여백은 한 번만: Section 은 위 section-gap 을 갖고, 아래 여백은 다음이 릴스 격자(위 여백 없음)일 때만 */}
         {longform.length > 0 && (
-          <HighlightBlock id="youtube">
+          <HighlightBlock id="youtube" gapBelow={highlights.length === 0 && portrait.length > 0}>
             <Section title="유튜브 영상" contained={false}>
               <NewsGrid posts={longform.map(toNewsCardPost)} wide scroll />
             </Section>
           </HighlightBlock>
         )}
         {highlights.length > 0 && (
-          <HighlightBlock id="highlights">
+          <HighlightBlock id="highlights" gapBelow={portrait.length > 0 || longform.length === 0}>
             <Section title="경기 하이라이트" contained={false}>
               <HighlightRow items={highlights} />
             </Section>
