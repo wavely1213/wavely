@@ -6,6 +6,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.117.3";
 import { redactKey } from "../drive-library/drive.ts";
 import {
+  appliedForPlan,
   LONGFORM_PLAYLIST,
   longformUnavailable,
   MAX_SHORTS_CHECKS,
@@ -16,7 +17,10 @@ import {
   shortsUrl,
   UPLOADS_PLAYLIST,
   youtubeError,
+  videoIdsOf,
+  videoUrlFilter,
   youtubeIdOf,
+  type AppliedRow,
   type ClubVideo,
 } from "./plan.ts";
 
@@ -90,12 +94,18 @@ Deno.serve(async (req) => {
       videos = await readPlaylist(UPLOADS_PLAYLIST);
     }
 
-    const { data: done, error: doneErr } = await db.from("club_video_sync_applied").select("video_id");
+    // 이번 실행 영상만 읽는다 (전체를 읽으면 PostgREST 1000줄 상한에 잘려 지운 글/쇼츠 기록이 빠질 수 있음)
+    const ids = videoIdsOf(videos);
+    const { data: done, error: doneErr } = ids.length
+      ? await db.from("club_video_sync_applied").select("video_id, kind").in("video_id", ids)
+      : { data: [], error: null };
     if (doneErr) throw new Error(`applied: ${doneErr.message}`);
-    const applied = new Set((done ?? []).map((d) => d.video_id as string));
+    const applied = appliedForPlan((done ?? []) as AppliedRow[], source);
 
-    // 사이트에 이미 있는 유튜브 구단영상 (관리자가 손으로 넣은 것 포함)
-    const { data: posts, error: postsErr } = await db.from("news_posts").select("id, video_url").not("video_url", "is", null);
+    // 사이트에 이미 있는 이 영상들의 글 (관리자가 손으로 넣은 것 포함)
+    const { data: posts, error: postsErr } = ids.length
+      ? await db.from("news_posts").select("id, video_url").or(videoUrlFilter(ids))
+      : { data: [], error: null };
     if (postsErr) throw new Error(`news_posts: ${postsErr.message}`);
     const existing = new Map<string, string>();
     for (const p of posts ?? []) {

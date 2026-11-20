@@ -125,6 +125,22 @@ export function youtubeIdOf(url: string | null): string | null {
   return m ? m[1] : null;
 }
 
+export type AppliedRow = { video_id: string; kind: string | null };
+
+/**
+ * 계획에 쓸 '이미 본 영상' — 롱폼 목록(UULF)을 읽은 실행에서는 kind 'short' 기록을 빼고 본다.
+ * 쇼츠 확인(HEAD)이 롱폼을 한 번 잘못 쇼츠로 봤어도, UULF 에 있으면 넣고 기록을 'inserted' 로 덮는다 (총괄 검토)
+ */
+export function appliedForPlan(rows: AppliedRow[], source: "longform" | "uploads"): Set<string> {
+  return new Set(rows.filter((r) => !(source === "longform" && r.kind === "short")).map((r) => r.video_id));
+}
+
+/** 이번 실행 영상만 기록/글을 읽는다 (PostgREST 최대 1000줄에 잘리지 않게) — 중복 없는 ID 목록 */
+export const videoIdsOf = (videos: ClubVideo[]) => [...new Set(videos.map((v) => v.videoId))];
+
+/** news_posts 에서 이 영상들의 글 찾기 — video_url 에 ID 가 든 글 (PostgREST or 필터 글자). ID 는 [A-Za-z0-9_-] 만이라 따옴표/쉼표 걱정 없음 */
+export const videoUrlFilter = (ids: string[]) => ids.map((id) => `video_url.ilike.*${id}*`).join(",");
+
 /** 한 실행에서 쇼츠 확인 요청 수 (업로드 전체를 읽었을 때만) */
 export const MAX_SHORTS_CHECKS = 10;
 

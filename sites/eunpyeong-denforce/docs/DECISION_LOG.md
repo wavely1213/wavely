@@ -43,6 +43,8 @@
   - NewsCard 에 position: relative — 원본 새 창 카드의 sr-only '새 창' 글(position: absolute)이 넘김 줄 밖으로 나가 휴대폰 페이지가 가로로 897 까지 넓어지던 것을 막음(로컬 운영 빌드에서 발견).
 - **운영 적용(총괄, 순서 2026-11-20 총괄 확정)**: 마이그레이션 20261120100000_club_video_sync.sql → 함수 club-video-sync 배포(verify_jwt=false) → 사이트 배포(2부 + 검토 반영. 롱폼 0개면 줄을 숨기니 먼저 배포해도 무방) → 수동 호출 1번(EP.01 들어감, 신세계 안 들어감 확인) → 20261120110000_club_video_sync_cron.sql. 사이트가 먼저 나가므로 I-073 증상은 생기지 않는다.
 - **총괄 1부 검토 반영**: 업로드 전체(UU) 경로에서 쇼츠 판정을 기록하지 않아, 오래된 '은평' 쇼츠가 확인 수(MAX_SHORTS_CHECKS 10)보다 많으면 새 롱폼이 계속 밀리던 결함 → club_video_sync_applied.kind('inserted' / 'existing' / 'short') 로 쇼츠 판정을 저장하고, 확인은 최신 먼저. 운영 미적용이라 마이그레이션 100000 파일을 직접 고침. 2회 실행 시뮬레이션 테스트.
+- **총괄 재검토 반영 (2026-11-20, 함수 배포 전)**: ① 기록/글 조회를 이번 실행 영상 ID 로 좁힘(club_video_sync_applied .in(video_id), news_posts .or(video_url ilike)) — 전체를 읽으면 PostgREST 1000줄 상한에 잘려 지운 글이 다시 들어오거나 쇼츠 기록이 빠질 수 있었다. ② 롱폼 목록(UULF)을 읽은 실행에서는 kind 'short' 기록을 무시(appliedForPlan) — 쇼츠 확인이 롱폼을 한 번 잘못 쇼츠로 봤어도 UULF 에 있으면 넣고 기록을 'inserted' 로 덮는다.
+  - 잘못 쇼츠로 기록된 줄을 손으로 지울 때(운영 SQL, 총괄): `delete from public.club_video_sync_applied where kind = 'short' and video_id = '<영상 ID>';` — 다음 실행에 다시 판정한다.
 
 ## D-100 | 2026-11-18 | 은평 Supabase 프로젝트를 Pro 조직으로 이전 (무료 조직 캐시 송신 한도 초과 → 402 제한 해소)
 - **상태**: 채택, 운영 적용 (소유자 "a로 했어" 2026-11-18)

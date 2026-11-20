@@ -171,3 +171,24 @@ test("planClubVideos: 썸네일 없으면 넣되 메모, 같은 영상 두 번�
   assert.equal(p.inserts[0].draft.thumbnail_url, null);
   assert.deepEqual(p.notes, ["16:9 썸네일 없음(대체 표지): 은평 썸네일 없음"]);
 });
+
+test("appliedForPlan: 롱폼 목록 실행에서는 'short' 기록을 빼고 본다 — 쇼츠 오판이 영구화되지 않게 (총괄 검토)", async () => {
+  const { appliedForPlan } = await import("../supabase/functions/club-video-sync/plan.ts");
+  const rows = [
+    { video_id: "iz7zWU3TrvA", kind: "short" },
+    { video_id: "deleted0001", kind: "inserted" },
+    { video_id: "manual00001", kind: "existing" },
+  ];
+  assert.deepEqual([...appliedForPlan(rows, "longform")].sort(), ["deleted0001", "manual00001"]);
+  assert.deepEqual([...appliedForPlan(rows, "uploads")].sort(), ["deleted0001", "iz7zWU3TrvA", "manual00001"]);
+  // UULF 경로: 잘못 쇼츠로 기록된 롱폼도 들어간다
+  const p = planClubVideos({ videos: [V("iz7zWU3TrvA", EP01, "2026-11-19T00:00:00Z")], applied: appliedForPlan(rows, "longform"), existing: new Map(), fromUploads: false });
+  assert.deepEqual(p.inserts.map((i) => i.video.videoId), ["iz7zWU3TrvA"]);
+});
+
+test("videoIdsOf / videoUrlFilter: 이번 실행 영상만 읽는 조회 모양 (1000줄 상한 피함)", async () => {
+  const { videoIdsOf, videoUrlFilter } = await import("../supabase/functions/club-video-sync/plan.ts");
+  const ids = videoIdsOf([V("iz7zWU3TrvA", "a", "2026-11-19T00:00:00Z"), V("iz7zWU3TrvA", "a", "2026-11-19T00:00:00Z"), V("-sygnpfOfYU", "b", "2026-11-18T00:00:00Z")]);
+  assert.deepEqual(ids, ["iz7zWU3TrvA", "-sygnpfOfYU"]);
+  assert.equal(videoUrlFilter(ids), "video_url.ilike.*iz7zWU3TrvA*,video_url.ilike.*-sygnpfOfYU*");
+});
