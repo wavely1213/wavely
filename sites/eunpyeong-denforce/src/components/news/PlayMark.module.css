@@ -12,6 +12,12 @@
   color: var(--c-on-dark);
 }
 
+/* 오른쪽 아래 (같은 여백) */
+.end {
+  left: auto;
+  right: var(--space-s);
+}
+
 .small {
   left: var(--space-2xs);
   bottom: var(--space-2xs);

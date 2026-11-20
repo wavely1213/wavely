@@ -10,8 +10,10 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-/* NewsCard 116:736 — 썸네일과 글 사이 space/s */
+/* NewsCard 116:736 — 썸네일과 글 사이 space/s.
+   position: relative — 원본 새 창 링크의 '새 창' 읽기 글(sr-only, position: absolute)이 넘김 줄 밖 페이지를 가로로 넓히지 않게 (D-101) */
 .card {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--space-s);
@@ -25,6 +27,11 @@
   border-radius: var(--radius-m);
   overflow: hidden;
   background: var(--c-black-soft);
+}
+
+/* 구단영상 롱폼 줄 — 썸네일 16:9 (PC 282x159, 태블릿 448x252, 휴대폰 279x157. 피그마 307:29926, D-101) */
+.wide .thumb {
+  aspect-ratio: 16 / 9;
 }
 
 .media {

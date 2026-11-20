@@ -38,6 +38,9 @@
   - 중복/지움: club_video_sync_applied(video_id PK, news_id → news_posts on delete set null). 한 번 기록된 영상은 다시 넣지 않는다 — 관리자가 글을 지워도 기록이 남아 다시 안 들어옴. 사이트에 이미 있는 유튜브 영상(관리자가 손으로 넣음)은 기록만.
 - **새 함수로 둔 이유**: kfl-video-sync 는 경기 칸(matches.highlight_url/replay_url)을 채우고, 이것은 구단영상 글을 만든다 — 기록 표와 실패 상태가 달라 한쪽 오류가 다른 쪽을 멈추지 않게. 유튜브 오류 문구(youtubeError), 서울 날짜(seoulDate)만 같이 쓴다.
 - **사이트**: src/lib/video.ts videoShape(유튜브 watch/youtu.be/live/embed = 가로, 인스타 릴스/유튜브 shorts/드라이브/모름 = 세로) + splitVideoPosts. 화면(/news/video 안 A)은 시안 확정 뒤 2부.
+- **2부 화면 (소유자 확정 2026-11-20, 피그마 307:29926, FIGMA_SYNC '구단영상 롱폼 줄')**: /news/video 맨 위 '유튜브 영상'(Section contained=false, 오른쪽 링크 없음) → 경기 하이라이트 → 릴스 세로 칸. 롱폼 = splitVideoPosts 의 가로 묶음, 없으면 줄을 숨김(그때 릴스도 없으면 빈 안내 그대로). 카드는 NewsCard 그대로, NewsGrid wide(썸네일 16:9) + scroll(휴대폰 넘김 78%). 더 보기 없이 전부(하이라이트 줄과 같음).
+  - 재생 표시 자리는 NewsCard.tsx LONGFORM_PLAY_PLACE 한 곳(지금 'start' = 하이라이트 카드와 같은 왼쪽 아래, 썸네일 글자와 겹침은 소유자 답 대기, 'end' 면 오른쪽 아래). PlayMark 에 place 추가.
+  - NewsCard 에 position: relative — 원본 새 창 카드의 sr-only '새 창' 글(position: absolute)이 넘김 줄 밖으로 나가 휴대폰 페이지가 가로로 897 까지 넓어지던 것을 막음(로컬 운영 빌드에서 발견).
 - **운영 적용(총괄)**: 마이그레이션 20261120100000_club_video_sync.sql(상태/기록 표, Vault 비밀값, 확인 함수) → 함수 배포(verify_jwt=false, config.toml) → 수동 호출 1번 → 20261120110000_club_video_sync_cron.sql. 2부 전에 켜면 I-073.
 
 ## D-100 | 2026-11-18 | 은평 Supabase 프로젝트를 Pro 조직으로 이전 (무료 조직 캐시 송신 한도 초과 → 402 제한 해소)

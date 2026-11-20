@@ -6,7 +6,7 @@ import { videoCardPlay } from "@/lib/video";
 import type { NewsPost } from "@/types";
 import styles from "./NewsCard.module.css";
 import { NewsLink } from "./NewsLink";
-import { PlayMark } from "./PlayMark";
+import { PlayMark, type PlayPlace } from "./PlayMark";
 
 export { newsHref } from "./NewsLink";
 
@@ -17,7 +17,13 @@ export function toNewsCardPost({ id, category, title, date, thumbnail, videoUrl 
   return { id, category, title, date, thumbnail, videoUrl };
 }
 
-export function NewsCard({ post, sizes = "(max-width: 720px) 80vw, 300px" }: { post: NewsCardPost; sizes?: string }) {
+/**
+ * 구단영상 롱폼 카드의 재생 표시 자리 — 한 곳에서만 바꾼다 (D-101). 지금은 경기 하이라이트 카드와 같은 왼쪽 아래.
+ * 썸네일 글자('EP.01 …')와 겹치는 건 소유자 판단 대기 — 바꾸려면 "end"(오른쪽 아래)
+ */
+export const LONGFORM_PLAY_PLACE: PlayPlace = "start";
+
+export function NewsCard({ post, sizes = "(max-width: 720px) 80vw, 300px", playPlace = "start" }: { post: NewsCardPost; sizes?: string; playPlace?: PlayPlace }) {
   const video = videoCardPlay(post) !== null;
   return (
     <NewsLink post={post} className={styles.card}>
@@ -28,7 +34,7 @@ export function NewsCard({ post, sizes = "(max-width: 720px) 80vw, 300px" }: { p
         ) : (
           <EmblemFallback />
         )}
-        {video && <PlayMark />}
+        {video && <PlayMark place={playPlace} />}
       </div>
       <span className={styles.text}>
         <span className={styles.category}>{NEWS_CATEGORY_LABEL[post.category]}</span>
@@ -42,22 +48,27 @@ export function NewsCard({ post, sizes = "(max-width: 720px) 80vw, 300px" }: { p
 /**
  * scroll: 모바일에서 한 줄 가로 스와이프 (메인용)
  * vertical: 세로 영상(릴스) 카드를 한 줄에 여럿 — PC 5칸, 태블릿 4칸, 휴대폰 2칸 (구단영상 탭, D-061)
+ * wide: 구단영상 맨 위 롱폼 줄 — 썸네일 16:9, PC 4칸, 태블릿 2칸, 휴대폰 넘김(scroll 과 같이 씀) (D-101)
  */
 export function NewsGrid({
   posts,
   scroll = false,
   columns = 4,
   vertical = false,
+  wide = false,
 }: {
   posts: NewsCardPost[];
   scroll?: boolean;
   columns?: 3 | 4;
   vertical?: boolean;
+  /** 구단영상 롱폼 줄 (D-101, 피그마 307:29926) — 썸네일 16:9, 휴대폰은 scroll 과 같이 넘김 */
+  wide?: boolean;
 }) {
+  const sizes = vertical ? "(max-width: 720px) 50vw, 240px" : wide ? "(max-width: 720px) 78vw, (max-width: 960px) 50vw, 282px" : undefined;
   return (
-    <div className={`${styles.grid} ${columns === 3 ? styles.cols3 : ""} ${scroll ? styles.scroll : ""} ${vertical ? styles.vertical : ""}`}>
+    <div className={`${styles.grid} ${columns === 3 ? styles.cols3 : ""} ${scroll ? styles.scroll : ""} ${vertical ? styles.vertical : ""} ${wide ? styles.wide : ""}`}>
       {posts.map((p) => (
-        <NewsCard key={p.id} post={p} sizes={vertical ? "(max-width: 720px) 50vw, 240px" : undefined} />
+        <NewsCard key={p.id} post={p} sizes={sizes} playPlace={wide ? LONGFORM_PLAY_PLACE : "start"} />
       ))}
     </div>
   );
