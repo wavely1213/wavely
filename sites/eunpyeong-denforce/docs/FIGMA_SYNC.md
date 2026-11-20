@@ -697,3 +697,4 @@
 - 2026-11-17 총괄: KFL C4 관리자 화면 + 골키퍼 실점(D-098) + 검토 반영(dc74657) + Next.js 16.4.6 보안 패치 운영 배포 dpl_5KiES3D3EXAbgtxX8miAabwYiskp (ed7a4fc). 마이그레이션 match_gk_conceded 적용. 운영 12쪽 x 390/1280 오류 0·가로 넘침 0, /admin/kfl 응답 200.
 - 2026-11-17 기능: KFL C7 선수 상세 기록 줄 안A 코드 반영(피그마 302:29939 / 29971 / 30006 / 30038 / 30073 그대로: 큰 줄 number-l 56 / 40, 작은 줄 body-s 이름 + h3 24 / 20 숫자, 칸 사이 space/m, 칸 안 space/2xs, 카드 8x11 yellow / loss, 출처 줄 caption, 0경기 안내 줄). 기록 공개(stats_live)를 켜야 보임, 꺼짐이면 지금 화면 그대로. 시안에 없는 경우 하나: 골레이로 실점 미입력은 '실점 -' (D-099).
 - 2026-11-17 총괄: KFL C7(선수 기록 공개 화면 안A, 공개 꺼짐이면 그대로) + 캐시 수정(2230112) 운영 배포 dpl_FjhR6AjftXMr2DBzkA1PQdDxrFt5. 운영 12쪽 x 390/1280 확인.
+- 2026-11-20 기능: C9 1부 구단 유튜브 롱폼 → 구단영상 동기화(서버 함수 club-video-sync, 마이그레이션 2개) + 가로/세로 구분 함수(videoShape, splitVideoPosts). 화면 변화 없음 — /news/video 안 A 는 디자인 시안 확정 뒤 2부 (D-101, I-073).

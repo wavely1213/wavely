@@ -426,6 +426,10 @@ verify_jwt = true
 [functions.kfl-video-sync]
 verify_jwt = false
 
+# 구단 유튜브 롱폼 → 구단영상 (D-101) — pg_cron 이 JWT 없이 x-sync-secret 헤더로 부른다. 키는 GOOGLE_DRIVE_API_KEY (YouTube Data API v3)
+[functions.club-video-sync]
+verify_jwt = false
+
 # 매치데이 포스터 자동 연결 (D-096) — pg_cron 이 JWT 없이 x-sync-secret 헤더로 부른다. 드라이브 키는 함수 비밀값 GOOGLE_DRIVE_API_KEY (D-081 과 같음)
 [functions.matchday-poster-sync]
 verify_jwt = false

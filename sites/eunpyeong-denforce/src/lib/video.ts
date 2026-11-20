@@ -69,3 +69,20 @@ export function externalPlay(raw: string | null | undefined): { href: string; la
 export function videoCardPlay(post: { category: string; videoUrl: string | null }): { href: string; label: string } | null {
   return post.category === "video" ? externalPlay(post.videoUrl) : null;
 }
+
+/**
+ * 구단영상 칸 모양 (D-101, /news/video 안 A) — 유튜브 watch / youtu.be / live / embed 는 가로(롱폼 16:9),
+ * 인스타 릴스, 유튜브 shorts, 드라이브는 세로. 주소를 읽을 수 없으면 세로(지금 구단영상 칸, D-061)
+ */
+export function videoShape(raw: string | null | undefined): "landscape" | "portrait" {
+  const v = parseVideoUrl(raw);
+  return v && !v.vertical ? "landscape" : "portrait";
+}
+
+/** 구단영상 글을 가로(롱폼) / 세로(릴스, 쇼츠)로 나눈다 — 각 묶음 안 순서는 그대로 */
+export function splitVideoPosts<T extends { videoUrl: string | null }>(posts: T[]): { landscape: T[]; portrait: T[] } {
+  const landscape: T[] = [];
+  const portrait: T[] = [];
+  for (const p of posts) (videoShape(p.videoUrl) === "landscape" ? landscape : portrait).push(p);
+  return { landscape, portrait };
+}

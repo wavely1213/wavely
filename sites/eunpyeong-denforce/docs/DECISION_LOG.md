@@ -29,6 +29,17 @@
 
 <!-- 여기서부터 최신 항목을 위에 추가 -->
 
+## D-101 | 2026-11-20 | 구단 유튜브 '덴포스 DENFORCE SPORTS' 롱폼 → 구단영상 자동 반영 (C9 1부: 동기화 + 가로/세로 구분)
+- **상태**: 채택, 기능 브랜치 (소유자 확정 2026-11-20, 총괄 전달. 운영 적용은 총괄 검토 뒤)
+- **규칙(소유자)**: 채널 UC_834SREJnoVt5QTTqL-fuw 의 롱폼만(쇼츠 제외), 제목에 '은평'이 든 영상만. 예: 'EP.01 새로운 시작 | … 서울은평 덴포스 vs 노원제너FS'(iz7zWU3TrvA) 넣음, 'DENFORCE × 신세계 | DESIGN YOUR GROUND'(-sygnpfOfYU) 뺌. 누르면 유튜브 원본 새 창(D-074).
+- **결정**: 새 서버 함수 club-video-sync (plan.ts 순수 + index.ts I/O), 3시간마다(매시 47분) pg_cron. 키는 kfl-video-sync 와 같은 함수 비밀값 GOOGLE_DRIVE_API_KEY(YouTube Data API v3), 없으면 상태만.
+  - 목록: 롱폼 전용 재생목록 UULF…(웹 확인: 롱폼 2개). Data API 가 받지 않으면(404/playlistNotFound) 업로드 전체 UU… + https://www.youtube.com/shorts/<id> HEAD(리다이렉트 안 따라감: 쇼츠 200, 롱폼 303 — 2026-11-20 직접 확인)로 거른다. 길이로 거르지 않음.
+  - 글: news_posts category 'video', 제목 그대로(120자), date = 게시일(서울), video_url watch 주소, thumbnail = i.ytimg.com maxres → medium(둘 다 16:9; high/standard 는 4:3 검정 띠라 안 씀, 없으면 null), 요약 비움, 본문 '구단 공식 유튜브(덴포스 DENFORCE SPORTS) 영상 (날짜)'(instagram 릴스 글과 같은 모양). 썸네일은 저장소에 올리지 않음(I-072 송신량).
+  - 중복/지움: club_video_sync_applied(video_id PK, news_id → news_posts on delete set null). 한 번 기록된 영상은 다시 넣지 않는다 — 관리자가 글을 지워도 기록이 남아 다시 안 들어옴. 사이트에 이미 있는 유튜브 영상(관리자가 손으로 넣음)은 기록만.
+- **새 함수로 둔 이유**: kfl-video-sync 는 경기 칸(matches.highlight_url/replay_url)을 채우고, 이것은 구단영상 글을 만든다 — 기록 표와 실패 상태가 달라 한쪽 오류가 다른 쪽을 멈추지 않게. 유튜브 오류 문구(youtubeError), 서울 날짜(seoulDate)만 같이 쓴다.
+- **사이트**: src/lib/video.ts videoShape(유튜브 watch/youtu.be/live/embed = 가로, 인스타 릴스/유튜브 shorts/드라이브/모름 = 세로) + splitVideoPosts. 화면(/news/video 안 A)은 시안 확정 뒤 2부.
+- **운영 적용(총괄)**: 마이그레이션 20261120100000_club_video_sync.sql(상태/기록 표, Vault 비밀값, 확인 함수) → 함수 배포(verify_jwt=false, config.toml) → 수동 호출 1번 → 20261120110000_club_video_sync_cron.sql. 2부 전에 켜면 I-073.
+
 ## D-100 | 2026-11-18 | 은평 Supabase 프로젝트를 Pro 조직으로 이전 (무료 조직 캐시 송신 한도 초과 → 402 제한 해소)
 - **상태**: 채택, 운영 적용 (소유자 "a로 했어" 2026-11-18)
 - **배경**: I-072 — 무료 조직 'wavely' 의 캐시 송신 5GB/월 초과로 07:30 KST 부터 모든 API 402. 운영 사진 전부 깨짐, 새 데이터·관리자·자동 동기화 멈춤.

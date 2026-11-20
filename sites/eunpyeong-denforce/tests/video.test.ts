@@ -43,3 +43,24 @@ test("videoCardPlay: 구단영상 분류만 원본으로, 공지/구단뉴스는
   assert.equal(videoCardPlay({ category: "news", videoUrl: reel }), null);
   assert.equal(videoCardPlay({ category: "video", videoUrl: null }), null);
 });
+
+test("videoShape / splitVideoPosts: 유튜브 롱폼은 가로, 릴스/쇼츠/드라이브/모름은 세로 (D-101)", async () => {
+  const { splitVideoPosts, videoShape } = await import("../src/lib/video.ts");
+  assert.equal(videoShape("https://www.youtube.com/watch?v=iz7zWU3TrvA"), "landscape");
+  assert.equal(videoShape("https://youtu.be/iz7zWU3TrvA"), "landscape");
+  assert.equal(videoShape("https://www.youtube.com/live/iz7zWU3TrvA"), "landscape");
+  assert.equal(videoShape("https://www.youtube.com/shorts/iz7zWU3TrvA"), "portrait");
+  assert.equal(videoShape("https://www.instagram.com/reel/DfuejQEzCn7/"), "portrait");
+  assert.equal(videoShape("https://drive.google.com/file/d/1abcdefghijk/view"), "portrait");
+  assert.equal(videoShape(null), "portrait");
+  assert.equal(videoShape("http://www.youtube.com/watch?v=iz7zWU3TrvA"), "portrait");
+  const posts = [
+    { id: "a", videoUrl: "https://www.instagram.com/reel/AAAAA1/" },
+    { id: "b", videoUrl: "https://www.youtube.com/watch?v=iz7zWU3TrvA" },
+    { id: "c", videoUrl: "https://www.youtube.com/shorts/iz7zWU3TrvB" },
+    { id: "d", videoUrl: "https://www.youtube.com/watch?v=iz7zWU3TrvC" },
+  ];
+  const s = splitVideoPosts(posts);
+  assert.deepEqual(s.landscape.map((p) => p.id), ["b", "d"]);
+  assert.deepEqual(s.portrait.map((p) => p.id), ["a", "c"]);
+});
