@@ -18,10 +18,11 @@ export function toNewsCardPost({ id, category, title, date, thumbnail, videoUrl 
 }
 
 /**
- * 구단영상 롱폼 카드의 재생 표시 자리 — 한 곳에서만 바꾼다 (D-101). 지금은 경기 하이라이트 카드와 같은 왼쪽 아래.
- * 썸네일 글자('EP.01 …')와 겹치는 건 소유자 판단 대기 — 바꾸려면 "end"(오른쪽 아래)
+ * 구단영상 롱폼 카드의 재생 표시 자리 — 한 곳에서만 바꾼다 (D-101).
+ * 오른쪽 아래 (소유자 2026-11-20 "2번 오른쪽 아래로") — 썸네일 왼쪽 아래 글자('EP.01 새로운 시작')와 겹치지 않게.
+ * 경기 하이라이트 카드와 릴스 세로 칸은 왼쪽 아래 그대로
  */
-export const LONGFORM_PLAY_PLACE: PlayPlace = "start";
+export const LONGFORM_PLAY_PLACE: PlayPlace = "end";
 
 export function NewsCard({ post, sizes = "(max-width: 720px) 80vw, 300px", playPlace = "start" }: { post: NewsCardPost; sizes?: string; playPlace?: PlayPlace }) {
   const video = videoCardPlay(post) !== null;

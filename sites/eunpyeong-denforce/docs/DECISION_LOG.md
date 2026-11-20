@@ -39,7 +39,7 @@
 - **새 함수로 둔 이유**: kfl-video-sync 는 경기 칸(matches.highlight_url/replay_url)을 채우고, 이것은 구단영상 글을 만든다 — 기록 표와 실패 상태가 달라 한쪽 오류가 다른 쪽을 멈추지 않게. 유튜브 오류 문구(youtubeError), 서울 날짜(seoulDate)만 같이 쓴다.
 - **사이트**: src/lib/video.ts videoShape(유튜브 watch/youtu.be/live/embed = 가로, 인스타 릴스/유튜브 shorts/드라이브/모름 = 세로) + splitVideoPosts. 화면(/news/video 안 A)은 시안 확정 뒤 2부.
 - **2부 화면 (소유자 확정 2026-11-20, 피그마 307:29926, FIGMA_SYNC '구단영상 롱폼 줄')**: /news/video 맨 위 '유튜브 영상'(Section contained=false, 오른쪽 링크 없음) → 경기 하이라이트 → 릴스 세로 칸. 롱폼 = splitVideoPosts 의 가로 묶음, 없으면 줄을 숨김(그때 릴스도 없으면 빈 안내 그대로). 카드는 NewsCard 그대로, NewsGrid wide(썸네일 16:9) + scroll(휴대폰 넘김 78%). 더 보기 없이 전부(하이라이트 줄과 같음).
-  - 재생 표시 자리는 NewsCard.tsx LONGFORM_PLAY_PLACE 한 곳(지금 'start' = 하이라이트 카드와 같은 왼쪽 아래, 썸네일 글자와 겹침은 소유자 답 대기, 'end' 면 오른쪽 아래). PlayMark 에 place 추가.
+  - 재생 표시 자리는 NewsCard.tsx LONGFORM_PLAY_PLACE 한 곳. **확정 오른쪽 아래 12**('end', 소유자 2026-11-20 "2번 오른쪽 아래로") — 썸네일 왼쪽 아래 글자('EP.01 새로운 시작')와 겹치지 않게. 경기 하이라이트 카드와 릴스 세로 칸은 왼쪽 아래 그대로. PlayMark 에 place 추가.
   - NewsCard 에 position: relative — 원본 새 창 카드의 sr-only '새 창' 글(position: absolute)이 넘김 줄 밖으로 나가 휴대폰 페이지가 가로로 897 까지 넓어지던 것을 막음(로컬 운영 빌드에서 발견).
 - **운영 적용(총괄, 순서 2026-11-20 총괄 확정)**: 마이그레이션 20261120100000_club_video_sync.sql → 함수 club-video-sync 배포(verify_jwt=false) → 사이트 배포(2부 + 검토 반영. 롱폼 0개면 줄을 숨기니 먼저 배포해도 무방) → 수동 호출 1번(EP.01 들어감, 신세계 안 들어감 확인) → 20261120110000_club_video_sync_cron.sql. 사이트가 먼저 나가므로 I-073 증상은 생기지 않는다.
 - **총괄 1부 검토 반영**: 업로드 전체(UU) 경로에서 쇼츠 판정을 기록하지 않아, 오래된 '은평' 쇼츠가 확인 수(MAX_SHORTS_CHECKS 10)보다 많으면 새 롱폼이 계속 밀리던 결함 → club_video_sync_applied.kind('inserted' / 'existing' / 'short') 로 쇼츠 판정을 저장하고, 확인은 최신 먼저. 운영 미적용이라 마이그레이션 100000 파일을 직접 고침. 2회 실행 시뮬레이션 테스트.
