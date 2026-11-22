@@ -32,13 +32,14 @@
 ## D-102 | 2026-11-22 | NEXT MATCH 포스터 팝업 — 인스타 NEXT MATCH 글을 다음 경기에 연결, 경기 전날까지 홈 팝업 (C10)
 - **상태**: 채택, 기능 브랜치 (소유자 승인 2026-11-22 출처 A 인스타 + 범위, 총괄 전달. 운영 적용은 총괄)
 - **동작(서울 시각)**: NEXT MATCH 포스터가 생긴 때부터 경기 전날 23:59:59 → NEXT, 경기 날 0시 ~ 경기 끝 → MATCH DAY(D-096 그대로), FULL TIME 이 올라오면 그날 23:59:59 → FULL TIME. 경기 날 창(FULL TIME / MATCH DAY)이 먼저, NEXT 는 그다음이고 여러 경기면 가장 가까운 앞 경기 하나. 오늘이 어떤 경기의 경기 날이면(그 경기 MATCH DAY 포스터가 없거나 끝났어도) 다음 경기 NEXT 는 다음 날 0시부터.
+  - 포스터 없는 경기도 창을 만들어 판단에 넣는다(총괄 검토): 경기 날 막기와 '가장 가까운 앞 경기'는 포스터 유무와 무관하고, 그 가장 가까운 경기에 NEXT 포스터가 있을 때만 뜬다(뒤 경기 NEXT 가 앞 경기를 건너뛰지 않음). 홈은 포스터가 하나도 없으면 팝업을 두지 않는다(hasPoster).
   - 화면은 지금 팝업 P3 그대로(MatchdayPopup 재사용). 대화 상자 이름/설명은 기존 패턴 그대로 'NEXT MATCH 포스터'. '오늘 하루 보지 않기'는 종류별(hideKey …:next). 포스터를 누르면 그 인스타 게시물 새 창.
 - **출처 A instagram-sync**: 첫 줄이 (꾸밈) NEXT MATCH (꾸밈)인 글 → 종류 'nextmatch'. 🆚 상대, ⏰ 월.일 시각(연도 = 글 날짜 이후 가장 가까운 그 날짜) → 같은 서울 날짜 + 같은 상대(띄어쓰기/대소문자 무시) 경기가 정확히 하나일 때만 연결, 홈/원정은 보지 않음. 아니면 메모만.
   - 칸: matches.next_poster_url(첫 그림을 media/matchday/next-ig-<코드>.jpg 로 올린 주소 — 포스팅 썸네일과 따로: 포스팅을 지우면 그 썸네일 파일도 지워지므로), next_post_url(인스타 주소). 비어 있을 때만, 넣었거나 관리자가 지운 칸(matchday_poster_sync_applied, field next_*)은 다시 안 채움.
   - 포스팅 동작은 그대로(postingDraft 'nextmatch' = 'other' 와 같은 모양, 테스트). 관리자 › 인스타 자동 반영 종류 이름 '넥스트매치'.
 - **관리자 경기 폼**: NEXT MATCH 포스터(그림 올리기) + NEXT MATCH 게시물(인스타 주소, 연 때 값과 다른 칸만 보냄) — matchday 칸과 같은 방식. 지우면 트리거가 기록. 경기 삭제 때 포스터 파일도 지움.
 - **마이그레이션** 20261122100000_next_match_poster.sql: matches.next_poster_url(https, 500) / next_post_url(https://www.instagram.com/, 500), instagram_posts.kind 에 'nextmatch', matchday_poster_sync_applied.field 에 next 두 칸, record_cleared_sync_fields 와 트리거에 next 두 칸. 제약 이름은 운영 읽기로 확인(instagram_posts_kind_check, matchday_poster_sync_applied_field_check). 다시 실행해도 됨(로컬 Postgres 16 확인).
-- **운영 적용 순서(총괄)**: 마이그레이션 → instagram-sync 함수 배포(먼저 배포하면 kind 'nextmatch' 기록이 제약에 막혀 그 글이 '실패'로 남음) → 사이트. 지금 운영에 있는 Df1I2_DPhnn(11-17, 2R 용인지솔FS)은 이미 지난 경기라 다시 처리할 필요 없음.
+- **운영 적용 순서(총괄)**: **마이그레이션을 반드시 먼저** → instagram-sync 함수 배포 → 사이트. 거꾸로 하면 instagram_posts 기록(성공 기록과 오류 기록 모두 kind 'nextmatch')이 제약에 막혀 행이 아예 남지 않고(관리자 › 인스타 자동 반영에 안 보임), 포스팅은 이미 올라가 다음 실행부터 knownCodes 로 건너뛰어 다시 처리되지 않는다 — 그 NEXT 게시물은 관리자 › 경기에서 손으로 넣어야 한다. 지금 운영에 있는 Df1I2_DPhnn(11-17, 2R 용인지솔FS)은 이미 지난 경기라 다시 처리할 필요 없음.
 
 ## D-101 | 2026-11-20 | 구단 유튜브 '덴포스 DENFORCE SPORTS' 롱폼 → 구단영상 자동 반영 (C9 1부: 동기화 + 가로/세로 구분)
 - **상태**: 채택, 운영 적용 (2026-11-20 총괄 — 마이그레이션 → 사이트 b82acb2 → 함수 club-video-sync v1(7bf9fd8) → 수동 호출 1번(EP.01 넣음, 신세계 안 넣음) → cron 'club-video-sync' 47 */3. FIGMA_SYNC 기록)

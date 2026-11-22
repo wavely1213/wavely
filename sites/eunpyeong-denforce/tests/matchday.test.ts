@@ -1,7 +1,7 @@
 // 매치데이 포스터 팝업 (D-096) — 표시 규칙과 드라이브 폴더 연결
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { activePoster, hideKey, kstDay, msUntilPosterChange, posterWindow, posterWindows, shouldShowPoster } from "../src/lib/matchday.ts";
+import { activePoster, hasPoster, hideKey, kstDay, msUntilPosterChange, posterWindow, posterWindows, shouldShowPoster } from "../src/lib/matchday.ts";
 import {
   matchForFolder,
   needsPoster,
@@ -58,8 +58,9 @@ test("FULL TIME 이 먼저 올라오면 그것, MATCH DAY 없이 FULL TIME 만 �
 });
 
 test("posterWindow: 포스터 없음, https 아님, 날짜 오류 → null. 서울 0시 기준", () => {
-  assert.equal(posterWindow(m({ matchdayPoster: null })), null);
-  assert.equal(posterWindow(m({ matchdayPoster: "http://x/a.jpg" })), null);
+  // 포스터가 없어도 창은 만든다(NEXT 판단용) — 포스터 없음은 hasPoster 로
+  assert.equal(hasPoster(posterWindow(m({ matchdayPoster: null }))!), false);
+  assert.equal(hasPoster(posterWindow(m({ matchdayPoster: "http://x/a.jpg" }))!), false);
   assert.equal(posterWindow(m({ kickoff: "없음" })), null);
   assert.equal(posterWindow(m({ kickoff: "2026-11-21T08:00:00+09:00" }))!.start, t("2026-11-21T00:00:00+09:00"));
 });
@@ -259,6 +260,35 @@ test("NEXT MATCH: 같은 날 지난 경기 FULL TIME / 오늘 MATCH DAY 가 먼�
 test("NEXT MATCH: '오늘 하루 보지 않기'는 종류별, https 가 아니면 무시", () => {
   assert.equal(hideKey("m1", "next"), "matchday-popup-hide:m1:next");
   assert.notEqual(hideKey("m1", "next"), hideKey("m1", "matchday"));
-  assert.equal(posterWindow(m({ matchdayPoster: null, nextPoster: "http://x/a.jpg" })), null);
+  assert.equal(posterWindow(m({ matchdayPoster: null, nextPoster: "http://x/a.jpg" }))!.next, null);
   assert.equal(posterWindow(m({ matchdayPoster: null, nextPoster: NX, nextPost: "https://evil.example/p" }))?.nextPost, null);
+});
+
+test("NEXT MATCH: 포스터 없는 경기도 판단에 들어간다 (총괄 검토 — 7R 1/16 포스터 없음, 8R 1/17 NEXT)", () => {
+  const r7 = m({ id: "r7", kickoff: "2027-01-16T14:00:00+09:00", matchdayPoster: null });
+  const r8 = m({ id: "r8", kickoff: "2027-01-17T17:00:00+09:00", matchdayPoster: null, nextPoster: NX });
+  // ② 더 가까운 경기(7R)가 포스터 없음 → 뒤 경기 NEXT 안 뜸
+  assert.equal(at([r7, r8], "2027-01-15T20:00:00+09:00"), null);
+  // ① 같은 날 포스터 없는 경기 → 다음 경기 NEXT 안 뜸
+  assert.equal(at([r7, r8], "2027-01-16T10:00:00+09:00"), null);
+  assert.equal(at([r7, r8], "2027-01-16T19:00:00+09:00"), null);
+  // ③ 7R 끝난 다음 날 0시부터 8R NEXT (8R 경기 날 0시 전까지) — 8R 이 1/17 이라 그날은 경기 날
+  const r8later = m({ id: "r8", kickoff: "2027-01-20T17:00:00+09:00", matchdayPoster: null, nextPoster: NX });
+  assert.equal(at([r7, r8later], "2027-01-16T23:59:59+09:00"), null);
+  assert.equal(at([r7, r8later], "2027-01-17T00:00:00+09:00"), "r8:next");
+  // 경계: 포스터 없는 경기의 0시/다음 날 0시도 다시 잰다
+  assert.equal(msUntilPosterChange(posterWindows([r7, r8later]), t("2027-01-16T23:59:59+09:00")), 1000);
+  assert.equal(msUntilPosterChange(posterWindows([r7, r8later]), t("2027-01-15T23:59:59+09:00")), 1000);
+  // 포스터가 하나도 없으면 홈은 팝업을 두지 않는다
+  assert.equal(posterWindows([r7]).some(hasPoster), false);
+  assert.equal(posterWindows([r7, r8]).some(hasPoster), true);
+});
+
+test("MATCH DAY / FULL TIME 은 포스터 없는 경기 창이 섞여도 그대로", () => {
+  const plain = m({ id: "x", kickoff: "2026-11-28T14:00:00+09:00", matchdayPoster: null });
+  const ft = m({ id: "f", kickoff: "2026-11-21T14:00:00+09:00", status: "finished", fulltimePoster: FT });
+  assert.equal(at([ft, plain], "2026-11-21T20:00:00+09:00"), "f:fulltime");
+  assert.equal(at([ft, plain], "2026-11-21T12:00:00+09:00"), "f:fulltime");
+  assert.equal(at([m(), plain], "2026-11-21T10:00:00+09:00"), "m1:matchday");
+  assert.equal(at([m(), plain], "2026-11-28T10:00:00+09:00"), null);
 });

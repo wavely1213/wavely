@@ -52,14 +52,16 @@ function kstMidnight(ms: number): number {
 const https = (u: string | null | undefined) => (u?.startsWith("https://") ? u : null);
 const instagram = (u: string | null | undefined) => (u?.startsWith("https://www.instagram.com/") ? u : null);
 
-/** 이 경기의 포스터 창. 포스터가 하나도 없거나 날짜 오류면 null */
+/**
+ * 이 경기의 창. 날짜 오류면 null. 포스터가 하나도 없는 경기도 창을 만든다 —
+ * 경기 날 NEXT 막기와 '가장 가까운 앞 경기' 판단에 포스터 없는 경기도 들어가야 하므로 (D-102 총괄 검토)
+ */
 export function posterWindow(
   m: Pick<Match, "id" | "kickoff" | "status" | "opponent" | "isHome" | "matchdayPoster" | "fulltimePoster" | "matchdayPost" | "fulltimePost" | "nextPoster" | "nextPost">,
 ): PosterWindow | null {
   const matchday = https(m.matchdayPoster);
   const fulltime = https(m.fulltimePoster);
   const next = https(m.nextPoster);
-  if (!matchday && !fulltime && !next) return null;
   const k = Date.parse(m.kickoff);
   if (!Number.isFinite(k)) return null;
   const start = kstMidnight(k);
@@ -81,7 +83,10 @@ export function posterWindow(
   };
 }
 
-/** 포스터가 있는 경기들의 창, 시작 순 (지난 것도 넘긴다 — 시각은 브라우저가 판단) */
+/** 이 창에 포스터가 하나라도 있는지 — 홈은 하나도 없으면 팝업을 두지 않는다 */
+export const hasPoster = (w: PosterWindow) => Boolean(w.matchday || w.fulltime || w.next);
+
+/** 모든 경기의 창, 시작 순 (지난 것도 넘긴다 — 시각은 브라우저가 판단) */
 export function posterWindows(matches: readonly Match[]): PosterWindow[] {
   return matches
     .map(posterWindow)
@@ -99,7 +104,8 @@ export function posterAt(w: PosterWindow, now: number): ActivePoster | null {
 
 /**
  * 지금 보일 포스터 — 경기 날 창(FULL TIME / MATCH DAY, 같은 날 두 경기면 먼저 시작하는 것부터)이 먼저,
- * 없으면 NEXT MATCH: 경기 날 0시 전인 경기 중 가장 가까운 것 하나의 NEXT 포스터 (D-102)
+ * 없으면 NEXT MATCH: 경기 날 0시 전인 경기 중 가장 가까운 것 하나(포스터 유무 무관)에 NEXT 포스터가 있을 때만 (D-102).
+ * 더 뒤 경기 NEXT 가 앞 경기를 건너뛰어 뜨지 않는다
  */
 export function activePoster(windows: readonly PosterWindow[], now: number): ActivePoster | null {
   for (const w of windows) {
@@ -108,8 +114,8 @@ export function activePoster(windows: readonly PosterWindow[], now: number): Act
   }
   // 오늘이 경기 날인 경기가 있으면(포스터가 없거나 끝났어도) 다음 경기 NEXT 는 다음 날부터
   if (windows.some((w) => now >= w.start && now < w.end)) return null;
-  const next = windows.find((w) => w.next && now < w.start);
-  return next?.next ? { window: next, kind: "next", image: next.next } : null;
+  const nearest = windows.find((w) => now < w.start);
+  return nearest?.next ? { window: nearest, kind: "next", image: nearest.next } : null;
 }
 
 /** '오늘 하루 보지 않기' 저장 키 — 포스터 종류별 (MATCH DAY 를 닫아도 FULL TIME 은 다시 한 번 뜬다) */

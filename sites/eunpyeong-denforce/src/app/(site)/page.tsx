@@ -13,7 +13,7 @@ import { matchHighlights } from "@/lib/highlights";
 import { homeReels } from "@/lib/reels";
 import { MatchStrip } from "@/components/home/MatchStrip";
 import { MatchdayPopup } from "@/components/home/MatchdayPopup";
-import { posterWindows } from "@/lib/matchday";
+import { hasPoster, posterWindows } from "@/lib/matchday";
 import { Section } from "@/components/ui/Section";
 import { SITE } from "@/config/site";
 import { instagramHandle, snsLinks } from "@/lib/club";
@@ -81,13 +81,15 @@ export default async function HomePage() {
   const reels = homeReels(news);
   const ourName = c["site.name"];
   // 매치데이 / FULL TIME 포스터 팝업 (D-096) — 포스터가 있는 경기의 창. 지금 보일지는 브라우저가 정한다
+  // 포스터 없는 경기의 창도 넘긴다 — NEXT 판단(경기 날 막기, 가장 가까운 경기)에 필요 (D-102). 포스터가 하나도 없으면 팝업을 두지 않는다
   const popups = posterWindows([...upcoming, ...finished]);
+  const anyPoster = popups.some(hasPoster);
   const instagram = instagramTiles(postings);
   const handle = instagramHandle(settings.instagramUrl);
 
   return (
     <>
-      {popups.length > 0 && <MatchdayPopup windows={popups} />}
+      {anyPoster && <MatchdayPopup windows={popups} />}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(jsonLd) }} />
       <Hero nextHome={nextHome} content={heroContent(c)} ourName={ourName} />
 
