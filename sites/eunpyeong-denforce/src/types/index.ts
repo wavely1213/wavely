@@ -78,6 +78,10 @@ export type Match = {
   /** 포스터를 누르면 갈 인스타 게시물 (D-096, 새 창) */
   matchdayPost?: string | null;
   fulltimePost?: string | null;
+  /** NEXT MATCH 포스터 (https) — 경기 전날까지 홈 팝업 (D-102) */
+  nextPoster?: string | null;
+  /** NEXT MATCH 포스터를 누르면 갈 인스타 게시물 */
+  nextPost?: string | null;
 };
 
 export type StandingRow = {

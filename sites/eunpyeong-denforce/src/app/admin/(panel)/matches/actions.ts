@@ -19,12 +19,16 @@ const isInstagramUrl = (u: string) => u.startsWith("https://www.instagram.com/")
 const POSTERS = [
   ["matchday_poster", "matchday_poster_url"],
   ["fulltime_poster", "fulltime_poster_url"],
+  // NEXT MATCH (D-102) — 경기 전날까지 홈 팝업
+  ["next_poster", "next_poster_url"],
 ] as const;
 type PosterColumns = {
   matchday_poster_url?: string | null;
   fulltime_poster_url?: string | null;
+  next_poster_url?: string | null;
   matchday_post_url?: string | null;
   fulltime_post_url?: string | null;
+  next_post_url?: string | null;
 };
 
 /**
@@ -36,10 +40,12 @@ function readPostLinks(f: FormReader): Record<string, string | null> {
   const opened: PosterColumns = {
     matchday_post_url: f.optText("matchday_post_url_initial", { label: "MATCH DAY 게시물", max: 500 }),
     fulltime_post_url: f.optText("fulltime_post_url_initial", { label: "FULL TIME 게시물", max: 500 }),
+    next_post_url: f.optText("next_post_url_initial", { label: "NEXT MATCH 게시물", max: 500 }),
   };
   const next = {
     matchday_post_url: f.optHttpsUrl("matchday_post_url", "MATCH DAY 게시물"),
     fulltime_post_url: f.optHttpsUrl("fulltime_post_url", "FULL TIME 게시물"),
+    next_post_url: f.optHttpsUrl("next_post_url", "NEXT MATCH 게시물"),
   };
   // DB check 와 같게 인스타그램 주소만
   for (const [k, v] of Object.entries(next)) {
@@ -251,6 +257,7 @@ export async function deleteMatch(id: string): Promise<void> {
   const { data } = await ctx.supabase.from("matches").delete().eq("id", id).select("*").maybeSingle<PosterColumns>();
   await removeImage(ctx, data?.matchday_poster_url);
   await removeImage(ctx, data?.fulltime_poster_url);
+  await removeImage(ctx, data?.next_poster_url);
   updateTag(TAGS.matches);
   // 경기를 지우면 그 경기 출전 줄/골키퍼 실점도 함께 지워진다(on delete cascade) — 선수 시즌 기록도 새로 (총괄 검토 C7)
   updateTag(TAGS.records);

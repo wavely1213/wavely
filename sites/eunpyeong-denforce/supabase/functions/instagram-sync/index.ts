@@ -16,6 +16,8 @@ import {
   matchForPost,
   photoNews,
   planMatchday,
+  appliedNextKey,
+  planNextMatch,
   postLinkTarget,
   resultNews,
   resultTitles,
@@ -98,6 +100,17 @@ async function insertNews(db: Db, draft: NewsDraft, exists: () => PromiseLike<{ 
   if (found?.length) return false;
   await must(db.from("news_posts").insert({ ...draft, featured: false }), "구단소식 넣기");
   return true;
+}
+
+/** NEXT MATCH 칸의 넣은/지운 기록 (D-102) — 읽어 둔 경기(최근 60일부터)만 */
+async function nextApplied(db: Db, matches: MatchLite[]): Promise<Set<string>> {
+  const ids = matches.map((m) => m.id);
+  if (!ids.length) return new Set();
+  const rows = await must(
+    db.from("matchday_poster_sync_applied").select("match_id, field").in("match_id", ids).in("field", ["next_poster_url", "next_post_url"]),
+    "NEXT MATCH 기록 읽기",
+  );
+  return new Set(((rows ?? []) as Array<{ match_id: string; field: string }>).map((r) => appliedNextKey(r.match_id, r.field)));
 }
 
 /** 같은 사람 인사 기사가 앞뒤 3일 안에 이미 있는지 — 직접 쓴 기사(다른 사진 주소)와 겹치지 않게. 있으면 그 제목 */
@@ -212,6 +225,29 @@ async function apply(db: Db, post: IgPost, roster: RosterPlayer[], matches: Matc
       const same = await must(db.from("news_posts").select("id").eq("category", draft.category).in("title", titles).limit(1), "같은 경기 기사 확인");
       if (same?.length && !(await must(newsByImage(url)(), "구단소식 확인"))?.length) out.notes.push(`같은 경기 기사가 이미 있어 구단 소식 기사는 넣지 않음 ('${draft.title}')`);
       else if (await insertNews(db, draft, newsByImage(url))) out.actions.push(`${draft.category === "photo" ? "구단사진" : "구단뉴스"}: ${draft.title}`);
+    }
+  }
+
+  // NEXT MATCH 포스터 팝업 (D-102): 같은 날짜 + 같은 상대 경기 하나의 빈 칸에 포스터(첫 그림)와 게시물 주소.
+  // 넣었거나 관리자가 지운 칸(matchday_poster_sync_applied)은 다시 채우지 않는다. 포스팅은 아래에서 다른 글과 똑같이
+  if (type === "nextmatch") {
+    const target = planNextMatch(post, matches, await nextApplied(db, matches));
+    if ("note" in target) {
+      if (target.note) out.notes.push(target.note);
+    } else {
+      for (const field of target.fields) {
+        // 포스팅 썸네일과 따로 둔다 — 포스팅을 지우면 그 썸네일 파일도 지워지므로
+        const url = field === "next_poster_url" ? await upload(db, `matchday/next-ig-${post.code}.jpg`, bytes) : target.postUrl;
+        const set = await must(db.from("matches").update({ [field]: url }).eq("id", target.matchId).is(field, null).select("id"), "NEXT MATCH 칸 넣기");
+        if (!set?.length) continue;
+        const m = matches.find((x) => x.id === target.matchId);
+        if (m) m[field] = url;
+        await must(
+          db.from("matchday_poster_sync_applied").upsert({ match_id: target.matchId, field, file_id: post.code, applied_at: new Date().toISOString() }, { onConflict: "match_id,field" }),
+          "NEXT MATCH 기록",
+        );
+        out.actions.push(field === "next_poster_url" ? "NEXT MATCH 포스터" : "NEXT MATCH 포스터 링크");
+      }
     }
   }
 

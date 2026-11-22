@@ -61,6 +61,8 @@ export type MatchRow = {
   fulltime_poster_url?: string | null;
   matchday_post_url?: string | null;
   fulltime_post_url?: string | null;
+  next_poster_url?: string | null;
+  next_post_url?: string | null;
   /** 관리자 폼이 연 때의 값 — 저장할 때 그사이 바뀌었는지 본다 (공개 조회에는 쓰지 않음) */
   updated_at?: string;
 };
@@ -212,6 +214,8 @@ export const toMatch = (r: MatchRow): Match => ({
   fulltimePoster: r.fulltime_poster_url ?? null,
   matchdayPost: r.matchday_post_url ?? null,
   fulltimePost: r.fulltime_post_url ?? null,
+  nextPoster: r.next_poster_url ?? null,
+  nextPost: r.next_post_url ?? null,
 });
 
 export const toStanding = (r: StandingDbRow): StandingRow => ({

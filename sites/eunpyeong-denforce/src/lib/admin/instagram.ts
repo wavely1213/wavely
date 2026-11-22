@@ -26,6 +26,7 @@ const KIND_LABEL: Record<string, string> = {
   welcome: "영입",
   farewell: "작별",
   matchday: "매치데이",
+  nextmatch: "넥스트매치",
   result: "경기결과",
   photo: "사진",
   other: "기타",

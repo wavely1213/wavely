@@ -1,6 +1,6 @@
 // 인스타그램 게시물 → 사이트에 넣을 행 (D-065, BR-029) — AI 없이 정해진 규칙으로. 순수 함수만 (테스트: instagram-sync.test.ts).
 // 판단이 필요한 값(포지션 없음, 같은 이름, 홈/원정, 경기 못 찾음)은 넣지 않거나 넣은 뒤 note 로 '확인 필요'를 남긴다.
-import { kstDateTime, OWN_GOAL_NAMES, parseMatchday, parseResult, type IgPost, type IgPostType, type ResultHint } from "./embed.ts";
+import { kstDateTime, OWN_GOAL_NAMES, parseMatchday, parseNextMatch, parseResult, type IgPost, type IgPostType, type ResultHint } from "./embed.ts";
 import { josa, nameSlug } from "./korean.ts";
 
 export const ACCOUNT = "eunpyeong_denforce";
@@ -326,6 +326,9 @@ export type MatchLite = {
   /** 매치데이 팝업 포스터를 누르면 갈 게시물 (D-096). 열이 없는 DB(마이그레이션 전)에서는 키 자체가 없다 */
   matchday_post_url?: string | null;
   fulltime_post_url?: string | null;
+  /** NEXT MATCH 포스터와 게시물 (D-102). 마이그레이션 전 DB 에서는 키가 없다 */
+  next_poster_url?: string | null;
+  next_post_url?: string | null;
 };
 export type MatchDraft = { competition: string; round: string; kickoff: string; venue: string; is_home: boolean; opponent: string; status: "scheduled" };
 
@@ -404,6 +407,31 @@ export function postLinkTarget(post: IgPost, type: IgPostType, matches: readonly
   return { matchId: m.id, field, url };
 }
 
+
+export type NextFields = "next_poster_url" | "next_post_url";
+
+/**
+ * NEXT MATCH 글 → 그 경기의 NEXT 포스터/게시물 칸 (D-102). 같은 서울 날짜 + 같은 상대(띄어쓰기, 대소문자 무시) 경기가
+ * 정확히 하나일 때만. 홈/원정은 보지 않는다. 채울 칸 = 지금 비어 있고, 넣었거나 관리자가 지운 기록(applied)이 없는 칸.
+ * 열이 없는 DB(마이그레이션 전)면 아무것도 안 한다. 못 찾으면 메모만.
+ */
+export function planNextMatch(
+  post: IgPost,
+  matches: readonly MatchLite[],
+  applied: ReadonlySet<string>,
+): { matchId: string; fields: NextFields[]; postUrl: string } | { note: string | null } {
+  const h = parseNextMatch(post.caption, post.takenAt);
+  if (!h.opponent || !h.date) return { note: "NEXT MATCH 글에서 상대/날짜를 읽지 못함 — 관리자 › 경기에서 NEXT MATCH 포스터를 직접" };
+  const hits = matches.filter((m) => kstDateTime(Date.parse(m.kickoff) / 1000).slice(0, 10) === h.date && sameTeam(m.opponent, h.opponent!));
+  if (hits.length !== 1)
+    return { note: hits.length ? `NEXT MATCH: ${h.date} ${h.opponent} 경기가 ${hits.length}개 — 연결하지 않음` : `NEXT MATCH: ${h.date} ${h.opponent} 경기를 찾지 못함 — 연결하지 않음` };
+  const m = hits[0];
+  if (!("next_poster_url" in m)) return { note: null };
+  const fields = (["next_poster_url", "next_post_url"] as const).filter((f) => !m[f] && !applied.has(appliedNextKey(m.id, f)));
+  return { matchId: m.id, fields: [...fields], postUrl: `https://www.instagram.com/p/${post.code}/` };
+}
+
+export const appliedNextKey = (matchId: string, field: string) => `${matchId}:${field}`;
 
 /** [이름, 골 수] → "김영록 2, 윤창욱" (한 골이면 숫자 없음) */
 export function ballScorersText(list: ReadonlyArray<readonly [string, number]>): string | null {

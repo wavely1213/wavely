@@ -2,7 +2,7 @@
 // 프로필 임베드(instagram.com/<계정>/embed/)는 로그인 없이 최근 게시물 6개를 HTML 안의 contextJSON 에 담아 준다.
 // 종류별 사이트 반영 규칙은 DOMAIN_KNOWLEDGE BR-029.
 
-export type IgPostType = "reel" | "welcome" | "farewell" | "matchday" | "result" | "photo" | "other";
+export type IgPostType = "reel" | "welcome" | "farewell" | "matchday" | "nextmatch" | "result" | "photo" | "other";
 
 export type IgPost = {
   code: string;
@@ -57,6 +57,8 @@ export function classifyPost(post: Pick<IgPost, "caption" | "isVideo">): IgPostT
   const first = (head.split("\n").find((l) => l.trim()) ?? "").trim();
   if (/^[\p{Extended_Pictographic}\p{Variation_Selector}\p{P}\p{Z}\s]*(?:\d+\s*R\s*)?FULL[\s-]?TIME[\p{Extended_Pictographic}\p{Variation_Selector}\p{P}\p{Z}\s]*$/u.test(first)) return "result";
   if (/경기 ?결과/.test(first)) return "result";
+  // NEXT MATCH — 첫 줄이 (꾸밈) NEXT MATCH (꾸밈) 일 때만 (D-102). MATCH DAY 보다 먼저
+  if (/^[\p{Extended_Pictographic}\p{Variation_Selector}\p{P}\p{Z}\s]*NEXT\s*MATCH[\p{Extended_Pictographic}\p{Variation_Selector}\p{P}\p{Z}\s]*$/u.test(first)) return "nextmatch";
   if (/WELCOME/.test(head)) return "welcome";
   if (/GOOD ?LUCK|THANK ?YOU/.test(head)) return "farewell";
   if (/MATCH ?DAY/.test(head)) return "matchday";
@@ -116,6 +118,32 @@ export function parseMatchday(caption: string): MatchdayHint {
   const time = kickoffTime(lines.find((l) => l.startsWith("🕑") || l.startsWith("⏰")) ?? "");
   const venue = lines.find((l) => l.startsWith("📍"))?.replace(/^📍\s*/u, "") || null;
   return { heading, opponent, time, venue };
+}
+
+export type NextMatchHint = { opponent: string | null; date: string | null; time: string | null };
+
+/**
+ * NEXT MATCH 글 → 상대, 경기 날짜(서울 'YYYY-MM-DD'), 시각 (D-102). 예:
+ * "NEXT MATCH 🔵⚪️\n\n🆚 용인지솔FS\n⏰ 11.21 (토) 14:00\n📍 파주NFC풋살장"
+ * 날짜에 연도가 없어, 글 올린 날(서울) 이후 가장 가까운 그 월.일로 본다(12월 글의 1월 경기는 다음 해).
+ */
+export function parseNextMatch(caption: string, takenAt: number): NextMatchHint {
+  const { opponent, time } = parseMatchday(caption);
+  const clock = caption.split("\n").map((l) => l.trim()).find((l) => l.startsWith("⏰") || l.startsWith("🕑")) ?? "";
+  const md = /(\d{1,2})\s*[./]\s*(\d{1,2})/.exec(clock);
+  let date: string | null = null;
+  if (md) {
+    const month = Number(md[1]);
+    const day = Number(md[2]);
+    const posted = kstDateTime(takenAt).slice(0, 10);
+    let year = Number(posted.slice(0, 4));
+    const pad = (n: number) => String(n).padStart(2, "0");
+    if (`${year}-${pad(month)}-${pad(day)}` < posted) year += 1;
+    const d = new Date(Date.UTC(year, month - 1, day));
+    // 2.30 처럼 없는 날짜는 버린다
+    if (month >= 1 && month <= 12 && d.getUTCMonth() === month - 1 && d.getUTCDate() === day) date = `${year}-${pad(month)}-${pad(day)}`;
+  }
+  return { opponent, date, time };
 }
 
 export type ResultHint = {

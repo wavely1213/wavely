@@ -120,11 +120,30 @@ export function MatchForm({
           currentUrl={initial?.fulltime_poster_url}
         />
       </Row>
+      {/* D-102: NEXT MATCH — 포스터가 생긴 때부터 경기 전날 23:59 까지 홈 팝업. 인스타 NEXT MATCH 글이 올라오면 빈 칸에 자동으로 들어온다 */}
+      <Row>
+        <ImageField
+          name="next_poster"
+          label="NEXT MATCH 포스터"
+          hint="경기 전날 23:59 까지 홈 팝업(그날 다른 경기 팝업이 없을 때). 지우면 자동으로 다시 채우지 않습니다"
+          currentUrl={initial?.next_poster_url}
+        />
+        <TextField
+          name="next_post_url"
+          label="NEXT MATCH 게시물"
+          type="url"
+          maxLength={500}
+          placeholder="https://www.instagram.com/p/…"
+          hint="NEXT MATCH 포스터를 누르면 갈 인스타 게시물 (새 창). 인스타 NEXT MATCH 글이 올라오면 빈 칸에 자동으로 들어옵니다"
+          defaultValue={initial?.next_post_url}
+        />
+      </Row>
       {/* 폼을 연 때의 행 시각 — 그사이 동기화(영상, 결과, 포스터)나 다른 관리자가 바꿨으면 저장을 막는다 (낡은 값으로 덮지 않게) */}
       {initial?.updated_at && <input type="hidden" name="updated_at_initial" value={initial.updated_at} />}
       {/* 폼을 연 때의 게시물 값 — 저장할 때 이것과 비교해 바뀐 칸만 보낸다 (그사이 자동으로 채워진 칸을 지우지 않게) */}
       <input type="hidden" name="matchday_post_url_initial" value={initial?.matchday_post_url ?? ""} />
       <input type="hidden" name="fulltime_post_url_initial" value={initial?.fulltime_post_url ?? ""} />
+      <input type="hidden" name="next_post_url_initial" value={initial?.next_post_url ?? ""} />
       <Row>
         <TextField
           name="matchday_post_url"

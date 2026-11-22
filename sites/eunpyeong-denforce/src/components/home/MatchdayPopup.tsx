@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { activePoster, hideKey, kstDay, msUntilPosterChange, shouldShowPoster, type ActivePoster, type PosterWindow } from "@/lib/matchday";
 import styles from "./MatchdayPopup.module.css";
 
-const KIND_LABEL = { matchday: "MATCH DAY", fulltime: "FULL TIME" } as const;
+const KIND_LABEL = { next: "NEXT MATCH", matchday: "MATCH DAY", fulltime: "FULL TIME" } as const;
 /** 포스터를 받기 전 기본 비율 (1R MATCH DAY 3:4). 받으면 그림의 원래 비율로 바뀐다 */
 const DEFAULT_RATIO = 3 / 4;
 
@@ -17,7 +17,7 @@ function altOf(a: ActivePoster): string {
 }
 
 /**
- * 매치데이 포스터 팝업 (D-096) — 홈을 열면 맨 앞(<dialog> showModal)에 뜬다. 모양은 소유자 확정 P3 '포스터만 크게'(피그마 297:29767 등),
+ * 매치데이 포스터 팝업 (D-096, NEXT MATCH D-102) — 홈을 열면 맨 앞(<dialog> showModal)에 뜬다. 모양은 소유자 확정 P3 '포스터만 크게'(피그마 297:29767 등),
  * 운영 임시판(85e57d4, c97fbd3)과 같다: X 없이 아래 줄 [오늘 하루 보지 않기 | 닫기], 휴대폰 가운데 / 721 이상 오른쪽 아래 폭 360.
  * 포스터를 누르면 그 경기 인스타 게시물(새 창, 주소가 있을 때). 열 때 초점은 대화 상자 자체(버튼 테두리가 저절로 보이지 않게).
  * MATCH DAY / FULL TIME 둘 다 같은 틀에 이미지 한 장, 비율은 그림의 원래 비율. 시각은 브라우저에서 잰다(캐시 때문).
@@ -83,7 +83,7 @@ export function MatchdayPopup({ windows }: { windows: PosterWindow[] }) {
   };
 
   const ratio = shown && loaded?.src === shown.image ? loaded.ratio : DEFAULT_RATIO;
-  const link = shown ? (shown.kind === "fulltime" ? shown.window.fulltimePost : shown.window.matchdayPost) : null;
+  const link = shown ? { next: shown.window.nextPost, matchday: shown.window.matchdayPost, fulltime: shown.window.fulltimePost }[shown.kind] : null;
   const poster = shown && (
     // eslint-disable-next-line @next/next/no-img-element -- 이미지 최적화 끔(원본 그대로, D-073)
     <img
