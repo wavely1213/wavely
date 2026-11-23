@@ -1,0 +1,30 @@
+/* 칩 (리디자인 Chip 130:716) — 알약, 높이 44, line 테두리, kfa/body-s. 켜짐: black 바탕 + on-dark 글자 */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--space-m);
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-pill);
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-size: 14px;
+  line-height: 1.6;
+  cursor: pointer;
+}
+
+.chip:hover {
+  border-color: var(--c-text);
+}
+
+.chip[aria-pressed="true"] {
+  border-color: var(--c-black);
+  background: var(--c-black);
+  color: var(--c-on-dark);
+}

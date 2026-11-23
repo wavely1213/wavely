@@ -1,0 +1,26 @@
+/* 유스 — 소개 글(있을 때만) 아래 팀 카드 격자, 사이 space/2xl(휴대폰 space/xl). 소개 kfa/pc/body 16(휴대폰 15), 문단 사이 space/m */
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xl);
+}
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-m);
+  max-width: 800px;
+  font-size: 16px;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+@media (max-width: 720px) {
+  .body {
+    gap: var(--space-xl);
+  }
+
+  .intro {
+    font-size: 15px;
+  }
+}

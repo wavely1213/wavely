@@ -1,0 +1,13 @@
+/* 구단정보 화면 — 연혁 패널 머리(제목 + 추가 버튼). 버튼·표 모양은 admin.module.css */
+.panelHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.panelHead h2 {
+  margin-bottom: 0;
+}

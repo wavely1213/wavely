@@ -1,0 +1,64 @@
+/* 버튼 기본형 (리디자인 D-067) — 높이 44, radius/m, 좌우 space/m, kfa/pc/h4 16 Bold. 피그마 NextMatchHero 버튼 기준.
+   primary: blue 바탕 + on-blue / secondary: 흰 면 테두리(line) + text
+   onBlue: 파랑 면 위 — bg 바탕 + blue 글자 / onBlueOutline: on-blue 1px 테두리 + on-blue 글자
+   onDarkOutline: 검정 면 위 — on-dark 1px 테두리 + on-dark 글자 */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  min-height: 44px;
+  padding: 0 var(--space-m);
+  border: 1px solid transparent;
+  border-radius: var(--radius-m);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.primary {
+  background: var(--c-blue);
+  color: var(--c-on-blue);
+}
+
+.primary:hover {
+  background: var(--c-blue-hover);
+}
+
+.secondary {
+  background: var(--c-bg);
+  border-color: var(--c-line);
+  color: var(--c-text);
+}
+
+.secondary:hover {
+  border-color: var(--c-text);
+}
+
+.onBlue {
+  background: var(--c-bg);
+  color: var(--c-blue);
+}
+
+.onBlue:hover {
+  background: var(--c-blue-tint);
+}
+
+.onBlueOutline {
+  border-color: var(--c-on-blue);
+  color: var(--c-on-blue);
+}
+
+.onDarkOutline {
+  border-color: var(--c-on-dark);
+  color: var(--c-on-dark);
+}
+
+.onBlueOutline:hover,
+.onDarkOutline:hover {
+  background: var(--c-line-on-dark);
+}

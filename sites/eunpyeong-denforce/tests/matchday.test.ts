@@ -1,0 +1,294 @@
+// 매치데이 포스터 팝업 (D-096) — 표시 규칙과 드라이브 폴더 연결
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { activePoster, hasPoster, hideKey, kstDay, msUntilPosterChange, posterWindow, posterWindows, shouldShowPoster } from "../src/lib/matchday.ts";
+import {
+  matchForFolder,
+  needsPoster,
+  parseFolderName,
+  planFolder,
+  posterKind,
+  shouldRun,
+  sizedThumb,
+  storagePath,
+  type PosterMatch,
+} from "../supabase/functions/matchday-poster-sync/plan.ts";
+import type { Match } from "../src/types/index.ts";
+
+const MD = "https://x.supabase.co/storage/v1/object/public/media/matchday/m1.jpg";
+const FT = "https://x.supabase.co/storage/v1/object/public/media/matchday/m1-ft.jpg";
+const m = (over: Partial<Match> = {}): Match => ({
+  id: "m1",
+  competition: "c",
+  round: "2R",
+  kickoff: "2026-11-21T14:00:00+09:00",
+  venue: "v",
+  isHome: false,
+  opponent: "용인지솔FS",
+  status: "scheduled",
+  score: null,
+  highlightUrl: null,
+  replayUrl: null,
+  scorers: null,
+  matchdayPoster: MD,
+  fulltimePoster: null,
+  ...over,
+});
+const t = (iso: string) => Date.parse(iso);
+const at = (ms: Match[], iso: string) => {
+  const a = activePoster(posterWindows(ms), t(iso));
+  return a ? `${a.window.matchId}:${a.kind}` : null;
+};
+const done = { status: "finished" as const, score: { us: 3, them: 2 } };
+
+test("규칙 1~5: 전날 23:59 / 당일 0:00 / 경기 중 / 끝남(FT 없음) / FT 올라옴 / 다음 날 0:00", () => {
+  assert.equal(at([m()], "2026-11-20T23:59:59+09:00"), null); // 1
+  assert.equal(at([m()], "2026-11-21T00:00:00+09:00"), "m1:matchday"); // 3
+  assert.equal(at([m()], "2026-11-21T15:30:00+09:00"), "m1:matchday");
+  assert.equal(at([m(done)], "2026-11-21T16:00:00+09:00"), null); // 4 결과 입력
+  assert.equal(at([m()], "2026-11-21T18:00:00+09:00"), null); // 4 킥오프 + 4시간
+  assert.equal(at([m({ ...done, fulltimePoster: FT })], "2026-11-21T16:00:00+09:00"), "m1:fulltime"); // 2
+  assert.equal(at([m({ ...done, fulltimePoster: FT })], "2026-11-21T23:59:59+09:00"), "m1:fulltime");
+  assert.equal(at([m({ ...done, fulltimePoster: FT })], "2026-11-22T00:00:00+09:00"), null); // 5
+});
+
+test("FULL TIME 이 먼저 올라오면 그것, MATCH DAY 없이 FULL TIME 만 있어도", () => {
+  assert.equal(at([m({ fulltimePoster: FT })], "2026-11-21T10:00:00+09:00"), "m1:fulltime");
+  assert.equal(at([m({ matchdayPoster: null, fulltimePoster: FT, ...done })], "2026-11-21T20:00:00+09:00"), "m1:fulltime");
+});
+
+test("posterWindow: 포스터 없음, https 아님, 날짜 오류 → null. 서울 0시 기준", () => {
+  // 포스터가 없어도 창은 만든다(NEXT 판단용) — 포스터 없음은 hasPoster 로
+  assert.equal(hasPoster(posterWindow(m({ matchdayPoster: null }))!), false);
+  assert.equal(hasPoster(posterWindow(m({ matchdayPoster: "http://x/a.jpg" }))!), false);
+  assert.equal(posterWindow(m({ kickoff: "없음" })), null);
+  assert.equal(posterWindow(m({ kickoff: "2026-11-21T08:00:00+09:00" }))!.start, t("2026-11-21T00:00:00+09:00"));
+});
+
+test("같은 날 두 경기: 먼저 것, 끝나면 다음 것", () => {
+  const ms = [m({ id: "b", kickoff: "2026-11-21T19:00:00+09:00" }), m({ id: "a", kickoff: "2026-11-21T13:00:00+09:00" })];
+  assert.equal(at(ms, "2026-11-21T12:00:00+09:00"), "a:matchday");
+  assert.equal(at(ms, "2026-11-21T17:30:00+09:00"), "b:matchday");
+});
+
+test("오늘 하루 보지 않기: 종류별 키, 닫은 날 = 오늘이면 안 보임", () => {
+  assert.notEqual(hideKey("m1", "matchday"), hideKey("m1", "fulltime"));
+  const now = t("2026-11-21T10:00:00+09:00");
+  assert.equal(kstDay(now), "2026-11-21");
+  assert.equal(shouldShowPoster(null, now), true);
+  assert.equal(shouldShowPoster("2026-11-21", now), false);
+  assert.equal(shouldShowPoster("2026-11-20", t("2026-11-21T00:00:30+09:00")), true);
+});
+
+test("msUntilPosterChange: 0시, 킥오프 + 4시간, 다음 날 0시", () => {
+  const ws = posterWindows([m()]);
+  assert.equal(msUntilPosterChange(ws, t("2026-11-20T23:00:00+09:00")), 3_600_000);
+  assert.equal(msUntilPosterChange(ws, t("2026-11-21T17:00:00+09:00")), 3_600_000);
+  assert.equal(msUntilPosterChange(ws, t("2026-11-21T23:00:00+09:00")), 3_600_000);
+  assert.equal(msUntilPosterChange(ws, t("2026-11-22T01:00:00+09:00")), null);
+});
+
+/* 드라이브 폴더 → 경기 (matchday-poster-sync) */
+test("parseFolderName: 'MM/DD vs 상대 (HOME|AWAY)'", () => {
+  assert.deepEqual(parseFolderName("11/15 vs 노원제너FS (AWAY)"), { month: 11, day: 15, opponent: "노원제너FS", side: "AWAY" });
+  assert.deepEqual(parseFolderName("12/5 VS 강원 FS (home)"), { month: 12, day: 5, opponent: "강원 FS", side: "HOME" });
+  assert.equal(parseFolderName("사진 모음"), null);
+  assert.equal(parseFolderName("13/40 vs A (HOME)"), null);
+});
+
+test("posterKind: MATCH-DAY / FULL", () => {
+  assert.equal(posterKind("MATCH-DAY.jpg"), "matchday_poster_url");
+  assert.equal(posterKind("match day 2.png"), "matchday_poster_url");
+  assert.equal(posterKind("FULL-TIME.jpg"), "fulltime_poster_url");
+  assert.equal(posterKind("fulltime_final.jpg"), "fulltime_poster_url");
+  assert.equal(posterKind("라인업.jpg"), null);
+});
+
+const pm = (over: Partial<PosterMatch> = {}): PosterMatch => ({ id: "m1", kickoff: "2026-11-15T05:00:00Z", opponent: "노원제너FS", matchday_poster_url: null, fulltime_poster_url: null, ...over });
+
+test("matchForFolder: 같은 달/일 + 같은 상대(띄어쓰기 무시), 연도는 지금과 가까운 쪽", () => {
+  const f = parseFolderName("11/15 vs 노원제너 FS (AWAY)")!;
+  const now = t("2026-11-14T12:00:00Z");
+  assert.equal((matchForFolder(f, [pm()], now) as PosterMatch).id, "m1");
+  const two = [pm({ id: "old", kickoff: "2025-11-15T05:00:00Z" }), pm()];
+  assert.equal((matchForFolder(f, two, now) as PosterMatch).id, "m1");
+  assert.equal(typeof matchForFolder(f, [pm({ opponent: "강원FS" })], now), "string");
+  // 서울 날짜 (UTC 로는 전날)
+  assert.equal((matchForFolder(f, [pm({ kickoff: "2026-11-14T23:30:00Z" })], now) as PosterMatch).id, "m1");
+});
+
+const file = (name: string, over: Record<string, string> = {}) => ({ id: `id_${name.replace(/\W/g, "")}_0000000`, name, mimeType: "image/jpeg", thumbnailLink: "https://lh3.googleusercontent.com/abc=s220", ...over });
+
+test("planFolder: 빈 칸만, 관리자 값 우선, 지운 칸 다시 안 채움, 썸네일 1600", () => {
+  const files = [file("MATCH-DAY.jpg"), file("FULL-TIME.jpg"), file("라인업.jpg")];
+  const p = planFolder(pm(), files, new Set());
+  assert.deepEqual(
+    p.updates.map((u) => [u.field, u.thumb]),
+    [
+      ["matchday_poster_url", "https://lh3.googleusercontent.com/abc=s1600"],
+      ["fulltime_poster_url", "https://lh3.googleusercontent.com/abc=s1600"],
+    ],
+  );
+  assert.deepEqual(planFolder(pm({ matchday_poster_url: MD }), files, new Set()).updates.map((u) => u.field), ["fulltime_poster_url"]);
+  assert.deepEqual(planFolder(pm(), files, new Set(["m1:matchday_poster_url"])).updates.map((u) => u.field), ["fulltime_poster_url"]);
+  // 미리보기 없는 파일도 후보(thumb 빈칸) — 1등이면 함수가 그 칸을 건너뛴다
+  const noThumb = planFolder(pm(), [file("MATCH-DAY.jpg", { thumbnailLink: "" })], new Set());
+  assert.deepEqual(noThumb.updates.map((u) => u.thumb), [""]);
+  // 같은 종류 여러 장 → 최근에 바뀐 것부터 (모두 후보)
+  const newer = planFolder(pm(), [file("MATCH-DAY.jpg", { modifiedTime: "2026-11-10" }), file("MATCH-DAY 2.jpg", { modifiedTime: "2026-11-12", id: "newer_file_id_123" })], new Set());
+  assert.equal(newer.updates[0].fileId, "newer_file_id_123");
+  assert.equal(newer.updates.length, 2);
+});
+
+test("needsPoster, storagePath, sizedThumb", () => {
+  assert.equal(needsPoster(pm(), new Set()), true);
+  assert.equal(needsPoster(pm({ matchday_poster_url: MD, fulltime_poster_url: FT }), new Set()), false);
+  assert.equal(needsPoster(pm({ matchday_poster_url: MD }), new Set(["m1:fulltime_poster_url"])), false);
+  // 파일마다 따로 (고정 경로 덮어쓰기 없음)
+  assert.equal(storagePath("m1", "fileA_0000000000"), "matchday/m1-fileA_0000000000.jpg");
+  assert.equal(sizedThumb("https://a/b", 1600), "https://a/b=s1600");
+});
+
+test("shouldRun: 경기 날(서울)은 매번, 아니면 마지막 성공 뒤 3시간", () => {
+  const kick = ["2026-11-21T05:00:00Z"];
+  assert.equal(shouldRun(t("2026-11-21T00:10:00+09:00"), kick, new Date().toISOString()), true);
+  assert.equal(shouldRun(t("2026-11-20T12:00:00+09:00"), kick, "2026-11-20T02:00:00Z"), false);
+  assert.equal(shouldRun(t("2026-11-20T12:00:00+09:00"), kick, "2026-11-20T00:00:00Z"), true);
+  assert.equal(shouldRun(t("2026-11-20T12:00:00+09:00"), kick, null), true);
+});
+
+test("포스터 링크: 인스타그램 게시물 주소만 창에 실린다", () => {
+  const w = posterWindow(m({ matchdayPost: "https://www.instagram.com/p/AAA/", fulltimePost: "https://example.com/p" }))!;
+  assert.equal(w.matchdayPost, "https://www.instagram.com/p/AAA/");
+  assert.equal(w.fulltimePost, null);
+});
+
+test("firstCandidates: (경기, 칸)마다 1등 하나만 — HOME/AWAY 맞는 폴더, 그다음 최신", async () => {
+  const { firstCandidates } = await import("../supabase/functions/matchday-poster-sync/plan.ts");
+  const u = (fileName: string, sideMatch: boolean, modifiedTime: string, field: "matchday_poster_url" | "fulltime_poster_url" = "matchday_poster_url") => ({
+    matchId: "m1",
+    field,
+    fileId: `f_${fileName}_00000000`,
+    thumb: "https://x",
+    fileName,
+    folderName: "11/21 vs 용인지솔FS (AWAY)",
+    sideMatch,
+    modifiedTime,
+  });
+  const g = firstCandidates([u("old.jpg", true, "2026-11-01"), u("wrongside.jpg", false, "2026-11-20"), u("new.jpg", true, "2026-11-10"), u("FULL.jpg", true, "", "fulltime_poster_url")]);
+  assert.deepEqual(
+    g.map((x) => [x.pick.fileName, x.count]),
+    [
+      ["new.jpg", 3],
+      ["FULL.jpg", 1],
+    ],
+  );
+});
+
+test("planFolder: 같은 종류 이미지는 모두 후보, 폴더 HOME/AWAY 가 경기와 맞는지", () => {
+  const files = [file("MATCH-DAY.jpg", { modifiedTime: "2026-11-10" }), file("MATCH-DAY 2.jpg", { modifiedTime: "2026-11-12", id: "newer_file_id_123" })];
+  const p = planFolder(pm({ is_home: false }), files, new Set(), { name: "11/15 vs 노원제너FS (AWAY)", side: "AWAY" });
+  assert.deepEqual(p.updates.map((u) => [u.fileId, u.sideMatch, u.folderName]), [
+    ["newer_file_id_123", true, "11/15 vs 노원제너FS (AWAY)"],
+    [files[0].id, true, "11/15 vs 노원제너FS (AWAY)"],
+  ]);
+  assert.equal(planFolder(pm({ is_home: false }), files, new Set(), { name: "x", side: "HOME" }).updates[0].sideMatch, false);
+});
+
+test("redactKey: 오류 문구 속 API 키를 가린다", async () => {
+  const { redactKey } = await import("../supabase/functions/drive-library/drive.ts");
+  assert.equal(
+    redactKey("fetch failed https://www.googleapis.com/drive/v3/files?q=x&key=AIzaSECRET123&pageSize=100 (timeout)"),
+    "fetch failed https://www.googleapis.com/drive/v3/files?q=x&key=***&pageSize=100 (timeout)",
+  );
+  assert.equal(redactKey("https://a/b?key=AIza) end"), "https://a/b?key=***) end");
+  assert.equal(redactKey("no key here"), "no key here");
+  // Deno fetch 실제 오류 모양 (시간 초과 / 연결 실패)
+  assert.equal(
+    redactKey("error sending request for url (https://www.googleapis.com/drive/v3/files?q=%27x%27+in+parents&key=AIzaSyA-b_c&pageSize=100): connection error"),
+    "error sending request for url (https://www.googleapis.com/drive/v3/files?q=%27x%27+in+parents&key=***&pageSize=100): connection error",
+  );
+  assert.equal(redactKey("TimeoutError: Signal timed out. url=https://x/y?key=AIzaSyA-b_c"), "TimeoutError: Signal timed out. url=https://x/y?key=***");
+});
+
+test("가장 최근 파일에 미리보기가 아직 없으면 1등이 그 파일 — 옛 파일로 내려가지 않음", async () => {
+  const { firstCandidates } = await import("../supabase/functions/matchday-poster-sync/plan.ts");
+  const files = [file("MATCH-DAY.jpg", { modifiedTime: "2026-11-10" }), file("MATCH-DAY 2.jpg", { modifiedTime: "2026-11-12", id: "newer_file_id_123", thumbnailLink: "" })];
+  const [first] = firstCandidates(planFolder(pm(), files, new Set(), { name: "11/15 vs 노원제너FS (AWAY)" }).updates);
+  assert.deepEqual([first.pick.fileId, first.pick.thumb, first.count], ["newer_file_id_123", "", 2]);
+});
+
+// ── NEXT MATCH (D-102) ──
+const NX = "https://x.supabase.co/storage/v1/object/public/media/instagram/next.jpg";
+
+test("NEXT MATCH: 포스터가 있으면 경기 전날 23:59:59 까지, 경기 날 0시에 MATCH DAY 로 (없으면 아무것도)", () => {
+  const withMd = [m({ nextPoster: NX, nextPost: "https://www.instagram.com/p/Df1I2_DPhnn/" })];
+  assert.equal(at(withMd, "2026-11-17T12:00:00+09:00"), "m1:next");
+  assert.equal(at(withMd, "2026-11-20T23:59:59+09:00"), "m1:next");
+  assert.equal(at(withMd, "2026-11-21T00:00:00+09:00"), "m1:matchday");
+  const noMd = [m({ matchdayPoster: null, nextPoster: NX })];
+  assert.equal(at(noMd, "2026-11-20T23:59:59+09:00"), "m1:next");
+  assert.equal(at(noMd, "2026-11-21T00:00:00+09:00"), null);
+  // 0시 경계에 다시 잰다
+  assert.equal(msUntilPosterChange(posterWindows(noMd), t("2026-11-20T23:59:59+09:00")), 1000);
+  // 링크와 그림
+  const a = activePoster(posterWindows(withMd), t("2026-11-18T09:00:00+09:00"));
+  assert.equal(a?.image, NX);
+  assert.equal(a?.window.nextPost, "https://www.instagram.com/p/Df1I2_DPhnn/");
+});
+
+test("NEXT MATCH: 같은 날 지난 경기 FULL TIME / 오늘 MATCH DAY 가 먼저, 여러 경기면 가장 가까운 앞 경기", () => {
+  const past = m({ id: "p", kickoff: "2026-11-21T14:00:00+09:00", status: "finished", matchdayPoster: MD, fulltimePoster: FT });
+  const next4 = m({ id: "n4", kickoff: "2026-12-05T14:00:00+09:00", matchdayPoster: null, nextPoster: NX });
+  const next5 = m({ id: "n5", kickoff: "2026-12-12T14:00:00+09:00", matchdayPoster: null, nextPoster: NX });
+  // 지난 경기 날 저녁: FULL TIME 먼저
+  assert.equal(at([past, next4, next5], "2026-11-21T20:00:00+09:00"), "p:fulltime");
+  // 다음 날: NEXT, 가장 가까운 4R
+  assert.equal(at([past, next4, next5], "2026-11-22T09:00:00+09:00"), "n4:next");
+  // 오늘 MATCH DAY 경기가 있으면 그것이 먼저
+  const today = m({ id: "t", kickoff: "2026-11-29T14:00:00+09:00", matchdayPoster: MD });
+  assert.equal(at([today, next4], "2026-11-29T10:00:00+09:00"), "t:matchday");
+  // 4R 날(MATCH DAY 포스터 없음)에는 5R NEXT 를 띄우지 않고, 다음 날부터 5R NEXT
+  assert.equal(at([next4, next5], "2026-12-05T10:00:00+09:00"), null);
+  assert.equal(at([next4, next5], "2026-12-06T00:00:00+09:00"), "n5:next");
+  // 지난 경기 날 FULL TIME 이 아직 없을 때(경기 끝 뒤)도 그날은 NEXT 없음
+  const pastNoFt = m({ id: "q", kickoff: "2026-11-21T14:00:00+09:00", status: "finished", matchdayPoster: MD });
+  assert.equal(at([pastNoFt, next4], "2026-11-21T20:00:00+09:00"), null);
+  assert.equal(at([pastNoFt, next4], "2026-11-22T00:00:00+09:00"), "n4:next");
+});
+
+test("NEXT MATCH: '오늘 하루 보지 않기'는 종류별, https 가 아니면 무시", () => {
+  assert.equal(hideKey("m1", "next"), "matchday-popup-hide:m1:next");
+  assert.notEqual(hideKey("m1", "next"), hideKey("m1", "matchday"));
+  assert.equal(posterWindow(m({ matchdayPoster: null, nextPoster: "http://x/a.jpg" }))!.next, null);
+  assert.equal(posterWindow(m({ matchdayPoster: null, nextPoster: NX, nextPost: "https://evil.example/p" }))?.nextPost, null);
+});
+
+test("NEXT MATCH: 포스터 없는 경기도 판단에 들어간다 (총괄 검토 — 7R 1/16 포스터 없음, 8R 1/17 NEXT)", () => {
+  const r7 = m({ id: "r7", kickoff: "2027-01-16T14:00:00+09:00", matchdayPoster: null });
+  const r8 = m({ id: "r8", kickoff: "2027-01-17T17:00:00+09:00", matchdayPoster: null, nextPoster: NX });
+  // ② 더 가까운 경기(7R)가 포스터 없음 → 뒤 경기 NEXT 안 뜸
+  assert.equal(at([r7, r8], "2027-01-15T20:00:00+09:00"), null);
+  // ① 같은 날 포스터 없는 경기 → 다음 경기 NEXT 안 뜸
+  assert.equal(at([r7, r8], "2027-01-16T10:00:00+09:00"), null);
+  assert.equal(at([r7, r8], "2027-01-16T19:00:00+09:00"), null);
+  // ③ 7R 끝난 다음 날 0시부터 8R NEXT (8R 경기 날 0시 전까지) — 8R 이 1/17 이라 그날은 경기 날
+  const r8later = m({ id: "r8", kickoff: "2027-01-20T17:00:00+09:00", matchdayPoster: null, nextPoster: NX });
+  assert.equal(at([r7, r8later], "2027-01-16T23:59:59+09:00"), null);
+  assert.equal(at([r7, r8later], "2027-01-17T00:00:00+09:00"), "r8:next");
+  // 경계: 포스터 없는 경기의 0시/다음 날 0시도 다시 잰다
+  assert.equal(msUntilPosterChange(posterWindows([r7, r8later]), t("2027-01-16T23:59:59+09:00")), 1000);
+  assert.equal(msUntilPosterChange(posterWindows([r7, r8later]), t("2027-01-15T23:59:59+09:00")), 1000);
+  // 포스터가 하나도 없으면 홈은 팝업을 두지 않는다
+  assert.equal(posterWindows([r7]).some(hasPoster), false);
+  assert.equal(posterWindows([r7, r8]).some(hasPoster), true);
+});
+
+test("MATCH DAY / FULL TIME 은 포스터 없는 경기 창이 섞여도 그대로", () => {
+  const plain = m({ id: "x", kickoff: "2026-11-28T14:00:00+09:00", matchdayPoster: null });
+  const ft = m({ id: "f", kickoff: "2026-11-21T14:00:00+09:00", status: "finished", fulltimePoster: FT });
+  assert.equal(at([ft, plain], "2026-11-21T20:00:00+09:00"), "f:fulltime");
+  assert.equal(at([ft, plain], "2026-11-21T12:00:00+09:00"), "f:fulltime");
+  assert.equal(at([m(), plain], "2026-11-21T10:00:00+09:00"), "m1:matchday");
+  assert.equal(at([m(), plain], "2026-11-28T10:00:00+09:00"), null);
+});

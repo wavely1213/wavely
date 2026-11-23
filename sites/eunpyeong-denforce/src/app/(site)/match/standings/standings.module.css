@@ -1,0 +1,91 @@
+/* 리그순위 화면 (리디자인 2차 시안 138:13329 / 138:13604) — 섹션 사이 space/2xl, 제목 kfa/pc/h3 24 (휴대폰 20) */
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xl);
+  /* 아래 여백은 Footer margin-top(section-gap) 한 번만 (검토 #27) */
+  padding-bottom: 0;
+}
+
+.h2 {
+  margin-bottom: var(--space-m);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+/* 지난 시즌 '경기 결과' — 첫 대회 제목(h3)과 사이 space/l */
+.h2Results {
+  margin-bottom: var(--space-l);
+}
+
+/* 표 아래 메모 — kfa/caption text-sub */
+.note {
+  margin-top: var(--space-m);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--c-text-sub);
+}
+
+/* 지난 리그 칩 — bg-soft, radius/m, 높이 44, 시즌 + → */
+.past {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.pastLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-l);
+  min-height: 44px;
+  padding: 0 var(--space-m);
+  border-radius: var(--radius-m);
+  background: var(--c-bg-soft);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--c-text);
+}
+
+.pastText {
+  display: flex;
+  flex-direction: column;
+  padding-block: var(--space-xs);
+}
+
+/* 우리 팀 최종 성적 — kfa/caption text-sub */
+.pastMeta {
+  font-size: 12px;
+  color: var(--c-text-sub);
+}
+
+.pastLink:hover {
+  color: var(--c-blue);
+}
+
+.arrow {
+  color: var(--c-text-sub);
+}
+
+/* 지난 시즌 화면 맨 위 '← 지금 시즌 순위' */
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  min-height: 44px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--c-blue);
+}
+
+.back:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 720px) {
+  .h2 {
+    font-size: 20px;
+  }
+}

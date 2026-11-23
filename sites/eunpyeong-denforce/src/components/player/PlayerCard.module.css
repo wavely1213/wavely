@@ -1,0 +1,137 @@
+/* PC 한 줄 5명 고정 (인원이 적은 포지션도 카드 크기 동일), 줄 사이 space/xl, 칸 사이 space/l (선수 목록 137:11897) */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--space-xl) var(--space-l);
+}
+
+/* 코칭스태프 — PC 4열(카드 282, 155:18888) */
+.staffGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 960px) {
+  .grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* 사진 3:4, black-soft, radius/m — 글과 사이 space/s */
+.photo {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  margin-bottom: var(--space-s);
+  border-radius: var(--radius-m);
+  overflow: hidden;
+  background: var(--c-black-soft);
+}
+
+.photo img {
+  object-fit: cover;
+}
+
+.info {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.number {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--c-blue);
+}
+
+/* 긴 이름은 카드 폭 안에서 줄바꿈 (디자인 UX 상태 표 209:2827) */
+/* kfa/pc/h4 18 Bold (코칭스태프 휴대폰 kfa/m/h4 16) */
+.name {
+  min-width: 0;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.card:hover .name {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* 사진이 없는 스태프 카드 — black-soft + 엠블럼 (리디자인 3차 StaffCard 145:881, [변경 D-016] 파랑 그라데이션 → black-soft) */
+.brand {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--c-black-soft);
+}
+
+/* 링크가 아닌 카드(코칭스태프)는 hover 밑줄 없음 */
+.plain:hover .name {
+  text-decoration: none;
+}
+
+/* 포지션 kfa/caption text-sub (코칭스태프 직책 kfa/body-s 14), 이름과 사이 space/2xs */
+.position {
+  margin-top: var(--space-2xs);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--c-text-sub);
+}
+
+.staffGrid .position {
+  font-size: 14px;
+}
+
+/* 출전 줄 (구분안 2) — kfa/caption text-sub, 기록 없는 선수도 같은 높이 */
+.apps {
+  margin-top: var(--space-2xs);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--c-text-sub);
+}
+
+@media (max-width: 720px) {
+  .scroll {
+    display: flex;
+    gap: 12px;
+    margin: 0 calc(var(--gutter) * -1);
+    padding: 0 var(--gutter);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding: 0 var(--gutter);
+    scrollbar-width: none;
+  }
+
+  .scroll .card {
+    flex: 0 0 42%;
+    scroll-snap-align: start;
+  }
+
+  .grid:not(.scroll) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-l) var(--space-m);
+  }
+
+  .staffGrid .name {
+    font-size: 16px;
+  }
+}
+
+/* 유스 팀 엠블럼 — 사진 칸 안에 가운데, 칸 높이의 60% 까지 (원본 비율 그대로) */
+.youthEmblem {
+  width: auto;
+  height: 60%;
+  max-width: 80%;
+  object-fit: contain;
+}

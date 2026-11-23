@@ -1,0 +1,78 @@
+/* 섹션 제목 (리디자인 D-067) — 노란 마크 24x4 + 제목 kfa/pc/h2 32 (휴대폰 24), 제목과 내용 사이 space/l */
+.section {
+  padding: var(--section-gap) 0 0;
+}
+
+/* 좁은 화면(320~349)에서 긴 외부 링크(@eunpyeong_denforce ↗)가 넘치지 않게 줄바꿈 (G8) */
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-2xs) var(--space-m);
+  margin-bottom: var(--space-l);
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.title::before {
+  content: "";
+  display: block;
+  width: 24px;
+  height: 4px;
+  margin-bottom: var(--space-s);
+  background: var(--c-yellow);
+}
+
+/* kfa/body-s, text-sub */
+/* 화살표 앞 띄어쓰기는 inline-flex 에서 사라지므로 gap 으로 (G12) */
+.more {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  min-height: 44px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--c-text-sub);
+  white-space: nowrap;
+}
+
+.more:hover {
+  color: var(--c-blue);
+}
+
+/* 전폭 색 면 — 위아래 section-gap, 다음 섹션과 사이 0 */
+.black,
+.blackSoft {
+  padding-bottom: var(--section-gap);
+  color: var(--c-on-dark);
+}
+
+.black {
+  background: var(--c-black);
+}
+
+.blackSoft {
+  background: var(--c-black-soft);
+}
+
+.black .more,
+.blackSoft .more {
+  color: var(--c-on-dark-sub);
+}
+
+.black .more:hover,
+.blackSoft .more:hover {
+  color: var(--c-on-dark);
+}
+
+@media (max-width: 720px) {
+  .title {
+    font-size: 24px;
+  }
+}

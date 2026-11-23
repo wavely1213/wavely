@@ -1,0 +1,4 @@
+# Supabase CLI 로컬 산출물
+.branches
+.temp
+.env*

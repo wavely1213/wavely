@@ -1,0 +1,46 @@
+/* 공개 페이지 오류 — bg-soft 상자(빈 상태 상자와 같은 모양), 제목 kfa/pc/h3 24(휴대폰 20) + 안내 kfa/body-s text-sub + 버튼 둘 */
+.wrap {
+  padding-top: var(--space-2xl);
+}
+
+.box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-s);
+  padding: var(--space-2xl) var(--space-l);
+  border-radius: var(--radius-m);
+  background: var(--c-bg-soft);
+  text-align: center;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.title:focus {
+  outline: none;
+}
+
+.desc {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--c-text-sub);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-xs);
+  margin-top: var(--space-xs);
+}
+
+@media (max-width: 720px) {
+  .title {
+    font-size: 20px;
+  }
+}

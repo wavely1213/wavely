@@ -1,0 +1,39 @@
+/* 관리자가 쓴 긴 문서 (개인정보처리방침 등) — 소제목 / 목록 / 문단 */
+.doc {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 860px;
+  font-size: 16px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+
+.doc p {
+  white-space: pre-line;
+}
+
+.doc a {
+  color: var(--c-blue);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.heading {
+  margin-top: 18px;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.heading:first-child {
+  margin-top: 0;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 20px;
+  list-style: disc;
+}
